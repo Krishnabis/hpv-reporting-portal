@@ -542,7 +542,7 @@ export const AdminDashboard: React.FC = () => {
 
                 {/* Tier Legend */}
                 <div className="flex flex-wrap gap-1.5 mb-3">
-                  {[{l:'Very Low',b:'bg-red-100',t:'text-red-700',v:'0-25%'},{l:'Low',b:'bg-yellow-100',t:'text-yellow-700',v:'26–50%'},{l:'Medium',b:'bg-blue-100',t:'text-blue-700',v:'51–75%'},{l:'High',b:'bg-emerald-100',t:'text-emerald-700',v:'76-100%'}].map(tier => (
+                  {[{l:'Aspirational',b:'bg-red-100',t:'text-red-700',v:'<30%'},{l:'Progressing',b:'bg-yellow-100',t:'text-yellow-700',v:'30–70%'},{l:'High Performing',b:'bg-blue-100',t:'text-blue-700',v:'70–90%'},{l:'Champions',b:'bg-emerald-100',t:'text-emerald-700',v:'>90%'}].map(tier => (
                     <span key={tier.l} className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${tier.b} ${tier.t}`}>{tier.l} {tier.v}</span>
                   ))}
                 </div>
@@ -635,7 +635,7 @@ export const AdminDashboard: React.FC = () => {
                   <div className="text-center text-xs font-semibold text-slate-700 mb-2">
                     {selectedKpi === 'coverage' ? '% Vaccination Coverage' : (selectedKpi === 'linelist' ? '% Line List' : 'KPI Value')}
                   </div>
-                  <div className="h-3 w-full rounded-full bg-gradient-to-r from-red-400 via-yellow-300 via-50% to-emerald-400 shadow-inner" />
+                  <div className="h-3 w-full rounded-full bg-gradient-to-r from-[#f87171] via-[#fde047] via-50% to-[#4ade80] shadow-inner" />
                   <div className="flex justify-between text-[10px] font-bold text-slate-400 mt-2">
                     <span>0%</span>
                     <span>25%</span>
@@ -645,20 +645,20 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-4 gap-2 mt-4 text-center">
                     <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-400"></div><span className="text-[10px] font-bold text-slate-700">0% – 25%</span></div>
-                      <span className="text-[9px] text-slate-500 font-semibold">(Very Low)</span>
+                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-[#f87171]"></div><span className="text-[10px] font-bold text-slate-700">0% – 30%</span></div>
+                      <span className="text-[9px] text-slate-500 font-semibold">(Aspirational)</span>
                     </div>
                     <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-yellow-400"></div><span className="text-[10px] font-bold text-slate-700">26% – 50%</span></div>
-                      <span className="text-[9px] text-slate-500 font-semibold">(Low)</span>
+                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-[#fde047]"></div><span className="text-[10px] font-bold text-slate-700">30% – 70%</span></div>
+                      <span className="text-[9px] text-slate-500 font-semibold">(Progressing)</span>
                     </div>
                     <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-blue-400"></div><span className="text-[10px] font-bold text-slate-700">51% – 75%</span></div>
-                      <span className="text-[9px] text-slate-500 font-semibold">(Medium)</span>
+                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-[#93c5fd]"></div><span className="text-[10px] font-bold text-slate-700">70% – 90%</span></div>
+                      <span className="text-[9px] text-slate-500 font-semibold">(High Performing)</span>
                     </div>
                     <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div><span className="text-[10px] font-bold text-slate-700">76% – 100%+</span></div>
-                      <span className="text-[9px] text-slate-500 font-semibold">(High)</span>
+                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-[#6ee7b7]"></div><span className="text-[10px] font-bold text-slate-700">90%+</span></div>
+                      <span className="text-[9px] text-slate-500 font-semibold">(Champions)</span>
                     </div>
                   </div>
                 </div>

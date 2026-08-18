@@ -50,17 +50,17 @@ const LABELS: Record<string, [number, number, string]> = {
 };
 
 export function getTier(pct: number) {
-  if (pct >= 76) return {
-    label: 'High (76% - 100%+)', fill: '#6ee7b7', bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300'
+  if (pct >= 90) return {
+    label: 'Champions (> 90%)', fill: '#6ee7b7', bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300'
   };
-  if (pct >= 51) return {
-    label: 'Medium (51% - 75%)', fill: '#93c5fd', bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300'
+  if (pct >= 70) return {
+    label: 'High Performing (70% - 90%)', fill: '#93c5fd', bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300'
   };
-  if (pct >= 26) return {
-    label: 'Low (26% - 50%)', fill: '#fde047', bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300'
+  if (pct >= 30) return {
+    label: 'Progressing (30% - 70%)', fill: '#fde047', bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300'
   };
   return {
-    label: 'Very Low (0% - 25%)', fill: '#f87171', bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300'
+    label: 'Aspirational (< 30%)', fill: '#f87171', bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300'
   };
 }
 
