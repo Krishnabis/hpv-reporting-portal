@@ -574,45 +574,48 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Conditional Field: State / District / Block */}
-                {filterLevel === 'State' && (
-                  <SearchableSelect
-                    label="State"
-                    placeholder="Search state..."
-                    options={[{ id: '5', name: 'Uttarakhand' }]}
-                    value={{ id: '5', name: 'Uttarakhand' }}
-                    onChange={() => {}}
-                  />
-                )}
+                <div className="flex flex-col gap-1 lg:col-span-2">
+                  {filterLevel === 'State' && (
+                    <SearchableSelect
+                      label="State"
+                      placeholder="Search state..."
+                      options={[{ id: '5', name: 'Uttarakhand' }]}
+                      value={{ id: '5', name: 'Uttarakhand' }}
+                      onChange={() => {}}
+                    />
+                  )}
 
-                {filterLevel === 'District' && (
-                  <SearchableSelect
-                    label="District"
-                    placeholder="Search district..."
-                    options={districtsList.map(d => ({ id: String(d.id), name: `${d.name} (State: Uttarakhand)` }))}
-                    value={filterDistrictId === 'ALL' ? null : { id: filterDistrictId, name: districtsList.find(d => String(d.id) === filterDistrictId)?.name + ' (State: Uttarakhand)' || '' }}
-                    onChange={item => setFilterDistrictId(item ? String(item.id) : 'ALL')}
-                  />
-                )}
+                  {filterLevel === 'District' && (
+                    <SearchableSelect
+                      label="District"
+                      placeholder="Search district..."
+                      options={districtsList.map(d => ({ id: String(d.id), name: `${d.name} (State: Uttarakhand)` }))}
+                      value={filterDistrictId === 'ALL' ? null : { id: filterDistrictId, name: districtsList.find(d => String(d.id) === filterDistrictId)?.name + ' (State: Uttarakhand)' || '' }}
+                      onChange={item => setFilterDistrictId(item ? String(item.id) : 'ALL')}
+                    />
+                  )}
 
-                {filterLevel === 'Block' && (
-                  <SearchableSelect
-                    label="Block"
-                    placeholder="Search block..."
-                    options={masterBlocks.map(b => ({ id: String(b.id), name: `${b.name} (State: Uttarakhand, District: ${b.district_name})` }))}
-                    value={filterBlockId === 'ALL' ? null : { id: filterBlockId, name: masterBlocks.find(b => String(b.id) === filterBlockId) ? `${masterBlocks.find(b => String(b.id) === filterBlockId)?.name} (State: Uttarakhand, District: ${masterBlocks.find(b => String(b.id) === filterBlockId)?.district_name})` : '' }}
-                    onChange={item => setFilterBlockId(item ? String(item.id) : 'ALL')}
-                  />
-                )}
-              </div>
+                  {filterLevel === 'Block' && (
+                    <SearchableSelect
+                      label="Block"
+                      placeholder="Search block..."
+                      options={masterBlocks.map(b => ({ id: String(b.id), name: `${b.name} (State: Uttarakhand, District: ${b.district_name})` }))}
+                      value={filterBlockId === 'ALL' ? null : { id: filterBlockId, name: masterBlocks.find(b => String(b.id) === filterBlockId) ? `${masterBlocks.find(b => String(b.id) === filterBlockId)?.name} (State: Uttarakhand, District: ${masterBlocks.find(b => String(b.id) === filterBlockId)?.district_name})` : '' }}
+                      onChange={item => setFilterBlockId(item ? String(item.id) : 'ALL')}
+                    />
+                  )}
+                </div>
 
-              <div className="pt-2 flex justify-end">
-                <button
-                  onClick={fetchReport}
-                  className="px-6 py-2.5 rounded-xl text-xs font-bold text-white gradient-header shadow hover:shadow-md transition-all flex items-center gap-2"
-                >
-                  <Search className="w-4 h-4 text-hpv-teal-light" />
-                  <span>GENERATE REPORT</span>
-                </button>
+                {/* Submit Action */}
+                <div className="flex items-end">
+                  <button
+                    onClick={fetchReport}
+                    className="w-full px-6 py-[9px] rounded-xl text-xs font-bold text-white gradient-header shadow hover:shadow-md transition-all flex items-center justify-center gap-2"
+                  >
+                    <Search className="w-4 h-4 text-hpv-teal-light" />
+                    <span>GENERATE REPORT</span>
+                  </button>
+                </div>
               </div>
             </div>
 
