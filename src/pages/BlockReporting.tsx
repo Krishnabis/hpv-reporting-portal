@@ -227,7 +227,7 @@ export const BlockReporting: React.FC = () => {
           <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
             <Building2 className="w-24 h-24 text-white" />
           </div>
-          <div className="flex items-center justify-between gap-3 relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
             <div>
               <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">
                 HPV Vaccination Reporting
@@ -235,7 +235,7 @@ export const BlockReporting: React.FC = () => {
               <h1 className="text-xl font-extrabold tracking-tight">{block.name} Block</h1>
               <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 flex items-center gap-2 shrink-0">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 flex items-center gap-2 shrink-0 self-start sm:self-auto">
               <Clock className="w-5 h-5 text-hpv-pink-light" />
               <div>
                 <span className="text-[9px] uppercase tracking-wider text-slate-300 font-semibold block">Last Report</span>
@@ -260,7 +260,7 @@ export const BlockReporting: React.FC = () => {
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-3">
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <input
                     type="number"
@@ -306,7 +306,7 @@ export const BlockReporting: React.FC = () => {
         ) : (
           /* ALREADY SET: Compact population info chip */
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <div className="w-8 h-8 rounded-lg bg-hpv-teal-soft flex items-center justify-center shrink-0">
                 <Users className="w-4 h-4 text-hpv-teal-dark" />
               </div>
@@ -335,15 +335,15 @@ export const BlockReporting: React.FC = () => {
 
         {/* Daily Reporting Section */}
         <section className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+            <div className="flex items-center gap-2 mb-2 sm:mb-0">
               <Calendar className="w-5 h-5 text-hpv-pink" />
               <div>
                 <h2 className="text-base font-bold text-slate-900">Daily Reporting</h2>
                 <p className="text-[11px] text-slate-500">Cumulative line list & vaccination count</p>
               </div>
             </div>
-            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto ${
               todaySubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
             }`}>
               {todaySubmitted ? `✓ ${todayStr} Submitted` : `⚠ ${todayStr} Pending`}
@@ -351,7 +351,7 @@ export const BlockReporting: React.FC = () => {
           </div>
 
           <form onSubmit={handleSaveReport} className="space-y-3">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Date */}
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Date *</label>

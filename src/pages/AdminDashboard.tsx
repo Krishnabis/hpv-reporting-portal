@@ -67,6 +67,8 @@ export const AdminDashboard: React.FC = () => {
 
   const [reportRows, setReportRows] = useState<ReportRow[]>([]);
   const [reportSortOrder, setReportSortOrder] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [loadingReport, setLoadingReport] = useState(false);
   const [reportViewMode, setReportViewMode] = useState<'table' | 'card'>('table');
 
@@ -295,6 +297,13 @@ export const AdminDashboard: React.FC = () => {
   }, [reportRows, reportSortOrder]);
 
   const totalRows = reportRows.length;
+  const totalPages = Math.ceil(totalRows / rowsPerPage);
+  
+  const paginatedReportRows = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return sortedReportRows.slice(start, start + rowsPerPage);
+  }, [sortedReportRows, currentPage, rowsPerPage]);
+
   const totalTarget = reportRows.reduce((sum, r) => sum + (r.hpv_target || 0), 0);
   const totalLL = reportRows.reduce((sum, r) => sum + (r.line_list_received || 0), 0);
   const totalVacc = reportRows.reduce((sum, r) => sum + (r.beneficiaries_vaccinated || 0), 0);
@@ -417,8 +426,8 @@ export const AdminDashboard: React.FC = () => {
       <main className="flex-1 p-3 sm:p-4 max-w-[1600px] mx-auto w-full overflow-y-auto">
         {/* TAB 1: DASHBOARD OVERVIEW */}
         {activeTab === 'dashboard' && (
-          <div className="space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
                   HPV Executive Dashboard
@@ -448,9 +457,9 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* KPI Cards Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               {/* Card 1: Total Blocks */}
-              <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-blue-500">
+              <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-blue-500">
                 <div className="flex gap-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
                     <Building2 className="w-5 h-5 text-white" />
@@ -470,7 +479,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Card 2: Reporting Today */}
-              <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-purple-500">
+              <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-purple-500">
                 <div className="flex gap-3">
                   <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
                     <ClipboardList className="w-5 h-5 text-white" />
@@ -505,7 +514,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Card 3: Total Line List */}
-              <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-emerald-500">
+              <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-emerald-500">
                 <div className="flex gap-3">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
                     <FileSpreadsheet className="w-5 h-5 text-white" />
@@ -528,7 +537,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Card 4: Total Vaccinated */}
-              <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-rose-500">
+              <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-rose-500">
                 <div className="flex gap-3">
                   <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
                     <Users className="w-5 h-5 text-white" />
@@ -552,9 +561,9 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Split Layout: Ranking & Map */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
               {/* Left: District Ranking */}
-              <div className="bg-white p-3 lg:p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+              <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     <BarChart3 className="w-4 h-4 text-blue-500" /> District Ranking
@@ -591,7 +600,7 @@ export const AdminDashboard: React.FC = () => {
                         const primaryPct = selectedKpi === 'linelist' ? llPct : covPct;
                         const tier = getTier(primaryPct);
                         return (
-                          <div key={d.district} className={`flex items-center py-1 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5`}>
+                          <div key={d.district} className={`flex items-center py-0.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5`}>
                             <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
                             <span className="text-[11px] font-bold text-slate-800 flex-1 truncate min-w-0">{d.district}</span>
                             {selectedKpi === 'both' ? (
@@ -620,8 +629,8 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Right: Uttarakhand Interactive Map */}
-              <div className="bg-white p-3 lg:p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-                <div className="flex items-center justify-between mb-3">
+              <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                <div className="flex items-center justify-between mb-2">
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-blue-500" /> Uttarakhand Overview
                   </h3>
@@ -684,7 +693,7 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-[8px] text-slate-500 font-semibold">(High Perf.)</span>
                     </div>
                     <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#6ee7b7]"></div><span className="text-[9px] font-bold text-slate-700">90%+</span></div>
+                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#6ee7b7]"></div><span className="text-[9px] font-bold text-slate-700">90%+</span></div>
                       <span className="text-[8px] text-slate-500 font-semibold">(Champions)</span>
                     </div>
                   </div>
@@ -693,17 +702,17 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Bottom Banner */}
-            <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 border border-blue-100 rounded-2xl p-4 lg:p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm overflow-hidden relative">
+            <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 border border-blue-100 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm overflow-hidden relative mt-1">
               <div className="flex items-center gap-4 z-10">
-                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center shrink-0 border border-blue-200">
-                  <ShieldCheck className="w-8 h-8 text-blue-600" />
+                <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center shrink-0 border border-blue-200">
+                  <ShieldCheck className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-blue-900 tracking-tight">HPV Vaccination Drive Progress</h3>
-                  <p className="text-sm text-slate-600 mt-1">Track progress across Uttarakhand's districts and ensure no one is left behind.</p>
+                  <p className="text-xs text-slate-600 mt-0.5">Track progress across Uttarakhand's districts and ensure no one is left behind.</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 z-10 bg-white/50 px-4 py-2 rounded-xl border border-blue-100/50">
+              <div className="flex items-center gap-3 z-10 bg-white/50 px-3 py-1.5 rounded-xl border border-blue-100/50">
                 <div className="text-right hidden sm:block">
                   <span className="text-xs font-semibold text-slate-500 block">Together, we can build</span>
                   <span className="text-sm font-bold text-blue-600 block">a healthier Uttarakhand</span>
@@ -889,65 +898,140 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               ) : reportRows.length > 0 ? (
                   /* DESKTOP/TABLET TABLE VIEW */
-                  <div className="overflow-x-auto rounded-xl border border-slate-200">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-[#1e1b4b] text-white font-semibold uppercase tracking-wider">
-                        <tr>
-                          <th className="p-3">District / Block</th>
-                          <th className="p-3 text-right">Population</th>
-                          <th className="p-3 text-right">HPV Target</th>
-                          <th className="p-3 text-center">Last Report Date</th>
-                          <th className="p-3 text-right">Line List Received</th>
-                          <th className="p-3 text-right">Beneficiaries Vaccinated</th>
-                          <th className="p-3 text-right">% Line List</th>
-                          <th className="p-3 text-right">% Coverage</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200 font-mono">
-                        {sortedReportRows.map(row => (
-                          <tr key={row.id} className="hover:bg-slate-50">
-                            <td className="p-3 font-sans font-bold text-slate-900">
-                              {row.name}
-                              {row.district_name && (
-                                <span className="block text-[11px] text-slate-400 font-normal">
-                                  {row.district_name} District
-                                </span>
-                              )}
-                            </td>
-                            <td className="p-3 text-right font-medium text-slate-700">
-                              {row.population !== null ? row.population.toLocaleString() : '—'}
-                            </td>
-                            <td className="p-3 text-right font-bold text-slate-900">
-                              {row.hpv_target !== null ? row.hpv_target.toLocaleString() : '—'}
-                            </td>
-                            <td className="p-3 text-center text-slate-500 font-sans text-[11px]">
-                              {row.last_reporting_date}
-                            </td>
-                            <td className="p-3 text-right font-semibold text-hpv-teal-dark">
-                              {row.line_list_received !== null ? row.line_list_received.toLocaleString() : '—'}
-                            </td>
-                            <td className="p-3 text-right font-extrabold text-hpv-purple">
-                              {row.beneficiaries_vaccinated !== null ? row.beneficiaries_vaccinated.toLocaleString() : '—'}
-                            </td>
-                            <td className="p-3 text-right">
-                              {row.line_list_received_pct !== null ? (
-                                <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 font-bold">
-                                  {row.line_list_received_pct}%
-                                </span>
-                              ) : '—'}
-                            </td>
-                            <td className="p-3 text-right">
-                              {row.vaccination_coverage_pct !== null ? (
-                                <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold">
-                                  {row.vaccination_coverage_pct}%
-                                </span>
-                              ) : '—'}
-                            </td>
+                  <>
+                    <div className="overflow-x-auto rounded-xl border border-slate-200">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-[#1e1b4b] text-white font-semibold uppercase tracking-wider">
+                          <tr>
+                            <th className="p-3">District / Block</th>
+                            <th className="p-3 text-right">Population</th>
+                            <th className="p-3 text-right">HPV Target</th>
+                            <th className="p-3 text-center">Last Report Date</th>
+                            <th className="p-3 text-right">Line List Received</th>
+                            <th className="p-3 text-right">Beneficiaries Vaccinated</th>
+                            <th className="p-3 text-right">% Line List</th>
+                            <th className="p-3 text-right">% Coverage</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 font-mono">
+                          {paginatedReportRows.map(row => (
+                            <tr key={row.id} className="hover:bg-slate-50">
+                              <td className="p-3 font-sans font-bold text-slate-900">
+                                {row.name}
+                                {row.district_name && (
+                                  <span className="block text-[11px] text-slate-400 font-normal">
+                                    {row.district_name} District
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-3 text-right font-medium text-slate-700">
+                                {row.population !== null ? row.population.toLocaleString() : '—'}
+                              </td>
+                              <td className="p-3 text-right font-bold text-slate-900">
+                                {row.hpv_target !== null ? row.hpv_target.toLocaleString() : '—'}
+                              </td>
+                              <td className="p-3 text-center text-slate-500 font-sans text-[11px]">
+                                {row.last_reporting_date}
+                              </td>
+                              <td className="p-3 text-right font-semibold text-hpv-teal-dark">
+                                {row.line_list_received !== null ? row.line_list_received.toLocaleString() : '—'}
+                              </td>
+                              <td className="p-3 text-right font-extrabold text-hpv-purple">
+                                {row.beneficiaries_vaccinated !== null ? row.beneficiaries_vaccinated.toLocaleString() : '—'}
+                              </td>
+                              <td className="p-3 text-right">
+                                {row.line_list_received_pct !== null ? (
+                                  <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 font-bold">
+                                    {row.line_list_received_pct}%
+                                  </span>
+                                ) : '—'}
+                              </td>
+                              <td className="p-3 text-right">
+                                {row.vaccination_coverage_pct !== null ? (
+                                  <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold">
+                                    {row.vaccination_coverage_pct}%
+                                  </span>
+                                ) : '—'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    {/* Pagination Controls */}
+                    <div className="flex items-center justify-between px-2 pt-4 border-t border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-500 font-medium">Show</span>
+                        <select
+                          value={rowsPerPage}
+                          onChange={(e) => {
+                            setRowsPerPage(Number(e.target.value));
+                            setCurrentPage(1);
+                          }}
+                          className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-hpv-purple"
+                        >
+                          <option value={10}>10</option>
+                          <option value={15}>15</option>
+                          <option value={20}>20</option>
+                          <option value={50}>50</option>
+                        </select>
+                        <span className="text-xs text-slate-500 font-medium">entries per page</span>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="text-xs text-slate-500 font-medium">
+                          {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, totalRows)} of {totalRows}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 disabled:opacity-50 hover:bg-slate-50"
+                          >
+                            &lt;
+                          </button>
+                          
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                            // Simple pagination logic to show limited pages
+                            if (
+                              page === 1 || 
+                              page === totalPages || 
+                              (page >= currentPage - 1 && page <= currentPage + 1)
+                            ) {
+                              return (
+                                <button
+                                  key={page}
+                                  onClick={() => setCurrentPage(page)}
+                                  className={`w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold transition-colors ${
+                                    currentPage === page 
+                                      ? 'bg-[#1e1b4b] text-white border border-[#1e1b4b]' 
+                                      : 'border border-slate-200 text-slate-700 hover:bg-slate-50'
+                                  }`}
+                                >
+                                  {page}
+                                </button>
+                              );
+                            } else if (
+                              page === currentPage - 2 ||
+                              page === currentPage + 2
+                            ) {
+                              return <span key={page} className="text-xs text-slate-400 px-1">...</span>;
+                            }
+                            return null;
+                          })}
+
+                          <button
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 disabled:opacity-50 hover:bg-slate-50"
+                          >
+                            &gt;
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
               ) : (
                 <div className="py-12 text-center text-xs text-slate-400">
                   No records match selected filter criteria.

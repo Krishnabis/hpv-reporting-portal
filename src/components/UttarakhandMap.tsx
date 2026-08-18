@@ -75,7 +75,7 @@ export function UttarakhandMap({ data, selectedKpi }: Props) {
       <svg
         viewBox="58 0 1192 1067"
         className="w-full"
-        style={{ display: 'block', maxHeight: '380px' }}
+        style={{ display: 'block', maxHeight: '280px' }}
       >
         <defs>
           <filter id="dShadow" x="-5%" y="-5%" width="110%" height="110%">

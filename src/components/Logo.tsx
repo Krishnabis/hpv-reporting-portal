@@ -25,11 +25,13 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', variant = 'dark' }) => 
 
   return (
     <a href="/" className="flex items-center gap-3 select-none cursor-pointer">
-      <img
-        src="/logo.png"
-        alt="HPV Vaccination Due List Tracking Logo"
-        className={`${imageSizes[size]} drop-shadow-sm transition-transform hover:scale-105`}
-      />
+      <div className="bg-white rounded-full p-1 sm:p-1.5 flex items-center justify-center shadow-sm shrink-0">
+        <img
+          src="/logo.png"
+          alt="HPV Vaccination Due List Tracking Logo"
+          className={`${imageSizes[size]} drop-shadow-sm transition-transform hover:scale-105`}
+        />
+      </div>
       <div className="flex flex-col">
         <span className={`font-extrabold tracking-tight leading-tight ${textColor} ${textSizeClasses[size]}`}>
           HPV Vaccination
