@@ -306,6 +306,60 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
+app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
+  try {
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (!useSupabase) return res.json({ total_blocks: 0, reporting_today: 0, total_line_list: 0, total_vaccinated: 0, overall_coverage_pct: 0, district_chart_data: [] });
+
+    // Fetch all active blocks with population/target
+    const { data: blocks } = await supabase.from('blocks').select('id, district_id, districts!inner(name), block_reporting_profiles(base_population, initial_hpv_target)').eq('is_active', true);
+    // Fetch today's reports
+    const { data: reports } = await supabase.from('daily_reports').select('block_id, line_list_count, beneficiaries_vaccinated').eq('reporting_date', todayStr);
+
+    let totalBlocks = blocks?.length || 0;
+    let totalLineList = 0;
+    let totalVaccinated = 0;
+    let reportingToday = reports?.length || 0;
+    let totalTarget = 0;
+
+    const districtStats = {};
+
+    (blocks || []).forEach(b => {
+      const dName = b.districts?.name || 'Unknown';
+      if (!districtStats[dName]) districtStats[dName] = { name: dName, vaccinated: 0, target: 0 };
+      
+      const target = b.block_reporting_profiles?.[0]?.initial_hpv_target || 0;
+      totalTarget += target;
+      districtStats[dName].target += target;
+    });
+
+    (reports || []).forEach(r => {
+      totalLineList += r.line_list_count || 0;
+      totalVaccinated += r.beneficiaries_vaccinated || 0;
+      
+      const b = blocks?.find(x => x.id === r.block_id);
+      if (b) {
+        const dName = b.districts?.name || 'Unknown';
+        districtStats[dName].vaccinated += (r.beneficiaries_vaccinated || 0);
+      }
+    });
+
+    const district_chart_data = Object.values(districtStats).map((d: any) => ({
+      district_name: d.name,
+      coverage: d.target > 0 ? Math.round((d.vaccinated / d.target) * 100) : 0
+    })).sort((a, b) => b.coverage - a.coverage);
+
+    res.json({
+      total_blocks: totalBlocks,
+      reporting_today: reportingToday,
+      total_line_list: totalLineList,
+      total_vaccinated: totalVaccinated,
+      overall_coverage_pct: totalTarget > 0 ? ((totalVaccinated / totalTarget) * 100).toFixed(1) : 0,
+      district_chart_data
+    });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/admin/reports', authenticateToken, async (req, res) => {
   try {
     const { date, districtId, blockId, limit = 200 } = req.query;
@@ -389,21 +443,26 @@ app.get('/api/admin/audit-logs', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/admin/report-generator', authenticateToken, async (req, res) => {
+app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
   try {
-    const { date } = req.query;
+    const { date, districtId, blockId } = req.query;
     const reportDate = date || new Date().toISOString().split('T')[0];
-    if (!useSupabase) return res.json({ date: reportDate, groups: [], total_blocks: 0, reported: 0 });
+    if (!useSupabase) return res.json({ rows: [] });
 
-    const { data: blocks, error: bErr } = await supabase
+    let bQuery = supabase
       .from('blocks')
       .select(`
-        id, name, lgd_code,
+        id, name, lgd_code, district_id,
         districts!inner(id, name),
         block_reporting_profiles(base_population, initial_hpv_target)
       `)
       .eq('is_active', true)
       .order('name');
+    
+    if (districtId && districtId !== 'ALL') bQuery = bQuery.eq('district_id', districtId);
+    if (blockId && blockId !== 'ALL') bQuery = bQuery.eq('id', blockId);
+
+    const { data: blocks, error: bErr } = await bQuery;
     if (bErr) throw bErr;
 
     const { data: reports, error: rErr } = await supabase
@@ -415,17 +474,24 @@ app.get('/api/admin/report-generator', authenticateToken, async (req, res) => {
     const reportsMap = {};
     for (const r of reports) reportsMap[r.block_id] = r;
 
-    const grouped = {};
-    for (const b of blocks) {
-      const dId = b.districts?.id;
-      if (!grouped[dId]) grouped[dId] = { district_id: dId, district_name: b.districts?.name, blocks: [], total_line_list: 0, total_vaccinated: 0, reported_count: 0 };
-      const g = grouped[dId];
+    const rows = blocks.map(b => {
       const rep = reportsMap[b.id];
-      g.blocks.push({ ...b, report: rep || null });
-      if (rep) { g.total_line_list += Number(rep.line_list_count || 0); g.total_vaccinated += Number(rep.beneficiaries_vaccinated || 0); g.reported_count++; }
-    }
+      const pop = b.block_reporting_profiles?.[0]?.base_population || 0;
+      const target = b.block_reporting_profiles?.[0]?.initial_hpv_target || 0;
+      
+      return {
+        district_name: b.districts?.name,
+        block_name: b.name,
+        population: pop,
+        hpv_target: target,
+        last_reporting_date: rep ? rep.reporting_date : '—',
+        line_list_received: rep ? rep.line_list_count : null,
+        beneficiaries_vaccinated: rep ? rep.beneficiaries_vaccinated : null,
+        vaccination_coverage_pct: rep && target > 0 ? ((rep.beneficiaries_vaccinated / target) * 100).toFixed(1) : null
+      };
+    });
 
-    res.json({ date: reportDate, groups: Object.values(grouped), total_blocks: blocks.length, reported: reports.length });
+    res.json({ rows });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
