@@ -750,12 +750,12 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Filter Form Card */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-800 border-b border-slate-100 pb-3">
-                <Filter className="w-4 h-4 text-hpv-purple" /> Report Filters
+            <div className="bg-white p-3 lg:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4 mb-2">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-800 pb-2 lg:pb-0 shrink-0 border-b lg:border-b-0 lg:border-r border-slate-100 lg:pr-4 lg:mb-1">
+                <Filter className="w-4 h-4 text-hpv-purple" /> Filters
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 w-full">
                 {/* Field 1: Date */}
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-slate-700">Date</label>
@@ -832,7 +832,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Generated Report Output Table / Cards */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div className="bg-white p-3 lg:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -860,34 +860,34 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Summary Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pb-2">
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
-                  <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 mb-1">
-                    <Users className="w-5 h-5" />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pb-1">
+                <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
+                  <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 mb-0.5">
+                    <Users className="w-3 h-3" />
                   </div>
-                  <p className="text-[10px] font-bold text-slate-500">Total {filterLevel === 'State' ? 'States' : filterLevel === 'District' ? 'Districts' : 'Blocks'}</p>
-                  <p className="text-lg font-extrabold text-blue-700">{totalRows}</p>
+                  <p className="text-[9px] font-bold text-slate-500 line-clamp-1">Total {filterLevel === 'State' ? 'States' : filterLevel === 'District' ? 'Districts' : 'Blocks'}</p>
+                  <p className="text-sm font-extrabold text-blue-700">{totalRows}</p>
                 </div>
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
-                  <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 mb-1">
-                    <Target className="w-5 h-5" />
+                <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
+                  <div className="w-6 h-6 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 mb-0.5">
+                    <Target className="w-3 h-3" />
                   </div>
-                  <p className="text-[10px] font-bold text-slate-500">HPV Target (Total)</p>
-                  <p className="text-lg font-extrabold text-emerald-700">{totalTarget.toLocaleString()}</p>
+                  <p className="text-[9px] font-bold text-slate-500 line-clamp-1">HPV Target</p>
+                  <p className="text-sm font-extrabold text-emerald-700">{totalTarget.toLocaleString()}</p>
                 </div>
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
-                  <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center text-purple-500 mb-1">
-                    <FileText className="w-5 h-5" />
+                <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
+                  <div className="w-6 h-6 bg-purple-50 rounded-full flex items-center justify-center text-purple-500 mb-0.5">
+                    <FileText className="w-3 h-3" />
                   </div>
-                  <p className="text-[10px] font-bold text-slate-500">Line List Received</p>
-                  <p className="text-lg font-extrabold text-purple-700">{totalLL.toLocaleString()}</p>
+                  <p className="text-[9px] font-bold text-slate-500 line-clamp-1">Line List</p>
+                  <p className="text-sm font-extrabold text-purple-700">{totalLL.toLocaleString()}</p>
                 </div>
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
-                  <div className="w-10 h-10 bg-pink-50 rounded-full flex items-center justify-center text-pink-500 mb-1">
-                    <Users className="w-5 h-5" />
+                <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
+                  <div className="w-6 h-6 bg-pink-50 rounded-full flex items-center justify-center text-pink-500 mb-0.5">
+                    <Users className="w-3 h-3" />
                   </div>
-                  <p className="text-[10px] font-bold text-slate-500">Beneficiaries Vaccinated</p>
-                  <p className="text-lg font-extrabold text-pink-700">{totalVacc.toLocaleString()}</p>
+                  <p className="text-[9px] font-bold text-slate-500 line-clamp-1">Vaccinated</p>
+                  <p className="text-sm font-extrabold text-pink-700">{totalVacc.toLocaleString()}</p>
                 </div>
               </div>
 
