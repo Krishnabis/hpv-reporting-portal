@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
-  Building2, Calendar, CheckCircle2, AlertTriangle, ArrowLeft,
-  Save, Users, Clock, TrendingUp, Edit2
+  Building2, Calendar, CheckCircle2, AlertTriangle,
+  Save, Users, Clock, Edit2
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 
@@ -42,7 +42,6 @@ export const BlockReporting: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [todaySubmitted, setTodaySubmitted] = useState(false);
   const [lastReport, setLastReport] = useState<ReportData | null>(null);
-  const [recentReports, setRecentReports] = useState<ReportData[]>([]);
 
   // One Time Form State
   const [basePopulationInput, setBasePopulationInput] = useState<string>('');
@@ -81,23 +80,12 @@ export const BlockReporting: React.FC = () => {
           setBasePopulationInput(String(data.profile.base_population));
         }
 
-        // If today's report already exists, prepopulate inputs
-        if (data.today_report) {
-          setLineListInput(String(data.today_report.line_list_count));
-          setVaccinatedInput(String(data.today_report.beneficiaries_vaccinated));
-        }
-
         setLoading(false);
       })
       .catch(err => {
         console.error('Error fetching block:', err);
         setLoading(false);
       });
-
-    fetch(`/api/reports/block/${blockId}`)
-      .then(res => res.json())
-      .then(data => setRecentReports(Array.isArray(data) ? data : []))
-      .catch(err => console.error('Error fetching reports history:', err));
   };
 
   useEffect(() => {
@@ -332,7 +320,7 @@ export const BlockReporting: React.FC = () => {
               <div className="hidden sm:block">
                 <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">HPV Target (1%)</p>
                 <p className="text-lg font-extrabold text-hpv-teal-dark font-mono leading-tight">
-                  {profile.current_hpv_target.toLocaleString()}
+                  {Math.round(profile.base_population * 0.01).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -372,14 +360,8 @@ export const BlockReporting: React.FC = () => {
                   value={reportingDate}
                   onChange={e => {
                     setReportingDate(e.target.value);
-                    const matched = recentReports.find(r => r.reporting_date === e.target.value);
-                    if (matched) {
-                      setLineListInput(String(matched.line_list_count));
-                      setVaccinatedInput(String(matched.beneficiaries_vaccinated));
-                    } else {
-                      setLineListInput('');
-                      setVaccinatedInput('');
-                    }
+                    setLineListInput('');
+                    setVaccinatedInput('');
                   }}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
                 />
@@ -437,49 +419,6 @@ export const BlockReporting: React.FC = () => {
           </form>
         </section>
 
-        {/* Recent Submissions — compact table */}
-        <section className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-hpv-purple" /> Recent Submissions
-          </h3>
-
-          {recentReports.length > 0 ? (
-            <div className="overflow-x-auto rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-100 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200">
-                  <tr>
-                    <th className="px-3 py-2 font-mono">Date</th>
-                    <th className="px-3 py-2 text-right">Line List</th>
-                    <th className="px-3 py-2 text-right">Vaccinated</th>
-                    <th className="px-3 py-2 text-right">Coverage</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-mono">
-                  {recentReports.slice(0, 7).map(rep => {
-                    const tgt = profile?.current_hpv_target || 1;
-                    const coverage = ((rep.beneficiaries_vaccinated / tgt) * 100).toFixed(1);
-                    return (
-                      <tr key={rep.id} className="hover:bg-slate-50">
-                        <td className="px-3 py-2 font-bold text-slate-900">{rep.reporting_date}</td>
-                        <td className="px-3 py-2 text-right">{rep.line_list_count.toLocaleString()}</td>
-                        <td className="px-3 py-2 text-right font-bold text-hpv-purple">{rep.beneficiaries_vaccinated.toLocaleString()}</td>
-                        <td className="px-3 py-2 text-right">
-                          <span className="px-1.5 py-0.5 rounded bg-hpv-teal-soft text-hpv-teal-dark font-bold text-[10px]">
-                            {coverage}%
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-6 text-xs text-slate-400">
-              No reports submitted yet for this block.
-            </div>
-          )}
-        </section>
 
       </main>
 

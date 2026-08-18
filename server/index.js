@@ -115,19 +115,8 @@ app.get('/api/blocks/:id', (req, res) => {
   const profiles = db.prepare('SELECT * FROM block_reporting_profiles WHERE block_id = ?').all(id);
   const profile = profiles[0] || null;
 
-  const growthSettings = db.prepare("SELECT * FROM settings WHERE key = 'monthly_population_growth'").all('monthly_population_growth');
-  const targetSettings = db.prepare("SELECT * FROM settings WHERE key = 'hpv_target_percentage'").all('hpv_target_percentage');
-
-  const growthRate = growthSettings[0] ? parseFloat(growthSettings[0].value) : 0.0008;
-  const targetPct = targetSettings[0] ? parseFloat(targetSettings[0].value) : 0.01;
-
-  let currentPopulation = 0;
-  let currentTarget = 0;
-
-  if (profile) {
-    currentPopulation = calculateCurrentPopulation(profile.base_population, profile.population_base_date, growthRate);
-    currentTarget = Math.round(currentPopulation * targetPct);
-  }
+  // HPV target = flat 1% of base population (no monthly growth)
+  const hpvTarget = profile ? Math.round(profile.base_population * 0.01) : 0;
 
   const todayStr = new Date().toISOString().split('T')[0];
   const todayReports = db.prepare('SELECT * FROM daily_reports WHERE block_id = ? AND reporting_date = ?').all(id, todayStr);
@@ -145,8 +134,8 @@ app.get('/api/blocks/:id', (req, res) => {
     },
     profile: profile ? {
       ...profile,
-      current_population: currentPopulation,
-      current_hpv_target: currentTarget
+      current_population: profile.base_population,
+      current_hpv_target: hpvTarget
     } : null,
     today_submitted: todayReports.length > 0,
     today_report: todayReports[0] || null,
