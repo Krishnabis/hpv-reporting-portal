@@ -395,31 +395,37 @@ app.get('/api/admin/report-generator', authenticateToken, async (req, res) => {
     const reportDate = date || new Date().toISOString().split('T')[0];
     if (!useSupabase) return res.json({ date: reportDate, groups: [], total_blocks: 0, reported: 0 });
 
-    const { data, error } = await supabase
+    const { data: blocks, error: bErr } = await supabase
       .from('blocks')
       .select(`
         id, name, lgd_code,
         districts!inner(id, name),
-        block_reporting_profiles(base_population, initial_hpv_target),
-        daily_reports!left(line_list_count, beneficiaries_vaccinated, reporting_date)
+        block_reporting_profiles(base_population, initial_hpv_target)
       `)
       .eq('is_active', true)
-      .eq('daily_reports.reporting_date', reportDate)
       .order('name');
+    if (bErr) throw bErr;
 
-    if (error) throw error;
+    const { data: reports, error: rErr } = await supabase
+      .from('daily_reports')
+      .select('block_id, line_list_count, beneficiaries_vaccinated, reporting_date')
+      .eq('reporting_date', reportDate);
+    if (rErr) throw rErr;
+
+    const reportsMap = {};
+    for (const r of reports) reportsMap[r.block_id] = r;
 
     const grouped = {};
-    for (const b of data) {
+    for (const b of blocks) {
       const dId = b.districts?.id;
       if (!grouped[dId]) grouped[dId] = { district_id: dId, district_name: b.districts?.name, blocks: [], total_line_list: 0, total_vaccinated: 0, reported_count: 0 };
       const g = grouped[dId];
-      const rep = b.daily_reports?.[0];
+      const rep = reportsMap[b.id];
       g.blocks.push({ ...b, report: rep || null });
       if (rep) { g.total_line_list += Number(rep.line_list_count || 0); g.total_vaccinated += Number(rep.beneficiaries_vaccinated || 0); g.reported_count++; }
     }
 
-    res.json({ date: reportDate, groups: Object.values(grouped), total_blocks: data.length, reported: data.filter(b => b.daily_reports?.[0]).length });
+    res.json({ date: reportDate, groups: Object.values(grouped), total_blocks: blocks.length, reported: reports.length });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
