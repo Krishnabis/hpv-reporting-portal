@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
+import { UttarakhandMap, getTier } from '../components/UttarakhandMap';
 
 interface KPIState {
   total_blocks: number;
@@ -78,6 +79,9 @@ export const AdminDashboard: React.FC = () => {
 
   // Audit Logs state
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
+
+  // Dashboard KPI selector
+  const [selectedKpi, setSelectedKpi] = useState<'coverage' | 'linelist'>('coverage');
 
   // Token Auth Verification
   useEffect(() => {
@@ -520,41 +524,56 @@ export const AdminDashboard: React.FC = () => {
             {/* Split Layout: Ranking & Map */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Left: District Ranking */}
-              <div className="bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div className="bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-blue-500" /> District Vaccination Coverage Ranking
+                    <BarChart3 className="w-5 h-5 text-blue-500" /> District Ranking
                   </h3>
-                  <select className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500 bg-white">
-                    <option value="ALL">All Districts</option>
+                  <select
+                    value={selectedKpi}
+                    onChange={e => setSelectedKpi(e.target.value as 'coverage' | 'linelist')}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500 bg-white cursor-pointer"
+                  >
+                    <option value="coverage">% Coverage</option>
+                    <option value="linelist">% Line List</option>
                   </select>
                 </div>
-                
+
+                {/* Tier Legend */}
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {[{l:'Aspirational',b:'bg-red-100',t:'text-red-700',v:'<30%'},{l:'Progressing',b:'bg-amber-100',t:'text-amber-700',v:'30–70%'},{l:'High Performing',b:'bg-blue-100',t:'text-blue-700',v:'70–90%'},{l:'Champions',b:'bg-green-100',t:'text-green-700',v:'>90%'}].map(tier => (
+                    <span key={tier.l} className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${tier.b} ${tier.t}`}>{tier.l} {tier.v}</span>
+                  ))}
+                </div>
+
                 {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-                    {kpis.district_chart_data.map(d => (
-                      <div key={d.district} className="flex items-center py-2 rounded-lg hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0 gap-2">
-                        <span className="text-xs font-bold text-slate-800 flex-1 truncate min-w-0">{d.district}</span>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[10px] font-mono text-slate-500 hidden lg:inline">
-                            {d.vaccinated}/{d.target > 0 ? d.target : '—'}
-                          </span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">
-                            LL: {d.lineListPct ?? 0}%
-                          </span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-bold">
-                            {d.coveragePct}%
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 flex-1">
+                    {[...kpis.district_chart_data]
+                      .sort((a, b) => {
+                        const pa = selectedKpi === 'coverage' ? a.coveragePct : a.lineListPct;
+                        const pb = selectedKpi === 'coverage' ? b.coveragePct : b.lineListPct;
+                        return pb - pa;
+                      })
+                      .map((d, idx) => {
+                        const pct = selectedKpi === 'coverage' ? d.coveragePct : d.lineListPct;
+                        const tier = getTier(pct);
+                        return (
+                          <div key={d.district} className={`flex items-center py-2 rounded-lg hover:bg-slate-50 transition-colors border-b border-slate-100 gap-2`}>
+                            <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
+                            <span className="text-xs font-bold text-slate-800 flex-1 truncate min-w-0">{d.district}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${tier.bg} ${tier.text} shrink-0`}>
+                              {pct}%
+                            </span>
+                          </div>
+                        );
+                    })}
                   </div>
                 ) : (
                   <div className="py-12 text-center text-xs text-slate-400">
-                    No district report data yet — blocks need population setup.
+                    No district data — blocks need population setup.
                   </div>
                 )}
-                
+
                 <div className="mt-4 pt-4 border-t border-slate-100 flex justify-center">
                   <button className="text-blue-600 font-bold text-xs hover:text-blue-700 transition-colors flex items-center gap-1">
                     View Detailed Ranking <ChevronRight className="w-4 h-4" />
@@ -562,39 +581,55 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right: Map Placeholder */}
-              <div className="bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-blue-500" /> Uttarakhand Overview
-                    </h3>
-                    <span className="text-xs font-semibold text-slate-500">13 Districts</span>
-                  </div>
-                  
-                  <div className="flex-1 flex flex-col items-center justify-center min-h-[350px] border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 relative overflow-hidden group">
-                    {/* Placeholder Map SVG Box */}
-                    <div className="text-center space-y-2 p-6">
-                      <MapPin className="w-12 h-12 text-slate-300 mx-auto group-hover:text-blue-400 transition-colors" />
-                      <p className="text-sm font-bold text-slate-600">Map Graphic Placeholder</p>
-                      <p className="text-xs text-slate-400">Waiting for SVG code from user...</p>
-                    </div>
-                  </div>
-
-                  {/* Map Legend */}
-                  <div className="mt-4">
-                    <span className="text-xs font-semibold text-slate-600 block mb-1">Coverage</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-slate-500">0%</span>
-                      <div className="h-2 flex-1 rounded-full bg-gradient-to-r from-blue-100 to-blue-600" />
-                      <span className="text-[10px] font-mono text-slate-500">100%</span>
-                    </div>
-                  </div>
+              {/* Right: Uttarakhand Interactive Map */}
+              <div className="bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-blue-500" /> Uttarakhand Overview
+                  </h3>
+                  <span className="text-xs font-semibold text-slate-500">13 Districts</span>
                 </div>
 
-                <div className="mt-4 bg-blue-50 border border-blue-100 p-3 rounded-xl flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-blue-500" />
-                  <span className="text-xs text-blue-700 font-medium">Hover over districts to view details</span>
+                <div className="text-[10px] text-center text-slate-500 font-semibold mb-2">
+                  Showing: <span className="text-blue-600">{selectedKpi === 'coverage' ? '% Coverage (Vaccinated / HPV Target)' : '% Line List (Line List / HPV Target)'}</span>
+                </div>
+
+                {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
+                  <UttarakhandMap
+                    data={kpis.district_chart_data.map(d => ({
+                      district: d.district,
+                      coveragePct: d.coveragePct,
+                      lineListPct: d.lineListPct ?? 0,
+                      vaccinated: d.vaccinated,
+                      lineList: d.lineList ?? 0,
+                      target: d.target,
+                    }))}
+                    selectedKpi={selectedKpi}
+                  />
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-xs text-slate-400 py-8">
+                    No data to display on map.
+                  </div>
+                )}
+
+                {/* Tier Legend for Map */}
+                <div className="mt-3 grid grid-cols-2 gap-1.5">
+                  {[
+                    { label: 'Aspirational', range: '< 30%', bg: 'bg-red-500' },
+                    { label: 'Progressing', range: '30–70%', bg: 'bg-amber-500' },
+                    { label: 'High Performing', range: '70–90%', bg: 'bg-blue-600' },
+                    { label: 'Champions', range: '> 90%', bg: 'bg-green-600' },
+                  ].map(t => (
+                    <div key={t.label} className="flex items-center gap-1.5">
+                      <div className={`w-3 h-3 rounded-sm ${t.bg} shrink-0`} />
+                      <span className="text-[10px] font-semibold text-slate-600">{t.label} <span className="text-slate-400 font-normal">({t.range})</span></span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-3 bg-blue-50 border border-blue-100 p-2.5 rounded-xl flex items-center gap-2">
+                  <Eye className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <span className="text-[10px] text-blue-700 font-medium">Hover over districts to view details</span>
                 </div>
               </div>
             </div>
