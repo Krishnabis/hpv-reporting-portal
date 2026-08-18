@@ -92,8 +92,13 @@ export const AdminDashboard: React.FC = () => {
 
   const fetchKpis = () => {
     setLoadingKpis(true);
-    fetch('/api/admin/kpis')
-      .then(res => res.json())
+    fetch('/api/admin/kpis', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('hpv_admin_token')}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch KPIs');
+        return res.json();
+      })
       .then(data => {
         setKpis(data);
         setLoadingKpis(false);
@@ -133,8 +138,13 @@ export const AdminDashboard: React.FC = () => {
       blockId: filterBlockId
     });
 
-    fetch(`/api/admin/reports/generate?${params.toString()}`)
-      .then(res => res.json())
+    fetch(`/api/admin/reports/generate?${params.toString()}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('hpv_admin_token')}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch reports');
+        return res.json();
+      })
       .then(data => {
         setReportRows(data.rows || []);
         setLoadingReport(false);
@@ -153,8 +163,13 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const fetchSettings = () => {
-    fetch('/api/admin/settings')
-      .then(res => res.json())
+    fetch('/api/admin/settings', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('hpv_admin_token')}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch settings');
+        return res.json();
+      })
       .then(data => setSettingsList(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
   };
