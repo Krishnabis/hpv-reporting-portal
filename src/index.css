@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 min-h-screen antialiased;
+  }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.gradient-header {
+  background: linear-gradient(135deg, #2D1250 0%, #3B1C63 50%, #522B85 100%);
+}
+
+.gradient-badge {
+  background: linear-gradient(135deg, #0EA5E9 0%, #0D9488 100%);
+}
+
+.gradient-pink {
+  background: linear-gradient(135deg, #EC4899 0%, #D946EF 100%);
+}
+
+/* Custom Scrollbar for Report Table */
+::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

@@ -1,0 +1,1378 @@
+{
+  "states": [
+    {
+      "id": 1,
+      "lgd_code": 5,
+      "name": "Uttarakhand",
+      "code": "UK",
+      "is_active": 1
+    }
+  ],
+  "districts": [
+    {
+      "id": 1,
+      "state_id": 1,
+      "lgd_code": 45,
+      "name": "Almora",
+      "code": "ALM",
+      "is_active": 1
+    },
+    {
+      "id": 2,
+      "state_id": 1,
+      "lgd_code": 46,
+      "name": "Bageshwar",
+      "code": "BAG",
+      "is_active": 1
+    },
+    {
+      "id": 3,
+      "state_id": 1,
+      "lgd_code": 47,
+      "name": "Chamoli",
+      "code": "CHA",
+      "is_active": 1
+    },
+    {
+      "id": 4,
+      "state_id": 1,
+      "lgd_code": 48,
+      "name": "Champawat",
+      "code": "CHA",
+      "is_active": 1
+    },
+    {
+      "id": 5,
+      "state_id": 1,
+      "lgd_code": 49,
+      "name": "Dehradun",
+      "code": "DEH",
+      "is_active": 1
+    },
+    {
+      "id": 6,
+      "state_id": 1,
+      "lgd_code": 50,
+      "name": "Haridwar",
+      "code": "HAR",
+      "is_active": 1
+    },
+    {
+      "id": 7,
+      "state_id": 1,
+      "lgd_code": 51,
+      "name": "Nainital",
+      "code": "NAI",
+      "is_active": 1
+    },
+    {
+      "id": 8,
+      "state_id": 1,
+      "lgd_code": 52,
+      "name": "Pauri Garhwal",
+      "code": "PAU",
+      "is_active": 1
+    },
+    {
+      "id": 9,
+      "state_id": 1,
+      "lgd_code": 53,
+      "name": "Pithoragarh",
+      "code": "PIT",
+      "is_active": 1
+    },
+    {
+      "id": 10,
+      "state_id": 1,
+      "lgd_code": 54,
+      "name": "Rudraprayag",
+      "code": "RUD",
+      "is_active": 1
+    },
+    {
+      "id": 11,
+      "state_id": 1,
+      "lgd_code": 55,
+      "name": "Tehri Garhwal",
+      "code": "TEH",
+      "is_active": 1
+    },
+    {
+      "id": 12,
+      "state_id": 1,
+      "lgd_code": 56,
+      "name": "Udham Singh Nagar",
+      "code": "UDH",
+      "is_active": 1
+    },
+    {
+      "id": 13,
+      "state_id": 1,
+      "lgd_code": 57,
+      "name": "Uttarkashi",
+      "code": "UTT",
+      "is_active": 1
+    }
+  ],
+  "blocks": [
+    {
+      "id": 1,
+      "district_id": 1,
+      "lgd_code": 352,
+      "name": "Bhaisiya Chhana",
+      "code": "BHA",
+      "is_active": 1
+    },
+    {
+      "id": 2,
+      "district_id": 1,
+      "lgd_code": 353,
+      "name": "Bhikiyasain",
+      "code": "BHI",
+      "is_active": 1
+    },
+    {
+      "id": 3,
+      "district_id": 1,
+      "lgd_code": 354,
+      "name": "Chaukhutiya",
+      "code": "CHA",
+      "is_active": 1
+    },
+    {
+      "id": 4,
+      "district_id": 1,
+      "lgd_code": 355,
+      "name": "Dhauladevi",
+      "code": "DHA",
+      "is_active": 1
+    },
+    {
+      "id": 5,
+      "district_id": 1,
+      "lgd_code": 356,
+      "name": "Dwarahat",
+      "code": "DWA",
+      "is_active": 1
+    },
+    {
+      "id": 6,
+      "district_id": 1,
+      "lgd_code": 357,
+      "name": "Hawalbag",
+      "code": "HAW",
+      "is_active": 1
+    },
+    {
+      "id": 7,
+      "district_id": 1,
+      "lgd_code": 358,
+      "name": "Lamgara",
+      "code": "LAM",
+      "is_active": 1
+    },
+    {
+      "id": 8,
+      "district_id": 1,
+      "lgd_code": 359,
+      "name": "Sult",
+      "code": "SUL",
+      "is_active": 1
+    },
+    {
+      "id": 9,
+      "district_id": 1,
+      "lgd_code": 360,
+      "name": "Syaldey",
+      "code": "SYA",
+      "is_active": 1
+    },
+    {
+      "id": 10,
+      "district_id": 1,
+      "lgd_code": 361,
+      "name": "Takula",
+      "code": "TAK",
+      "is_active": 1
+    },
+    {
+      "id": 11,
+      "district_id": 1,
+      "lgd_code": 362,
+      "name": "Tarikhet",
+      "code": "TAR",
+      "is_active": 1
+    },
+    {
+      "id": 12,
+      "district_id": 2,
+      "lgd_code": 363,
+      "name": "Bageshwar",
+      "code": "BAG",
+      "is_active": 1
+    },
+    {
+      "id": 13,
+      "district_id": 2,
+      "lgd_code": 364,
+      "name": "Garur",
+      "code": "GAR",
+      "is_active": 1
+    },
+    {
+      "id": 14,
+      "district_id": 2,
+      "lgd_code": 365,
+      "name": "Kapkote",
+      "code": "KAP",
+      "is_active": 1
+    },
+    {
+      "id": 15,
+      "district_id": 3,
+      "lgd_code": 366,
+      "name": "Dasholi",
+      "code": "DAS",
+      "is_active": 1
+    },
+    {
+      "id": 16,
+      "district_id": 3,
+      "lgd_code": 367,
+      "name": "Dewal",
+      "code": "DEW",
+      "is_active": 1
+    },
+    {
+      "id": 17,
+      "district_id": 3,
+      "lgd_code": 368,
+      "name": "Gairsain",
+      "code": "GAI",
+      "is_active": 1
+    },
+    {
+      "id": 18,
+      "district_id": 3,
+      "lgd_code": 369,
+      "name": "Ghat",
+      "code": "GHA",
+      "is_active": 1
+    },
+    {
+      "id": 19,
+      "district_id": 3,
+      "lgd_code": 370,
+      "name": "Joshimath",
+      "code": "JOS",
+      "is_active": 1
+    },
+    {
+      "id": 20,
+      "district_id": 3,
+      "lgd_code": 371,
+      "name": "Karnaprayag",
+      "code": "KAR",
+      "is_active": 1
+    },
+    {
+      "id": 21,
+      "district_id": 3,
+      "lgd_code": 372,
+      "name": "Narayanbagar",
+      "code": "NAR",
+      "is_active": 1
+    },
+    {
+      "id": 22,
+      "district_id": 3,
+      "lgd_code": 373,
+      "name": "Pokhari",
+      "code": "POK",
+      "is_active": 1
+    },
+    {
+      "id": 23,
+      "district_id": 3,
+      "lgd_code": 374,
+      "name": "Tharali",
+      "code": "THA",
+      "is_active": 1
+    },
+    {
+      "id": 24,
+      "district_id": 4,
+      "lgd_code": 375,
+      "name": "Barakot",
+      "code": "BAR",
+      "is_active": 1
+    },
+    {
+      "id": 25,
+      "district_id": 4,
+      "lgd_code": 376,
+      "name": "Champawat",
+      "code": "CHA",
+      "is_active": 1
+    },
+    {
+      "id": 26,
+      "district_id": 4,
+      "lgd_code": 377,
+      "name": "Lohaghat",
+      "code": "LOH",
+      "is_active": 1
+    },
+    {
+      "id": 27,
+      "district_id": 4,
+      "lgd_code": 378,
+      "name": "Pati",
+      "code": "PAT",
+      "is_active": 1
+    },
+    {
+      "id": 28,
+      "district_id": 5,
+      "lgd_code": 379,
+      "name": "Chakrata",
+      "code": "CHA",
+      "is_active": 1
+    },
+    {
+      "id": 29,
+      "district_id": 5,
+      "lgd_code": 380,
+      "name": "Doiwala",
+      "code": "DOI",
+      "is_active": 1
+    },
+    {
+      "id": 30,
+      "district_id": 5,
+      "lgd_code": 381,
+      "name": "Kalsi",
+      "code": "KAL",
+      "is_active": 1
+    },
+    {
+      "id": 31,
+      "district_id": 5,
+      "lgd_code": 382,
+      "name": "Raipur",
+      "code": "RAI",
+      "is_active": 1
+    },
+    {
+      "id": 32,
+      "district_id": 5,
+      "lgd_code": 383,
+      "name": "Sahaspur",
+      "code": "SAH",
+      "is_active": 1
+    },
+    {
+      "id": 33,
+      "district_id": 5,
+      "lgd_code": 384,
+      "name": "Vikasnagar",
+      "code": "VIK",
+      "is_active": 1
+    },
+    {
+      "id": 34,
+      "district_id": 6,
+      "lgd_code": 385,
+      "name": "Bahadrabad",
+      "code": "BAH",
+      "is_active": 1
+    },
+    {
+      "id": 35,
+      "district_id": 6,
+      "lgd_code": 386,
+      "name": "Bhagwanpur",
+      "code": "BHA",
+      "is_active": 1
+    },
+    {
+      "id": 36,
+      "district_id": 6,
+      "lgd_code": 387,
+      "name": "Khanpur",
+      "code": "KHA",
+      "is_active": 1
+    },
+    {
+      "id": 37,
+      "district_id": 6,
+      "lgd_code": 388,
+      "name": "Laksar",
+      "code": "LAK",
+      "is_active": 1
+    },
+    {
+      "id": 38,
+      "district_id": 6,
+      "lgd_code": 389,
+      "name": "Narsan",
+      "code": "NAR",
+      "is_active": 1
+    },
+    {
+      "id": 39,
+      "district_id": 6,
+      "lgd_code": 390,
+      "name": "Roorkee",
+      "code": "ROO",
+      "is_active": 1
+    },
+    {
+      "id": 40,
+      "district_id": 7,
+      "lgd_code": 391,
+      "name": "Betalghat",
+      "code": "BET",
+      "is_active": 1
+    },
+    {
+      "id": 41,
+      "district_id": 7,
+      "lgd_code": 392,
+      "name": "Bhimtal",
+      "code": "BHI",
+      "is_active": 1
+    },
+    {
+      "id": 42,
+      "district_id": 7,
+      "lgd_code": 393,
+      "name": "Dhari",
+      "code": "DHA",
+      "is_active": 1
+    },
+    {
+      "id": 43,
+      "district_id": 7,
+      "lgd_code": 394,
+      "name": "Haldwani",
+      "code": "HAL",
+      "is_active": 1
+    },
+    {
+      "id": 44,
+      "district_id": 7,
+      "lgd_code": 395,
+      "name": "Kotabag",
+      "code": "KOT",
+      "is_active": 1
+    },
+    {
+      "id": 45,
+      "district_id": 7,
+      "lgd_code": 396,
+      "name": "Okhalkanda",
+      "code": "OKH",
+      "is_active": 1
+    },
+    {
+      "id": 46,
+      "district_id": 7,
+      "lgd_code": 397,
+      "name": "Ramgarh",
+      "code": "RAM",
+      "is_active": 1
+    },
+    {
+      "id": 47,
+      "district_id": 7,
+      "lgd_code": 398,
+      "name": "Ramnagar",
+      "code": "RAM",
+      "is_active": 1
+    },
+    {
+      "id": 48,
+      "district_id": 8,
+      "lgd_code": 399,
+      "name": "Bironkhal",
+      "code": "BIR",
+      "is_active": 1
+    },
+    {
+      "id": 49,
+      "district_id": 8,
+      "lgd_code": 400,
+      "name": "Duggada",
+      "code": "DUG",
+      "is_active": 1
+    },
+    {
+      "id": 50,
+      "district_id": 8,
+      "lgd_code": 401,
+      "name": "Dwarikhal",
+      "code": "DWA",
+      "is_active": 1
+    },
+    {
+      "id": 51,
+      "district_id": 8,
+      "lgd_code": 402,
+      "name": "Ekeshwar",
+      "code": "EKE",
+      "is_active": 1
+    },
+    {
+      "id": 52,
+      "district_id": 8,
+      "lgd_code": 403,
+      "name": "Kaljikhal",
+      "code": "KAL",
+      "is_active": 1
+    },
+    {
+      "id": 53,
+      "district_id": 8,
+      "lgd_code": 404,
+      "name": "Khirsu",
+      "code": "KHI",
+      "is_active": 1
+    },
+    {
+      "id": 54,
+      "district_id": 8,
+      "lgd_code": 405,
+      "name": "Kot",
+      "code": "KOT",
+      "is_active": 1
+    },
+    {
+      "id": 55,
+      "district_id": 8,
+      "lgd_code": 406,
+      "name": "Nainidanda",
+      "code": "NAI",
+      "is_active": 1
+    },
+    {
+      "id": 56,
+      "district_id": 8,
+      "lgd_code": 407,
+      "name": "Pabau",
+      "code": "PAB",
+      "is_active": 1
+    },
+    {
+      "id": 57,
+      "district_id": 8,
+      "lgd_code": 408,
+      "name": "Pauri",
+      "code": "PAU",
+      "is_active": 1
+    },
+    {
+      "id": 58,
+      "district_id": 8,
+      "lgd_code": 409,
+      "name": "Pokhra",
+      "code": "POK",
+      "is_active": 1
+    },
+    {
+      "id": 59,
+      "district_id": 8,
+      "lgd_code": 410,
+      "name": "Rikhnikhal",
+      "code": "RIK",
+      "is_active": 1
+    },
+    {
+      "id": 60,
+      "district_id": 8,
+      "lgd_code": 411,
+      "name": "Thalisain",
+      "code": "THA",
+      "is_active": 1
+    },
+    {
+      "id": 61,
+      "district_id": 8,
+      "lgd_code": 412,
+      "name": "Yamkeshwar",
+      "code": "YAM",
+      "is_active": 1
+    },
+    {
+      "id": 62,
+      "district_id": 8,
+      "lgd_code": 413,
+      "name": "Zahrikhal",
+      "code": "ZAH",
+      "is_active": 1
+    },
+    {
+      "id": 63,
+      "district_id": 9,
+      "lgd_code": 414,
+      "name": "Berinag",
+      "code": "BER",
+      "is_active": 1
+    },
+    {
+      "id": 64,
+      "district_id": 9,
+      "lgd_code": 415,
+      "name": "Dharchula",
+      "code": "DHA",
+      "is_active": 1
+    },
+    {
+      "id": 65,
+      "district_id": 9,
+      "lgd_code": 416,
+      "name": "Didihat",
+      "code": "DID",
+      "is_active": 1
+    },
+    {
+      "id": 66,
+      "district_id": 9,
+      "lgd_code": 417,
+      "name": "Gangolihat",
+      "code": "GAN",
+      "is_active": 1
+    },
+    {
+      "id": 67,
+      "district_id": 9,
+      "lgd_code": 418,
+      "name": "Kanalichina",
+      "code": "KAN",
+      "is_active": 1
+    },
+    {
+      "id": 68,
+      "district_id": 9,
+      "lgd_code": 419,
+      "name": "Munakot",
+      "code": "MUN",
+      "is_active": 1
+    },
+    {
+      "id": 69,
+      "district_id": 9,
+      "lgd_code": 420,
+      "name": "Munsyari",
+      "code": "MUN",
+      "is_active": 1
+    },
+    {
+      "id": 70,
+      "district_id": 9,
+      "lgd_code": 421,
+      "name": "Pithoragarh",
+      "code": "PIT",
+      "is_active": 1
+    },
+    {
+      "id": 71,
+      "district_id": 10,
+      "lgd_code": 422,
+      "name": "Augustmuni",
+      "code": "AUG",
+      "is_active": 1
+    },
+    {
+      "id": 72,
+      "district_id": 10,
+      "lgd_code": 423,
+      "name": "Jakholi",
+      "code": "JAK",
+      "is_active": 1
+    },
+    {
+      "id": 73,
+      "district_id": 10,
+      "lgd_code": 424,
+      "name": "Ukhimath",
+      "code": "UKH",
+      "is_active": 1
+    },
+    {
+      "id": 74,
+      "district_id": 11,
+      "lgd_code": 425,
+      "name": "Bhilangna",
+      "code": "BHI",
+      "is_active": 1
+    },
+    {
+      "id": 75,
+      "district_id": 11,
+      "lgd_code": 426,
+      "name": "Chamba",
+      "code": "CHA",
+      "is_active": 1
+    },
+    {
+      "id": 76,
+      "district_id": 11,
+      "lgd_code": 427,
+      "name": "Deoprayag",
+      "code": "DEO",
+      "is_active": 1
+    },
+    {
+      "id": 77,
+      "district_id": 11,
+      "lgd_code": 428,
+      "name": "Jakhnidhar",
+      "code": "JAK",
+      "is_active": 1
+    },
+    {
+      "id": 78,
+      "district_id": 11,
+      "lgd_code": 429,
+      "name": "Jaunpur",
+      "code": "JAU",
+      "is_active": 1
+    },
+    {
+      "id": 79,
+      "district_id": 11,
+      "lgd_code": 430,
+      "name": "Kirtinagar",
+      "code": "KIR",
+      "is_active": 1
+    },
+    {
+      "id": 80,
+      "district_id": 11,
+      "lgd_code": 431,
+      "name": "Narendra Nagar",
+      "code": "NAR",
+      "is_active": 1
+    },
+    {
+      "id": 81,
+      "district_id": 11,
+      "lgd_code": 432,
+      "name": "Pratapnagar",
+      "code": "PRA",
+      "is_active": 1
+    },
+    {
+      "id": 82,
+      "district_id": 11,
+      "lgd_code": 433,
+      "name": "Thauldhar",
+      "code": "THA",
+      "is_active": 1
+    },
+    {
+      "id": 83,
+      "district_id": 12,
+      "lgd_code": 434,
+      "name": "Bajpur",
+      "code": "BAJ",
+      "is_active": 1
+    },
+    {
+      "id": 84,
+      "district_id": 12,
+      "lgd_code": 435,
+      "name": "Gadarpur",
+      "code": "GAD",
+      "is_active": 1
+    },
+    {
+      "id": 85,
+      "district_id": 12,
+      "lgd_code": 436,
+      "name": "Jaspur",
+      "code": "JAS",
+      "is_active": 1
+    },
+    {
+      "id": 86,
+      "district_id": 12,
+      "lgd_code": 437,
+      "name": "Kashipur",
+      "code": "KAS",
+      "is_active": 1
+    },
+    {
+      "id": 87,
+      "district_id": 12,
+      "lgd_code": 438,
+      "name": "Khatima",
+      "code": "KHA",
+      "is_active": 1
+    },
+    {
+      "id": 88,
+      "district_id": 12,
+      "lgd_code": 439,
+      "name": "Rudrapur",
+      "code": "RUD",
+      "is_active": 1
+    },
+    {
+      "id": 89,
+      "district_id": 12,
+      "lgd_code": 440,
+      "name": "Sitarganj",
+      "code": "SIT",
+      "is_active": 1
+    },
+    {
+      "id": 90,
+      "district_id": 13,
+      "lgd_code": 441,
+      "name": "Bhatwari",
+      "code": "BHA",
+      "is_active": 1
+    },
+    {
+      "id": 91,
+      "district_id": 13,
+      "lgd_code": 442,
+      "name": "Chinyalisaur",
+      "code": "CHI",
+      "is_active": 1
+    },
+    {
+      "id": 92,
+      "district_id": 13,
+      "lgd_code": 443,
+      "name": "Dunda",
+      "code": "DUN",
+      "is_active": 1
+    },
+    {
+      "id": 93,
+      "district_id": 13,
+      "lgd_code": 444,
+      "name": "Mori",
+      "code": "MOR",
+      "is_active": 1
+    },
+    {
+      "id": 94,
+      "district_id": 13,
+      "lgd_code": 445,
+      "name": "Naugaon",
+      "code": "NAU",
+      "is_active": 1
+    },
+    {
+      "id": 95,
+      "district_id": 13,
+      "lgd_code": 446,
+      "name": "Purola",
+      "code": "PUR",
+      "is_active": 1
+    }
+  ],
+  "block_reporting_profiles": [
+    {
+      "id": "prof-1",
+      "block_id": 71,
+      "base_population": 133884,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 1339,
+      "updated_at": "2026-08-18T11:45:17.842Z"
+    },
+    {
+      "id": "prof-2",
+      "block_id": 12,
+      "base_population": 72549,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 725,
+      "updated_at": "2026-08-18T11:45:17.844Z"
+    },
+    {
+      "id": "prof-3",
+      "block_id": 34,
+      "base_population": 10000,
+      "population_base_date": "2026-08-18",
+      "initial_hpv_target": 8,
+      "updated_at": "2026-08-18T11:52:17.994Z"
+    },
+    {
+      "id": "prof-4",
+      "block_id": 83,
+      "base_population": 76641,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 766,
+      "updated_at": "2026-08-18T11:45:17.850Z"
+    },
+    {
+      "id": "prof-5",
+      "block_id": 24,
+      "base_population": 65140,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 651,
+      "updated_at": "2026-08-18T11:45:17.852Z"
+    },
+    {
+      "id": "prof-6",
+      "block_id": 63,
+      "base_population": 71228,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 712,
+      "updated_at": "2026-08-18T11:45:17.854Z"
+    },
+    {
+      "id": "prof-7",
+      "block_id": 40,
+      "base_population": 65157,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 652,
+      "updated_at": "2026-08-18T11:45:17.855Z"
+    },
+    {
+      "id": "prof-8",
+      "block_id": 35,
+      "base_population": 108595,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 1086,
+      "updated_at": "2026-08-18T11:45:17.857Z"
+    },
+    {
+      "id": "prof-9",
+      "block_id": 1,
+      "base_population": 75022,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 750,
+      "updated_at": "2026-08-18T11:45:17.861Z"
+    },
+    {
+      "id": "prof-10",
+      "block_id": 90,
+      "base_population": 118311,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 1183,
+      "updated_at": "2026-08-18T11:45:17.862Z"
+    },
+    {
+      "id": "prof-11",
+      "block_id": 2,
+      "base_population": 93363,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 934,
+      "updated_at": "2026-08-18T11:45:17.865Z"
+    },
+    {
+      "id": "prof-12",
+      "block_id": 74,
+      "base_population": 106606,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 1066,
+      "updated_at": "2026-08-18T11:45:17.869Z"
+    },
+    {
+      "id": "prof-13",
+      "block_id": 41,
+      "base_population": 100129,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 1001,
+      "updated_at": "2026-08-18T11:45:17.870Z"
+    },
+    {
+      "id": "prof-14",
+      "block_id": 48,
+      "base_population": 117513,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 1175,
+      "updated_at": "2026-08-18T11:45:17.872Z"
+    },
+    {
+      "id": "prof-15",
+      "block_id": 28,
+      "base_population": 71194,
+      "population_base_date": "2026-01-01",
+      "initial_hpv_target": 712,
+      "updated_at": "2026-08-18T11:45:17.873Z"
+    }
+  ],
+  "daily_reports": [
+    {
+      "id": "rep-1-1",
+      "block_id": 71,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 929,
+      "beneficiaries_vaccinated": 721,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.842Z",
+      "updated_at": "2026-08-18T11:45:17.842Z"
+    },
+    {
+      "id": "rep-1-2",
+      "block_id": 71,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 1056,
+      "beneficiaries_vaccinated": 901,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.843Z",
+      "updated_at": "2026-08-18T11:45:17.843Z"
+    },
+    {
+      "id": "rep-2-1",
+      "block_id": 12,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 561,
+      "beneficiaries_vaccinated": 426,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.844Z",
+      "updated_at": "2026-08-18T11:45:17.844Z"
+    },
+    {
+      "id": "rep-2-2",
+      "block_id": 12,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 637,
+      "beneficiaries_vaccinated": 533,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.845Z",
+      "updated_at": "2026-08-18T11:45:17.845Z"
+    },
+    {
+      "id": "rep-3-1",
+      "block_id": 34,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 504,
+      "beneficiaries_vaccinated": 381,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.847Z",
+      "updated_at": "2026-08-18T11:45:17.847Z"
+    },
+    {
+      "id": "rep-3-2",
+      "block_id": 34,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 573,
+      "beneficiaries_vaccinated": 476,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.847Z",
+      "updated_at": "2026-08-18T11:45:17.847Z"
+    },
+    {
+      "id": "rep-4-1",
+      "block_id": 83,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 524,
+      "beneficiaries_vaccinated": 339,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.850Z",
+      "updated_at": "2026-08-18T11:45:17.850Z"
+    },
+    {
+      "id": "rep-4-2",
+      "block_id": 83,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 595,
+      "beneficiaries_vaccinated": 424,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.851Z",
+      "updated_at": "2026-08-18T11:45:17.851Z"
+    },
+    {
+      "id": "rep-5-1",
+      "block_id": 24,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 440,
+      "beneficiaries_vaccinated": 314,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.853Z",
+      "updated_at": "2026-08-18T11:45:17.853Z"
+    },
+    {
+      "id": "rep-5-2",
+      "block_id": 24,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 500,
+      "beneficiaries_vaccinated": 392,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.854Z",
+      "updated_at": "2026-08-18T11:45:17.854Z"
+    },
+    {
+      "id": "rep-6-1",
+      "block_id": 63,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 561,
+      "beneficiaries_vaccinated": 351,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.855Z",
+      "updated_at": "2026-08-18T11:45:17.855Z"
+    },
+    {
+      "id": "rep-6-2",
+      "block_id": 63,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 638,
+      "beneficiaries_vaccinated": 439,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.855Z",
+      "updated_at": "2026-08-18T11:45:17.855Z"
+    },
+    {
+      "id": "rep-7-1",
+      "block_id": 40,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 431,
+      "beneficiaries_vaccinated": 330,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.856Z",
+      "updated_at": "2026-08-18T11:45:17.856Z"
+    },
+    {
+      "id": "rep-7-2",
+      "block_id": 40,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 490,
+      "beneficiaries_vaccinated": 412,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.856Z",
+      "updated_at": "2026-08-18T11:45:17.856Z"
+    },
+    {
+      "id": "rep-8-1",
+      "block_id": 35,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 888,
+      "beneficiaries_vaccinated": 650,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.858Z",
+      "updated_at": "2026-08-18T11:45:17.858Z"
+    },
+    {
+      "id": "rep-8-2",
+      "block_id": 35,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 1009,
+      "beneficiaries_vaccinated": 813,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.858Z",
+      "updated_at": "2026-08-18T11:45:17.858Z"
+    },
+    {
+      "id": "rep-9-1",
+      "block_id": 1,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 623,
+      "beneficiaries_vaccinated": 504,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.862Z",
+      "updated_at": "2026-08-18T11:45:17.862Z"
+    },
+    {
+      "id": "rep-9-2",
+      "block_id": 1,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 708,
+      "beneficiaries_vaccinated": 630,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.862Z",
+      "updated_at": "2026-08-18T11:45:17.862Z"
+    },
+    {
+      "id": "rep-10-1",
+      "block_id": 90,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 937,
+      "beneficiaries_vaccinated": 607,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.863Z",
+      "updated_at": "2026-08-18T11:45:17.863Z"
+    },
+    {
+      "id": "rep-10-2",
+      "block_id": 90,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 1065,
+      "beneficiaries_vaccinated": 759,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.864Z",
+      "updated_at": "2026-08-18T11:45:17.864Z"
+    },
+    {
+      "id": "rep-11-1",
+      "block_id": 2,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 725,
+      "beneficiaries_vaccinated": 502,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.866Z",
+      "updated_at": "2026-08-18T11:45:17.866Z"
+    },
+    {
+      "id": "rep-11-2",
+      "block_id": 2,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 824,
+      "beneficiaries_vaccinated": 627,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.867Z",
+      "updated_at": "2026-08-18T11:45:17.867Z"
+    },
+    {
+      "id": "rep-12-1",
+      "block_id": 74,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 777,
+      "beneficiaries_vaccinated": 626,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.870Z",
+      "updated_at": "2026-08-18T11:45:17.870Z"
+    },
+    {
+      "id": "rep-12-2",
+      "block_id": 74,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 883,
+      "beneficiaries_vaccinated": 782,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.870Z",
+      "updated_at": "2026-08-18T11:45:17.870Z"
+    },
+    {
+      "id": "rep-13-1",
+      "block_id": 41,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 694,
+      "beneficiaries_vaccinated": 418,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.871Z",
+      "updated_at": "2026-08-18T11:45:17.871Z"
+    },
+    {
+      "id": "rep-13-2",
+      "block_id": 41,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 789,
+      "beneficiaries_vaccinated": 522,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.871Z",
+      "updated_at": "2026-08-18T11:45:17.871Z"
+    },
+    {
+      "id": "rep-14-1",
+      "block_id": 48,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 826,
+      "beneficiaries_vaccinated": 664,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.872Z",
+      "updated_at": "2026-08-18T11:45:17.872Z"
+    },
+    {
+      "id": "rep-14-2",
+      "block_id": 48,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 939,
+      "beneficiaries_vaccinated": 830,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.873Z",
+      "updated_at": "2026-08-18T11:45:17.873Z"
+    },
+    {
+      "id": "rep-15-1",
+      "block_id": 28,
+      "reporting_date": "2026-08-17",
+      "line_list_count": 501,
+      "beneficiaries_vaccinated": 297,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.874Z",
+      "updated_at": "2026-08-18T11:45:17.874Z"
+    },
+    {
+      "id": "rep-15-2",
+      "block_id": 28,
+      "reporting_date": "2026-08-18",
+      "line_list_count": 569,
+      "beneficiaries_vaccinated": 371,
+      "submitted_by": "Block Operator",
+      "submitted_at": "2026-08-18T11:45:17.874Z",
+      "updated_at": "2026-08-18T11:45:17.874Z"
+    }
+  ],
+  "admin_users": [
+    {
+      "id": "usr-admin-1",
+      "username": "UKHPV2026",
+      "password_hash": "238981292ae540c56c98ef7ea36d38c9a7d158f6234090dfb97af98f063b2025f3d075156f6e53c3121f2c6ec8e37d5ac7bd68a9408caf65607a2d98cb33daa4",
+      "name": "State HPV Administrator",
+      "role": "SUPER_ADMIN",
+      "is_active": 1,
+      "created_at": "2026-08-18T11:45:17.783Z"
+    }
+  ],
+  "settings": [
+    {
+      "id": "set-1",
+      "key": "monthly_population_growth",
+      "value": "0.0008",
+      "description": "Monthly population growth rate (0.08% per month)",
+      "updated_at": "2026-08-18T11:45:17.769Z"
+    },
+    {
+      "id": "set-2",
+      "key": "hpv_target_percentage",
+      "value": "0.01",
+      "description": "Target HPV beneficiary percentage of total population (1.00%)",
+      "updated_at": "2026-08-18T11:45:17.774Z"
+    },
+    {
+      "id": "set-3",
+      "key": "reporting_enabled",
+      "value": "true",
+      "description": "Global flag to enable block reporting",
+      "updated_at": "2026-08-18T11:45:17.774Z"
+    },
+    {
+      "id": "set-4",
+      "key": "allow_previous_date_entry",
+      "value": "true",
+      "description": "Allow reporting for historical dates",
+      "updated_at": "2026-08-18T11:45:17.776Z"
+    },
+    {
+      "id": "set-5",
+      "key": "organization_name",
+      "value": "HPV Vaccination Due List Tracking",
+      "description": "System organization name",
+      "updated_at": "2026-08-18T11:45:17.776Z"
+    },
+    {
+      "id": "set-6",
+      "key": "portal_title",
+      "value": "HPV Vaccination Reporting",
+      "description": "Header display title",
+      "updated_at": "2026-08-18T11:45:17.776Z"
+    },
+    {
+      "id": "set-7",
+      "key": "default_state",
+      "value": "Uttarakhand",
+      "description": "Default state selected in reports",
+      "updated_at": "2026-08-18T11:45:17.777Z"
+    }
+  ],
+  "audit_logs": [
+    {
+      "id": "audit-1787053938004-1hcp2",
+      "user_id": "BLOCK_OPERATOR",
+      "action": "UPDATE_BLOCK_PROFILE",
+      "entity_type": "block_reporting_profile",
+      "entity_id": "prof-3",
+      "old_value": "{\"id\":\"prof-3\",\"block_id\":34,\"base_population\":68875,\"population_base_date\":\"2026-01-01\",\"initial_hpv_target\":689,\"updated_at\":\"2026-08-18T11:45:17.846Z\"}",
+      "new_value": "{\"base_population\":10000,\"population_base_date\":\"2026-08-18\",\"initial_hpv_target\":8}",
+      "ip_address": "::1",
+      "created_at": "2026-08-18T11:52:18.004Z"
+    }
+  ]
+}

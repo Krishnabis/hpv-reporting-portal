@@ -1,0 +1,96 @@
+S No,State LGD Code,State Name,District LGD Code,District Name,Block LGD Code,Block Name
+1,5, Uttarakhand,45,Almora ,352,Bhaisiya Chhana
+2,5, Uttarakhand,45,Almora ,353,Bhikiyasain
+3,5, Uttarakhand,45,Almora ,354,Chaukhutiya
+4,5, Uttarakhand,45,Almora ,355,Dhauladevi
+5,5, Uttarakhand,45,Almora ,356,Dwarahat
+6,5, Uttarakhand,45,Almora ,357,Hawalbag
+7,5, Uttarakhand,45,Almora ,358,Lamgara
+8,5, Uttarakhand,45,Almora ,359,Sult
+9,5, Uttarakhand,45,Almora ,360,Syaldey
+10,5, Uttarakhand,45,Almora ,361,Takula
+11,5, Uttarakhand,45,Almora ,362,Tarikhet
+12,5, Uttarakhand,46,Bageshwar ,363,Bageshwar
+13,5, Uttarakhand,46,Bageshwar ,364,Garur
+14,5, Uttarakhand,46,Bageshwar ,365,Kapkote
+15,5, Uttarakhand,47,Chamoli ,366,Dasholi
+16,5, Uttarakhand,47,Chamoli ,367,Dewal
+17,5, Uttarakhand,47,Chamoli ,368,Gairsain
+18,5, Uttarakhand,47,Chamoli ,369,Ghat
+19,5, Uttarakhand,47,Chamoli ,370,Joshimath
+20,5, Uttarakhand,47,Chamoli ,371,Karnaprayag
+21,5, Uttarakhand,47,Chamoli ,372,Narayanbagar
+22,5, Uttarakhand,47,Chamoli ,373,Pokhari
+23,5, Uttarakhand,47,Chamoli ,374,Tharali
+24,5, Uttarakhand,48,Champawat ,375,Barakot
+25,5, Uttarakhand,48,Champawat ,376,Champawat
+26,5, Uttarakhand,48,Champawat ,377,Lohaghat
+27,5, Uttarakhand,48,Champawat ,378,Pati
+28,5, Uttarakhand,49,Dehradun ,379,Chakrata
+29,5, Uttarakhand,49,Dehradun ,380,Doiwala
+30,5, Uttarakhand,49,Dehradun ,381,Kalsi
+31,5, Uttarakhand,49,Dehradun ,382,Raipur
+32,5, Uttarakhand,49,Dehradun ,383,Sahaspur
+33,5, Uttarakhand,49,Dehradun ,384,Vikasnagar
+34,5, Uttarakhand,50,Haridwar ,385,Bahadrabad
+35,5, Uttarakhand,50,Haridwar ,386,Bhagwanpur
+36,5, Uttarakhand,50,Haridwar ,387,Khanpur
+37,5, Uttarakhand,50,Haridwar ,388,Laksar
+38,5, Uttarakhand,50,Haridwar ,389,Narsan
+39,5, Uttarakhand,50,Haridwar ,390,Roorkee
+40,5, Uttarakhand,51,Nainital ,391,Betalghat
+41,5, Uttarakhand,51,Nainital ,392,Bhimtal
+42,5, Uttarakhand,51,Nainital ,393,Dhari
+43,5, Uttarakhand,51,Nainital ,394,Haldwani
+44,5, Uttarakhand,51,Nainital ,395,Kotabag
+45,5, Uttarakhand,51,Nainital ,396,Okhalkanda
+46,5, Uttarakhand,51,Nainital ,397,Ramgarh
+47,5, Uttarakhand,51,Nainital ,398,Ramnagar
+48,5, Uttarakhand,52,Pauri Garhwal ,399,Bironkhal
+49,5, Uttarakhand,52,Pauri Garhwal ,400,Duggada
+50,5, Uttarakhand,52,Pauri Garhwal ,401,Dwarikhal
+51,5, Uttarakhand,52,Pauri Garhwal ,402,Ekeshwar
+52,5, Uttarakhand,52,Pauri Garhwal ,403,Kaljikhal
+53,5, Uttarakhand,52,Pauri Garhwal ,404,Khirsu
+54,5, Uttarakhand,52,Pauri Garhwal ,405,Kot
+55,5, Uttarakhand,52,Pauri Garhwal ,406,Nainidanda
+56,5, Uttarakhand,52,Pauri Garhwal ,407,Pabau
+57,5, Uttarakhand,52,Pauri Garhwal ,408,Pauri
+58,5, Uttarakhand,52,Pauri Garhwal ,409,Pokhra
+59,5, Uttarakhand,52,Pauri Garhwal ,410,Rikhnikhal
+60,5, Uttarakhand,52,Pauri Garhwal ,411,Thalisain
+61,5, Uttarakhand,52,Pauri Garhwal ,412,Yamkeshwar
+62,5, Uttarakhand,52,Pauri Garhwal ,413,Zahrikhal
+63,5, Uttarakhand,53,Pithoragarh ,414,Berinag
+64,5, Uttarakhand,53,Pithoragarh ,415,Dharchula
+65,5, Uttarakhand,53,Pithoragarh ,416,Didihat
+66,5, Uttarakhand,53,Pithoragarh ,417,Gangolihat
+67,5, Uttarakhand,53,Pithoragarh ,418,Kanalichina
+68,5, Uttarakhand,53,Pithoragarh ,419,Munakot
+69,5, Uttarakhand,53,Pithoragarh ,420,Munsyari
+70,5, Uttarakhand,53,Pithoragarh ,421,Pithoragarh
+71,5, Uttarakhand,54,Rudraprayag ,422,Augustmuni
+72,5, Uttarakhand,54,Rudraprayag ,423,Jakholi
+73,5, Uttarakhand,54,Rudraprayag ,424,Ukhimath
+74,5, Uttarakhand,55,Tehri Garhwal ,425,Bhilangna
+75,5, Uttarakhand,55,Tehri Garhwal ,426,Chamba
+76,5, Uttarakhand,55,Tehri Garhwal ,427,Deoprayag
+77,5, Uttarakhand,55,Tehri Garhwal ,428,Jakhnidhar
+78,5, Uttarakhand,55,Tehri Garhwal ,429,Jaunpur
+79,5, Uttarakhand,55,Tehri Garhwal ,430,Kirtinagar
+80,5, Uttarakhand,55,Tehri Garhwal ,431,Narendra Nagar
+81,5, Uttarakhand,55,Tehri Garhwal ,432,Pratapnagar
+82,5, Uttarakhand,55,Tehri Garhwal ,433,Thauldhar
+83,5, Uttarakhand,56,Udham Singh Nagar ,434,Bajpur
+84,5, Uttarakhand,56,Udham Singh Nagar ,435,Gadarpur
+85,5, Uttarakhand,56,Udham Singh Nagar ,436,Jaspur
+86,5, Uttarakhand,56,Udham Singh Nagar ,437,Kashipur
+87,5, Uttarakhand,56,Udham Singh Nagar ,438,Khatima
+88,5, Uttarakhand,56,Udham Singh Nagar ,439,Rudrapur
+89,5, Uttarakhand,56,Udham Singh Nagar ,440,Sitarganj
+90,5, Uttarakhand,57,Uttarkashi ,441,Bhatwari
+91,5, Uttarakhand,57,Uttarkashi ,442,Chinyalisaur
+92,5, Uttarakhand,57,Uttarkashi ,443,Dunda
+93,5, Uttarakhand,57,Uttarkashi ,444,Mori
+94,5, Uttarakhand,57,Uttarkashi ,445,Naugaon
+95,5, Uttarakhand,57,Uttarkashi ,446,Purola

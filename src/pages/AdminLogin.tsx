@@ -1,0 +1,137 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Lock, User, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Logo } from '../components/Logo';
+
+export const AdminLogin: React.FC = () => {
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('UKHPV2026');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username || !password) {
+      setErrorMsg('Please enter both username and password');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg('');
+
+    fetch('/api/auth/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setLoading(false);
+        if (data.error) {
+          setErrorMsg(data.error);
+        } else {
+          localStorage.setItem('hpv_admin_token', data.token);
+          localStorage.setItem('hpv_admin_user', JSON.stringify(data.user));
+          navigate('/admin');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+        setErrorMsg('Failed to connect to authentication server');
+      });
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-900 flex flex-col justify-between p-4 sm:p-6 lg:p-8">
+      {/* Top Header */}
+      <header className="max-w-md mx-auto w-full flex items-center justify-between py-2">
+        <Logo size="md" variant="light" />
+        <a
+          href="/"
+          className="text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg bg-white/10 transition-colors"
+        >
+          Block Portal
+        </a>
+      </header>
+
+      {/* Main Form */}
+      <main className="max-w-md mx-auto w-full my-auto py-8">
+        <div className="bg-slate-800/90 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1.5 gradient-pink" />
+
+          <div className="text-center mb-8">
+            <div className="inline-flex p-3 rounded-2xl bg-hpv-purple-dark text-hpv-pink mb-4 border border-hpv-pink/20">
+              <ShieldCheck className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-extrabold text-white tracking-tight">
+              HPV Admin Portal
+            </h1>
+            <p className="text-xs text-slate-400 mt-1">
+              Authorized State & District Executive Portal
+            </p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            {errorMsg && (
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                {errorMsg}
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                Username
+              </label>
+              <div className="relative">
+                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  placeholder="Enter admin username"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-hpv-pink focus:ring-2 focus:ring-hpv-pink/20"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-hpv-pink focus:ring-2 focus:ring-hpv-pink/20"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 px-6 rounded-xl font-bold text-sm text-white gradient-pink shadow-lg shadow-hpv-pink/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <span>{loading ? 'Authenticating...' : 'LOGIN TO ADMIN'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+
+          <div className="mt-8 pt-6 border-t border-slate-700/60 text-center text-xs text-slate-400">
+            Initial Account Credentials: <span className="font-mono text-hpv-pink font-semibold">UKHPV2026</span>
+          </div>
+        </div>
+      </main>
+
+      <footer className="max-w-md mx-auto w-full text-center py-2 text-xs text-slate-500">
+        Protected Health Information System • Secure SSL 256-Bit
+      </footer>
+    </div>
+  );
+};
