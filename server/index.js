@@ -447,7 +447,7 @@ app.get('/api/admin/audit-logs', authenticateToken, async (req, res) => {
 
 app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
   try {
-    const { date, districtId, blockId } = req.query;
+    const { date, districtId, blockId, level = 'BLOCK' } = req.query;
     const reportDate = date || new Date().toISOString().split('T')[0];
     if (!useSupabase) return res.json({ rows: [] });
 
@@ -455,7 +455,7 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
       .from('blocks')
       .select(`
         id, name, lgd_code, district_id,
-        districts!inner(id, name),
+        districts!inner(id, name, lgd_code),
         block_reporting_profiles(base_population, initial_hpv_target)
       `)
       .eq('is_active', true)
@@ -476,20 +476,93 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
     const reportsMap = {};
     for (const r of reports) reportsMap[r.block_id] = r;
 
-    const rows = blocks.map(b => {
+    // First map to block level data
+    const blockData = blocks.map(b => {
       const rep = reportsMap[b.id];
       const pop = b.block_reporting_profiles?.[0]?.base_population || 0;
       const target = b.block_reporting_profiles?.[0]?.initial_hpv_target || 0;
       
       return {
+        id: b.id,
+        name: b.name,
+        lgd_code: b.lgd_code,
+        district_id: b.district_id,
         district_name: b.districts?.name,
-        block_name: b.name,
+        district_lgd_code: b.districts?.lgd_code,
         population: pop,
         hpv_target: target,
         last_reporting_date: rep ? rep.reporting_date : '—',
-        line_list_received: rep ? rep.line_list_count : null,
-        beneficiaries_vaccinated: rep ? rep.beneficiaries_vaccinated : null,
-        vaccination_coverage_pct: rep && target > 0 ? ((rep.beneficiaries_vaccinated / target) * 100).toFixed(1) : null
+        line_list_received: rep ? rep.line_list_count : 0,
+        beneficiaries_vaccinated: rep ? rep.beneficiaries_vaccinated : 0,
+        has_report: !!rep
+      };
+    });
+
+    let finalRows = [];
+
+    if (level === 'DISTRICT') {
+      const distGroup = {};
+      blockData.forEach(b => {
+        if (!distGroup[b.district_id]) {
+          distGroup[b.district_id] = {
+            id: b.district_id,
+            name: `${b.district_name} District`,
+            lgd_code: b.district_lgd_code,
+            population: 0,
+            hpv_target: 0,
+            line_list_received: 0,
+            beneficiaries_vaccinated: 0,
+            last_reporting_date: '—',
+            has_report: false
+          };
+        }
+        const g = distGroup[b.district_id];
+        g.population += b.population;
+        g.hpv_target += b.hpv_target;
+        if (b.has_report) {
+          g.line_list_received += b.line_list_received;
+          g.beneficiaries_vaccinated += b.beneficiaries_vaccinated;
+          g.has_report = true;
+          g.last_reporting_date = reportDate;
+        }
+      });
+      finalRows = Object.values(distGroup);
+    } else if (level === 'STATE') {
+      const stateObj = {
+        id: 'uttarakhand',
+        name: 'Uttarakhand State',
+        lgd_code: 5,
+        population: 0,
+        hpv_target: 0,
+        line_list_received: 0,
+        beneficiaries_vaccinated: 0,
+        last_reporting_date: '—',
+        has_report: false
+      };
+      blockData.forEach(b => {
+        stateObj.population += b.population;
+        stateObj.hpv_target += b.hpv_target;
+        if (b.has_report) {
+          stateObj.line_list_received += b.line_list_received;
+          stateObj.beneficiaries_vaccinated += b.beneficiaries_vaccinated;
+          stateObj.has_report = true;
+          stateObj.last_reporting_date = reportDate;
+        }
+      });
+      finalRows = [stateObj];
+    } else {
+      finalRows = blockData;
+    }
+
+    // Calculate percentages and nullify empty metrics for frontend rendering '—'
+    const rows = finalRows.map(r => {
+      const tgt = r.hpv_target;
+      return {
+        ...r,
+        line_list_received: r.has_report ? r.line_list_received : null,
+        beneficiaries_vaccinated: r.has_report ? r.beneficiaries_vaccinated : null,
+        line_list_received_pct: r.has_report && tgt > 0 ? ((r.line_list_received / tgt) * 100).toFixed(1) : null,
+        vaccination_coverage_pct: r.has_report && tgt > 0 ? ((r.beneficiaries_vaccinated / tgt) * 100).toFixed(1) : null
       };
     });
 
