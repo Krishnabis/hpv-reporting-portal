@@ -76,6 +76,24 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'HPV Reporting Portal API', time: new Date().toISOString() });
 });
 
+app.get('/api/db-status', (req, res) => {
+  const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
+  const hasSupabaseUrl = Boolean(process.env.SUPABASE_DB_URL);
+  const usingPg = hasDatabaseUrl || hasSupabaseUrl;
+  res.json({
+    database: usingPg ? 'PostgreSQL (Supabase)' : 'JSON File Fallback (NOT Supabase)',
+    connected_to_supabase: usingPg,
+    env_vars_present: {
+      DATABASE_URL: hasDatabaseUrl,
+      SUPABASE_DB_URL: hasSupabaseUrl
+    },
+    note: usingPg
+      ? 'Data is persisted in Supabase PostgreSQL'
+      : 'WARNING: No DATABASE_URL/SUPABASE_DB_URL set — using local JSON store, data will NOT persist on Vercel'
+  });
+});
+
+
 app.get('/api/locations/states', (req, res) => {
   const states = db.prepare('SELECT * FROM states WHERE is_active = 1').all();
   res.json(states);
