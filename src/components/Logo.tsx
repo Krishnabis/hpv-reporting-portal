@@ -24,14 +24,12 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', variant = 'dark' }) => 
   const subTextColor = variant === 'light' ? 'text-hpv-teal-light' : 'text-hpv-purple';
 
   return (
-    <div className="flex items-center gap-3 select-none">
-      {/* Official Logo PNG Image */}
+    <a href="/" className="flex items-center gap-3 select-none cursor-pointer">
       <img
         src="/logo.png"
         alt="HPV Vaccination Due List Tracking Logo"
         className={`${imageSizes[size]} drop-shadow-sm transition-transform hover:scale-105`}
       />
-
       <div className="flex flex-col">
         <span className={`font-extrabold tracking-tight leading-tight ${textColor} ${textSizeClasses[size]}`}>
           HPV Vaccination
@@ -40,6 +38,6 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', variant = 'dark' }) => 
           Due List Tracking
         </span>
       </div>
-    </div>
+    </a>
   );
 };
