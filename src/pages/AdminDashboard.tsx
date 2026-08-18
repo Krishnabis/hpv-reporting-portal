@@ -14,14 +14,16 @@ interface KPIState {
   reporting_today: number;
   total_line_list: number;
   total_vaccinated: number;
-  total_target_pop: number;
+  total_target: number;
   overall_coverage_pct: number;
+  overall_linelist_pct: number;
   district_chart_data: Array<{
     district: string;
     vaccinated: number;
     lineList: number;
     target: number;
     coveragePct: number;
+    lineListPct: number;
   }>;
 }
 
@@ -483,8 +485,11 @@ export const AdminDashboard: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-400">Cumulative line list entries</span>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className="text-[10px] text-slate-400">% Line List</span>
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-mono">
+                    {kpis ? kpis.overall_linelist_pct : 0}% of Target
+                  </span>
                 </div>
               </div>
 
@@ -503,9 +508,10 @@ export const AdminDashboard: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-emerald-600">
-                    Coverage: {kpis ? kpis.overall_coverage_pct : 0}% of Target
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className="text-[10px] text-slate-400">% Coverage</span>
+                  <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded font-mono">
+                    {kpis ? kpis.overall_coverage_pct : 0}% of Target
                   </span>
                 </div>
               </div>
@@ -525,24 +531,27 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 
                 {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                     {kpis.district_chart_data.map(d => (
-                      <div key={d.district} className="flex items-center justify-between py-2 rounded-lg hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
-                        <span className="text-xs font-bold text-slate-800 w-1/3 truncate pr-2">{d.district}</span>
-                        <div className="flex flex-col items-end gap-0.5">
-                          <span className="text-[10px] text-slate-500 font-mono">
-                            Vaccinated: <strong className="text-slate-900">{d.vaccinated.toLocaleString()}</strong> / {d.target.toLocaleString()}
+                      <div key={d.district} className="flex items-center py-2 rounded-lg hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0 gap-2">
+                        <span className="text-xs font-bold text-slate-800 flex-1 truncate min-w-0">{d.district}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-[10px] font-mono text-slate-500 hidden lg:inline">
+                            {d.vaccinated}/{d.target > 0 ? d.target : '—'}
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold">
+                            LL: {d.lineListPct ?? 0}%
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-bold">
+                            {d.coveragePct}%
                           </span>
                         </div>
-                        <span className="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-bold ml-2 shrink-0">
-                          {d.coveragePct}%
-                        </span>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="py-12 text-center text-xs text-slate-400">
-                    No district report data calculated yet.
+                    No district report data yet — blocks need population setup.
                   </div>
                 )}
                 

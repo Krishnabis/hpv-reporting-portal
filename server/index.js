@@ -309,46 +309,72 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
 app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
   try {
     const todayStr = new Date().toISOString().split('T')[0];
-    if (!useSupabase) return res.json({ total_blocks: 0, reporting_today: 0, total_line_list: 0, total_vaccinated: 0, overall_coverage_pct: 0, district_chart_data: [] });
+    if (!useSupabase) return res.json({ total_blocks: 0, reporting_today: 0, total_line_list: 0, total_vaccinated: 0, overall_coverage_pct: 0, overall_linelist_pct: 0, district_chart_data: [] });
 
-    // Fetch all active blocks with population/target
-    const { data: blocks } = await supabase.from('blocks').select('id, district_id, districts!inner(name), block_reporting_profiles(base_population, initial_hpv_target)').eq('is_active', true);
-    // Fetch today's reports
-    const { data: reports } = await supabase.from('daily_reports').select('block_id, line_list_count, beneficiaries_vaccinated').eq('reporting_date', todayStr);
+    // 1. Fetch all active blocks with district info
+    const { data: blocks, error: bErr } = await supabase
+      .from('blocks')
+      .select('id, district_id, districts!inner(name)')
+      .eq('is_active', true);
+    if (bErr) throw bErr;
+
+    // 2. Fetch ALL block_reporting_profiles in one shot (no join issues)
+    const { data: profiles, error: pErr } = await supabase
+      .from('block_reporting_profiles')
+      .select('block_id, base_population, initial_hpv_target');
+    if (pErr) throw pErr;
+
+    // 3. Fetch today's reports
+    const { data: reports, error: rErr } = await supabase
+      .from('daily_reports')
+      .select('block_id, line_list_count, beneficiaries_vaccinated')
+      .eq('reporting_date', todayStr);
+    if (rErr) throw rErr;
+
+    // Build lookup maps
+    const profileMap = {};
+    (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
+
+    const reportMap = {};
+    (reports || []).forEach(r => { reportMap[r.block_id] = r; });
 
     let totalBlocks = blocks?.length || 0;
     let totalLineList = 0;
     let totalVaccinated = 0;
-    let reportingToday = reports?.length || 0;
+    let reportingToday = 0;
     let totalTarget = 0;
 
     const districtStats = {};
 
     (blocks || []).forEach(b => {
       const dName = b.districts?.name || 'Unknown';
-      if (!districtStats[dName]) districtStats[dName] = { name: dName, vaccinated: 0, target: 0 };
-      
-      const target = b.block_reporting_profiles?.[0]?.initial_hpv_target || 0;
+      if (!districtStats[dName]) districtStats[dName] = { name: dName, vaccinated: 0, lineList: 0, target: 0 };
+
+      const prof = profileMap[b.id];
+      // Target is stored directly OR calculated as 1% of base_population
+      const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
       totalTarget += target;
       districtStats[dName].target += target;
-    });
 
-    (reports || []).forEach(r => {
-      totalLineList += r.line_list_count || 0;
-      totalVaccinated += r.beneficiaries_vaccinated || 0;
-      
-      const b = blocks?.find(x => x.id === r.block_id);
-      if (b) {
-        const dName = b.districts?.name || 'Unknown';
-        districtStats[dName].vaccinated += (r.beneficiaries_vaccinated || 0);
+      const rep = reportMap[b.id];
+      if (rep) {
+        reportingToday++;
+        const ll = rep.line_list_count || 0;
+        const vacc = rep.beneficiaries_vaccinated || 0;
+        totalLineList += ll;
+        totalVaccinated += vacc;
+        districtStats[dName].lineList += ll;
+        districtStats[dName].vaccinated += vacc;
       }
     });
 
     const district_chart_data = Object.values(districtStats).map((d) => ({
       district: d.name,
-      coveragePct: d.target > 0 ? Math.round((d.vaccinated / d.target) * 100) : 0,
-      vaccinated: d.vaccinated || 0,
-      target: d.target || 0
+      vaccinated: d.vaccinated,
+      lineList: d.lineList,
+      target: d.target,
+      coveragePct: d.target > 0 ? parseFloat(((d.vaccinated / d.target) * 100).toFixed(1)) : 0,
+      lineListPct: d.target > 0 ? parseFloat(((d.lineList / d.target) * 100).toFixed(1)) : 0,
     })).sort((a, b) => b.coveragePct - a.coveragePct);
 
     res.json({
@@ -356,11 +382,14 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       reporting_today: reportingToday,
       total_line_list: totalLineList,
       total_vaccinated: totalVaccinated,
-      overall_coverage_pct: totalTarget > 0 ? ((totalVaccinated / totalTarget) * 100).toFixed(1) : 0,
+      total_target: totalTarget,
+      overall_coverage_pct: totalTarget > 0 ? parseFloat(((totalVaccinated / totalTarget) * 100).toFixed(1)) : 0,
+      overall_linelist_pct: totalTarget > 0 ? parseFloat(((totalLineList / totalTarget) * 100).toFixed(1)) : 0,
       district_chart_data
     });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
+
 
 app.get('/api/admin/reports', authenticateToken, async (req, res) => {
   try {
@@ -451,12 +480,12 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
     const reportDate = date || new Date().toISOString().split('T')[0];
     if (!useSupabase) return res.json({ rows: [] });
 
+    // 1. Fetch blocks (no profile join — avoids Supabase returning empty arrays)
     let bQuery = supabase
       .from('blocks')
       .select(`
         id, name, lgd_code, district_id,
-        districts!inner(id, name, lgd_code),
-        block_reporting_profiles(base_population, initial_hpv_target)
+        districts!inner(id, name, lgd_code)
       `)
       .eq('is_active', true)
       .order('name');
@@ -467,20 +496,33 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
     const { data: blocks, error: bErr } = await bQuery;
     if (bErr) throw bErr;
 
+    // 2. Fetch ALL profiles in a separate query
+    const { data: profiles, error: pErr } = await supabase
+      .from('block_reporting_profiles')
+      .select('block_id, base_population, initial_hpv_target');
+    if (pErr) throw pErr;
+
+    // 3. Fetch reports for this date
     const { data: reports, error: rErr } = await supabase
       .from('daily_reports')
       .select('block_id, line_list_count, beneficiaries_vaccinated, reporting_date')
       .eq('reporting_date', reportDate);
     if (rErr) throw rErr;
 
-    const reportsMap = {};
-    for (const r of reports) reportsMap[r.block_id] = r;
+    // Build lookup maps
+    const profileMap = {};
+    (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
 
-    // First map to block level data
+    const reportsMap = {};
+    (reports || []).forEach(r => { reportsMap[r.block_id] = r; });
+
+    // Map to block-level data
     const blockData = blocks.map(b => {
       const rep = reportsMap[b.id];
-      const pop = b.block_reporting_profiles?.[0]?.base_population || 0;
-      const target = b.block_reporting_profiles?.[0]?.initial_hpv_target || 0;
+      const prof = profileMap[b.id];
+      const pop = prof?.base_population || 0;
+      // Use stored target if available, otherwise calculate as 1% of population
+      const target = prof?.initial_hpv_target || (pop > 0 ? Math.round(pop * 0.01) : 0);
       
       return {
         id: b.id,
@@ -492,8 +534,8 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
         population: pop,
         hpv_target: target,
         last_reporting_date: rep ? rep.reporting_date : '—',
-        line_list_received: rep ? rep.line_list_count : 0,
-        beneficiaries_vaccinated: rep ? rep.beneficiaries_vaccinated : 0,
+        line_list_received: rep ? (rep.line_list_count || 0) : 0,
+        beneficiaries_vaccinated: rep ? (rep.beneficiaries_vaccinated || 0) : 0,
         has_report: !!rep
       };
     });
@@ -554,15 +596,20 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
       finalRows = blockData;
     }
 
-    // Calculate percentages and nullify empty metrics for frontend rendering '—'
+    // Calculate percentages; nullify if no report submitted
     const rows = finalRows.map(r => {
       const tgt = r.hpv_target;
       return {
         ...r,
+        // Always show population/target even if no report
         line_list_received: r.has_report ? r.line_list_received : null,
         beneficiaries_vaccinated: r.has_report ? r.beneficiaries_vaccinated : null,
-        line_list_received_pct: r.has_report && tgt > 0 ? ((r.line_list_received / tgt) * 100).toFixed(1) : null,
-        vaccination_coverage_pct: r.has_report && tgt > 0 ? ((r.beneficiaries_vaccinated / tgt) * 100).toFixed(1) : null
+        line_list_received_pct: r.has_report && tgt > 0
+          ? parseFloat(((r.line_list_received / tgt) * 100).toFixed(1))
+          : null,
+        vaccination_coverage_pct: r.has_report && tgt > 0
+          ? parseFloat(((r.beneficiaries_vaccinated / tgt) * 100).toFixed(1))
+          : null
       };
     });
 
