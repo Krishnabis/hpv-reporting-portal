@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, ChevronDown, Check, MapPin, Hash } from 'lucide-react';
+import { ChevronDown, MapPin, Check, X } from 'lucide-react';
 
 export interface OptionItem {
   id: number | string;
   name: string;
-  lgd_code?: number | string;
+  district_id?: number | string;
+  district_name?: string;
   subtitle?: string;
 }
 
@@ -28,139 +29,141 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   emptyText = 'No matching options found'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [query, setQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Close dropdown on outside click
+  // Sync internal input query when value prop changes externally
+  useEffect(() => {
+    if (value) {
+      setQuery(value.name);
+    } else {
+      setQuery('');
+    }
+  }, [value]);
+
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        // Reset query text to current selected value name if closed without selecting
+        if (value) {
+          setQuery(value.name);
+        } else {
+          setQuery('');
+        }
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [value]);
 
-  // Filter options
+  // Filter options dynamically as user types directly in the primary search input
   const filteredOptions = options.filter(opt => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    const nameMatch = opt.name.toLowerCase().includes(q);
-    const lgdMatch = opt.lgd_code ? String(opt.lgd_code).includes(q) : false;
-    const subMatch = opt.subtitle ? opt.subtitle.toLowerCase().includes(q) : false;
-    return nameMatch || lgdMatch || subMatch;
+    const q = query.trim().toLowerCase();
+    if (!q || (value && query === value.name)) return true;
+    return opt.name.toLowerCase().includes(q) || (opt.district_name ? opt.district_name.toLowerCase().includes(q) : false);
   });
 
   const handleSelect = (item: OptionItem) => {
     onChange(item);
+    setQuery(item.name);
     setIsOpen(false);
-    setSearchQuery('');
+  };
+
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange(null);
+    setQuery('');
   };
 
   return (
-    <div className="flex flex-col gap-1.5 w-full text-left" ref={containerRef}>
-      <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
-        <span>{label}</span>
-        {value?.lgd_code && (
-          <span className="text-xs font-mono font-medium px-2 py-0.5 rounded bg-hpv-purple-soft text-hpv-purple flex items-center gap-1">
-            <Hash className="w-3 h-3" /> LGD: {value.lgd_code}
-          </span>
-        )}
+    <div className="flex flex-col gap-1.5 w-full text-left relative" ref={containerRef}>
+      <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+        {label}
       </label>
 
-      <div className="relative">
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => {
-            if (!disabled) {
-              setIsOpen(!isOpen);
-              setTimeout(() => inputRef.current?.focus(), 100);
-            }
-          }}
-          className={`w-full flex items-center justify-between px-4 py-3 bg-white border rounded-xl shadow-sm text-left transition-all duration-150 ${
-            disabled
-              ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
-              : isOpen
-              ? 'border-hpv-purple ring-2 ring-hpv-purple/20'
-              : 'border-slate-300 hover:border-slate-400 text-slate-800'
-          }`}
-        >
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <MapPin className={`w-4 h-4 shrink-0 ${value ? 'text-hpv-teal' : 'text-slate-400'}`} />
-            {value ? (
-              <span className="font-medium truncate text-slate-900">{value.name}</span>
-            ) : (
-              <span className="text-slate-400 font-normal">{placeholder}</span>
+      <div className="relative w-full">
+        <div className="relative flex items-center">
+          <MapPin className={`w-4 h-4 absolute left-3.5 pointer-events-none transition-colors ${value ? 'text-hpv-teal' : 'text-slate-400'}`} />
+
+          {/* Primary Live Search Input (No duplicate search bar below) */}
+          <input
+            type="text"
+            disabled={disabled}
+            value={query}
+            onFocus={() => {
+              if (!disabled) setIsOpen(true);
+            }}
+            onChange={e => {
+              setQuery(e.target.value);
+              if (!isOpen) setIsOpen(true);
+              if (value && e.target.value !== value.name) {
+                onChange(null);
+              }
+            }}
+            placeholder={placeholder}
+            className={`w-full pl-10 pr-10 py-3 bg-white border rounded-xl text-sm font-semibold text-slate-900 transition-all duration-150 ${
+              disabled
+                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                : isOpen
+                ? 'border-hpv-purple ring-2 ring-hpv-purple/20'
+                : 'border-slate-300 hover:border-slate-400'
+            }`}
+          />
+
+          <div className="absolute right-3 flex items-center gap-1">
+            {value && !disabled && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             )}
+            <ChevronDown
+              className={`w-4 h-4 text-slate-400 transition-transform cursor-pointer ${
+                isOpen ? 'rotate-180 text-hpv-purple' : ''
+              }`}
+              onClick={() => {
+                if (!disabled) setIsOpen(!isOpen);
+              }}
+            />
           </div>
-          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180 text-hpv-purple' : ''}`} />
-        </button>
+        </div>
 
-        {/* Dropdown Popup */}
+        {/* Dropdown Options Popup List */}
         {isOpen && !disabled && (
-          <div className="absolute z-50 mt-1.5 w-full bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-            {/* Search Input */}
-            <div className="p-2.5 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
-              <Search className="w-4 h-4 text-slate-400 ml-1" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder={`Search ${label.toLowerCase()}...`}
-                className="w-full bg-transparent border-none text-sm text-slate-900 focus:outline-none placeholder:text-slate-400"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="text-xs text-slate-400 hover:text-slate-600 px-1"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
+          <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in duration-100 max-h-60 overflow-y-auto p-1 divide-y divide-slate-50">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map(opt => {
+                const isSelected = value?.id === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => handleSelect(opt)}
+                    className={`w-full text-left px-3.5 py-2.5 rounded-lg flex items-center justify-between transition-colors ${
+                      isSelected
+                        ? 'bg-hpv-purple-soft text-hpv-purple-dark font-bold'
+                        : 'hover:bg-slate-100 text-slate-800'
+                    }`}
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold">{opt.name}</span>
+                      {opt.subtitle && <span className="text-xs text-slate-400 font-normal">{opt.subtitle}</span>}
+                    </div>
 
-            {/* Options List */}
-            <div className="max-h-60 overflow-y-auto p-1 divide-y divide-slate-50">
-              {filteredOptions.length > 0 ? (
-                filteredOptions.map(opt => {
-                  const isSelected = value?.id === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => handleSelect(opt)}
-                      className={`w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between transition-colors ${
-                        isSelected
-                          ? 'bg-hpv-purple-soft text-hpv-purple-dark font-semibold'
-                          : 'hover:bg-slate-100 text-slate-700'
-                      }`}
-                    >
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">{opt.name}</span>
-                        {opt.subtitle && <span className="text-xs text-slate-400">{opt.subtitle}</span>}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {opt.lgd_code && (
-                          <span className="text-[11px] font-mono font-normal px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded border border-slate-200">
-                            LGD: {opt.lgd_code}
-                          </span>
-                        )}
-                        {isSelected && <Check className="w-4 h-4 text-hpv-purple" />}
-                      </div>
-                    </button>
-                  );
-                })
-              ) : (
-                <div className="py-6 text-center text-xs text-slate-400 font-medium">
-                  {emptyText}
-                </div>
-              )}
-            </div>
+                    {isSelected && <Check className="w-4 h-4 text-hpv-purple shrink-0" />}
+                  </button>
+                );
+              })
+            ) : (
+              <div className="py-6 text-center text-xs text-slate-400 font-medium">
+                {emptyText}
+              </div>
+            )}
           </div>
         )}
       </div>

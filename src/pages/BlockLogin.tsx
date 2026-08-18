@@ -1,67 +1,85 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Shield, Heart, Sparkles, Building2, MapPin } from 'lucide-react';
+import { ArrowRight, Shield, Heart, Sparkles } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
 
 export const BlockLogin: React.FC = () => {
   const navigate = useNavigate();
   const [districts, setDistricts] = useState<OptionItem[]>([]);
-  const [blocks, setBlocks] = useState<OptionItem[]>([]);
+  const [allBlocks, setAllBlocks] = useState<any[]>([]);
   
   const [selectedDistrict, setSelectedDistrict] = useState<OptionItem | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<OptionItem | null>(null);
   
-  const [loadingDistricts, setLoadingDistricts] = useState(true);
-  const [loadingBlocks, setLoadingBlocks] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch districts on mount
+  // Fetch all districts and blocks on mount
   useEffect(() => {
-    fetch('/api/locations/districts')
-      .then(res => res.json())
-      .then(data => {
-        const mapped = data.map((d: any) => ({
+    setLoading(true);
+    Promise.all([
+      fetch('/api/locations/districts').then(res => res.json()),
+      fetch('/api/locations/blocks').then(res => res.json())
+    ])
+      .then(([districtsData, blocksData]) => {
+        const mappedDistricts = districtsData.map((d: any) => ({
           id: d.id,
-          name: d.name,
-          lgd_code: d.lgd_code,
-          subtitle: `LGD Code: ${d.lgd_code}`
+          name: d.name
         }));
-        setDistricts(mapped);
-        setLoadingDistricts(false);
+        setDistricts(mappedDistricts);
+
+        if (Array.isArray(blocksData)) {
+          setAllBlocks(blocksData);
+        }
+        setLoading(false);
       })
       .catch(err => {
-        console.error('Failed to load districts:', err);
-        setLoadingDistricts(false);
+        console.error('Failed to load locations:', err);
+        setLoading(false);
       });
   }, []);
 
-  // Fetch blocks when selected district changes
-  useEffect(() => {
-    if (!selectedDistrict) {
-      setBlocks([]);
-      setSelectedBlock(null);
-      return;
-    }
+  // Filter available blocks based on currently selected district
+  const availableBlockOptions: OptionItem[] = allBlocks
+    .filter(b => {
+      if (!selectedDistrict) return true; // If no district chosen yet, allow searching all blocks
+      return Number(b.district_id) === Number(selectedDistrict.id);
+    })
+    .map(b => ({
+      id: b.id,
+      name: b.name,
+      district_id: b.district_id,
+      district_name: b.district_name,
+      subtitle: !selectedDistrict ? `District: ${b.district_name}` : undefined
+    }));
 
-    setLoadingBlocks(true);
-    fetch(`/api/locations/blocks?districtId=${selectedDistrict.id}`)
-      .then(res => res.json())
-      .then(data => {
-        const mapped = data.map((b: any) => ({
-          id: b.id,
-          name: b.name,
-          lgd_code: b.lgd_code,
-          subtitle: `District: ${b.district_name}`
-        }));
-        setBlocks(mapped);
+  // Handle District selection
+  const handleDistrictChange = (item: OptionItem | null) => {
+    setSelectedDistrict(item);
+    // If selected block does not belong to newly selected district, reset block
+    if (selectedBlock && item) {
+      const match = allBlocks.find(b => Number(b.id) === Number(selectedBlock.id));
+      if (match && Number(match.district_id) !== Number(item.id)) {
         setSelectedBlock(null);
-        setLoadingBlocks(false);
-      })
-      .catch(err => {
-        console.error('Failed to load blocks:', err);
-        setLoadingBlocks(false);
-      });
-  }, [selectedDistrict]);
+      }
+    }
+  };
+
+  // Handle Block selection (Change 4: Pre-select parent District automatically)
+  const handleBlockChange = (item: OptionItem | null) => {
+    setSelectedBlock(item);
+    if (item) {
+      // Find block object details
+      const match = allBlocks.find(b => Number(b.id) === Number(item.id));
+      if (match) {
+        // Automatically pre-select corresponding district
+        const matchingDistrict = districts.find(d => Number(d.id) === Number(match.district_id));
+        if (matchingDistrict) {
+          setSelectedDistrict(matchingDistrict);
+        }
+      }
+    }
+  };
 
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +104,7 @@ export const BlockLogin: React.FC = () => {
       {/* Main Card Container */}
       <main className="max-w-md mx-auto w-full my-auto py-8">
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/60 border border-slate-150 relative overflow-hidden">
-          {/* Subtle Top Accent */}
+          {/* Top Accent */}
           <div className="absolute top-0 left-0 right-0 h-2 gradient-header" />
 
           {/* Heading Title & Tagline */}
@@ -108,31 +126,25 @@ export const BlockLogin: React.FC = () => {
 
           {/* Block Selection Form */}
           <form onSubmit={handleContinue} className="space-y-6">
-            {/* Searchable Select District */}
+            {/* Change 1 & 2: Searchable Select District */}
             <SearchableSelect
               label="Select District"
-              placeholder={loadingDistricts ? "Loading districts..." : "Type or search district..."}
+              placeholder={loading ? "Loading districts..." : "Type or search district..."}
               options={districts}
               value={selectedDistrict}
-              onChange={setSelectedDistrict}
-              disabled={loadingDistricts}
+              onChange={handleDistrictChange}
+              disabled={loading}
             />
 
-            {/* Searchable Select Block */}
+            {/* Change 3 & 4: Searchable Select Block */}
             <SearchableSelect
               label="Select Block"
-              placeholder={
-                !selectedDistrict
-                  ? "Select a district first"
-                  : loadingBlocks
-                  ? "Loading blocks..."
-                  : "Type or search block..."
-              }
-              options={blocks}
+              placeholder={loading ? "Loading blocks..." : "Type or search block..."}
+              options={availableBlockOptions}
               value={selectedBlock}
-              onChange={setSelectedBlock}
-              disabled={!selectedDistrict || loadingBlocks}
-              emptyText="No blocks found for this district"
+              onChange={handleBlockChange}
+              disabled={loading}
+              emptyText="No matching blocks found"
             />
 
             {/* Submit Action */}

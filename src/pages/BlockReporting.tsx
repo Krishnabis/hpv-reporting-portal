@@ -251,10 +251,6 @@ export const BlockReporting: React.FC = () => {
             <div>
               <div className="flex items-center gap-2 text-hpv-teal-light text-xs font-semibold uppercase tracking-wider mb-1">
                 <span>HPV Vaccination Reporting</span>
-                <span>•</span>
-                <span className="font-mono bg-white/10 px-2 py-0.5 rounded text-[11px]">
-                  Block LGD: {block.lgd_code}
-                </span>
               </div>
 
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
@@ -262,7 +258,7 @@ export const BlockReporting: React.FC = () => {
               </h1>
 
               <p className="text-slate-300 text-sm mt-1 flex items-center gap-2">
-                <span>{block.district_name} District (LGD: {block.district_lgd_code}), {block.state_name}</span>
+                <span>{block.district_name} District, {block.state_name}</span>
               </p>
             </div>
 
