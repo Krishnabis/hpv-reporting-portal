@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, MapPin, Users, Settings as SettingsIcon,
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
-  TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronDown, Hash, Eye, RefreshCw, Save,
+  TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
   Building2, ClipboardList, FileSpreadsheet, Target
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
@@ -49,6 +49,7 @@ export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'locations' | 'users' | 'settings' | 'audit'>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
 
   // KPIs State
@@ -322,103 +323,118 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col justify-between transition-transform duration-200 lg:static lg:translate-x-0 ${
-        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 bg-slate-900 text-slate-300 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-screen lg:shrink-0 ${
+        mobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64'
+      } ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} lg:translate-x-0`}>
         <div>
           {/* Logo Branding */}
-          <div className="p-6 border-b border-slate-800">
-            <Logo size="md" variant="light" />
+          <div className={`p-4 lg:p-6 border-b border-slate-800 flex items-center ${sidebarCollapsed ? 'justify-center lg:px-4' : 'justify-between'}`}>
+            <div className={`${sidebarCollapsed ? 'lg:hidden' : 'block'}`}>
+              <Logo size="md" variant="light" />
+            </div>
+            <button 
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="hidden lg:flex p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white shrink-0"
+              title="Toggle Sidebar"
+            >
+              {sidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+            </button>
           </div>
 
           {/* Navigation Links */}
           <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
             <button
               onClick={() => handleTabChange('dashboard')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              title="Dashboard"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'dashboard'
                   ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <LayoutDashboard className={`w-5 h-5 ${activeTab === 'dashboard' ? 'text-white' : 'text-slate-400'}`} />
-              <span>Dashboard</span>
+              <LayoutDashboard className={`w-5 h-5 shrink-0 ${activeTab === 'dashboard' ? 'text-white' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Dashboard</span>
             </button>
 
             <button
               onClick={() => handleTabChange('reports')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              title="Reports"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'reports'
                   ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <FileText className={`w-5 h-5 ${activeTab === 'reports' ? 'text-white' : 'text-hpv-pink'}`} />
-              <span>Reports</span>
+              <FileText className={`w-5 h-5 shrink-0 ${activeTab === 'reports' ? 'text-white' : 'text-hpv-pink'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Reports</span>
             </button>
 
             <button
               onClick={() => handleTabChange('locations')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              title="Locations (LGD)"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'locations'
                   ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <MapPin className={`w-5 h-5 ${activeTab === 'locations' ? 'text-white' : 'text-hpv-teal'}`} />
-              <span>Locations (LGD)</span>
+              <MapPin className={`w-5 h-5 shrink-0 ${activeTab === 'locations' ? 'text-white' : 'text-hpv-teal'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Locations (LGD)</span>
             </button>
 
             <button
               onClick={() => handleTabChange('users')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              title="Users"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'users'
                   ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <Users className={`w-5 h-5 ${activeTab === 'users' ? 'text-white' : 'text-indigo-400'}`} />
-              <span>Users</span>
+              <Users className={`w-5 h-5 shrink-0 ${activeTab === 'users' ? 'text-white' : 'text-indigo-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Users</span>
             </button>
 
             <button
               onClick={() => handleTabChange('settings')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              title="Settings"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'settings'
                   ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <SettingsIcon className={`w-5 h-5 ${activeTab === 'settings' ? 'text-white' : 'text-slate-400'}`} />
-              <span>Settings</span>
+              <SettingsIcon className={`w-5 h-5 shrink-0 ${activeTab === 'settings' ? 'text-white' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Settings</span>
             </button>
 
             <button
               onClick={() => handleTabChange('audit')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              title="Audit Logs"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'audit'
                   ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <ShieldCheck className={`w-5 h-5 ${activeTab === 'audit' ? 'text-white' : 'text-emerald-400'}`} />
-              <span>Audit Logs</span>
+              <ShieldCheck className={`w-5 h-5 shrink-0 ${activeTab === 'audit' ? 'text-white' : 'text-emerald-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Audit Logs</span>
             </button>
           </nav>
         </div>
 
         {/* User Info & Logout */}
-        <div className="p-4 m-4 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 transition-colors cursor-pointer group flex items-center justify-between" onClick={handleLogout} title="Logout">
+        <div className={`m-4 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 transition-colors cursor-pointer group flex items-center ${sidebarCollapsed ? 'p-2 justify-center lg:m-2' : 'p-4 justify-between'}`} onClick={handleLogout} title="Logout">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-white group-hover:text-hpv-teal-light transition-colors">{adminUser?.name || 'State HPV Administrator'}</span>
+            <div className={`flex flex-col ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
+              <span className="text-xs font-bold text-white group-hover:text-hpv-teal-light transition-colors line-clamp-1">{adminUser?.name || 'State HPV Administrator'}</span>
               <span className="text-[10px] text-blue-400 font-mono">@{adminUser?.username || 'UKHPV2026'}</span>
             </div>
           </div>
-          <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors" />
+          <LogOut className={`w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`} />
         </div>
       </aside>
 
@@ -750,8 +766,8 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Filter Form Card */}
-            <div className="bg-white p-3 lg:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4 mb-2">
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-800 pb-2 lg:pb-0 shrink-0 border-b lg:border-b-0 lg:border-r border-slate-100 lg:pr-4 lg:mb-1">
+            <div className="bg-white p-2.5 lg:px-4 lg:py-2.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 mb-2">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-800 pb-2 lg:pb-0 shrink-0 border-b lg:border-b-0 lg:border-r border-slate-100 lg:pr-4">
                 <Filter className="w-4 h-4 text-hpv-purple" /> Filters
               </div>
 
@@ -822,7 +838,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex items-end">
                   <button
                     onClick={fetchReport}
-                    className="w-full px-6 py-[9px] rounded-xl text-xs font-bold text-white gradient-header shadow hover:shadow-md transition-all flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 rounded-xl text-xs font-bold text-white gradient-header shadow hover:shadow-md transition-all flex items-center justify-center gap-2"
                   >
                     <Search className="w-4 h-4 text-hpv-teal-light" />
                     <span>GENERATE REPORT</span>
@@ -832,8 +848,8 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Generated Report Output Table / Cards */}
-            <div className="bg-white p-3 lg:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
+            <div className="bg-white p-2 lg:p-3 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Report Result ({reportRows.length} Rows)
@@ -903,52 +919,52 @@ export const AdminDashboard: React.FC = () => {
                       <table className="w-full text-left text-xs">
                         <thead className="bg-[#1e1b4b] text-white font-semibold uppercase tracking-wider">
                           <tr>
-                            <th className="p-3">District / Block</th>
-                            <th className="p-3 text-right">Population</th>
-                            <th className="p-3 text-right">HPV Target</th>
-                            <th className="p-3 text-center">Last Report Date</th>
-                            <th className="p-3 text-right">Line List Received</th>
-                            <th className="p-3 text-right">Beneficiaries Vaccinated</th>
-                            <th className="p-3 text-right">% Line List</th>
-                            <th className="p-3 text-right">% Coverage</th>
+                            <th className="px-2 py-1.5">District / Block</th>
+                            <th className="px-2 py-1.5 text-right">Population</th>
+                            <th className="px-2 py-1.5 text-right">HPV Target</th>
+                            <th className="px-2 py-1.5 text-center">Last Report Date</th>
+                            <th className="px-2 py-1.5 text-right">Line List Received</th>
+                            <th className="px-2 py-1.5 text-right">Beneficiaries Vaccinated</th>
+                            <th className="px-2 py-1.5 text-right">% Line List</th>
+                            <th className="px-2 py-1.5 text-right">% Coverage</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200 font-mono">
                           {paginatedReportRows.map(row => (
                             <tr key={row.id} className="hover:bg-slate-50">
-                              <td className="p-3 font-sans font-bold text-slate-900">
+                              <td className="px-2 py-1 font-sans font-bold text-slate-900">
                                 {row.name}
                                 {row.district_name && (
-                                  <span className="block text-[11px] text-slate-400 font-normal">
+                                  <span className="block text-[10px] text-slate-400 font-normal">
                                     {row.district_name} District
                                   </span>
                                 )}
                               </td>
-                              <td className="p-3 text-right font-medium text-slate-700">
+                              <td className="px-2 py-1 text-right font-medium text-slate-700">
                                 {row.population !== null ? row.population.toLocaleString() : '—'}
                               </td>
-                              <td className="p-3 text-right font-bold text-slate-900">
+                              <td className="px-2 py-1 text-right font-bold text-slate-900">
                                 {row.hpv_target !== null ? row.hpv_target.toLocaleString() : '—'}
                               </td>
-                              <td className="p-3 text-center text-slate-500 font-sans text-[11px]">
+                              <td className="px-2 py-1 text-center text-slate-500 font-sans text-[10px]">
                                 {row.last_reporting_date}
                               </td>
-                              <td className="p-3 text-right font-semibold text-hpv-teal-dark">
+                              <td className="px-2 py-1 text-right font-semibold text-hpv-teal-dark">
                                 {row.line_list_received !== null ? row.line_list_received.toLocaleString() : '—'}
                               </td>
-                              <td className="p-3 text-right font-extrabold text-hpv-purple">
+                              <td className="px-2 py-1 text-right font-extrabold text-hpv-purple">
                                 {row.beneficiaries_vaccinated !== null ? row.beneficiaries_vaccinated.toLocaleString() : '—'}
                               </td>
-                              <td className="p-3 text-right">
+                              <td className="px-2 py-1 text-right">
                                 {row.line_list_received_pct !== null ? (
-                                  <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 font-bold">
+                                  <span className="px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 font-bold text-[11px]">
                                     {row.line_list_received_pct}%
                                   </span>
                                 ) : '—'}
                               </td>
-                              <td className="p-3 text-right">
+                              <td className="px-2 py-1 text-right">
                                 {row.vaccination_coverage_pct !== null ? (
-                                  <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold">
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold text-[11px]">
                                     {row.vaccination_coverage_pct}%
                                   </span>
                                 ) : '—'}
@@ -960,7 +976,7 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     
                     {/* Pagination Controls */}
-                    <div className="flex items-center justify-between px-2 pt-4 border-t border-slate-100">
+                    <div className="flex items-center justify-between px-2 pt-2 border-t border-slate-100">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-slate-500 font-medium">Show</span>
                         <select
