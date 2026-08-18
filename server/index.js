@@ -324,11 +324,12 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       .select('block_id, base_population, initial_hpv_target');
     if (pErr) throw pErr;
 
-    // 3. Fetch reports for the selected date
+    // 3. Fetch cumulative reports up to the selected date
     const { data: reports, error: rErr } = await supabase
       .from('daily_reports')
-      .select('block_id, line_list_count, beneficiaries_vaccinated')
-      .eq('reporting_date', targetDateStr);
+      .select('block_id, line_list_count, beneficiaries_vaccinated, reporting_date')
+      .lte('reporting_date', targetDateStr)
+      .order('reporting_date', { ascending: false });
     if (rErr) throw rErr;
 
     // Build lookup maps
@@ -336,7 +337,11 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
 
     const reportMap = {};
-    (reports || []).forEach(r => { reportMap[r.block_id] = r; });
+    (reports || []).forEach(r => { 
+      if (!reportMap[r.block_id]) {
+        reportMap[r.block_id] = r;
+      }
+    });
 
     let totalBlocks = blocks?.length || 0;
     let totalLineList = 0;
@@ -358,7 +363,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
 
       const rep = reportMap[b.id];
       if (rep) {
-        reportingToday++;
+        if (rep.reporting_date === targetDateStr) reportingToday++;
         const ll = rep.line_list_count || 0;
         const vacc = rep.beneficiaries_vaccinated || 0;
         totalLineList += ll;
@@ -502,11 +507,12 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
       .select('block_id, base_population, initial_hpv_target');
     if (pErr) throw pErr;
 
-    // 3. Fetch reports for this date
+    // 3. Fetch reports up to this date
     const { data: reports, error: rErr } = await supabase
       .from('daily_reports')
       .select('block_id, line_list_count, beneficiaries_vaccinated, reporting_date')
-      .eq('reporting_date', reportDate);
+      .lte('reporting_date', reportDate)
+      .order('reporting_date', { ascending: false });
     if (rErr) throw rErr;
 
     // Build lookup maps
@@ -514,7 +520,11 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
     (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
 
     const reportsMap = {};
-    (reports || []).forEach(r => { reportsMap[r.block_id] = r; });
+    (reports || []).forEach(r => { 
+      if (!reportsMap[r.block_id]) {
+        reportsMap[r.block_id] = r; 
+      }
+    });
 
     // Map to block-level data
     const blockData = blocks.map(b => {

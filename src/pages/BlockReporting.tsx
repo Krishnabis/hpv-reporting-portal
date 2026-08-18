@@ -369,7 +369,7 @@ export const BlockReporting: React.FC = () => {
 
               {/* Line List */}
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Line List *</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Line list (enter cumulative data)</label>
                 <input
                   type="number"
                   min="0"
@@ -382,7 +382,7 @@ export const BlockReporting: React.FC = () => {
 
               {/* Vaccinated */}
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Vaccinated *</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Vaccinated (enter cumulative data)</label>
                 <input
                   type="number"
                   min="0"

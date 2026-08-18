@@ -4,7 +4,7 @@ import {
   LayoutDashboard, FileText, MapPin, Users, Settings as SettingsIcon,
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronDown, Hash, Eye, RefreshCw, Save,
-  Building2, ClipboardList, FileSpreadsheet
+  Building2, ClipboardList, FileSpreadsheet, Target
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
@@ -66,6 +66,7 @@ export const AdminDashboard: React.FC = () => {
   const [blocksList, setBlocksList] = useState<any[]>([]);
 
   const [reportRows, setReportRows] = useState<ReportRow[]>([]);
+  const [reportSortOrder, setReportSortOrder] = useState<string>('');
   const [loadingReport, setLoadingReport] = useState(false);
   const [reportViewMode, setReportViewMode] = useState<'table' | 'card'>('table');
 
@@ -280,6 +281,23 @@ export const AdminDashboard: React.FC = () => {
         alert('Failed to update settings');
       });
   };
+
+  const sortedReportRows = useMemo(() => {
+    let sorted = [...reportRows];
+    sorted.sort((a, b) => {
+      if (reportSortOrder === 'coverage_desc') return (b.vaccination_coverage_pct || 0) - (a.vaccination_coverage_pct || 0);
+      if (reportSortOrder === 'coverage_asc') return (a.vaccination_coverage_pct || 0) - (b.vaccination_coverage_pct || 0);
+      if (reportSortOrder === 'linelist_desc') return (b.line_list_received_pct || 0) - (a.line_list_received_pct || 0);
+      if (reportSortOrder === 'linelist_asc') return (a.line_list_received_pct || 0) - (b.line_list_received_pct || 0);
+      return 0;
+    });
+    return sorted;
+  }, [reportRows, reportSortOrder]);
+
+  const totalRows = reportRows.length;
+  const totalTarget = reportRows.reduce((sum, r) => sum + (r.hpv_target || 0), 0);
+  const totalLL = reportRows.reduce((sum, r) => sum + (r.line_list_received || 0), 0);
+  const totalVacc = reportRows.reduce((sum, r) => sum + (r.beneficiaries_vaccinated || 0), 0);
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col lg:flex-row font-sans">
@@ -806,7 +824,7 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Generated Report Output Table / Cards */}
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Report Result ({reportRows.length} Rows)
@@ -814,6 +832,53 @@ export const AdminDashboard: React.FC = () => {
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-hpv-purple-soft text-hpv-purple font-mono font-bold">
                     Date: {filterDate}
                   </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-bold text-slate-500">Sort By:</label>
+                  <select 
+                    value={reportSortOrder}
+                    onChange={(e) => setReportSortOrder(e.target.value)}
+                    className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none"
+                  >
+                    <option value="">Default Order</option>
+                    <option value="coverage_desc">% Coverage (Desc)</option>
+                    <option value="coverage_asc">% Coverage (Asc)</option>
+                    <option value="linelist_desc">% Line List (Desc)</option>
+                    <option value="linelist_asc">% Line List (Asc)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Summary Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pb-2">
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
+                  <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 mb-1">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-500">Total {filterLevel === 'State' ? 'States' : filterLevel === 'District' ? 'Districts' : 'Blocks'}</p>
+                  <p className="text-lg font-extrabold text-blue-700">{totalRows}</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
+                  <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 mb-1">
+                    <Target className="w-5 h-5" />
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-500">HPV Target (Total)</p>
+                  <p className="text-lg font-extrabold text-emerald-700">{totalTarget.toLocaleString()}</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
+                  <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center text-purple-500 mb-1">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-500">Line List Received</p>
+                  <p className="text-lg font-extrabold text-purple-700">{totalLL.toLocaleString()}</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
+                  <div className="w-10 h-10 bg-pink-50 rounded-full flex items-center justify-center text-pink-500 mb-1">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-500">Beneficiaries Vaccinated</p>
+                  <p className="text-lg font-extrabold text-pink-700">{totalVacc.toLocaleString()}</p>
                 </div>
               </div>
 
@@ -826,7 +891,7 @@ export const AdminDashboard: React.FC = () => {
                   /* DESKTOP/TABLET TABLE VIEW */
                   <div className="overflow-x-auto rounded-xl border border-slate-200">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-900 text-white font-semibold uppercase tracking-wider">
+                      <thead className="bg-[#1e1b4b] text-white font-semibold uppercase tracking-wider">
                         <tr>
                           <th className="p-3">District / Block</th>
                           <th className="p-3 text-right">Population</th>
@@ -839,7 +904,7 @@ export const AdminDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200 font-mono">
-                        {reportRows.map(row => (
+                        {sortedReportRows.map(row => (
                           <tr key={row.id} className="hover:bg-slate-50">
                             <td className="p-3 font-sans font-bold text-slate-900">
                               {row.name}
