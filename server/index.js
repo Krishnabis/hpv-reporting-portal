@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 const JWT_SECRET = process.env.JWT_SECRET || 'hpv-reporting-portal-secret-key-2026';
 if (!process.env.JWT_SECRET) {
-  console.warn('⚠️  WARNING: JWT_SECRET env var not set. Using insecure default. Set JWT_SECRET in Vercel env vars for production!');
+  console.warn('⚠️  WARNING: JWT_SECRET not set. Set JWT_SECRET in Vercel env vars for production!');
 }
 
 app.use(cors());
@@ -21,49 +21,9 @@ function hashPassword(password) {
   return crypto.pbkdf2Sync(password, 'hpv_salt_2026', 1000, 64, 'sha512').toString('hex');
 }
 
-// Helper: Calculate current population based on base date and 0.08% monthly growth rate
-function calculateCurrentPopulation(basePop, baseDateStr, monthlyRate = 0.0008) {
-  if (!basePop) return 0;
-  if (!baseDateStr) return basePop;
-
-  const baseDate = new Date(baseDateStr);
-  const now = new Date();
-
-  let months = (now.getFullYear() - baseDate.getFullYear()) * 12 + (now.getMonth() - baseDate.getMonth());
-  if (months < 0) months = 0;
-
-  const currentPop = basePop * Math.pow(1 + monthlyRate, months);
-  return Math.round(currentPop);
-}
-
-// Helper: Audit Logger
-function logAudit(userId, action, entityType, entityId, oldValue = null, newValue = null, ip = '') {
-  try {
-    const id = `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-    db.prepare(`
-      INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, old_value, new_value, ip_address)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id,
-      userId || 'SYSTEM',
-      action,
-      entityType,
-      entityId ? String(entityId) : null,
-      oldValue ? JSON.stringify(oldValue) : null,
-      newValue ? JSON.stringify(newValue) : null,
-      ip
-    );
-  } catch (err) {
-    console.error('Audit Log Error:', err);
-  }
-}
-
-// Helper: Auth Middleware
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = (req.headers['authorization'] || '').split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Access token required' });
-
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) return res.status(403).json({ error: 'Invalid or expired token' });
     req.user = user;
@@ -71,411 +31,423 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// -------------------------------------------------------------
-// PUBLIC & LOCATION ENDPOINTS
-// -------------------------------------------------------------
+async function logAudit(userId, action, entityType, entityId, oldVal = null, newVal = null, ip = '') {
+  try {
+    const id = `audit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    if (db.isPg) {
+      await db.run(
+        `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, old_value, new_value, ip_address)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+        [id, userId || 'SYSTEM', action, entityType, entityId ? String(entityId) : null,
+          oldVal ? JSON.stringify(oldVal) : null, newVal ? JSON.stringify(newVal) : null, ip]
+      );
+    } else {
+      await db.run('INSERT INTO audit_logs', [id, userId || 'SYSTEM', action, entityType, entityId, oldVal, newVal, ip]);
+    }
+  } catch (err) { console.error('Audit log error:', err); }
+}
+
+// ─── Health & DB Status ───────────────────────────────────────────────────────
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'HPV Reporting Portal API', time: new Date().toISOString() });
 });
 
 app.get('/api/db-status', (req, res) => {
-  const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
-  const hasSupabaseUrl = Boolean(process.env.SUPABASE_DB_URL);
-  const usingPg = hasDatabaseUrl || hasSupabaseUrl;
   res.json({
-    database: usingPg ? 'PostgreSQL (Supabase)' : 'JSON File Fallback (NOT Supabase)',
-    connected_to_supabase: usingPg,
-    env_vars_present: {
-      DATABASE_URL: hasDatabaseUrl,
-      SUPABASE_DB_URL: hasSupabaseUrl
-    },
-    note: usingPg
-      ? 'Data is persisted in Supabase PostgreSQL'
-      : 'WARNING: No DATABASE_URL/SUPABASE_DB_URL set — using local JSON store, data will NOT persist on Vercel'
+    database: db.isPg ? 'PostgreSQL (Supabase)' : 'JSON File Fallback',
+    connected_to_supabase: db.isPg,
+    env_vars_present: { DATABASE_URL: Boolean(process.env.DATABASE_URL), SUPABASE_DB_URL: Boolean(process.env.SUPABASE_DB_URL) },
+    note: db.isPg ? 'Data persisted in Supabase PostgreSQL' : 'WARNING: Using local JSON store — data will not persist on Vercel'
   });
 });
 
+// ─── Location Endpoints ───────────────────────────────────────────────────────
 
-app.get('/api/locations/states', (req, res) => {
-  const states = db.prepare('SELECT * FROM states WHERE is_active = 1').all();
-  res.json(states);
+app.get('/api/locations/states', async (req, res) => {
+  try {
+    const rows = db.isPg
+      ? await db.query('SELECT * FROM states WHERE is_active = true ORDER BY name')
+      : await db.query('SELECT * FROM states WHERE is_active = 1');
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/locations/districts', (req, res) => {
-  const { stateId } = req.query;
-  const districts = db.prepare('SELECT * FROM districts WHERE is_active = 1').all(stateId);
-  res.json(districts);
+app.get('/api/locations/districts', async (req, res) => {
+  try {
+    const rows = db.isPg
+      ? await db.query('SELECT * FROM districts WHERE is_active = true ORDER BY name')
+      : await db.query('SELECT * FROM districts WHERE is_active = 1');
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/locations/blocks', (req, res) => {
-  const { districtId } = req.query;
-  const blocks = db.prepare('SELECT * FROM blocks WHERE is_active = 1').all(districtId);
-  res.json(blocks);
+app.get('/api/locations/blocks', async (req, res) => {
+  try {
+    let rows;
+    if (db.isPg) {
+      rows = await db.query(`
+        SELECT b.id, b.district_id, b.lgd_code, b.name, b.code, b.is_active,
+               d.name AS district_name, d.lgd_code AS district_lgd_code,
+               s.name AS state_name, s.lgd_code AS state_lgd_code
+        FROM blocks b
+        JOIN districts d ON b.district_id = d.id
+        JOIN states s ON d.state_id = s.id
+        WHERE b.is_active = true
+        ORDER BY b.name
+      `);
+    } else {
+      rows = await db.query('SELECT * FROM blocks WHERE is_active = 1');
+    }
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/locations/search', (req, res) => {
-  const { query } = req.query;
-  if (!query || String(query).trim().length === 0) return res.json([]);
+// ─── Block Reporting Endpoints ────────────────────────────────────────────────
 
-  const results = db.prepare('SELECT * FROM blocks WHERE b.name LIKE ?').all(String(query).trim());
-  res.json(results);
-});
-
-// -------------------------------------------------------------
-// BLOCK REPORTING ENDPOINTS
-// -------------------------------------------------------------
-
-app.get('/api/blocks/:id', (req, res) => {
-  const { id } = req.params;
-  const blocks = db.prepare('SELECT * FROM blocks WHERE b.id = ?').all(id);
-  const block = blocks[0];
-
-  if (!block) return res.status(404).json({ error: 'Block not found' });
-
-  const profiles = db.prepare('SELECT * FROM block_reporting_profiles WHERE block_id = ?').all(id);
-  const profile = profiles[0] || null;
-
-  // HPV target = flat 1% of base population (no monthly growth)
-  const hpvTarget = profile ? Math.round(profile.base_population * 0.01) : 0;
-
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayReports = db.prepare('SELECT * FROM daily_reports WHERE block_id = ? AND reporting_date = ?').all(id, todayStr);
-  const allReports = db.prepare('SELECT * FROM daily_reports WHERE block_id = ? ORDER BY reporting_date DESC').all(id);
-
-  res.json({
-    block: {
-      id: block.id,
-      name: block.name,
-      lgd_code: block.lgd_code,
-      district_name: block.district_name,
-      district_lgd_code: block.district_lgd_code,
-      state_name: block.state_name,
-      state_lgd_code: block.state_lgd_code
-    },
-    profile: profile ? {
-      ...profile,
-      current_population: profile.base_population,
-      current_hpv_target: hpvTarget
-    } : null,
-    today_submitted: todayReports.length > 0,
-    today_report: todayReports[0] || null,
-    last_report: allReports[0] || null
-  });
-});
-
-app.post('/api/blocks/:id/profile', (req, res) => {
-  const { id } = req.params;
-  const { base_population, population_base_date } = req.body;
-
-  if (!base_population || isNaN(base_population) || Number(base_population) <= 0) {
-    return res.status(400).json({ error: 'Valid positive population is required' });
-  }
-
-  const baseDate = population_base_date || new Date().toISOString().split('T')[0];
-  const targetSettings = db.prepare("SELECT * FROM settings WHERE key = 'hpv_target_percentage'").all('hpv_target_percentage');
-  const targetPct = targetSettings[0] ? parseFloat(targetSettings[0].value) : 0.01;
-
-  const initialTarget = Math.round(Number(base_population) * targetPct);
-  const existingProfiles = db.prepare('SELECT * FROM block_reporting_profiles WHERE block_id = ?').all(id);
-  const profId = existingProfiles[0] ? existingProfiles[0].id : `prof-${id}-${Date.now()}`;
-
-  db.prepare(`
-    INSERT INTO block_reporting_profiles (id, block_id, base_population, population_base_date, initial_hpv_target)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(profId, Number(id), Number(base_population), baseDate, initialTarget);
-
-  logAudit('BLOCK_OPERATOR', 'UPDATE_BLOCK_PROFILE', 'block_reporting_profile', profId, existingProfiles[0], {
-    base_population: Number(base_population),
-    population_base_date: baseDate,
-    initial_hpv_target: initialTarget
-  }, req.ip);
-
-  res.json({ message: 'One-time baseline population profile saved successfully', initial_hpv_target: initialTarget });
-});
-
-app.post('/api/reports/block/:id', (req, res) => {
-  const { id } = req.params;
-  const { reporting_date, line_list_count, beneficiaries_vaccinated, submitted_by } = req.body;
-
-  if (!reporting_date) return res.status(400).json({ error: 'Reporting date is required' });
-  if (line_list_count === undefined || isNaN(line_list_count)) return res.status(400).json({ error: 'Valid line list count is required' });
-  if (beneficiaries_vaccinated === undefined || isNaN(beneficiaries_vaccinated)) return res.status(400).json({ error: 'Valid beneficiaries vaccinated count is required' });
-
-  const existing = db.prepare('SELECT * FROM daily_reports WHERE block_id = ? AND reporting_date = ?').all(id, reporting_date)[0];
-  const reportId = existing ? existing.id : `rep-${id}-${reporting_date}-${Date.now()}`;
-
-  db.prepare(`
-    INSERT INTO daily_reports (id, block_id, reporting_date, line_list_count, beneficiaries_vaccinated, submitted_by)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).run(reportId, Number(id), reporting_date, Number(line_list_count), Number(beneficiaries_vaccinated), submitted_by || 'Block Operator');
-
-  logAudit('BLOCK_OPERATOR', existing ? 'UPDATE_DAILY_REPORT' : 'CREATE_DAILY_REPORT', 'daily_report', reportId, existing, {
-    reporting_date,
-    line_list_count: Number(line_list_count),
-    beneficiaries_vaccinated: Number(beneficiaries_vaccinated)
-  }, req.ip);
-
-  res.json({ message: 'Daily report saved successfully', report_id: reportId });
-});
-
-app.get('/api/reports/block/:id', (req, res) => {
-  const { id } = req.params;
-  const reports = db.prepare('SELECT * FROM daily_reports WHERE block_id = ? ORDER BY reporting_date DESC').all(id);
-  res.json(reports);
-});
-
-// -------------------------------------------------------------
-// ADMIN AUTHENTICATION
-// -------------------------------------------------------------
-
-app.post('/api/auth/admin/login', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'Username and password are required' });
-
-  const users = db.prepare('SELECT * FROM admin_users WHERE username = ?').all(username);
-  const user = users[0];
-
-  if (!user) return res.status(401).json({ error: 'Invalid username or password' });
-
-  const inputHash = hashPassword(password);
-  if (inputHash !== user.password_hash) {
-    return res.status(401).json({ error: 'Invalid username or password' });
-  }
-
-  db.prepare('UPDATE admin_users SET last_login_at = ? WHERE id = ?').run(user.id);
-
-  const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name }, JWT_SECRET, { expiresIn: '24h' });
-
-  logAudit(user.id, 'ADMIN_LOGIN', 'admin_user', user.id, null, { username: user.username }, req.ip);
-
-  res.json({
-    token,
-    user: { id: user.id, username: user.username, name: user.name, role: user.role }
-  });
-});
-
-// -------------------------------------------------------------
-// ADMIN DASHBOARD & REPORTS GENERATOR
-// -------------------------------------------------------------
-
-app.get('/api/admin/kpis', (req, res) => {
-  const todayStr = new Date().toISOString().split('T')[0];
-
-  const totalBlocksRow = db.prepare('SELECT COUNT(*) as cnt FROM blocks').get();
-  const reportingTodayRow = db.prepare('SELECT COUNT(DISTINCT block_id) as cnt FROM daily_reports WHERE reporting_date = ?').get(todayStr);
-
-  const growthSettings = db.prepare("SELECT * FROM settings WHERE key = 'monthly_population_growth'").all('monthly_population_growth');
-  const targetSettings = db.prepare("SELECT * FROM settings WHERE key = 'hpv_target_percentage'").all('hpv_target_percentage');
-
-  const growthRate = growthSettings[0] ? parseFloat(growthSettings[0].value) : 0.0008;
-  const targetPct = targetSettings[0] ? parseFloat(targetSettings[0].value) : 0.01;
-
-  const blocks = db.prepare('SELECT * FROM blocks').all();
-
-  let totalLineList = 0;
-  let totalVaccinated = 0;
-  let totalTargetPop = 0;
-
-  const districtStatsMap = new Map();
-
-  for (const block of blocks) {
-    let currentPop = 0;
-    let target = 0;
-    if (block.base_population) {
-      currentPop = calculateCurrentPopulation(block.base_population, block.population_base_date, growthRate);
-      target = Math.round(currentPop * targetPct);
+app.get('/api/blocks/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let block;
+    if (db.isPg) {
+      block = await db.queryOne(`
+        SELECT b.id, b.district_id, b.lgd_code, b.name, b.code,
+               d.name AS district_name, d.lgd_code AS district_lgd_code,
+               s.name AS state_name, s.lgd_code AS state_lgd_code
+        FROM blocks b
+        JOIN districts d ON b.district_id = d.id
+        JOIN states s ON d.state_id = s.id
+        WHERE b.id = $1`, [id]);
+    } else {
+      block = await db.queryOne('SELECT * FROM blocks WHERE b.id = ?', [id]);
     }
 
-    totalTargetPop += target;
+    if (!block) return res.status(404).json({ error: 'Block not found' });
 
-    const latestReps = db.prepare('SELECT * FROM daily_reports WHERE block_id = ? ORDER BY reporting_date DESC').all(block.id);
-    const latestRep = latestReps[0];
+    const profile = db.isPg
+      ? await db.queryOne('SELECT * FROM block_reporting_profiles WHERE block_id = $1', [id])
+      : await db.queryOne('SELECT * FROM block_reporting_profiles WHERE block_id = ?', [id]);
 
-    const lineList = latestRep ? latestRep.line_list_count : 0;
-    const vaccinated = latestRep ? latestRep.beneficiaries_vaccinated : 0;
+    // HPV target = flat 1% of base population
+    const hpvTarget = profile ? Math.round(profile.base_population * 0.01) : 0;
 
-    totalLineList += lineList;
-    totalVaccinated += vaccinated;
+    const todayStr = new Date().toISOString().split('T')[0];
+    let todayReport, lastReport;
 
-    if (!districtStatsMap.has(block.district_name)) {
-      districtStatsMap.set(block.district_name, {
-        district: block.district_name,
-        targetPop: 0,
-        lineList: 0,
-        vaccinated: 0
-      });
+    if (db.isPg) {
+      todayReport = await db.queryOne(
+        'SELECT * FROM daily_reports WHERE block_id = $1 AND reporting_date = $2',
+        [id, todayStr]
+      );
+      lastReport = await db.queryOne(
+        'SELECT * FROM daily_reports WHERE block_id = $1 ORDER BY reporting_date DESC LIMIT 1',
+        [id]
+      );
+    } else {
+      todayReport = await db.queryOne('SELECT * FROM daily_reports WHERE block_id = ? AND reporting_date = ?', [id, todayStr]);
+      const allReps = await db.query('SELECT * FROM daily_reports WHERE block_id = ? ORDER BY reporting_date DESC', [id]);
+      lastReport = allReps[0] || null;
     }
 
-    const distStat = districtStatsMap.get(block.district_name);
-    distStat.targetPop += target;
-    distStat.lineList += lineList;
-    distStat.vaccinated += vaccinated;
-  }
-
-  const districtChartData = Array.from(districtStatsMap.values()).map(d => ({
-    district: d.district,
-    vaccinated: d.vaccinated,
-    lineList: d.lineList,
-    target: d.targetPop,
-    coveragePct: d.targetPop > 0 ? parseFloat(((d.vaccinated / d.targetPop) * 100).toFixed(2)) : 0
-  })).sort((a, b) => b.coveragePct - a.coveragePct);
-
-  res.json({
-    total_blocks: totalBlocksRow ? totalBlocksRow.cnt : blocks.length,
-    reporting_today: reportingTodayRow ? reportingTodayRow.cnt : 0,
-    total_line_list: totalLineList,
-    total_vaccinated: totalVaccinated,
-    total_target_pop: totalTargetPop,
-    overall_coverage_pct: totalTargetPop > 0 ? parseFloat(((totalVaccinated / totalTargetPop) * 100).toFixed(2)) : 0,
-    district_chart_data: districtChartData
-  });
-});
-
-app.get('/api/admin/reports/generate', (req, res) => {
-  const { date, level = 'State', districtId, blockId } = req.query;
-
-  const reportDate = date || new Date().toISOString().split('T')[0];
-
-  const growthSettings = db.prepare("SELECT * FROM settings WHERE key = 'monthly_population_growth'").all('monthly_population_growth');
-  const targetSettings = db.prepare("SELECT * FROM settings WHERE key = 'hpv_target_percentage'").all('hpv_target_percentage');
-
-  const growthRate = growthSettings[0] ? parseFloat(growthSettings[0].value) : 0.0008;
-  const targetPct = targetSettings[0] ? parseFloat(targetSettings[0].value) : 0.01;
-
-  if (level === 'Block' || (blockId && blockId !== 'ALL')) {
-    let blockRows = db.prepare('SELECT * FROM blocks').all();
-
-    if (blockId && blockId !== 'ALL') {
-      blockRows = blockRows.filter(b => b.id === Number(blockId));
-    } else if (districtId && districtId !== 'ALL') {
-      blockRows = blockRows.filter(b => b.district_id === Number(districtId));
-    }
-
-    const rows = blockRows.map(b => {
-      const currentPop = b.base_population ? calculateCurrentPopulation(b.base_population, b.population_base_date, growthRate) : 0;
-      const targetPop = Math.round(currentPop * targetPct);
-
-      const dailies = db.prepare('SELECT * FROM daily_reports WHERE block_id = ? AND reporting_date <= ? ORDER BY reporting_date DESC').all(b.id, reportDate);
-      const daily = dailies[0];
-
-      const lineList = daily ? daily.line_list_count : null;
-      const vaccinated = daily ? daily.beneficiaries_vaccinated : null;
-      const lastDate = daily ? daily.reporting_date : '—';
-
-      const lineListPct = (lineList !== null && targetPop > 0) ? parseFloat(((lineList / targetPop) * 100).toFixed(2)) : null;
-      const coveragePct = (vaccinated !== null && targetPop > 0) ? parseFloat(((vaccinated / targetPop) * 100).toFixed(2)) : null;
-
-      return {
-        id: b.id,
-        name: b.name,
-        lgd_code: b.lgd_code,
-        district_name: b.district_name,
-        district_lgd_code: b.district_lgd_code,
-        state_name: b.state_name,
-        state_lgd_code: b.state_lgd_code,
-        population: currentPop || null,
-        hpv_target: targetPop || null,
-        last_reporting_date: lastDate,
-        line_list_received: lineList,
-        beneficiaries_vaccinated: vaccinated,
-        line_list_received_pct: lineListPct,
-        vaccination_coverage_pct: coveragePct
-      };
+    res.json({
+      block: { id: block.id, name: block.name, lgd_code: block.lgd_code, district_name: block.district_name, district_lgd_code: block.district_lgd_code, state_name: block.state_name, state_lgd_code: block.state_lgd_code },
+      profile: profile ? { ...profile, current_population: profile.base_population, current_hpv_target: hpvTarget } : null,
+      today_submitted: Boolean(todayReport),
+      today_report: todayReport || null,
+      last_report: lastReport || null
     });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
 
-    return res.json({ level: 'Block', report_date: reportDate, rows });
-  }
+app.post('/api/blocks/:id/profile', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { base_population, population_base_date } = req.body;
 
-  let districts = db.prepare('SELECT * FROM districts').all();
-
-  if (districtId && districtId !== 'ALL') {
-    districts = districts.filter(d => d.id === Number(districtId));
-  }
-
-  const rows = districts.map(d => {
-    const blocksInDist = db.prepare('SELECT * FROM blocks WHERE b.district_id = ?').all(d.id);
-
-    let distPopulation = 0;
-    let distTarget = 0;
-    let distLineList = 0;
-    let distVaccinated = 0;
-    let hasReports = false;
-    let latestReportDate = '—';
-
-    for (const b of blocksInDist) {
-      if (b.base_population) {
-        const curPop = calculateCurrentPopulation(b.base_population, b.population_base_date, growthRate);
-        const tgt = Math.round(curPop * targetPct);
-        distPopulation += curPop;
-        distTarget += tgt;
-      }
-
-      const dailies = db.prepare('SELECT * FROM daily_reports WHERE block_id = ? AND reporting_date <= ? ORDER BY reporting_date DESC').all(b.id, reportDate);
-      const daily = dailies[0];
-
-      if (daily) {
-        hasReports = true;
-        distLineList += daily.line_list_count;
-        distVaccinated += daily.beneficiaries_vaccinated;
-        if (latestReportDate === '—' || daily.reporting_date > latestReportDate) {
-          latestReportDate = daily.reporting_date;
-        }
-      }
+    if (!base_population || isNaN(base_population) || Number(base_population) <= 0) {
+      return res.status(400).json({ error: 'Valid positive population is required' });
     }
 
-    const lineListPct = (hasReports && distTarget > 0) ? parseFloat(((distLineList / distTarget) * 100).toFixed(2)) : null;
-    const coveragePct = (hasReports && distTarget > 0) ? parseFloat(((distVaccinated / distTarget) * 100).toFixed(2)) : null;
+    const baseDate = population_base_date || new Date().toISOString().split('T')[0];
+    const initialTarget = Math.round(Number(base_population) * 0.01);
+    const profId = `prof-${id}-${Date.now()}`;
 
-    return {
-      id: d.id,
-      name: d.name,
-      lgd_code: d.lgd_code,
-      state_name: d.state_name,
-      state_lgd_code: d.state_lgd_code,
-      population: distPopulation > 0 ? distPopulation : null,
-      hpv_target: distTarget > 0 ? distTarget : null,
-      last_reporting_date: latestReportDate,
-      line_list_received: hasReports ? distLineList : null,
-      beneficiaries_vaccinated: hasReports ? distVaccinated : null,
-      line_list_received_pct: lineListPct,
-      vaccination_coverage_pct: coveragePct
-    };
-  });
+    if (db.isPg) {
+      await db.run(`
+        INSERT INTO block_reporting_profiles (id, block_id, base_population, population_base_date, initial_hpv_target)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (block_id) DO UPDATE SET
+          base_population = EXCLUDED.base_population,
+          population_base_date = EXCLUDED.population_base_date,
+          initial_hpv_target = EXCLUDED.initial_hpv_target,
+          updated_at = CURRENT_TIMESTAMP`,
+        [profId, Number(id), Number(base_population), baseDate, initialTarget]
+      );
+    } else {
+      await db.run('INSERT INTO block_reporting_profiles', [profId, Number(id), Number(base_population), baseDate, initialTarget]);
+    }
 
-  res.json({ level: level || 'District', report_date: reportDate, rows });
+    await logAudit('BLOCK_OPERATOR', 'UPDATE_BLOCK_PROFILE', 'block', id, null, { base_population: Number(base_population) }, req.ip);
+    res.json({ message: 'Baseline population saved', initial_hpv_target: initialTarget });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/admin/settings', (req, res) => {
-  const settings = db.prepare('SELECT * FROM settings').all();
-  res.json(settings);
+app.get('/api/reports/block/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const rows = db.isPg
+      ? await db.query('SELECT * FROM daily_reports WHERE block_id = $1 ORDER BY reporting_date DESC', [id])
+      : await db.query('SELECT * FROM daily_reports WHERE block_id = ? ORDER BY reporting_date DESC', [id]);
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.put('/api/admin/settings', authenticateToken, (req, res) => {
-  const { settings } = req.body;
-  if (!Array.isArray(settings)) return res.status(400).json({ error: 'Settings array required' });
+app.post('/api/reports/block/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reporting_date, line_list_count, beneficiaries_vaccinated, submitted_by } = req.body;
 
-  for (const item of settings) {
-    db.prepare('UPDATE settings SET value = ?, updated_by = ? WHERE key = ?').run(String(item.value), req.user.id, item.key);
-  }
+    if (!reporting_date) return res.status(400).json({ error: 'Reporting date is required' });
+    if (line_list_count === undefined || isNaN(line_list_count)) return res.status(400).json({ error: 'Valid line list count is required' });
+    if (beneficiaries_vaccinated === undefined || isNaN(beneficiaries_vaccinated)) return res.status(400).json({ error: 'Valid beneficiaries vaccinated count is required' });
 
-  logAudit(req.user.id, 'UPDATE_SETTINGS', 'settings', 'GLOBAL', null, settings, req.ip);
+    const reportId = `rep-${id}-${reporting_date}-${Date.now()}`;
 
-  res.json({ message: 'Settings updated successfully' });
+    if (db.isPg) {
+      await db.run(`
+        INSERT INTO daily_reports (id, block_id, reporting_date, line_list_count, beneficiaries_vaccinated, submitted_by)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT (block_id, reporting_date) DO UPDATE SET
+          line_list_count = EXCLUDED.line_list_count,
+          beneficiaries_vaccinated = EXCLUDED.beneficiaries_vaccinated,
+          submitted_by = EXCLUDED.submitted_by,
+          updated_at = CURRENT_TIMESTAMP`,
+        [reportId, Number(id), reporting_date, Number(line_list_count), Number(beneficiaries_vaccinated), submitted_by || 'Block Operator']
+      );
+    } else {
+      await db.run('INSERT INTO daily_reports', [reportId, Number(id), reporting_date, Number(line_list_count), Number(beneficiaries_vaccinated), submitted_by || 'Block Operator']);
+    }
+
+    await logAudit('BLOCK_OPERATOR', 'SUBMIT_REPORT', 'daily_report', reportId, null, { reporting_date, line_list_count, beneficiaries_vaccinated }, req.ip);
+    res.json({ message: 'Report saved', report_id: reportId });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/admin/audit-logs', authenticateToken, (req, res) => {
-  const logs = db.prepare('SELECT * FROM audit_logs').all();
-  res.json(logs);
+// ─── Admin Auth ───────────────────────────────────────────────────────────────
+
+app.post('/api/admin/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+
+    const user = db.isPg
+      ? await db.queryOne('SELECT * FROM admin_users WHERE username = $1 AND is_active = true', [username])
+      : await db.queryOne('SELECT * FROM admin_users WHERE username = ?', [username]);
+
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const hash = hashPassword(password);
+    if (hash !== user.password_hash) return res.status(401).json({ error: 'Invalid credentials' });
+
+    // Update last login
+    if (db.isPg) {
+      await db.run('UPDATE admin_users SET last_login_at = CURRENT_TIMESTAMP WHERE id = $1', [user.id]);
+    } else {
+      await db.run('UPDATE admin_users SET last_login_at', [user.id]);
+    }
+
+    const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name }, JWT_SECRET, { expiresIn: '24h' });
+    await logAudit(user.id, 'ADMIN_LOGIN', 'admin_user', user.id, null, null, req.ip);
+    res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role } });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/admin/users', authenticateToken, (req, res) => {
-  const users = db.prepare('SELECT * FROM admin_users').all();
-  res.json(users);
+// ─── Admin Dashboard ──────────────────────────────────────────────────────────
+
+app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
+  try {
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    let totalBlocks, reportedToday, totalReports;
+
+    if (db.isPg) {
+      const [tb, rt, tr] = await Promise.all([
+        db.queryOne('SELECT COUNT(*) AS cnt FROM blocks WHERE is_active = true'),
+        db.queryOne('SELECT COUNT(DISTINCT block_id) AS cnt FROM daily_reports WHERE reporting_date = $1', [todayStr]),
+        db.queryOne('SELECT COUNT(*) AS cnt FROM daily_reports')
+      ]);
+      totalBlocks = Number(tb?.cnt || 0);
+      reportedToday = Number(rt?.cnt || 0);
+      totalReports = Number(tr?.cnt || 0);
+    } else {
+      const tb = await db.queryOne('SELECT COUNT(*) as cnt FROM blocks WHERE is_active = 1');
+      const reps = await db.query('SELECT * FROM daily_reports WHERE reporting_date = ?', [todayStr]);
+      const allReps = await db.query('SELECT * FROM daily_reports');
+      totalBlocks = Number(tb?.cnt || 0);
+      reportedToday = new Set(reps.map(r => r.block_id)).size;
+      totalReports = allReps.length;
+    }
+
+    res.json({
+      total_blocks: totalBlocks,
+      reported_today: reportedToday,
+      not_reported_today: totalBlocks - reportedToday,
+      total_reports: totalReports,
+      reporting_rate_today: totalBlocks > 0 ? ((reportedToday / totalBlocks) * 100).toFixed(1) : '0.0',
+      date: todayStr
+    });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
+
+app.get('/api/admin/reports', authenticateToken, async (req, res) => {
+  try {
+    const { date, districtId, blockId, limit = 100 } = req.query;
+    let rows;
+
+    if (db.isPg) {
+      let sql = `
+        SELECT dr.*, b.name AS block_name, b.lgd_code AS block_lgd_code,
+               d.name AS district_name, d.id AS district_id
+        FROM daily_reports dr
+        JOIN blocks b ON dr.block_id = b.id
+        JOIN districts d ON b.district_id = d.id
+        WHERE 1=1`;
+      const params = [];
+      if (date)       { params.push(date);        sql += ` AND dr.reporting_date = $${params.length}`; }
+      if (districtId) { params.push(districtId);  sql += ` AND d.id = $${params.length}`; }
+      if (blockId)    { params.push(blockId);      sql += ` AND dr.block_id = $${params.length}`; }
+      params.push(Number(limit));
+      sql += ` ORDER BY dr.reporting_date DESC, b.name LIMIT $${params.length}`;
+      rows = await db.query(sql, params);
+    } else {
+      let reps = await db.query('SELECT * FROM daily_reports');
+      if (date) reps = reps.filter(r => r.reporting_date === date);
+      if (blockId) reps = reps.filter(r => r.block_id === Number(blockId));
+      rows = reps.slice(0, Number(limit));
+    }
+
+    res.json(rows);
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/admin/blocks', authenticateToken, async (req, res) => {
+  try {
+    const { districtId } = req.query;
+    let rows;
+    if (db.isPg) {
+      let sql = `
+        SELECT b.*, d.name AS district_name, d.lgd_code AS district_lgd_code,
+               p.base_population, p.initial_hpv_target
+        FROM blocks b
+        JOIN districts d ON b.district_id = d.id
+        LEFT JOIN block_reporting_profiles p ON b.id = p.block_id
+        WHERE b.is_active = true`;
+      const params = [];
+      if (districtId) { params.push(districtId); sql += ` AND b.district_id = $1`; }
+      sql += ' ORDER BY d.name, b.name';
+      rows = await db.query(sql, params);
+    } else {
+      rows = await db.query('SELECT * FROM blocks WHERE is_active = 1');
+    }
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/admin/districts', authenticateToken, async (req, res) => {
+  try {
+    const rows = db.isPg
+      ? await db.query('SELECT * FROM districts WHERE is_active = true ORDER BY name')
+      : await db.query('SELECT * FROM districts WHERE is_active = 1');
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/admin/settings', authenticateToken, async (req, res) => {
+  try {
+    const rows = db.isPg
+      ? await db.query('SELECT * FROM settings ORDER BY key')
+      : await db.query('SELECT * FROM settings');
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/admin/settings/:key', authenticateToken, async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { value } = req.body;
+    if (!value) return res.status(400).json({ error: 'Value is required' });
+    if (db.isPg) {
+      await db.run('UPDATE settings SET value = $1, updated_by = $2, updated_at = CURRENT_TIMESTAMP WHERE key = $3', [String(value), req.user.username, key]);
+    } else {
+      await db.run('UPDATE settings', [String(value), req.user.username, key]);
+    }
+    await logAudit(req.user.id, 'UPDATE_SETTING', 'setting', key, null, { value }, req.ip);
+    res.json({ message: 'Setting updated' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/admin/audit-logs', authenticateToken, async (req, res) => {
+  try {
+    const rows = db.isPg
+      ? await db.query('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 200')
+      : await db.query('SELECT * FROM audit_logs');
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Admin Report Generator ────────────────────────────────────────────────────
+
+app.get('/api/admin/report-generator', authenticateToken, async (req, res) => {
+  try {
+    const { date, groupBy = 'district' } = req.query;
+    const reportDate = date || new Date().toISOString().split('T')[0];
+
+    if (!db.isPg) {
+      return res.json({ date: reportDate, groups: [], total_blocks: 0, reported: 0 });
+    }
+
+    const rows = await db.query(`
+      SELECT d.id AS district_id, d.name AS district_name,
+             b.id AS block_id, b.name AS block_name,
+             dr.line_list_count, dr.beneficiaries_vaccinated,
+             p.base_population, p.initial_hpv_target
+      FROM districts d
+      JOIN blocks b ON b.district_id = d.id
+      LEFT JOIN daily_reports dr ON dr.block_id = b.id AND dr.reporting_date = $1
+      LEFT JOIN block_reporting_profiles p ON p.block_id = b.id
+      WHERE b.is_active = true
+      ORDER BY d.name, b.name`, [reportDate]);
+
+    // Group by district
+    const grouped = {};
+    for (const row of rows) {
+      const key = row.district_id;
+      if (!grouped[key]) grouped[key] = { district_id: row.district_id, district_name: row.district_name, blocks: [], total_line_list: 0, total_vaccinated: 0, total_population: 0, total_target: 0, reported_count: 0 };
+      const g = grouped[key];
+      g.blocks.push(row);
+      if (row.line_list_count !== null) {
+        g.total_line_list += Number(row.line_list_count || 0);
+        g.total_vaccinated += Number(row.beneficiaries_vaccinated || 0);
+        g.reported_count++;
+      }
+      g.total_population += Number(row.base_population || 0);
+      g.total_target += Number(row.initial_hpv_target || 0);
+    }
+
+    res.json({
+      date: reportDate,
+      groups: Object.values(grouped),
+      total_blocks: rows.length,
+      reported: rows.filter(r => r.line_list_count !== null).length
+    });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+// ─── Server Start ─────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
-  console.log(`🚀 HPV Reporting Portal API Server running on port ${PORT}`);
+  console.log(`🚀 HPV Reporting Portal API running on port ${PORT}`);
+  console.log(`📊 Database: ${db.isPg ? 'PostgreSQL (Supabase)' : 'Local JSON Store'}`);
 });
 
 export default app;
