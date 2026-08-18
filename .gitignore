@@ -5,3 +5,4 @@ dist
 *.log
 hpv_reporting.db
 .DS_Store
+hpv_store.json

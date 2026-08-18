@@ -10,6 +10,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5001;
 const JWT_SECRET = process.env.JWT_SECRET || 'hpv-reporting-portal-secret-key-2026';
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️  WARNING: JWT_SECRET env var not set. Using insecure default. Set JWT_SECRET in Vercel env vars for production!');
+}
 
 app.use(cors());
 app.use(express.json());
