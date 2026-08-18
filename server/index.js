@@ -344,7 +344,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       }
     });
 
-    const district_chart_data = Object.values(districtStats).map((d: any) => ({
+    const district_chart_data = Object.values(districtStats).map((d) => ({
       district_name: d.name,
       coverage: d.target > 0 ? Math.round((d.vaccinated / d.target) * 100) : 0
     })).sort((a, b) => b.coverage - a.coverage);
