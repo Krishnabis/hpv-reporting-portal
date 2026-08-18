@@ -40,45 +40,16 @@ export const BlockLogin: React.FC = () => {
   }, []);
 
   // Filter available blocks based on currently selected district
-  const availableBlockOptions: OptionItem[] = allBlocks
-    .filter(b => {
-      if (!selectedDistrict) return true; // If no district chosen yet, allow searching all blocks
-      return Number(b.district_id) === Number(selectedDistrict.id);
-    })
-    .map(b => ({
+  const availableBlockOptions: OptionItem[] = allBlocks.map(b => ({
       id: b.id,
-      name: b.name,
+      name: `${b.name} (State: Uttarakhand, District: ${b.district_name})`,
       district_id: b.district_id,
-      district_name: b.district_name,
-      subtitle: !selectedDistrict ? `District: ${b.district_name}` : undefined
+      district_name: b.district_name
     }));
 
-  // Handle District selection
-  const handleDistrictChange = (item: OptionItem | null) => {
-    setSelectedDistrict(item);
-    // If selected block does not belong to newly selected district, reset block
-    if (selectedBlock && item) {
-      const match = allBlocks.find(b => Number(b.id) === Number(selectedBlock.id));
-      if (match && Number(match.district_id) !== Number(item.id)) {
-        setSelectedBlock(null);
-      }
-    }
-  };
-
-  // Handle Block selection (Change 4: Pre-select parent District automatically)
+  // Handle Block selection
   const handleBlockChange = (item: OptionItem | null) => {
     setSelectedBlock(item);
-    if (item) {
-      // Find block object details
-      const match = allBlocks.find(b => Number(b.id) === Number(item.id));
-      if (match) {
-        // Automatically pre-select corresponding district
-        const matchingDistrict = districts.find(d => Number(d.id) === Number(match.district_id));
-        if (matchingDistrict) {
-          setSelectedDistrict(matchingDistrict);
-        }
-      }
-    }
   };
 
   const handleContinue = (e: React.FormEvent) => {
@@ -126,17 +97,6 @@ export const BlockLogin: React.FC = () => {
 
           {/* Block Selection Form */}
           <form onSubmit={handleContinue} className="space-y-6">
-            {/* Change 1 & 2: Searchable Select District */}
-            <SearchableSelect
-              label="Select District"
-              placeholder={loading ? "Loading districts..." : "Type or search district..."}
-              options={districts}
-              value={selectedDistrict}
-              onChange={handleDistrictChange}
-              disabled={loading}
-            />
-
-            {/* Change 3 & 4: Searchable Select Block */}
             <SearchableSelect
               label="Select Block"
               placeholder={loading ? "Loading blocks..." : "Type or search block..."}

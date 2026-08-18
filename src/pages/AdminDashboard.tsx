@@ -6,6 +6,7 @@ import {
   TrendingUp, CheckCircle, BarChart3, ChevronRight, Hash, Eye, RefreshCw, Save
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
+import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
 
 interface KPIState {
   total_blocks: number;
@@ -86,6 +87,7 @@ export const AdminDashboard: React.FC = () => {
     setAdminUser(JSON.parse(userStr));
     fetchKpis();
     fetchDistricts();
+    fetchMasterLocations();
     fetchReport();
     fetchSettings();
   }, []);
@@ -555,10 +557,14 @@ export const AdminDashboard: React.FC = () => {
 
                 {/* Field 2: Level */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-700">Level</label>
+                  <label className="text-xs font-bold text-slate-700">Select Area</label>
                   <select
                     value={filterLevel}
-                    onChange={e => setFilterLevel(e.target.value as any)}
+                    onChange={e => {
+                      setFilterLevel(e.target.value as any);
+                      setFilterDistrictId('ALL');
+                      setFilterBlockId('ALL');
+                    }}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold"
                   >
                     <option value="State">State</option>
@@ -567,52 +573,36 @@ export const AdminDashboard: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Field 3: State */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-700">State</label>
-                  <select
-                    value={filterStateId}
-                    onChange={e => setFilterStateId(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold"
-                  >
-                    <option value="5">Uttarakhand (LGD: 5)</option>
-                  </select>
-                </div>
+                {/* Conditional Field: State / District / Block */}
+                {filterLevel === 'State' && (
+                  <SearchableSelect
+                    label="State"
+                    placeholder="Search state..."
+                    options={[{ id: '5', name: 'Uttarakhand' }]}
+                    value={{ id: '5', name: 'Uttarakhand' }}
+                    onChange={() => {}}
+                  />
+                )}
 
-                {/* Field 4: District */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-700">District</label>
-                  <select
-                    value={filterDistrictId}
-                    onChange={e => setFilterDistrictId(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold"
-                  >
-                    <option value="ALL">All Districts</option>
-                    {districtsList.map(d => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} (LGD: {d.lgd_code})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {filterLevel === 'District' && (
+                  <SearchableSelect
+                    label="District"
+                    placeholder="Search district..."
+                    options={districtsList.map(d => ({ id: String(d.id), name: `${d.name} (State: Uttarakhand)` }))}
+                    value={filterDistrictId === 'ALL' ? null : { id: filterDistrictId, name: districtsList.find(d => String(d.id) === filterDistrictId)?.name + ' (State: Uttarakhand)' || '' }}
+                    onChange={item => setFilterDistrictId(item ? String(item.id) : 'ALL')}
+                  />
+                )}
 
-                {/* Field 5: Block */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-slate-700">Block</label>
-                  <select
-                    value={filterBlockId}
-                    onChange={e => setFilterBlockId(e.target.value)}
-                    disabled={filterDistrictId === 'ALL'}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold disabled:opacity-50"
-                  >
-                    <option value="ALL">All Blocks</option>
-                    {blocksList.map(b => (
-                      <option key={b.id} value={b.id}>
-                        {b.name} (LGD: {b.lgd_code})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {filterLevel === 'Block' && (
+                  <SearchableSelect
+                    label="Block"
+                    placeholder="Search block..."
+                    options={masterBlocks.map(b => ({ id: String(b.id), name: `${b.name} (State: Uttarakhand, District: ${b.district_name})` }))}
+                    value={filterBlockId === 'ALL' ? null : { id: filterBlockId, name: masterBlocks.find(b => String(b.id) === filterBlockId) ? `${masterBlocks.find(b => String(b.id) === filterBlockId)?.name} (State: Uttarakhand, District: ${masterBlocks.find(b => String(b.id) === filterBlockId)?.district_name})` : '' }}
+                    onChange={item => setFilterBlockId(item ? String(item.id) : 'ALL')}
+                  />
+                )}
               </div>
 
               <div className="pt-2 flex justify-end">
@@ -637,26 +627,6 @@ export const AdminDashboard: React.FC = () => {
                     Date: {filterDate}
                   </span>
                 </div>
-
-                {/* Mobile View Toggle */}
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-                  <button
-                    onClick={() => setReportViewMode('table')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      reportViewMode === 'table' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'
-                    }`}
-                  >
-                    Table View
-                  </button>
-                  <button
-                    onClick={() => setReportViewMode('card')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      reportViewMode === 'card' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'
-                    }`}
-                  >
-                    Mobile Cards View
-                  </button>
-                </div>
               </div>
 
               {loadingReport ? (
@@ -665,14 +635,12 @@ export const AdminDashboard: React.FC = () => {
                   <span>Generating aggregated report...</span>
                 </div>
               ) : reportRows.length > 0 ? (
-                reportViewMode === 'table' ? (
                   /* DESKTOP/TABLET TABLE VIEW */
                   <div className="overflow-x-auto rounded-xl border border-slate-200">
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-900 text-white font-semibold uppercase tracking-wider">
                         <tr>
                           <th className="p-3">District / Block</th>
-                          <th className="p-3 font-mono">LGD Code</th>
                           <th className="p-3 text-right">Population</th>
                           <th className="p-3 text-right">HPV Target</th>
                           <th className="p-3 text-center">Last Report Date</th>
@@ -692,11 +660,6 @@ export const AdminDashboard: React.FC = () => {
                                   {row.district_name} District
                                 </span>
                               )}
-                            </td>
-                            <td className="p-3 text-slate-500 font-bold">
-                              <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                                {row.lgd_code}
-                              </span>
                             </td>
                             <td className="p-3 text-right font-medium text-slate-700">
                               {row.population !== null ? row.population.toLocaleString() : '—'}
@@ -732,49 +695,6 @@ export const AdminDashboard: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
-                ) : (
-                  /* MOBILE CARD VIEW */
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {reportRows.map(row => (
-                      <div key={row.id} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                          <span className="font-extrabold text-slate-900 text-sm">{row.name}</span>
-                          <span className="text-xs font-mono font-semibold px-2 py-0.5 bg-slate-200 text-slate-700 rounded">
-                            LGD: {row.lgd_code}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                          <div>
-                            <span className="text-slate-400 block font-sans">Population</span>
-                            <span className="font-bold text-slate-800">{row.population?.toLocaleString() ?? '—'}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-400 block font-sans">HPV Target</span>
-                            <span className="font-bold text-slate-800">{row.hpv_target?.toLocaleString() ?? '—'}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-400 block font-sans">Line List</span>
-                            <span className="font-bold text-hpv-teal">{row.line_list_received?.toLocaleString() ?? '—'}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-400 block font-sans">Vaccinated</span>
-                            <span className="font-bold text-hpv-purple">{row.beneficiaries_vaccinated?.toLocaleString() ?? '—'}</span>
-                          </div>
-                        </div>
-
-                        <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs font-bold">
-                          <span className="text-sky-700 bg-sky-50 px-2 py-1 rounded">
-                            Line List: {row.line_list_received_pct ?? 0}%
-                          </span>
-                          <span className="text-emerald-700 bg-emerald-50 px-2 py-1 rounded">
-                            Coverage: {row.vaccination_coverage_pct ?? 0}%
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )
               ) : (
                 <div className="py-12 text-center text-xs text-slate-400">
                   No records match selected filter criteria.
