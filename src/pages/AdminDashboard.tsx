@@ -382,10 +382,10 @@ export const AdminDashboard: React.FC = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-5 lg:p-6 max-w-[1600px] mx-auto w-full overflow-y-auto">
         {/* TAB 1: DASHBOARD OVERVIEW */}
         {activeTab === 'dashboard' && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -473,13 +473,13 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* District Vaccination Coverage Breakdown */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <div className="bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm">
               <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-hpv-purple" /> District Vaccination Coverage Ranking
               </h3>
 
               {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-3">
                   {kpis.district_chart_data.map(d => (
                     <div key={d.district} className="space-y-1">
                       <div className="flex items-center justify-between text-xs font-semibold">
@@ -493,7 +493,7 @@ export const AdminDashboard: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden flex">
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
                         <div
                           className="gradient-header h-full transition-all duration-300"
                           style={{ width: `${Math.min(d.coveragePct, 100)}%` }}
