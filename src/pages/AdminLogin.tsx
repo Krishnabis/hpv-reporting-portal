@@ -20,26 +20,33 @@ export const AdminLogin: React.FC = () => {
     setLoading(true);
     setErrorMsg('');
 
-    fetch('/api/auth/admin/login', {
+    fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     })
-      .then(res => res.json())
-      .then(data => {
-        setLoading(false);
-        if (data.error) {
-          setErrorMsg(data.error);
-        } else {
-          localStorage.setItem('hpv_admin_token', data.token);
-          localStorage.setItem('hpv_admin_user', JSON.stringify(data.user));
-          navigate('/admin');
+      .then(async res => {
+        const text = await res.text();
+        try {
+          const data = JSON.parse(text);
+          if (!res.ok) {
+            throw new Error(data.error || 'Login failed');
+          }
+          return data;
+        } catch (err: any) {
+          throw new Error(err.message || 'Invalid response from server');
         }
       })
-      .catch(err => {
-        console.error(err);
+      .then(data => {
         setLoading(false);
-        setErrorMsg('Failed to connect to authentication server');
+        localStorage.setItem('hpv_admin_token', data.token);
+        localStorage.setItem('hpv_admin_user', JSON.stringify(data.user));
+        navigate('/admin');
+      })
+      .catch((err: any) => {
+        console.error('Login error:', err);
+        setLoading(false);
+        setErrorMsg(err.message || 'Failed to connect to authentication server');
       });
   };
 
