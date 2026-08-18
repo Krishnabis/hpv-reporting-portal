@@ -101,7 +101,7 @@ export const AdminDashboard: React.FC = () => {
 
   const fetchKpis = () => {
     setLoadingKpis(true);
-    fetch('/api/admin/kpis', {
+    fetch(`/api/admin/kpis?date=${filterDate}`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('hpv_admin_token')}` }
     })
       .then(res => {
@@ -117,6 +117,14 @@ export const AdminDashboard: React.FC = () => {
         setLoadingKpis(false);
       });
   };
+
+  // Re-fetch when date changes
+  useEffect(() => {
+    if (adminUser) {
+      fetchKpis();
+      fetchReport();
+    }
+  }, [filterDate]);
 
   const fetchDistricts = () => {
     fetch('/api/locations/districts')
@@ -388,16 +396,16 @@ export const AdminDashboard: React.FC = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 sm:p-5 lg:p-6 max-w-[1600px] mx-auto w-full overflow-y-auto">
+      <main className="flex-1 p-3 sm:p-4 max-w-[1600px] mx-auto w-full overflow-y-auto">
         {/* TAB 1: DASHBOARD OVERVIEW */}
         {activeTab === 'dashboard' && (
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
                   HPV Executive Dashboard
                 </h1>
-                <p className="text-xs text-slate-500 mt-1 font-medium">
+                <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
                   Statewide due list tracking & block reporting summary <span className="text-blue-500 font-bold">(Uttarakhand)</span>
                 </p>
               </div>
@@ -409,58 +417,62 @@ export const AdminDashboard: React.FC = () => {
                 >
                   <RefreshCw className="w-3.5 h-3.5" /> Refresh KPIs
                 </button>
-                <div className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Today, 18 May 2025</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-1" />
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={filterDate}
+                    onChange={e => setFilterDate(e.target.value)}
+                    className="px-3 py-1.5 pl-8 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors w-[140px]"
+                  />
+                  <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
                 </div>
               </div>
             </div>
 
             {/* KPI Cards Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {/* Card 1: Total Blocks */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-blue-500">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                    <Building2 className="w-6 h-6 text-white" />
+              <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-blue-500">
+                <div className="flex gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                    <Building2 className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
                       TOTAL BLOCKS
                     </span>
-                    <span className="text-3xl font-extrabold font-mono text-slate-900 leading-none mt-1">
+                    <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none mt-1">
                       {kpis ? kpis.total_blocks : '—'}
                     </span>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between z-10 relative">
-                  <span className="text-[10px] text-slate-400">13 Districts in Uttarakhand</span>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between z-10 relative">
+                  <span className="text-[9px] text-slate-400">13 Districts in Uttarakhand</span>
                 </div>
               </div>
 
               {/* Card 2: Reporting Today */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-purple-500">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-purple-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                    <ClipboardList className="w-6 h-6 text-white" />
+              <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-purple-500">
+                <div className="flex gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                    <ClipboardList className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
                       REPORTING TODAY
                     </span>
                     <div className="flex items-baseline gap-1 mt-1">
-                      <span className="text-3xl font-extrabold font-mono text-purple-600 leading-none">
+                      <span className="text-2xl font-extrabold font-mono text-purple-600 leading-none">
                         {kpis ? kpis.reporting_today : '—'}
                       </span>
-                      <span className="text-[11px] text-slate-400 font-mono">
+                      <span className="text-[10px] text-slate-400 font-mono">
                         / {kpis ? kpis.total_blocks : '—'}
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                     <div
                       className="bg-purple-500 h-full transition-all"
                       style={{
@@ -468,53 +480,53 @@ export const AdminDashboard: React.FC = () => {
                       }}
                     />
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    {kpis ? ((kpis.reporting_today / (kpis.total_blocks || 1)) * 100).toFixed(2) : '0'}%
+                  <span className="text-[9px] text-slate-400 font-mono">
+                    {kpis ? ((kpis.reporting_today / (kpis.total_blocks || 1)) * 100).toFixed(1) : '0'}%
                   </span>
                 </div>
               </div>
 
               {/* Card 3: Total Line List */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-emerald-500">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                    <FileSpreadsheet className="w-6 h-6 text-white" />
+              <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-emerald-500">
+                <div className="flex gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                    <FileSpreadsheet className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
                       LINE LIST RECEIVED
                     </span>
-                    <span className="text-3xl font-extrabold font-mono text-emerald-600 leading-none mt-1">
+                    <span className="text-2xl font-extrabold font-mono text-emerald-600 leading-none mt-1">
                       {kpis ? kpis.total_line_list.toLocaleString() : '—'}
                     </span>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <span className="text-[10px] text-slate-400">% Line List</span>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-mono">
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className="text-[9px] text-slate-400">% Line List</span>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-mono">
                     {kpis ? kpis.overall_linelist_pct : 0}% of Target
                   </span>
                 </div>
               </div>
 
               {/* Card 4: Total Vaccinated */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-rose-500">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-rose-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                    <Users className="w-6 h-6 text-white" />
+              <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-rose-500">
+                <div className="flex gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                    <Users className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
                       BENEFICIARIES VACCINATED
                     </span>
-                    <span className="text-3xl font-extrabold font-mono text-rose-500 leading-none mt-1">
+                    <span className="text-2xl font-extrabold font-mono text-rose-500 leading-none mt-1">
                       {kpis ? kpis.total_vaccinated.toLocaleString() : '—'}
                     </span>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <span className="text-[10px] text-slate-400">% Coverage</span>
-                  <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded font-mono">
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className="text-[9px] text-slate-400">% Coverage</span>
+                  <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded font-mono">
                     {kpis ? kpis.overall_coverage_pct : 0}% of Target
                   </span>
                 </div>
@@ -522,17 +534,17 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Split Layout: Ranking & Map */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {/* Left: District Ranking */}
-              <div className="bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-blue-500" /> District Ranking
+              <div className="bg-white p-3 lg:p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    <BarChart3 className="w-4 h-4 text-blue-500" /> District Ranking
                   </h3>
                   <select
                     value={selectedKpi}
                     onChange={e => setSelectedKpi(e.target.value as 'coverage' | 'linelist' | 'both')}
-                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500 bg-white cursor-pointer"
+                    className="px-2 py-1 rounded-md border border-slate-200 text-[10px] font-semibold text-slate-700 focus:outline-none focus:border-blue-500 bg-white cursor-pointer"
                   >
                     <option value="coverage">% Vaccination Coverage</option>
                     <option value="linelist">% Line List</option>
@@ -541,14 +553,14 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Tier Legend */}
-                <div className="flex flex-wrap gap-1.5 mb-3">
+                <div className="flex flex-wrap gap-1 mb-2">
                   {[{l:'Aspirational',b:'bg-red-100',t:'text-red-700',v:'<30%'},{l:'Progressing',b:'bg-yellow-100',t:'text-yellow-700',v:'30–70%'},{l:'High Performing',b:'bg-blue-100',t:'text-blue-700',v:'70–90%'},{l:'Champions',b:'bg-emerald-100',t:'text-emerald-700',v:'>90%'}].map(tier => (
-                    <span key={tier.l} className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${tier.b} ${tier.t}`}>{tier.l} {tier.v}</span>
+                    <span key={tier.l} className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${tier.b} ${tier.t}`}>{tier.l} {tier.v}</span>
                   ))}
                 </div>
 
                 {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 flex-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-0.5 flex-1">
                     {[...kpis.district_chart_data]
                        .sort((a, b) => {
                         const pa = selectedKpi === 'linelist' ? a.lineListPct : a.coveragePct;
@@ -561,20 +573,20 @@ export const AdminDashboard: React.FC = () => {
                         const primaryPct = selectedKpi === 'linelist' ? llPct : covPct;
                         const tier = getTier(primaryPct);
                         return (
-                          <div key={d.district} className={`flex items-center py-2 rounded-lg hover:bg-slate-50 transition-colors border-b border-slate-100 gap-2`}>
+                          <div key={d.district} className={`flex items-center py-1 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5`}>
                             <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
-                            <span className="text-xs font-bold text-slate-800 flex-1 truncate min-w-0">{d.district}</span>
+                            <span className="text-[11px] font-bold text-slate-800 flex-1 truncate min-w-0">{d.district}</span>
                             {selectedKpi === 'both' ? (
                               <div className="flex items-center gap-1 shrink-0">
-                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${getTier(llPct).bg} ${getTier(llPct).text}`}>
+                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${getTier(llPct).bg} ${getTier(llPct).text}`}>
                                   LL: {llPct}%
                                 </span>
-                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${getTier(covPct).bg} ${getTier(covPct).text}`}>
+                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${getTier(covPct).bg} ${getTier(covPct).text}`}>
                                   Vacc: {covPct}%
                                 </span>
                               </div>
                             ) : (
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${tier.bg} ${tier.text} shrink-0`}>
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tier.bg} ${tier.text} shrink-0`}>
                                 {primaryPct}%
                               </span>
                             )}
@@ -583,20 +595,14 @@ export const AdminDashboard: React.FC = () => {
                     })}
                   </div>
                 ) : (
-                  <div className="py-12 text-center text-xs text-slate-400">
+                  <div className="py-8 text-center text-[10px] text-slate-400">
                     No district data — blocks need population setup.
                   </div>
                 )}
-
-                <div className="mt-4 pt-4 border-t border-slate-100 flex justify-center">
-                  <button className="text-blue-600 font-bold text-xs hover:text-blue-700 transition-colors flex items-center gap-1">
-                    View Detailed Ranking <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
 
               {/* Right: Uttarakhand Interactive Map */}
-              <div className="bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+              <div className="bg-white p-3 lg:p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-blue-500" /> Uttarakhand Overview
@@ -631,34 +637,37 @@ export const AdminDashboard: React.FC = () => {
                 )}
 
                 {/* Gradient Tier Legend for Map */}
-                <div className="mt-6 px-4">
-                  <div className="text-center text-xs font-semibold text-slate-700 mb-2">
+                <div className="mt-3 px-2">
+                  <div className="text-center text-[11px] font-semibold text-slate-700 mb-1.5">
                     {selectedKpi === 'coverage' ? '% Vaccination Coverage' : (selectedKpi === 'linelist' ? '% Line List' : 'KPI Value')}
                   </div>
-                  <div className="h-3 w-full rounded-full bg-gradient-to-r from-[#f87171] via-[#fde047] via-50% to-[#4ade80] shadow-inner" />
-                  <div className="flex justify-between text-[10px] font-bold text-slate-400 mt-2">
+                  <div 
+                    className="h-2.5 w-full rounded-full shadow-inner" 
+                    style={{ background: 'linear-gradient(to right, #f87171 0%, #fde047 35%, #93c5fd 70%, #4ade80 100%)' }}
+                  />
+                  <div className="flex justify-between text-[9px] font-bold text-slate-400 mt-1.5">
                     <span>0%</span>
                     <span>25%</span>
                     <span>50%</span>
                     <span>75%</span>
                     <span>100%+</span>
                   </div>
-                  <div className="grid grid-cols-4 gap-2 mt-4 text-center">
+                  <div className="grid grid-cols-4 gap-1.5 mt-2.5 text-center">
                     <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-[#f87171]"></div><span className="text-[10px] font-bold text-slate-700">0% – 30%</span></div>
-                      <span className="text-[9px] text-slate-500 font-semibold">(Aspirational)</span>
+                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#f87171]"></div><span className="text-[9px] font-bold text-slate-700">0% – 30%</span></div>
+                      <span className="text-[8px] text-slate-500 font-semibold">(Aspirational)</span>
                     </div>
                     <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-[#fde047]"></div><span className="text-[10px] font-bold text-slate-700">30% – 70%</span></div>
-                      <span className="text-[9px] text-slate-500 font-semibold">(Progressing)</span>
+                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#fde047]"></div><span className="text-[9px] font-bold text-slate-700">30% – 70%</span></div>
+                      <span className="text-[8px] text-slate-500 font-semibold">(Progressing)</span>
                     </div>
                     <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-[#93c5fd]"></div><span className="text-[10px] font-bold text-slate-700">70% – 90%</span></div>
-                      <span className="text-[9px] text-slate-500 font-semibold">(High Performing)</span>
+                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#93c5fd]"></div><span className="text-[9px] font-bold text-slate-700">70% – 90%</span></div>
+                      <span className="text-[8px] text-slate-500 font-semibold">(High Perf.)</span>
                     </div>
                     <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-[#6ee7b7]"></div><span className="text-[10px] font-bold text-slate-700">90%+</span></div>
-                      <span className="text-[9px] text-slate-500 font-semibold">(Champions)</span>
+                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#6ee7b7]"></div><span className="text-[9px] font-bold text-slate-700">90%+</span></div>
+                      <span className="text-[8px] text-slate-500 font-semibold">(Champions)</span>
                     </div>
                   </div>
                 </div>

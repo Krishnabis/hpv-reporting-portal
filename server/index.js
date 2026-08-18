@@ -308,7 +308,7 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
 
 app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
   try {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const targetDateStr = req.query.date || new Date().toISOString().split('T')[0];
     if (!useSupabase) return res.json({ total_blocks: 0, reporting_today: 0, total_line_list: 0, total_vaccinated: 0, overall_coverage_pct: 0, overall_linelist_pct: 0, district_chart_data: [] });
 
     // 1. Fetch all active blocks with district info
@@ -324,11 +324,11 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       .select('block_id, base_population, initial_hpv_target');
     if (pErr) throw pErr;
 
-    // 3. Fetch today's reports
+    // 3. Fetch reports for the selected date
     const { data: reports, error: rErr } = await supabase
       .from('daily_reports')
       .select('block_id, line_list_count, beneficiaries_vaccinated')
-      .eq('reporting_date', todayStr);
+      .eq('reporting_date', targetDateStr);
     if (rErr) throw rErr;
 
     // Build lookup maps
