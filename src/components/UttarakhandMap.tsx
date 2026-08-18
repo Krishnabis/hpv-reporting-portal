@@ -38,15 +38,15 @@ const LABELS: Record<string, [number, number, string]> = {
   'Chamoli': [681.82, 428.57, 'Chamoli'],
   'Rudraprayag': [513.8, 411.53, 'Rudraprayag'],
   'Tehri Garhwal': [343.34, 499.18, 'Tehri G.'],
-  'Dehradun': [124.19, 465.1, 'Dehradun'],
+  'Dehradun': [170, 420, 'Dehradun'],
   'Pauri Garhwal': [428.57, 667.21, 'Pauri G.'],
   'Pithoragarh': [981.33, 543.02, 'Pithoragarh'],
   'Bageshwar': [757.31, 659.9, 'Bageshwar'],
   'Almora': [664.77, 730.52, 'Almora'],
   'Champawat': [857.14, 883.93, 'Champawat'],
   'Nainital': [669.64, 874.19, 'Nainital'],
-  'Udham Singh Nagar': [672.08, 1010.55, 'USN'],
-  'Haridwar': [148.54, 664.77, 'Haridwar'],
+  'Udham Singh Nagar': [730, 995, 'USN'],
+  'Haridwar': [200, 630, 'Haridwar'],
 };
 
 export function getTier(pct: number) {
@@ -120,11 +120,14 @@ export function UttarakhandMap({ data, selectedKpi }: Props) {
             x={x}
             y={y}
             textAnchor="middle"
-            fontSize={hovered === name ? 32 : 26}
+            fontSize={hovered === name ? 42 : 32}
             fontFamily="system-ui, sans-serif"
-            fontWeight={hovered === name ? '700' : '600'}
+            fontWeight={hovered === name ? '800' : '700'}
             fill="white"
-            style={{ pointerEvents: 'none', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}
+            stroke="rgba(0,0,0,0.4)"
+            strokeWidth="3"
+            paintOrder="stroke fill"
+            style={{ pointerEvents: 'none', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))', transition: 'font-size 0.15s ease' }}
           >
             {label}
           </text>
