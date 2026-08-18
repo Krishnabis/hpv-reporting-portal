@@ -50,38 +50,28 @@ const LABELS: Record<string, [number, number, string]> = {
 };
 
 export function getTier(pct: number) {
-  if (pct >= 90) return {
-    label: 'Champions', fill: '#16a34a', bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300'
+  if (pct >= 76) return {
+    label: 'High (76% - 100%+)', fill: '#6ee7b7', bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300'
   };
-  if (pct >= 70) return {
-    label: 'High Performing', fill: '#2563eb', bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300'
+  if (pct >= 51) return {
+    label: 'Medium (51% - 75%)', fill: '#93c5fd', bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300'
   };
-  if (pct >= 30) return {
-    label: 'Progressing', fill: '#d97706', bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300'
+  if (pct >= 26) return {
+    label: 'Low (26% - 50%)', fill: '#fde047', bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300'
   };
   return {
-    label: 'Aspirational', fill: '#dc2626', bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300'
+    label: 'Very Low (0% - 25%)', fill: '#f87171', bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300'
   };
 }
 
 export function UttarakhandMap({ data, selectedKpi }: Props) {
-  const [hovered, setHovered] = useState<string | null>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const containerRef = useRef<HTMLDivElement>(null);
-
   const dataMap: Record<string, DistrictMapData> = {};
   data.forEach(d => { dataMap[d.district] = d; });
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (rect) setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-  };
-
-  const hoveredData = hovered ? dataMap[hovered] : null;
   const kpiForMap = selectedKpi === 'both' ? 'coverage' : selectedKpi;
 
   return (
-    <div ref={containerRef} className="relative w-full select-none" onMouseMove={handleMouseMove}>
+    <div className="relative w-full select-none flex justify-center">
       <svg
         viewBox="58 0 1192 1067"
         className="w-full"
@@ -97,76 +87,64 @@ export function UttarakhandMap({ data, selectedKpi }: Props) {
           const d = dataMap[name];
           const pct = d ? (kpiForMap === 'coverage' ? d.coveragePct : d.lineListPct) : 0;
           const tier = getTier(pct);
-          const isHovered = hovered === name;
           return (
             <path
               key={name}
               d={path}
-              fill={isHovered ? tier.fill : (d ? tier.fill + 'CC' : '#94a3b8')}
+              fill={tier.fill}
               stroke="white"
-              strokeWidth={isHovered ? 4 : 2}
+              strokeWidth={3}
               strokeLinejoin="round"
               filter="url(#dShadow)"
-              style={{ cursor: 'pointer', transition: 'fill 0.15s, stroke-width 0.1s' }}
-              onMouseEnter={() => setHovered(name)}
-              onMouseLeave={() => setHovered(null)}
+              style={{ transition: 'fill 0.3s' }}
             />
           );
         })}
 
-        {Object.entries(LABELS).map(([name, [x, y, label]]) => (
-          <text
-            key={`lbl-${name}`}
-            x={x}
-            y={y}
-            textAnchor="middle"
-            fontSize={hovered === name ? 42 : 32}
-            fontFamily="system-ui, sans-serif"
-            fontWeight={hovered === name ? '800' : '700'}
-            fill="white"
-            stroke="rgba(0,0,0,0.4)"
-            strokeWidth="3"
-            paintOrder="stroke fill"
-            style={{ pointerEvents: 'none', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))', transition: 'font-size 0.15s ease' }}
-          >
-            {label}
-          </text>
-        ))}
-      </svg>
+        {Object.entries(LABELS).map(([name, [x, y, label]]) => {
+          const d = dataMap[name];
+          const covPct = d?.coveragePct ?? 0;
+          const llPct = d?.lineListPct ?? 0;
+          
+          let displayPct = '';
+          if (selectedKpi === 'coverage') displayPct = `${covPct.toFixed(1)}%`;
+          else if (selectedKpi === 'linelist') displayPct = `${llPct.toFixed(1)}%`;
 
-      {hovered && hoveredData && (
-        <div
-          className="absolute z-20 bg-white rounded-xl shadow-2xl border border-slate-200 p-3 pointer-events-none"
-          style={{
-            left: Math.min(mousePos.x + 14, (containerRef.current?.offsetWidth ?? 400) - 175),
-            top: Math.max(mousePos.y - 90, 2),
-            minWidth: '168px',
-          }}
-        >
-          <p className="font-extrabold text-slate-900 text-xs mb-2 border-b border-slate-100 pb-1.5">{hovered}</p>
-          <div className="space-y-1.5">
-            <div className="flex justify-between items-center gap-3">
-              <span className="text-[11px] text-slate-500">HPV Target</span>
-              <span className="text-[11px] font-bold text-slate-800 font-mono">{hoveredData.target.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between items-center gap-3">
-              <span className="text-[11px] text-slate-500">Line List</span>
-              <span className="text-[11px] font-bold text-emerald-700 font-mono">{hoveredData.lineList.toLocaleString()} <span className="text-slate-400">({hoveredData.lineListPct}%)</span></span>
-            </div>
-            <div className="flex justify-between items-center gap-3">
-              <span className="text-[11px] text-slate-500">Vaccinated</span>
-              <span className="text-[11px] font-bold text-purple-700 font-mono">{hoveredData.vaccinated.toLocaleString()} <span className="text-slate-400">({hoveredData.coveragePct}%)</span></span>
-            </div>
-            <div className="mt-1.5 pt-1.5 border-t border-slate-100">
-              {(() => {
-                const pct = kpiForMap === 'coverage' ? hoveredData.coveragePct : hoveredData.lineListPct;
-                const t = getTier(pct);
-                return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${t.bg} ${t.text}`}>{t.label}</span>;
-              })()}
-            </div>
-          </div>
-        </div>
-      )}
+          const boxWidth = 145;
+          const boxHeight = selectedKpi === 'both' ? 110 : 80;
+          const rectX = x - boxWidth / 2;
+          const rectY = y - 30;
+          
+          return (
+            <g key={`lbl-${name}`} style={{ pointerEvents: 'none' }}>
+              {/* White rounded box for label */}
+              <rect 
+                x={rectX} y={rectY} width={boxWidth} height={boxHeight} 
+                rx={12} fill="white" filter="url(#dShadow)" 
+              />
+              {/* District Name */}
+              <text x={x} y={rectY + 32} textAnchor="middle" fontSize={26} fontFamily="system-ui, sans-serif" fontWeight="700" fill="#334155">
+                {label}
+              </text>
+              {/* Value(s) */}
+              {selectedKpi === 'both' ? (
+                <>
+                  <text x={x} y={rectY + 68} textAnchor="middle" fontSize={24} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#6b21a8">
+                    V: {covPct.toFixed(1)}%
+                  </text>
+                  <text x={x} y={rectY + 95} textAnchor="middle" fontSize={24} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#047857">
+                    L: {llPct.toFixed(1)}%
+                  </text>
+                </>
+              ) : (
+                <text x={x} y={rectY + 66} textAnchor="middle" fontSize={32} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#0f172a">
+                  {displayPct}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 }

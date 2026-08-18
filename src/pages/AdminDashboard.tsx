@@ -542,7 +542,7 @@ export const AdminDashboard: React.FC = () => {
 
                 {/* Tier Legend */}
                 <div className="flex flex-wrap gap-1.5 mb-3">
-                  {[{l:'Aspirational',b:'bg-red-100',t:'text-red-700',v:'<30%'},{l:'Progressing',b:'bg-amber-100',t:'text-amber-700',v:'30–70%'},{l:'High Performing',b:'bg-blue-100',t:'text-blue-700',v:'70–90%'},{l:'Champions',b:'bg-green-100',t:'text-green-700',v:'>90%'}].map(tier => (
+                  {[{l:'Very Low',b:'bg-red-100',t:'text-red-700',v:'0-25%'},{l:'Low',b:'bg-yellow-100',t:'text-yellow-700',v:'26–50%'},{l:'Medium',b:'bg-blue-100',t:'text-blue-700',v:'51–75%'},{l:'High',b:'bg-emerald-100',t:'text-emerald-700',v:'76-100%'}].map(tier => (
                     <span key={tier.l} className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${tier.b} ${tier.t}`}>{tier.l} {tier.v}</span>
                   ))}
                 </div>
@@ -630,24 +630,37 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 )}
 
-                {/* Tier Legend for Map */}
-                <div className="mt-3 grid grid-cols-2 gap-1.5">
-                  {[
-                    { label: 'Aspirational', range: '< 30%', bg: 'bg-red-500' },
-                    { label: 'Progressing', range: '30–70%', bg: 'bg-amber-500' },
-                    { label: 'High Performing', range: '70–90%', bg: 'bg-blue-600' },
-                    { label: 'Champions', range: '> 90%', bg: 'bg-green-600' },
-                  ].map(t => (
-                    <div key={t.label} className="flex items-center gap-1.5">
-                      <div className={`w-3 h-3 rounded-sm ${t.bg} shrink-0`} />
-                      <span className="text-[10px] font-semibold text-slate-600">{t.label} <span className="text-slate-400 font-normal">({t.range})</span></span>
+                {/* Gradient Tier Legend for Map */}
+                <div className="mt-6 px-4">
+                  <div className="text-center text-xs font-semibold text-slate-700 mb-2">
+                    {selectedKpi === 'coverage' ? '% Vaccination Coverage' : (selectedKpi === 'linelist' ? '% Line List' : 'KPI Value')}
+                  </div>
+                  <div className="h-3 w-full rounded-full bg-gradient-to-r from-red-400 via-yellow-300 via-50% to-emerald-400 shadow-inner" />
+                  <div className="flex justify-between text-[10px] font-bold text-slate-400 mt-2">
+                    <span>0%</span>
+                    <span>25%</span>
+                    <span>50%</span>
+                    <span>75%</span>
+                    <span>100%+</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 mt-4 text-center">
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-red-400"></div><span className="text-[10px] font-bold text-slate-700">0% – 25%</span></div>
+                      <span className="text-[9px] text-slate-500 font-semibold">(Very Low)</span>
                     </div>
-                  ))}
-                </div>
-
-                <div className="mt-3 bg-blue-50 border border-blue-100 p-2.5 rounded-xl flex items-center gap-2">
-                  <Eye className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                  <span className="text-[10px] text-blue-700 font-medium">Hover over districts to view details</span>
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-yellow-400"></div><span className="text-[10px] font-bold text-slate-700">26% – 50%</span></div>
+                      <span className="text-[9px] text-slate-500 font-semibold">(Low)</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-blue-400"></div><span className="text-[10px] font-bold text-slate-700">51% – 75%</span></div>
+                      <span className="text-[9px] text-slate-500 font-semibold">(Medium)</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div><span className="text-[10px] font-bold text-slate-700">76% – 100%+</span></div>
+                      <span className="text-[9px] text-slate-500 font-semibold">(High)</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
