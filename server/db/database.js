@@ -12,12 +12,15 @@ const isPg = Boolean(process.env.DATABASE_URL || process.env.SUPABASE_DB_URL);
 let pgPool = null;
 
 if (isPg) {
+  const connStr = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
   pgPool = new Pool({
-    connectionString: process.env.DATABASE_URL || process.env.SUPABASE_DB_URL,
+    connectionString: connStr,
     ssl: { rejectUnauthorized: false },
-    max: 10
+    max: 3,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000
   });
-  console.log('⚡ Connected to PostgreSQL (Supabase)');
+  console.log('⚡ Using PostgreSQL (Supabase)');
 }
 
 // ─── JSON File Fallback (local dev without DATABASE_URL) ─────────────────────
