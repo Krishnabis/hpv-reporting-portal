@@ -71,11 +71,11 @@ export function UttarakhandMap({ data, selectedKpi }: Props) {
   const kpiForMap = selectedKpi === 'both' ? 'coverage' : selectedKpi;
 
   return (
-    <div className="relative w-full select-none flex justify-center">
+    <div className="relative w-full h-full select-none flex items-center justify-center flex-1 min-h-0">
       <svg
         viewBox="58 0 1192 1067"
-        className="w-full"
-        style={{ display: 'block', maxHeight: '280px' }}
+        className="w-full h-full"
+        style={{ display: 'block' }}
       >
         <defs>
           <filter id="dShadow" x="-5%" y="-5%" width="110%" height="110%">

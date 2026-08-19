@@ -520,11 +520,11 @@ export const AdminDashboard: React.FC = () => {
       </aside>
 
 
-      {/* Scrollable Main Area */}
-      <main className="flex-1 p-3 sm:p-4 w-full max-w-full mx-auto overflow-y-auto">
+      {/* Main Area — flex column, fills remaining height */}
+      <main className="flex-1 flex flex-col min-h-0 overflow-hidden p-3 sm:p-4 w-full max-w-full">
         {/* TAB 1: DASHBOARD OVERVIEW */}
         {activeTab === 'dashboard' && (
-          <div className="space-y-2">
+          <div className="flex flex-col h-full gap-2">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
@@ -658,10 +658,10 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Split Layout: Ranking & Map */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 min-h-[600px] lg:min-h-[800px]">
-              {/* Left: District Ranking (1/2 wide) */}
-              <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
+            {/* Split Layout: Ranking & Map — flex-1 fills remaining height */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 flex-1 min-h-0">
+              {/* Left: District Ranking */}
+              <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
 
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
@@ -686,7 +686,8 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-0.5 flex-1">
+                  <div className="flex-1 min-h-0 overflow-y-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-0.5">
                     {[...kpis.district_chart_data]
                        .sort((a, b) => {
                         const pa = selectedKpi === 'linelist' ? a.lineListPct : a.coveragePct;
@@ -719,6 +720,7 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                         );
                     })}
+                    </div>
                   </div>
                 ) : (
                   <div className="py-8 text-center text-[10px] text-slate-400">
@@ -727,8 +729,8 @@ export const AdminDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Right: Uttarakhand Interactive Map (1/2 wide) */}
-              <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
+              {/* Right: Uttarakhand Interactive Map */}
+              <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-blue-500" /> Uttarakhand Overview
@@ -744,23 +746,25 @@ export const AdminDashboard: React.FC = () => {
                   </span>
                 </div>
 
-                {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
-                  <UttarakhandMap
-                    data={kpis.district_chart_data.map(d => ({
-                      district: d.district,
-                      coveragePct: d.coveragePct,
-                      lineListPct: d.lineListPct ?? 0,
-                      vaccinated: d.vaccinated,
-                      lineList: d.lineList ?? 0,
-                      target: d.target,
-                    }))}
-                    selectedKpi={selectedKpi === 'both' ? 'coverage' : selectedKpi}
-                  />
-                ) : (
-                  <div className="flex-1 flex items-center justify-center text-xs text-slate-400 py-8">
-                    No data to display on map.
-                  </div>
-                )}
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
+                    <UttarakhandMap
+                      data={kpis.district_chart_data.map(d => ({
+                        district: d.district,
+                        coveragePct: d.coveragePct,
+                        lineListPct: d.lineListPct ?? 0,
+                        vaccinated: d.vaccinated,
+                        lineList: d.lineList ?? 0,
+                        target: d.target,
+                      }))}
+                      selectedKpi={selectedKpi === 'both' ? 'coverage' : selectedKpi}
+                    />
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center text-xs text-slate-400 py-8">
+                      No data to display on map.
+                    </div>
+                  )}
+                </div>
 
                 {/* Gradient Tier Legend for Map */}
                 <div className="mt-3 px-2">
@@ -826,7 +830,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 2: REPORTS GENERATOR */}
         {activeTab === 'reports' && (
-          <div className="space-y-6">
+          <div className="space-y-6 overflow-y-auto flex-1 min-h-0">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -1142,7 +1146,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 3: LOCATIONS MASTER */}
         {activeTab === 'locations' && (
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 min-h-0">
             <div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                 Master Location Registry
@@ -1275,7 +1279,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 4: USERS MANAGEMENT */}
         {activeTab === 'users' && (
-          <div className="space-y-5">
+          <div className="space-y-5 overflow-y-auto flex-1 min-h-0">
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Admin User Management</h1>
 
             {/* Add new admin form */}
