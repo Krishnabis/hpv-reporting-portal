@@ -383,7 +383,9 @@ export const AdminDashboard: React.FC = () => {
     <div className="h-[100dvh] w-full bg-slate-100 flex flex-col lg:flex-row font-sans overflow-hidden">
       {/* Mobile Topbar */}
       <div className="lg:hidden bg-slate-900 text-white p-4 flex items-center justify-between sticky top-0 z-40">
-        <Logo size="sm" variant="light" />
+        <div className="bg-white rounded-[2rem] px-3 py-1 flex items-center justify-center shadow-sm shrink-0">
+          <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-8 w-auto object-contain" />
+        </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
@@ -400,7 +402,9 @@ export const AdminDashboard: React.FC = () => {
           {/* Logo Branding */}
           <div className={`p-4 border-b border-slate-800 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
             <div className={`${sidebarCollapsed ? 'lg:hidden' : 'block flex-1 min-w-0 mr-2'}`}>
-              <Logo size="md" variant="light" />
+              <div className="bg-white rounded-[2rem] px-3 py-1.5 flex items-center justify-center shadow-sm shrink-0">
+                <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-10 w-auto object-contain" />
+              </div>
             </div>
             <button 
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
