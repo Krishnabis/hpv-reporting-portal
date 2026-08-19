@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Building2, Calendar, CheckCircle2, AlertTriangle,
-  Save, Users, Clock, Edit2
+  Save, Users, Clock, Edit2, Lock
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 
@@ -136,6 +136,17 @@ export const BlockReporting: React.FC = () => {
       });
   };
 
+  const handleRequestUnlock = () => {
+    fetch(`/api/blocks/${blockId}/request-unlock`, { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) {
+          fetchBlockDetails();
+        }
+      })
+      .catch(err => console.error(err));
+  };
+
   const handleSaveReport = (e: React.FormEvent) => {
     e.preventDefault();
     const lineList = parseInt(lineListInput, 10);
@@ -249,7 +260,7 @@ export const BlockReporting: React.FC = () => {
         </div>
 
         {/* Population Setup Section */}
-        {!hasPopulation || editingPopulation ? (
+        {!hasPopulation || (hasPopulation && profile?.is_unlocked) ? (
           /* FIRST TIME or EDITING: Full setup form */
           <section className="bg-white rounded-2xl p-5 border-2 border-hpv-pink/40 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
@@ -280,10 +291,15 @@ export const BlockReporting: React.FC = () => {
                   <Save className="w-4 h-4" />
                   {savingProfile ? 'Saving...' : 'Save'}
                 </button>
-                {editingPopulation && (
+                {hasPopulation && profile?.is_unlocked && (
                   <button
                     type="button"
-                    onClick={() => setEditingPopulation(false)}
+                    onClick={() => {
+                      setBasePopulationInput(profile.base_population.toString());
+                      setEditingPopulation(false);
+                      // the UI will not hide form unless we reset is_unlocked locally or reload
+                      fetchBlockDetails();
+                    }}
                     className="px-4 py-3 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all shrink-0"
                   >
                     Cancel
@@ -305,14 +321,14 @@ export const BlockReporting: React.FC = () => {
             </form>
           </section>
         ) : (
-          /* ALREADY SET: Compact population info chip */
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-3 flex items-center justify-between">
+          /* ALREADY SET & LOCKED: Compact population info chip */
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="w-8 h-8 rounded-lg bg-hpv-teal-soft flex items-center justify-center shrink-0">
-                <Users className="w-4 h-4 text-hpv-teal-dark" />
+              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                <Lock className="w-4 h-4 text-slate-400" />
               </div>
               <div>
-                <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{block.is_urban ? 'Urban Body' : 'Block'} Population</p>
+                <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'} Population</p>
                 <p className="text-lg font-extrabold text-slate-900 font-mono leading-tight">
                   {profile.base_population.toLocaleString()}
                 </p>
@@ -320,17 +336,23 @@ export const BlockReporting: React.FC = () => {
               <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block" />
               <div className="hidden sm:block">
                 <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">HPV Target (1%)</p>
-                <p className="text-lg font-extrabold text-hpv-teal-dark font-mono leading-tight">
+                <p className="text-lg font-extrabold text-slate-900 font-mono leading-tight">
                   {Math.round(profile.base_population * 0.01).toLocaleString()}
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => setEditingPopulation(true)}
-              className="text-xs font-semibold text-slate-400 hover:text-hpv-purple flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
-            >
-              <Edit2 className="w-3.5 h-3.5" /> Edit
-            </button>
+            {profile.unlock_requested ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 shadow-sm">
+                Unlock Pending...
+              </span>
+            ) : (
+              <button
+                onClick={handleRequestUnlock}
+                className="text-xs font-bold text-slate-600 hover:text-hpv-purple bg-slate-100 hover:bg-hpv-purple-soft border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm transition-colors"
+              >
+                Request Edit Unlock
+              </button>
+            )}
           </div>
         )}
 
@@ -376,7 +398,7 @@ export const BlockReporting: React.FC = () => {
                   min="0"
                   value={lineListInput}
                   onChange={e => setLineListInput(e.target.value)}
-                  placeholder="—"
+                  placeholder={(!todaySubmitted && lastReport) ? `Last entry: ${lastReport.line_list_count}` : "—"}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
                 />
               </div>
@@ -389,7 +411,7 @@ export const BlockReporting: React.FC = () => {
                   min="0"
                   value={vaccinatedInput}
                   onChange={e => setVaccinatedInput(e.target.value)}
-                  placeholder="—"
+                  placeholder={(!todaySubmitted && lastReport) ? `Last entry: ${lastReport.beneficiaries_vaccinated}` : "—"}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
                 />
               </div>

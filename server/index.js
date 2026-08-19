@@ -66,6 +66,48 @@ app.get('/api/db-status', (req, res) => {
   });
 });
 
+// ─── Admin Population ─────────────────────────────────────────────────────────
+
+app.get('/api/admin/population', async (req, res) => {
+  try {
+    let blockData = [];
+    if (useSupabase) {
+      const { data: blocks } = await supabase.from('blocks').select('*');
+      const { data: districts } = await supabase.from('districts').select('*');
+      const { data: states } = await supabase.from('states').select('*');
+      const { data: profiles } = await supabase.from('block_reporting_profiles').select('*');
+      blockData = blocks.map(b => {
+        const dist = districts.find(d => d.id === b.district_id) || {};
+        const st = states.find(s => s.id === dist.state_id) || {};
+        const prof = profiles.find(p => p.block_id === b.id) || null;
+        return {
+          id: b.id,
+          name: b.name,
+          is_urban: Boolean(b.is_urban),
+          district_name: dist.name,
+          state_name: st.name,
+          profile: prof
+        };
+      });
+    } else {
+      blockData = store.blocks.map(b => {
+        const dist = store.districts.find(d => d.id === b.district_id) || {};
+        const st = store.states.find(s => s.id === dist.state_id) || { name: 'Uttarakhand' };
+        const prof = store.block_reporting_profiles.find(p => p.block_id === b.id) || null;
+        return {
+          id: b.id,
+          name: b.name,
+          is_urban: Boolean(b.is_urban),
+          district_name: dist.name,
+          state_name: st.name,
+          profile: prof
+        };
+      });
+    }
+    res.json(blockData);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── Locations ────────────────────────────────────────────────────────────────
 
 app.get('/api/locations/states', async (req, res) => {
@@ -188,19 +230,58 @@ app.post('/api/blocks/:id/profile', async (req, res) => {
 
     if (useSupabase) {
       const { error } = await supabase.from('block_reporting_profiles').upsert(
-        [{ id: profId, block_id: Number(id), base_population: Number(base_population), population_base_date: baseDate, initial_hpv_target: initialTarget }],
+        [{ id: profId, block_id: Number(id), base_population: Number(base_population), population_base_date: baseDate, initial_hpv_target: initialTarget, is_unlocked: false, unlock_requested: false }],
         { onConflict: 'block_id', ignoreDuplicates: false }
       );
       if (error) throw error;
     } else {
       const idx = store.block_reporting_profiles.findIndex(x => x.block_id === Number(id));
-      const rec = { id: profId, block_id: Number(id), base_population: Number(base_population), population_base_date: baseDate, initial_hpv_target: initialTarget, updated_at: new Date().toISOString() };
+      const rec = { id: profId, block_id: Number(id), base_population: Number(base_population), population_base_date: baseDate, initial_hpv_target: initialTarget, is_unlocked: false, unlock_requested: false, updated_at: new Date().toISOString() };
       if (idx >= 0) store.block_reporting_profiles[idx] = rec; else store.block_reporting_profiles.push(rec);
       saveStore();
     }
 
     await logAudit('BLOCK_OPERATOR', 'UPDATE_PROFILE', 'block', id);
     res.json({ message: 'Population saved', initial_hpv_target: initialTarget });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/blocks/:id/request-unlock', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (useSupabase) {
+      const { error } = await supabase.from('block_reporting_profiles').update({ unlock_requested: true }).eq('block_id', id);
+      if (error) throw error;
+    } else {
+      const prof = store.block_reporting_profiles.find(x => x.block_id === Number(id));
+      if (prof) {
+        prof.unlock_requested = true;
+        prof.updated_at = new Date().toISOString();
+        saveStore();
+      }
+    }
+    await logAudit('BLOCK_OPERATOR', 'REQUEST_POPULATION_UNLOCK', 'block', id);
+    res.json({ message: 'Unlock requested successfully' });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/blocks/:id/unlock-population', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (useSupabase) {
+      const { error } = await supabase.from('block_reporting_profiles').update({ is_unlocked: true, unlock_requested: false }).eq('block_id', id);
+      if (error) throw error;
+    } else {
+      const prof = store.block_reporting_profiles.find(x => x.block_id === Number(id));
+      if (prof) {
+        prof.is_unlocked = true;
+        prof.unlock_requested = false;
+        prof.updated_at = new Date().toISOString();
+        saveStore();
+      }
+    }
+    await logAudit('ADMIN', 'UNLOCK_POPULATION', 'block', id);
+    res.json({ message: 'Population editing unlocked successfully' });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 

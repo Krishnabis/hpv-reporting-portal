@@ -47,7 +47,7 @@ interface ReportRow {
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'locations' | 'users' | 'settings' | 'audit'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'locations' | 'users' | 'settings' | 'audit' | 'population'>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
@@ -382,33 +382,33 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="h-[100dvh] w-full bg-slate-100 flex flex-col lg:flex-row font-sans overflow-hidden">
       {/* Mobile Topbar */}
-      <div className="lg:hidden bg-slate-900 text-white p-4 flex items-center justify-between sticky top-0 z-40">
-        <div className="bg-slate-800 rounded-[2rem] px-3 py-1 flex items-center justify-center shadow-sm shrink-0">
+      <div className="lg:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-40">
+        <div className="bg-white rounded-[2rem] px-3 py-1 flex items-center justify-center shadow-sm shrink-0 border border-slate-200">
           <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-10 w-auto object-contain" />
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
+          className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-50 bg-slate-900 text-slate-300 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-full lg:shrink-0 ${
+      <aside className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200 text-slate-600 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-full lg:shrink-0 ${
         mobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64'
       } ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} lg:translate-x-0`}>
         <div>
           {/* Logo Branding */}
-          <div className={`p-4 border-b border-slate-800 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
+          <div className={`p-4 border-b border-slate-200 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
             <div className={`${sidebarCollapsed ? 'lg:hidden' : 'block flex-1 min-w-0 mr-2'}`}>
-              <div className="bg-slate-800 rounded-[2rem] px-3 py-1.5 flex items-center justify-center shadow-sm shrink-0">
+              <div className="bg-white rounded-[2rem] px-3 py-1.5 flex items-center justify-center shadow-sm shrink-0 border border-slate-200">
                 <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-12 w-auto object-contain" />
               </div>
             </div>
             <button 
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="hidden lg:flex p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white shrink-0"
+              className="hidden lg:flex p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 shrink-0"
               title="Toggle Sidebar"
             >
               {sidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -422,11 +422,11 @@ export const AdminDashboard: React.FC = () => {
               title="Dashboard"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'dashboard'
-                  ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-hpv-purple-soft text-hpv-purple font-bold shadow-sm shadow-hpv-purple/10'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <LayoutDashboard className={`w-5 h-5 shrink-0 ${activeTab === 'dashboard' ? 'text-white' : 'text-slate-400'}`} />
+              <LayoutDashboard className={`w-5 h-5 shrink-0 ${activeTab === 'dashboard' ? 'text-hpv-purple' : 'text-slate-400'}`} />
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Dashboard</span>
             </button>
 
@@ -435,50 +435,38 @@ export const AdminDashboard: React.FC = () => {
               title="Reports"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'reports'
-                  ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-hpv-purple-soft text-hpv-purple font-bold shadow-sm shadow-hpv-purple/10'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <FileText className={`w-5 h-5 shrink-0 ${activeTab === 'reports' ? 'text-white' : 'text-hpv-pink'}`} />
+              <FileText className={`w-5 h-5 shrink-0 ${activeTab === 'reports' ? 'text-hpv-purple' : 'text-slate-400'}`} />
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Reports</span>
             </button>
 
             <button
-              onClick={() => handleTabChange('locations')}
-              title="Locations (LGD)"
+              onClick={() => handleTabChange('population')}
+              title="Population"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === 'locations'
-                  ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                activeTab === 'population'
+                  ? 'bg-hpv-purple-soft text-hpv-purple font-bold shadow-sm shadow-hpv-purple/10'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <MapPin className={`w-5 h-5 shrink-0 ${activeTab === 'locations' ? 'text-white' : 'text-hpv-teal'}`} />
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Locations (LGD)</span>
+              <Users className={`w-5 h-5 shrink-0 ${activeTab === 'population' ? 'text-hpv-purple' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Population</span>
             </button>
 
-            <button
-              onClick={() => handleTabChange('users')}
-              title="Users"
-              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === 'users'
-                  ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-              }`}
-            >
-              <Users className={`w-5 h-5 shrink-0 ${activeTab === 'users' ? 'text-white' : 'text-indigo-400'}`} />
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Users</span>
-            </button>
 
             <button
               onClick={() => handleTabChange('settings')}
               title="Settings"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'settings'
-                  ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-hpv-purple-soft text-hpv-purple font-bold shadow-sm shadow-hpv-purple/10'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <SettingsIcon className={`w-5 h-5 shrink-0 ${activeTab === 'settings' ? 'text-white' : 'text-slate-400'}`} />
+              <SettingsIcon className={`w-5 h-5 shrink-0 ${activeTab === 'settings' ? 'text-hpv-purple' : 'text-slate-400'}`} />
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Settings</span>
             </button>
 
@@ -487,28 +475,28 @@ export const AdminDashboard: React.FC = () => {
               title="Audit Logs"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'audit'
-                  ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/20'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-hpv-purple-soft text-hpv-purple font-bold shadow-sm shadow-hpv-purple/10'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <ShieldCheck className={`w-5 h-5 shrink-0 ${activeTab === 'audit' ? 'text-white' : 'text-emerald-400'}`} />
+              <ShieldCheck className={`w-5 h-5 shrink-0 ${activeTab === 'audit' ? 'text-hpv-purple' : 'text-slate-400'}`} />
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Audit Logs</span>
             </button>
           </nav>
         </div>
 
         {/* User Info & Logout */}
-        <div className={`mx-3 mt-auto mb-2 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 transition-colors cursor-pointer group flex items-center ${sidebarCollapsed ? 'p-2 justify-center lg:mx-2 lg:mb-2' : 'p-4 justify-between'}`} onClick={handleLogout} title="Logout">
+        <div className={`mx-3 mt-auto mb-2 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer group flex items-center ${sidebarCollapsed ? 'p-2 justify-center lg:mx-2 lg:mb-2' : 'p-4 justify-between'}`} onClick={handleLogout} title="Logout">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <div className="w-8 h-8 rounded-full bg-hpv-teal-soft flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4 h-4 text-hpv-teal-dark" />
             </div>
             <div className={`flex flex-col ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
-              <span className="text-xs font-bold text-white group-hover:text-hpv-teal-light transition-colors line-clamp-1">{adminUser?.name || 'State HPV Administrator'}</span>
-              <span className="text-[10px] text-blue-400 font-mono">@{adminUser?.username || 'UKHPV2026'}</span>
+              <span className="text-xs font-bold text-slate-900 group-hover:text-hpv-purple transition-colors line-clamp-1">{adminUser?.name || 'State HPV Administrator'}</span>
+              <span className="text-[10px] text-slate-500 font-mono">@{adminUser?.username || 'UKHPV2026'}</span>
             </div>
           </div>
-          <LogOut className={`w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`} />
+          <LogOut className={`w-4 h-4 text-slate-400 group-hover:text-rose-500 transition-colors shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`} />
         </div>
 
         {/* Powered by ImpactCode */}
@@ -1459,6 +1447,10 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {activeTab === 'population' && (
+          <AdminPopulation />
         )}
       </main>
     </div>
