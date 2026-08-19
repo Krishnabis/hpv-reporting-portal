@@ -14,6 +14,8 @@ export const BlockLogin: React.FC = () => {
   
   const [loading, setLoading] = useState(true);
 
+  const [isUrban, setIsUrban] = useState(false);
+
   // Fetch all districts and blocks on mount
   useEffect(() => {
     setLoading(true);
@@ -39,10 +41,13 @@ export const BlockLogin: React.FC = () => {
       });
   }, []);
 
-  // Filter available blocks based on currently selected district
-  const availableBlockOptions: OptionItem[] = allBlocks.map(b => ({
+  // Filter available blocks based on Urban/Rural toggle
+  const availableBlockOptions: OptionItem[] = allBlocks
+    .filter(b => !!b.is_urban === isUrban)
+    .map(b => ({
       id: b.id,
-      name: `${b.name} (State: Uttarakhand, District: ${b.district_name})`,
+      name: b.name,
+      subtitle: `(State: Uttarakhand, District: ${b.district_name})`,
       district_id: b.district_id,
       district_name: b.district_name
     }));
@@ -97,14 +102,33 @@ export const BlockLogin: React.FC = () => {
 
           {/* Block Selection Form */}
           <form onSubmit={handleContinue} className="space-y-6">
+            
+            {/* Urban / Rural Toggle */}
+            <div className="flex bg-slate-100 p-1.5 rounded-xl">
+              <button
+                type="button"
+                onClick={() => { setIsUrban(false); setSelectedBlock(null); }}
+                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isUrban ? 'bg-white text-hpv-purple shadow-sm border border-slate-200/60' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Rural (Block)
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIsUrban(true); setSelectedBlock(null); }}
+                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isUrban ? 'bg-white text-hpv-purple shadow-sm border border-slate-200/60' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Urban Body
+              </button>
+            </div>
+
             <SearchableSelect
-              label="Select Block"
-              placeholder={loading ? "Loading blocks..." : "Type or search block..."}
+              label={isUrban ? "Select Urban Body" : "Select Block"}
+              placeholder={loading ? "Loading..." : `Type or search ${isUrban ? 'urban body' : 'block'}...`}
               options={availableBlockOptions}
               value={selectedBlock}
               onChange={handleBlockChange}
               disabled={loading}
-              emptyText="No matching blocks found"
+              emptyText={`No matching ${isUrban ? 'urban bodies' : 'blocks'} found`}
             />
 
             {/* Submit Action */}

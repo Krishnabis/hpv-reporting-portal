@@ -564,7 +564,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                      TOTAL BLOCKS
+                      TOTAL BLOCKS / URBAN BODIES
                     </span>
                     <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none mt-1">
                       {kpis ? kpis.total_blocks : '—'}
