@@ -23,6 +23,7 @@ interface ProfileData {
   initial_hpv_target: number;
   current_population: number;
   current_hpv_target: number;
+  is_unlocked?: boolean;
 }
 
 interface ReportData {

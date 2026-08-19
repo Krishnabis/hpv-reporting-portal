@@ -9,6 +9,7 @@ import {
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
 import { UttarakhandMap, getTier } from '../components/UttarakhandMap';
+import { AdminPopulation } from '../components/AdminPopulation';
 
 interface KPIState {
   total_blocks: number;
