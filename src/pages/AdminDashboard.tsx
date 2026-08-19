@@ -815,7 +815,7 @@ export const AdminDashboard: React.FC = () => {
                   <ShieldCheck className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-blue-900 tracking-tight">HPV Vaccination Drive Progress</h3>
+                  <h3 className="text-lg font-bold text-blue-900 tracking-tight">HPV KAVACH Progress</h3>
                   <p className="text-xs text-slate-600 mt-0.5">Track progress across Uttarakhand's districts and ensure no one is left behind.</p>
                 </div>
               </div>

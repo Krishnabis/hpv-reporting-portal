@@ -231,7 +231,7 @@ export const BlockReporting: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
             <div>
               <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">
-                HPV Vaccination Reporting
+                HPV KAVACH Reporting
               </p>
               <h1 className="text-xl font-extrabold tracking-tight">{block.name} {block.is_urban ? 'Urban Body' : 'Block'}</h1>
               <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>

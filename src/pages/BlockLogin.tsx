@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Shield, Heart, Sparkles } from 'lucide-react';
+import { ArrowRight, Target } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
 
@@ -68,7 +68,9 @@ export const BlockLogin: React.FC = () => {
     <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-4 sm:p-6 lg:p-8">
       {/* Top Header */}
       <header className="max-w-md mx-auto w-full flex items-center justify-between py-2">
-        <Logo size="md" />
+        <div className="bg-white rounded-full p-1.5 flex items-center justify-center shadow-sm shrink-0">
+          <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-12 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105" />
+        </div>
         <a
           href="/admin/login"
           className="text-xs font-semibold text-hpv-purple hover:text-hpv-purple-dark px-3 py-1.5 rounded-lg bg-hpv-purple-soft transition-colors"
@@ -86,17 +88,21 @@ export const BlockLogin: React.FC = () => {
           {/* Heading Title & Tagline */}
           <div className="text-center mb-8">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-hpv-pink-soft text-hpv-pink-dark mb-3">
-              <Heart className="w-3.5 h-3.5 fill-current" />
-              National Immunization Program
+              National Health Mission – Uttarakhand
             </span>
             
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              HPV Vaccination – Due List Tracking
+              HPV KAVACH
             </h1>
             
-            <p className="mt-2 text-sm font-medium text-hpv-purple flex items-center justify-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-hpv-teal" />
-              <span className="italic">"No Girl Should Be Left Behind"</span>
+            <div className="mt-3 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
+              <Target className="w-5 h-5 text-hpv-teal" />
+              Cervical Cancer Elimination
+            </div>
+
+            <p className="mt-4 text-[11px] font-medium text-slate-500 flex items-center justify-center gap-1.5 bg-slate-100/50 p-2 rounded-lg border border-slate-200/50">
+              <span className="text-base">🇮🇳</span>
+              <span>India: <strong className="text-slate-700">78,499</strong> new cases; <strong className="text-slate-700">42,392</strong> deaths <span className="text-[9px] text-slate-400">(NCRP-ICMR, 2024)</span></span>
             </p>
           </div>
 
@@ -122,13 +128,13 @@ export const BlockLogin: React.FC = () => {
             </div>
 
             <SearchableSelect
-              label={isUrban ? "Select Urban Body" : "Select Block"}
-              placeholder={loading ? "Loading..." : `Type or search ${isUrban ? 'urban body' : 'block'}...`}
+              label={isUrban ? "SELECT CITY" : "SELECT BLOCK"}
+              placeholder={loading ? "Loading..." : `Type or search ${isUrban ? 'city' : 'block'}...`}
               options={availableBlockOptions}
               value={selectedBlock}
               onChange={handleBlockChange}
               disabled={loading}
-              emptyText={`No matching ${isUrban ? 'urban bodies' : 'blocks'} found`}
+              emptyText={`No matching ${isUrban ? 'cities' : 'blocks'} found`}
             />
 
             {/* Submit Action */}
@@ -147,22 +153,19 @@ export const BlockLogin: React.FC = () => {
           </form>
 
           {/* Footer Info */}
-          <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span className="flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5 text-hpv-teal" /> Official Reporting Portal
+          <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center text-xs text-slate-500">
+            <span className="flex items-center gap-1 font-semibold text-slate-600">
+              Due Listing & Coverage Tracking
             </span>
-            <span className="font-mono text-[11px]">v1.0 • UK 2026</span>
           </div>
         </div>
       </main>
 
       {/* Footer Branding */}
-      <footer className="max-w-md mx-auto w-full text-center py-3 text-xs text-slate-400 space-y-2">
-        <div>Department of Health &amp; Family Welfare • Government of Uttarakhand</div>
-        <div className="flex items-center justify-center gap-2 opacity-70">
-          <span className="text-[10px] text-slate-400">Powered by</span>
-          <img src="/impactcode.png" alt="ImpactCode" className="h-5 object-contain" />
-          <span className="text-[10px] font-bold text-slate-500">ImpactCode</span>
+      <footer className="max-w-md mx-auto w-full text-center py-3 text-xs text-slate-400 space-y-4">
+        <div>HPV Program Monitoring Portal • Version: 1.0 • UK 2026</div>
+        <div className="flex justify-center opacity-70 hover:opacity-100 transition-opacity">
+          <img src="/impactcode.png" alt="ImpactCode" className="h-6 object-contain" />
         </div>
       </footer>
     </div>
