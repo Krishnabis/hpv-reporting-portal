@@ -5,15 +5,25 @@ import { BlockReporting } from './pages/BlockReporting';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
 
+import { ImagePreloader } from './components/ImagePreloader';
+
+const PRELOAD_IMAGES = [
+  '/loginlogo.png',
+  '/logo.png',
+  '/impactcode.png'
+];
+
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<BlockLogin />} />
-        <Route path="/report" element={<BlockReporting />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-      </Routes>
+      <ImagePreloader images={PRELOAD_IMAGES}>
+        <Routes>
+          <Route path="/" element={<BlockLogin />} />
+          <Route path="/report" element={<BlockReporting />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Routes>
+      </ImagePreloader>
     </BrowserRouter>
   );
 };
