@@ -446,13 +446,11 @@ export const BlockReporting: React.FC = () => {
 
       </main>
 
-      {/* Footer */}
-      <footer className="max-w-3xl mx-auto w-full text-center py-3 text-[10px] text-slate-400 px-4 space-y-1.5">
-        <div>Department of Health &amp; Family Welfare · Government of Uttarakhand <span className="ml-2 opacity-60">v1.0 · UK 2026</span></div>
-        <div className="flex items-center justify-center gap-2 opacity-70">
-          <span className="text-[10px] text-slate-400">Powered by</span>
-          <img src="/impactcode.png" alt="ImpactCode" className="h-5 object-contain" />
-          <span className="text-[10px] font-bold text-slate-500">ImpactCode</span>
+      <footer className="max-w-3xl mx-auto w-full text-center py-4 text-xs text-slate-400 px-4 space-y-2">
+        <div className="font-medium text-[11px] sm:text-xs">HPV Program Monitoring Portal • Version: 1.0 • UK 2026</div>
+        <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
+          <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
+          <img src="/impactcode.png" alt="ImpactCode" className="h-8 object-contain" />
         </div>
       </footer>
 
