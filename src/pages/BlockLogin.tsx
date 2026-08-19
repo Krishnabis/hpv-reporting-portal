@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Target } from 'lucide-react';
+import { ArrowRight, Target, Circle } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
 
@@ -88,11 +88,12 @@ export const BlockLogin: React.FC = () => {
           {/* Heading Title & Tagline */}
           <div className="text-center mb-8">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-hpv-pink-soft text-hpv-pink-dark mb-3">
+              <Circle className="w-2 h-2 fill-current" />
               National Health Mission – Uttarakhand
             </span>
             
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              HPV KAVACH
+              HPV Vaccination Program
             </h1>
             
             <div className="mt-3 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
