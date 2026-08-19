@@ -355,11 +355,13 @@ app.post('/api/admin/locations/state', authenticateToken, async (req, res) => {
   try {
     const { name, lgd_code } = req.body;
     if (!name || !lgd_code) return res.status(400).json({ error: 'Name and LGD code required' });
-    const newId = Date.now();
+    let newId;
     if (useSupabase) {
-      const { error } = await supabase.from('states').insert([{ id: newId, name, lgd_code: Number(lgd_code), is_active: true }]);
+      const { data, error } = await supabase.from('states').insert([{ name, lgd_code: Number(lgd_code), is_active: true }]).select();
       if (error) throw error;
+      newId = data[0].id;
     } else {
+      newId = Date.now();
       store.states.push({ id: newId, name, lgd_code: Number(lgd_code), is_active: true });
       saveStore();
     }
@@ -373,11 +375,13 @@ app.post('/api/admin/locations/district', authenticateToken, async (req, res) =>
   try {
     const { name, lgd_code, state_id } = req.body;
     if (!name || !lgd_code || !state_id) return res.status(400).json({ error: 'Name, LGD code and state required' });
-    const newId = Date.now();
+    let newId;
     if (useSupabase) {
-      const { error } = await supabase.from('districts').insert([{ id: newId, name, lgd_code: Number(lgd_code), state_id: Number(state_id), is_active: true }]);
+      const { data, error } = await supabase.from('districts').insert([{ name, lgd_code: Number(lgd_code), state_id: Number(state_id), is_active: true }]).select();
       if (error) throw error;
+      newId = data[0].id;
     } else {
+      newId = Date.now();
       store.districts.push({ id: newId, name, lgd_code: Number(lgd_code), state_id: Number(state_id), is_active: true });
       saveStore();
     }
@@ -391,14 +395,16 @@ app.post('/api/admin/locations/block', authenticateToken, async (req, res) => {
   try {
     const { name, lgd_code, district_id, is_urban = false } = req.body;
     if (!name || !lgd_code || !district_id) return res.status(400).json({ error: 'Name, LGD code and district required' });
-    const newId = Date.now();
+    let newId;
     if (useSupabase) {
-      const { error } = await supabase.from('blocks').insert([{
-        id: newId, name, lgd_code: Number(lgd_code), district_id: Number(district_id),
+      const { data, error } = await supabase.from('blocks').insert([{
+        name, lgd_code: Number(lgd_code), district_id: Number(district_id),
         is_active: true, is_urban: Boolean(is_urban), code: String(lgd_code)
-      }]);
+      }]).select();
       if (error) throw error;
+      newId = data[0].id;
     } else {
+      newId = Date.now();
       store.blocks.push({ id: newId, name, lgd_code: Number(lgd_code), district_id: Number(district_id), is_active: true, is_urban: Boolean(is_urban), code: String(lgd_code) });
       saveStore();
     }
