@@ -97,7 +97,7 @@ export const AdminPopulation: React.FC = () => {
         </div>
         <div className="overflow-auto flex-1">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-rose-100/70 text-rose-900 uppercase tracking-wider text-[10px] font-bold sticky top-0 z-10 shadow-sm">
+              <thead className="bg-rose-100 text-rose-900 uppercase tracking-wider text-[10px] font-bold sticky top-0 z-10 shadow-sm">
                 <tr>
                   <th className="px-4 py-3">State</th>
                   <th className="px-4 py-3">District</th>

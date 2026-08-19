@@ -471,18 +471,6 @@ export const AdminDashboard: React.FC = () => {
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Settings</span>
             </button>
 
-            <button
-              onClick={() => handleTabChange('audit')}
-              title="Audit Logs"
-              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === 'audit'
-                  ? 'bg-hpv-purple-soft text-hpv-purple font-bold shadow-sm shadow-hpv-purple/10'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <ShieldCheck className={`w-5 h-5 shrink-0 ${activeTab === 'audit' ? 'text-hpv-purple' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Audit Logs</span>
-            </button>
           </nav>
         </div>
 
