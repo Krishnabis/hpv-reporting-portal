@@ -14,6 +14,7 @@ interface BlockData {
   district_lgd_code: number;
   state_name: string;
   state_lgd_code: number;
+  is_urban?: boolean;
 }
 
 interface ProfileData {
@@ -209,7 +210,7 @@ export const BlockReporting: React.FC = () => {
           <Logo size="sm" />
           <div className="flex items-center gap-2 text-right">
             <div className="text-right hidden sm:block">
-              <p className="text-[11px] font-bold text-slate-900 leading-tight">{block.name} Block</p>
+              <p className="text-[11px] font-bold text-slate-900 leading-tight">{block.name} {block.is_urban ? 'Urban Body' : 'Block'}</p>
               <p className="text-[10px] text-hpv-purple font-semibold">{block.district_name} District</p>
             </div>
             <span className={`hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${todaySubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -232,7 +233,7 @@ export const BlockReporting: React.FC = () => {
               <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">
                 HPV Vaccination Reporting
               </p>
-              <h1 className="text-xl font-extrabold tracking-tight">{block.name} Block</h1>
+              <h1 className="text-xl font-extrabold tracking-tight">{block.name} {block.is_urban ? 'Urban Body' : 'Block'}</h1>
               <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 flex items-center gap-2 shrink-0 self-start sm:self-auto">
@@ -311,7 +312,7 @@ export const BlockReporting: React.FC = () => {
                 <Users className="w-4 h-4 text-hpv-teal-dark" />
               </div>
               <div>
-                <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Block Population</p>
+                <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{block.is_urban ? 'Urban Body' : 'Block'} Population</p>
                 <p className="text-lg font-extrabold text-slate-900 font-mono leading-tight">
                   {profile.base_population.toLocaleString()}
                 </p>
