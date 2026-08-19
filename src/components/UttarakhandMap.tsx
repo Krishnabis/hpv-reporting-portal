@@ -71,12 +71,13 @@ export function UttarakhandMap({ data, selectedKpi }: Props) {
   const kpiForMap = selectedKpi === 'both' ? 'coverage' : selectedKpi;
 
   return (
-    <div className="relative w-full h-full select-none flex items-center justify-center flex-1 min-h-0">
-      <svg
-        viewBox="58 0 1192 1067"
-        className="max-w-full max-h-full"
-        style={{ display: 'block', width: '100%', height: '100%' }}
-      >
+    <div className="relative w-full h-full select-none">
+      <div className="absolute inset-0 flex items-center justify-center p-2">
+        <svg
+          viewBox="58 0 1192 1067"
+          className="max-w-full max-h-full"
+          style={{ display: 'block' }}
+        >
         <defs>
           <filter id="dShadow" x="-5%" y="-5%" width="110%" height="110%">
             <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#00000018" />
@@ -145,6 +146,7 @@ export function UttarakhandMap({ data, selectedKpi }: Props) {
           );
         })}
       </svg>
+      </div>
     </div>
   );
 }
