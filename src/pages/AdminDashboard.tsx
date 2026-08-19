@@ -398,8 +398,8 @@ export const AdminDashboard: React.FC = () => {
       } ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} lg:translate-x-0`}>
         <div>
           {/* Logo Branding */}
-          <div className={`p-4 lg:p-6 border-b border-slate-800 flex items-center ${sidebarCollapsed ? 'justify-center lg:px-4' : 'justify-between'}`}>
-            <div className={`${sidebarCollapsed ? 'lg:hidden' : 'block'}`}>
+          <div className={`p-4 border-b border-slate-800 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
+            <div className={`${sidebarCollapsed ? 'lg:hidden' : 'block flex-1 min-w-0 mr-2'}`}>
               <Logo size="md" variant="light" />
             </div>
             <button 
@@ -494,7 +494,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* User Info & Logout */}
-        <div className={`m-4 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 transition-colors cursor-pointer group flex items-center ${sidebarCollapsed ? 'p-2 justify-center lg:m-2' : 'p-4 justify-between'}`} onClick={handleLogout} title="Logout">
+        <div className={`mx-3 mt-auto mb-2 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 transition-colors cursor-pointer group flex items-center ${sidebarCollapsed ? 'p-2 justify-center lg:mx-2 lg:mb-2' : 'p-4 justify-between'}`} onClick={handleLogout} title="Logout">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
