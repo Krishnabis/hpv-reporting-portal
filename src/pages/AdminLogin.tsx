@@ -54,7 +54,9 @@ export const AdminLogin: React.FC = () => {
     <div className="h-[100dvh] w-full overflow-y-auto bg-slate-900 flex flex-col justify-between p-4 sm:p-6 lg:p-8">
       {/* Top Header */}
       <header className="max-w-md mx-auto w-full flex items-center justify-between py-2">
-        <Logo size="md" variant="light" />
+        <div className="bg-white rounded-[2rem] px-4 py-1.5 flex items-center justify-center shadow-sm shrink-0">
+          <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-14 sm:h-16 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105" />
+        </div>
         <a
           href="/"
           className="text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg bg-white/10 transition-colors"

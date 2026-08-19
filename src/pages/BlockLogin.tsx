@@ -68,8 +68,8 @@ export const BlockLogin: React.FC = () => {
     <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-4 sm:p-6 lg:p-8">
       {/* Top Header */}
       <header className="max-w-md mx-auto w-full flex items-center justify-between py-2">
-        <div className="bg-white rounded-full p-1.5 flex items-center justify-center shadow-sm shrink-0">
-          <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-12 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105" />
+        <div className="bg-white rounded-[2rem] px-4 py-1.5 flex items-center justify-center shadow-sm shrink-0">
+          <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-14 sm:h-16 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105" />
         </div>
         <a
           href="/admin/login"
@@ -117,14 +117,14 @@ export const BlockLogin: React.FC = () => {
                 onClick={() => { setIsUrban(false); setSelectedBlock(null); }}
                 className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isUrban ? 'bg-white text-hpv-purple shadow-sm border border-slate-200/60' : 'text-slate-500 hover:text-slate-700'}`}
               >
-                Rural (Block)
+                Block (Rural)
               </button>
               <button
                 type="button"
                 onClick={() => { setIsUrban(true); setSelectedBlock(null); }}
                 className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isUrban ? 'bg-white text-hpv-purple shadow-sm border border-slate-200/60' : 'text-slate-500 hover:text-slate-700'}`}
               >
-                Urban Body
+                City (Urban)
               </button>
             </div>
 
@@ -165,7 +165,8 @@ export const BlockLogin: React.FC = () => {
       {/* Footer Branding */}
       <footer className="max-w-md mx-auto w-full text-center py-3 text-xs text-slate-400 space-y-4">
         <div>HPV Program Monitoring Portal • Version: 1.0 • UK 2026</div>
-        <div className="flex justify-center opacity-70 hover:opacity-100 transition-opacity">
+        <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
+          <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-6 object-contain" />
         </div>
       </footer>
