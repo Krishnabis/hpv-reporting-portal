@@ -41,7 +41,7 @@ async function logAudit(userId, action, entityType, entityId) {
 function flattenBlock(b) {
   return {
     id: b.id, district_id: b.district_id, lgd_code: b.lgd_code,
-    name: b.name, code: b.code, is_active: b.is_active,
+    name: b.name, code: b.code, is_active: b.is_active, is_urban: Boolean(b.is_urban),
     district_name: b.districts?.name ?? '',
     district_lgd_code: b.districts?.lgd_code ?? 0,
     state_name: b.districts?.states?.name ?? 'Uttarakhand',
