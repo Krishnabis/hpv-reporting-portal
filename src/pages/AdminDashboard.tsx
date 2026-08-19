@@ -687,7 +687,7 @@ export const AdminDashboard: React.FC = () => {
 
                 {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
                   <div className="flex-1 min-h-0 overflow-y-auto">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-0.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 lg:content-between h-full min-h-max">
                     {[...kpis.district_chart_data]
                        .sort((a, b) => {
                         const pa = selectedKpi === 'linelist' ? a.lineListPct : a.coveragePct;
@@ -698,11 +698,15 @@ export const AdminDashboard: React.FC = () => {
                         const covPct = d.coveragePct;
                         const llPct = d.lineListPct ?? 0;
                         const primaryPct = selectedKpi === 'linelist' ? llPct : covPct;
+                        const primaryVal = selectedKpi === 'linelist' ? d.lineList : d.vaccinated;
                         const tier = getTier(primaryPct);
                         return (
-                          <div key={d.district} className={`flex items-center py-0.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5`}>
+                          <div key={d.district} className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5`}>
                             <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
-                            <span className="text-[11px] font-bold text-slate-800 flex-1 truncate min-w-0">{d.district}</span>
+                            <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
+                              <span className="text-[11px] font-bold text-slate-800">{d.district}</span>
+                              <span className="text-[9px] font-semibold text-slate-400">({primaryVal.toLocaleString()}/{d.target.toLocaleString()})</span>
+                            </div>
                             {selectedKpi === 'both' ? (
                               <div className="flex items-center gap-1 shrink-0">
                                 <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${getTier(llPct).bg} ${getTier(llPct).text}`}>
@@ -830,7 +834,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 2: REPORTS GENERATOR */}
         {activeTab === 'reports' && (
-          <div className="space-y-6 overflow-y-auto flex-1 min-h-0">
+          <div className="space-y-4 flex-1 min-h-0 flex flex-col pb-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -935,7 +939,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Generated Report Output Table / Cards */}
-            <div className="bg-white p-2 lg:p-3 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+            <div className="bg-white p-2 lg:p-3 rounded-2xl border border-slate-200 shadow-sm flex-1 min-h-0 flex flex-col gap-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -1002,9 +1006,9 @@ export const AdminDashboard: React.FC = () => {
               ) : reportRows.length > 0 ? (
                   /* DESKTOP/TABLET TABLE VIEW */
                   <>
-                    <div className="overflow-x-auto rounded-xl border border-slate-200">
+                    <div className="overflow-auto flex-1 rounded-xl border border-slate-200">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-[#1e1b4b] text-white font-semibold uppercase tracking-wider">
+                        <thead className="bg-[#1e1b4b] text-white font-semibold uppercase tracking-wider sticky top-0 z-10">
                           <tr>
                             <th className="px-2 py-1.5">District / Block</th>
                             <th className="px-2 py-1.5 text-right">Population</th>
