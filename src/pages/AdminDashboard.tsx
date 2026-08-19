@@ -520,8 +520,8 @@ export const AdminDashboard: React.FC = () => {
       </aside>
 
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-3 sm:p-4 max-w-[1600px] mx-auto w-full overflow-y-auto">
+      {/* Scrollable Main Area */}
+      <main className="flex-1 p-3 sm:p-4 w-full max-w-full mx-auto overflow-y-auto">
         {/* TAB 1: DASHBOARD OVERVIEW */}
         {activeTab === 'dashboard' && (
           <div className="space-y-2">
@@ -659,9 +659,9 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Split Layout: Ranking & Map */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
-              {/* Left: District Ranking (2/5 wide) */}
-              <div className="lg:col-span-2 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 min-h-[600px] lg:min-h-[800px]">
+              {/* Left: District Ranking (1/2 wide) */}
+              <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
 
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
@@ -727,8 +727,8 @@ export const AdminDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Right: Uttarakhand Interactive Map (3/5 wide) */}
-              <div className="lg:col-span-3 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+              {/* Right: Uttarakhand Interactive Map (1/2 wide) */}
+              <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-blue-500" /> Uttarakhand Overview
