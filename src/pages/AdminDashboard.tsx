@@ -661,7 +661,7 @@ export const AdminDashboard: React.FC = () => {
             {/* Split Layout: Ranking & Map — flex-1 fills remaining height */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 flex-1 min-h-0">
               {/* Left: District Ranking */}
-              <div className="lg:col-span-2 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+              <div className="lg:col-span-2 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden min-h-0">
 
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
@@ -730,7 +730,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Right: Uttarakhand Interactive Map */}
-              <div className="lg:col-span-3 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+              <div className="lg:col-span-3 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden min-h-0">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-blue-500" /> Uttarakhand Overview
