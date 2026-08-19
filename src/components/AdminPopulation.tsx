@@ -64,8 +64,9 @@ export const AdminPopulation: React.FC = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="p-4 sm:p-6 w-full max-w-7xl mx-auto h-full flex flex-col gap-4">
+      {/* 20% Top Heading & Search */}
+      <div className="h-[20%] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Population Access Control</h2>
           <p className="text-sm text-slate-500 mt-1">Manage and unlock population entry access for all locations.</p>
@@ -83,18 +84,18 @@ export const AdminPopulation: React.FC = () => {
         </div>
       </div>
 
-      {pendingRequests.length > 0 && (
-        <div className="bg-rose-50 rounded-2xl shadow-sm border border-rose-200 overflow-hidden mb-6">
-          <div className="px-6 py-4 border-b border-rose-200 flex items-center gap-3">
-            <div className="p-2 bg-rose-100 rounded-lg text-rose-600 shadow-sm">
-              <ShieldAlert className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-rose-900 text-lg">High Priority Unlock Requests</h3>
-              <p className="text-xs text-rose-700 mt-0.5">These locations have requested access to edit their population.</p>
-            </div>
+      {/* 20% High Priority Approval Table */}
+      <div className="h-[20%] shrink-0 bg-rose-50 rounded-2xl shadow-sm border border-rose-200 overflow-hidden flex flex-col">
+        <div className="px-6 py-3 border-b border-rose-200 flex items-center gap-3 shrink-0">
+          <div className="p-1.5 bg-rose-100 rounded-lg text-rose-600 shadow-sm">
+            <ShieldAlert className="w-4 h-4" />
           </div>
-          <div className="overflow-auto max-h-[30vh]">
+          <div>
+            <h3 className="font-bold text-rose-900 text-sm">High Priority Unlock Requests</h3>
+            <p className="text-[10px] text-rose-700 mt-0.5">These locations have requested access to edit their population.</p>
+          </div>
+        </div>
+        <div className="overflow-auto flex-1">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-rose-100/70 text-rose-900 uppercase tracking-wider text-[10px] font-bold sticky top-0 z-10 shadow-sm">
                 <tr>
@@ -109,26 +110,26 @@ export const AdminPopulation: React.FC = () => {
               <tbody className="divide-y divide-rose-100">
                 {pendingRequests.map((row) => (
                   <tr key={row.id} className="hover:bg-rose-100/50 transition-colors">
-                    <td className="px-4 py-2.5 font-medium text-rose-800">{row.state_name}</td>
-                    <td className="px-4 py-2.5 font-bold text-rose-900">{row.district_name}</td>
-                    <td className="px-4 py-2.5 font-bold text-hpv-purple">{row.name}</td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-4 py-2 font-medium text-rose-800">{row.state_name}</td>
+                    <td className="px-4 py-2 font-bold text-rose-900">{row.district_name}</td>
+                    <td className="px-4 py-2 font-bold text-hpv-purple">{row.name}</td>
+                    <td className="px-4 py-2">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         row.is_urban ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
                       }`}>
                         {row.is_urban ? 'Urban' : 'Rural'}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-right">
+                    <td className="px-4 py-2 text-right">
                       <span className="font-mono font-extrabold text-rose-900">
                         {row.profile!.base_population.toLocaleString()}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-center">
+                    <td className="px-4 py-2 text-center">
                       <div className="flex items-center justify-center">
                         <button
                           onClick={() => handleUnlock(row.id)}
-                          className="px-4 py-1.5 bg-hpv-purple text-white text-xs font-bold rounded-lg shadow hover:bg-hpv-purple-dark hover:scale-105 active:scale-95 transition-all"
+                          className="px-3 py-1 bg-hpv-purple text-white text-[10px] font-bold rounded shadow hover:bg-hpv-purple-dark hover:scale-105 active:scale-95 transition-all"
                         >
                           Unlock Editing
                         </button>
@@ -136,14 +137,22 @@ export const AdminPopulation: React.FC = () => {
                     </td>
                   </tr>
                 ))}
+                
+                {pendingRequests.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-6 text-center text-rose-400 text-xs font-medium">
+                      No pending unlock requests at this time.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
-      )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="overflow-auto max-h-[60vh]">
+      {/* 60% Main Population Table */}
+      <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
+        <div className="overflow-auto flex-1">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-slate-900 text-slate-100 uppercase tracking-wider text-[10px] font-bold sticky top-0 z-10 shadow-sm">
               <tr>
