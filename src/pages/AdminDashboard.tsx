@@ -122,7 +122,6 @@ export const AdminDashboard: React.FC = () => {
     fetchDistricts();
     fetchMasterLocations();
     fetchReport();
-    fetchSettings();
   }, []);
 
   const fetchKpis = () => {
