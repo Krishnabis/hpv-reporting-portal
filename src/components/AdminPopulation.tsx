@@ -90,7 +90,8 @@ export const AdminPopulation: React.FC = () => {
                 <th className="px-6 py-4">District</th>
                 <th className="px-6 py-4">Block / Urban Body</th>
                 <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Population (Unlock Access)</th>
+                <th className="px-6 py-4">Population</th>
+                <th className="px-6 py-4">Unlock Access</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -110,11 +111,16 @@ export const AdminPopulation: React.FC = () => {
                     {!row.profile ? (
                       <span className="text-slate-400 font-medium italic">Not Set</span>
                     ) : (
-                      <div className="flex items-center gap-4">
-                        <span className="font-mono font-extrabold text-slate-900">
-                          {row.profile.base_population.toLocaleString()}
-                        </span>
-                        
+                      <span className="font-mono font-extrabold text-slate-900">
+                        {row.profile.base_population.toLocaleString()}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {!row.profile ? (
+                      <span className="text-slate-400 font-medium italic">—</span>
+                    ) : (
+                      <div>
                         {row.profile.unlock_requested ? (
                           <div className="flex items-center gap-2">
                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-rose-100 text-rose-700 text-[10px] font-bold border border-rose-200">
@@ -150,7 +156,7 @@ export const AdminPopulation: React.FC = () => {
               
               {filteredData.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
                     No locations found matching your search.
                   </td>
                 </tr>
