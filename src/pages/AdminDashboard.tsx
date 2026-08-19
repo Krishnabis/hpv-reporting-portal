@@ -395,9 +395,17 @@ export const AdminDashboard: React.FC = () => {
         </button>
       </div>
 
+      {/* Mobile Menu Backdrop */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200 text-slate-600 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-full lg:shrink-0 ${
-        mobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64'
+      <aside className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200 text-slate-600 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-[100dvh] lg:shrink-0 ${
+        mobileMenuOpen ? 'translate-x-0 w-64 shadow-2xl' : '-translate-x-full w-64'
       } ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} lg:translate-x-0`}>
         <div>
           {/* Logo Branding */}
@@ -419,7 +427,7 @@ export const AdminDashboard: React.FC = () => {
           {/* Navigation Links */}
           <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
             <button
-              onClick={() => handleTabChange('dashboard')}
+              onClick={() => { handleTabChange('dashboard'); setMobileMenuOpen(false); }}
               title="Dashboard"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'dashboard'
@@ -432,8 +440,8 @@ export const AdminDashboard: React.FC = () => {
             </button>
 
             <button
-              onClick={() => handleTabChange('reports')}
-              title="Reports"
+              onClick={() => { handleTabChange('reports'); setMobileMenuOpen(false); }}
+              title="Reports & Analytics"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'reports'
                   ? 'bg-hpv-purple-soft text-hpv-purple font-bold shadow-sm shadow-hpv-purple/10'
@@ -459,7 +467,7 @@ export const AdminDashboard: React.FC = () => {
 
 
             <button
-              onClick={() => handleTabChange('settings')}
+              onClick={() => { handleTabChange('settings'); setMobileMenuOpen(false); }}
               title="Settings"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'settings'
@@ -475,7 +483,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* User Info & Logout */}
-        <div className={`mx-3 mt-auto mb-2 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer group flex items-center ${sidebarCollapsed ? 'p-2 justify-center lg:mx-2 lg:mb-2' : 'p-4 justify-between'}`} onClick={handleLogout} title="Logout">
+        <div className={`mx-3 mt-auto mb-2 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer group flex items-center ${sidebarCollapsed ? 'p-2 justify-center lg:mx-2 lg:mb-2' : 'p-4 justify-between'}`} onClick={() => { setMobileMenuOpen(false); handleLogout(); }} title="Logout">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-hpv-teal-soft flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4 text-hpv-teal-dark" />
@@ -1230,8 +1238,8 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Table */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
-              <div className="overflow-y-auto flex-1">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-auto flex-1">
+                <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0">
                     <tr>
                       <th className="px-3 py-2">State</th>
@@ -1322,8 +1330,8 @@ export const AdminDashboard: React.FC = () => {
                 <span className="text-xs font-bold text-slate-700">Authorized System Administrators</span>
                 <button onClick={fetchAdminUsers} className="text-[10px] text-blue-500 font-bold hover:underline">↻ Refresh</button>
               </div>
-              <div className="overflow-y-auto flex-1">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-auto flex-1">
+                <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px] sticky top-0">
                   <tr>
                     <th className="px-4 py-2">Name</th>
@@ -1418,8 +1426,8 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
-              <div className="overflow-y-auto flex-1">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-auto flex-1">
+                <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0">
                     <tr>
                       <th className="p-3">Timestamp</th>
