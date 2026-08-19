@@ -68,8 +68,8 @@ export const BlockLogin: React.FC = () => {
     <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-2 sm:p-4 lg:p-6">
       {/* Top Header */}
       <header className="max-w-md mx-auto w-full flex items-center justify-between py-2">
-        <div className="bg-white rounded-[2rem] px-4 py-1.5 flex items-center justify-center shadow-sm shrink-0">
-          <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-14 sm:h-16 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105" />
+        <div className="bg-white rounded-[2rem] px-5 py-2 flex items-center justify-center shadow-sm shrink-0">
+          <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-16 sm:h-20 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105" />
         </div>
         <a
           href="/admin/login"
@@ -167,7 +167,7 @@ export const BlockLogin: React.FC = () => {
         <div>HPV Program Monitoring Portal • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
-          <img src="/impactcode.png" alt="ImpactCode" className="h-6 object-contain" />
+          <img src="/impactcode.png" alt="ImpactCode" className="h-8 object-contain" />
         </div>
       </footer>
     </div>
