@@ -130,8 +130,8 @@ INSERT INTO settings (id, key, value, description) VALUES
 ('set-2', 'hpv_target_percentage', '0.01', 'Target HPV beneficiary percentage of total population (1.00%)'),
 ('set-3', 'reporting_enabled', 'true', 'Global flag to enable block reporting'),
 ('set-4', 'allow_previous_date_entry', 'true', 'Allow reporting for historical dates'),
-('set-5', 'organization_name', 'HPV Vaccination Due List Tracking', 'System organization name'),
-('set-6', 'portal_title', 'HPV Vaccination Reporting', 'Header display title'),
+('set-5', 'organization_name', 'HPV KAVACH', 'System organization name'),
+('set-6', 'portal_title', 'HPV KAVACH', 'Header display title'),
 ('set-7', 'default_state', 'Uttarakhand', 'Default state selected in reports')
 ON CONFLICT (key) DO NOTHING;
 
