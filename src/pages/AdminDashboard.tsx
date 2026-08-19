@@ -500,15 +500,17 @@ export const AdminDashboard: React.FC = () => {
           <LogOut className={`w-4 h-4 text-slate-400 group-hover:text-rose-500 transition-colors shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`} />
         </div>
 
-        {/* Powered by ImpactCode */}
-        <div className={`mx-3 mb-3 px-3 py-2 rounded-xl border border-slate-700/50 bg-slate-800/30 flex items-center gap-2 ${sidebarCollapsed ? 'justify-center' : ''}`}>
-          <img src="/impactcode.png" alt="ImpactCode" className="h-6 w-6 rounded object-contain bg-white p-0.5 shrink-0" />
+        {/* Footer Branding */}
+        <div className={`mx-3 mb-4 flex flex-col gap-2 ${sidebarCollapsed ? 'items-center' : ''}`}>
           {!sidebarCollapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className="text-[9px] text-slate-400 font-medium leading-tight">Powered by</span>
-              <span className="text-[10px] font-bold text-white leading-tight truncate">ImpactCode</span>
+            <div className="text-center font-medium text-[10px] text-slate-400 px-1 leading-snug">
+              HPV Program Monitoring Portal<br/>Version: 1.0 • UK 2026
             </div>
           )}
+          <div className="flex items-center justify-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity cursor-pointer">
+            {!sidebarCollapsed && <span className="text-[10px] font-bold text-slate-400">Powered by:</span>}
+            <img src="/impactcode.png" alt="ImpactCode" className="h-6 object-contain" />
+          </div>
         </div>
       </aside>
 
