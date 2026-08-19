@@ -76,10 +76,32 @@ export const AdminDashboard: React.FC = () => {
   // Master Locations state
   const [masterBlocks, setMasterBlocks] = useState<any[]>([]);
   const [locationSearch, setLocationSearch] = useState('');
+  const [statesList, setStatesList] = useState<any[]>([]);
+  const [allDistrictsList, setAllDistrictsList] = useState<any[]>([]);
+  // Location add form
+  const [addLocType, setAddLocType] = useState<'state' | 'district' | 'block' | 'urban'>('block');
+  const [addLocName, setAddLocName] = useState('');
+  const [addLocLgd, setAddLocLgd] = useState('');
+  const [addLocStateId, setAddLocStateId] = useState('');
+  const [addLocDistrictId, setAddLocDistrictId] = useState('');
+  const [addLocMsg, setAddLocMsg] = useState('');
+  const [addLocLoading, setAddLocLoading] = useState(false);
 
-  // Settings state
-  const [settingsList, setSettingsList] = useState<any[]>([]);
-  const [savingSettings, setSavingSettings] = useState(false);
+  // Settings state — password change only
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNew, setPwNew] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwMsg, setPwMsg] = useState('');
+  const [pwLoading, setPwLoading] = useState(false);
+
+  // Users state
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [newAdminName, setNewAdminName] = useState('');
+  const [newAdminUsername, setNewAdminUsername] = useState('');
+  const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [newAdminRole, setNewAdminRole] = useState('ADMIN');
+  const [addAdminMsg, setAddAdminMsg] = useState('');
+  const [addAdminLoading, setAddAdminLoading] = useState(false);
 
   // Audit Logs state
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
@@ -177,21 +199,23 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const fetchMasterLocations = () => {
-    fetch('/api/locations/blocks')
-      .then(res => res.json())
-      .then(data => setMasterBlocks(Array.isArray(data) ? data : []))
-      .catch(err => console.error(err));
+    const token = localStorage.getItem('hpv_admin_token');
+    Promise.all([
+      fetch('/api/locations/blocks').then(r => r.json()),
+      fetch('/api/locations/states').then(r => r.json()),
+      fetch('/api/locations/districts').then(r => r.json()),
+    ]).then(([blocks, states, districts]) => {
+      setMasterBlocks(Array.isArray(blocks) ? blocks : []);
+      setStatesList(Array.isArray(states) ? states : []);
+      setAllDistrictsList(Array.isArray(districts) ? districts : []);
+    }).catch(err => console.error(err));
   };
 
-  const fetchSettings = () => {
-    fetch('/api/admin/settings', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('hpv_admin_token')}` }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch settings');
-        return res.json();
-      })
-      .then(data => setSettingsList(Array.isArray(data) ? data : []))
+  const fetchAdminUsers = () => {
+    const token = localStorage.getItem('hpv_admin_token');
+    fetch('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => setAdminUsers(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
   };
 
@@ -205,11 +229,80 @@ export const AdminDashboard: React.FC = () => {
       .catch(err => console.error(err));
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pwNew !== pwConfirm) { setPwMsg('❌ New passwords do not match'); return; }
+    if (pwNew.length < 6) { setPwMsg('❌ Password must be at least 6 characters'); return; }
+    setPwLoading(true); setPwMsg('');
+    const token = localStorage.getItem('hpv_admin_token');
+    try {
+      const res = await fetch('/api/admin/change-password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword: pwCurrent, newPassword: pwNew })
+      });
+      const data = await res.json();
+      if (!res.ok) { setPwMsg(`❌ ${data.error}`); } else {
+        setPwMsg('✅ Password changed successfully!');
+        setPwCurrent(''); setPwNew(''); setPwConfirm('');
+      }
+    } catch { setPwMsg('❌ Request failed'); }
+    setPwLoading(false);
+  };
+
+  const handleAddAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddAdminLoading(true); setAddAdminMsg('');
+    const token = localStorage.getItem('hpv_admin_token');
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: newAdminName, username: newAdminUsername, password: newAdminPassword, role: newAdminRole })
+      });
+      const data = await res.json();
+      if (!res.ok) { setAddAdminMsg(`❌ ${data.error}`); } else {
+        setAddAdminMsg('✅ Admin created successfully!');
+        setNewAdminName(''); setNewAdminUsername(''); setNewAdminPassword('');
+        fetchAdminUsers();
+      }
+    } catch { setAddAdminMsg('❌ Request failed'); }
+    setAddAdminLoading(false);
+  };
+
+  const handleAddLocation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddLocLoading(true); setAddLocMsg('');
+    const token = localStorage.getItem('hpv_admin_token');
+    try {
+      let url = ''; let body: any = {};
+      if (addLocType === 'state') {
+        url = '/api/admin/locations/state'; body = { name: addLocName, lgd_code: addLocLgd };
+      } else if (addLocType === 'district') {
+        url = '/api/admin/locations/district'; body = { name: addLocName, lgd_code: addLocLgd, state_id: addLocStateId };
+      } else {
+        url = '/api/admin/locations/block'; body = { name: addLocName, lgd_code: addLocLgd, district_id: addLocDistrictId, is_urban: addLocType === 'urban' };
+      }
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) { setAddLocMsg(`❌ ${data.error}`); } else {
+        setAddLocMsg(`✅ ${data.message}`);
+        setAddLocName(''); setAddLocLgd(''); setAddLocStateId(''); setAddLocDistrictId('');
+        fetchMasterLocations();
+      }
+    } catch { setAddLocMsg('❌ Request failed'); }
+    setAddLocLoading(false);
+  };
+
   const handleTabChange = (tab: any) => {
     setActiveTab(tab);
     setMobileMenuOpen(false);
     if (tab === 'locations') fetchMasterLocations();
-    if (tab === 'settings') fetchSettings();
+    if (tab === 'users') fetchAdminUsers();
     if (tab === 'audit') fetchAuditLogs();
   };
 
@@ -218,6 +311,7 @@ export const AdminDashboard: React.FC = () => {
     localStorage.removeItem('hpv_admin_user');
     navigate('/admin/login');
   };
+
 
   // CSV Exporter
   const exportCSV = () => {
@@ -259,31 +353,8 @@ export const AdminDashboard: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  // Settings Save
-  const handleSaveSettings = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavingSettings(true);
-    const token = localStorage.getItem('hpv_admin_token');
 
-    fetch('/api/admin/settings', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ settings: settingsList })
-    })
-      .then(res => res.json())
-      .then(data => {
-        setSavingSettings(false);
-        alert('Settings updated successfully!');
-      })
-      .catch(err => {
-        console.error(err);
-        setSavingSettings(false);
-        alert('Failed to update settings');
-      });
-  };
+
 
   const sortedReportRows = useMemo(() => {
     let sorted = [...reportRows];
@@ -436,7 +507,19 @@ export const AdminDashboard: React.FC = () => {
           </div>
           <LogOut className={`w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`} />
         </div>
+
+        {/* Powered by ImpactCode */}
+        <div className={`mx-3 mb-3 px-3 py-2 rounded-xl border border-slate-700/50 bg-slate-800/30 flex items-center gap-2 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+          <img src="/impactcode.png" alt="ImpactCode" className="h-6 w-6 rounded object-contain bg-white p-0.5 shrink-0" />
+          {!sidebarCollapsed && (
+            <div className="flex flex-col min-w-0">
+              <span className="text-[9px] text-slate-400 font-medium leading-tight">Powered by</span>
+              <span className="text-[10px] font-bold text-white leading-tight truncate">ImpactCode</span>
+            </div>
+          )}
+        </div>
       </aside>
+
 
       {/* Main Content Area */}
       <main className="flex-1 p-3 sm:p-4 max-w-[1600px] mx-auto w-full overflow-y-auto">
@@ -577,9 +660,10 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Split Layout: Ranking & Map */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-              {/* Left: District Ranking */}
-              <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
+              {/* Left: District Ranking (2/5 wide) */}
+              <div className="lg:col-span-2 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     <BarChart3 className="w-4 h-4 text-blue-500" /> District Ranking
@@ -644,8 +728,8 @@ export const AdminDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Right: Uttarakhand Interactive Map */}
-              <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+              {/* Right: Uttarakhand Interactive Map (3/5 wide) */}
+              <div className="lg:col-span-3 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-blue-500" /> Uttarakhand Overview
@@ -1059,41 +1143,108 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 3: LOCATIONS MASTER */}
         {activeTab === 'locations' && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                Master Location Registry (LGD Codes)
+                Master Location Registry
               </h1>
               <p className="text-xs text-slate-500 mt-1">
-                Official Local Government Directory (LGD) Codes for States, Districts & Blocks
+                States, Districts, Blocks & Urban Bodies
               </p>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+            {/* Add New Location Panel */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <span className="w-5 h-5 bg-hpv-purple rounded-full flex items-center justify-center text-white text-[10px] font-bold">+</span>
+                Add New Location
+              </h2>
+
+              {/* Type selector tabs */}
+              <div className="flex gap-2 flex-wrap">
+                {(['state', 'district', 'block', 'urban'] as const).map(t => (
+                  <button key={t} onClick={() => { setAddLocType(t); setAddLocMsg(''); }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${addLocType === t ? 'bg-hpv-purple text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                    {t === 'state' ? '🏛 New State' : t === 'district' ? '🗺 New District' : t === 'block' ? '🏘 New Block (Rural)' : '🏙 New Urban Body'}
+                  </button>
+                ))}
+              </div>
+
+              <form onSubmit={handleAddLocation} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                {/* State selector for district/block/urban */}
+                {(addLocType === 'district') && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State *</label>
+                    <select value={addLocStateId} onChange={e => setAddLocStateId(e.target.value)} required className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple">
+                      <option value="">Select state...</option>
+                      {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                {(addLocType === 'block' || addLocType === 'urban') && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">District *</label>
+                    <select value={addLocDistrictId} onChange={e => setAddLocDistrictId(e.target.value)} required className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple">
+                      <option value="">Select district...</option>
+                      {allDistrictsList.map(d => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {/* Name */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                    {addLocType === 'state' ? 'State Name' : addLocType === 'district' ? 'District Name' : addLocType === 'urban' ? 'Urban Body Name' : 'Block Name'} *
+                  </label>
+                  <input type="text" value={addLocName} onChange={e => setAddLocName(e.target.value)} required placeholder="Enter name..."
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple" />
+                </div>
+                {/* LGD */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">LGD Code *</label>
+                  <input type="number" value={addLocLgd} onChange={e => setAddLocLgd(e.target.value)} required placeholder="LGD code..."
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple" />
+                </div>
+                {/* Submit */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 invisible">Action</label>
+                  <button type="submit" disabled={addLocLoading}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-white gradient-header shadow hover:shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-60">
+                    {addLocLoading ? 'Adding...' : '+ Add Location'}
+                  </button>
+                </div>
+              </form>
+              {addLocMsg && <p className={`text-xs font-semibold ${addLocMsg.startsWith('✅') ? 'text-emerald-600' : 'text-rose-600'}`}>{addLocMsg}</p>}
+            </div>
+
+            {/* Search */}
+            <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
               <Search className="w-5 h-5 text-slate-400 ml-1" />
               <input
                 type="text"
                 value={locationSearch}
                 onChange={e => setLocationSearch(e.target.value)}
-                placeholder="Search block name, district, or LGD code..."
+                placeholder="Search block, urban body, district..."
                 className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
               />
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="max-h-[600px] overflow-y-auto">
+            {/* Table */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="max-h-[500px] overflow-y-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0">
                     <tr>
-                      <th className="p-3">State</th>
-                      <th className="p-3">State LGD</th>
-                      <th className="p-3">District</th>
-                      <th className="p-3">District LGD</th>
-                      <th className="p-3">Block Name</th>
-                      <th className="p-3">Block LGD Code</th>
+                      <th className="px-3 py-2">State</th>
+                      <th className="px-3 py-2">District</th>
+                      <th className="px-3 py-2">Block / Urban Body</th>
+                      <th className="px-3 py-2">Type</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 font-mono">
+                  <tbody className="divide-y divide-slate-100">
                     {masterBlocks
                       .filter(b => {
                         const q = locationSearch.toLowerCase();
@@ -1101,20 +1252,17 @@ export const AdminDashboard: React.FC = () => {
                         return (
                           b.name.toLowerCase().includes(q) ||
                           b.district_name.toLowerCase().includes(q) ||
-                          String(b.lgd_code).includes(q) ||
-                          String(b.district_lgd_code).includes(q)
+                          b.state_name.toLowerCase().includes(q)
                         );
                       })
                       .map(b => (
                         <tr key={b.id} className="hover:bg-slate-50">
-                          <td className="p-3 font-sans font-medium text-slate-700">{b.state_name}</td>
-                          <td className="p-3 font-bold text-slate-500">{b.state_lgd_code}</td>
-                          <td className="p-3 font-sans font-bold text-slate-900">{b.district_name}</td>
-                          <td className="p-3 font-bold text-hpv-purple">{b.district_lgd_code}</td>
-                          <td className="p-3 font-sans font-bold text-hpv-teal-dark">{b.name}</td>
-                          <td className="p-3 font-extrabold text-slate-900">
-                            <span className="px-2 py-0.5 rounded bg-hpv-purple-soft text-hpv-purple border border-hpv-purple/20">
-                              {b.lgd_code}
+                          <td className="px-3 py-2 font-sans font-medium text-slate-600 text-[11px]">{b.state_name}</td>
+                          <td className="px-3 py-2 font-sans font-bold text-slate-800">{b.district_name}</td>
+                          <td className="px-3 py-2 font-sans font-bold text-hpv-teal-dark">{b.name}</td>
+                          <td className="px-3 py-2">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${b.is_urban ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
+                              {b.is_urban ? 'Urban' : 'Rural'}
                             </span>
                           </td>
                         </tr>
@@ -1128,77 +1276,136 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 4: USERS MANAGEMENT */}
         {activeTab === 'users' && (
-          <div className="space-y-6">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              Admin User Management
-            </h1>
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-xs font-bold text-slate-700">Authorized System Administrators</span>
-                <span className="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold">
-                  Active
-                </span>
-              </div>
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
-                <div>
-                  <p className="font-bold text-slate-900 text-sm">State HPV Administrator (UKHPV2026)</p>
-                  <p className="text-slate-500 mt-0.5">Role: SUPER_ADMIN • State of Uttarakhand</p>
+          <div className="space-y-5">
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Admin User Management</h1>
+
+            {/* Add new admin form */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <span className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold">+</span>
+                Add New Admin
+              </h2>
+              <form onSubmit={handleAddAdmin} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Full Name *</label>
+                  <input type="text" value={newAdminName} onChange={e => setNewAdminName(e.target.value)} required placeholder="Full name..."
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple" />
                 </div>
-                <span className="font-mono text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded">
-                  Authenticated
-                </span>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Username *</label>
+                  <input type="text" value={newAdminUsername} onChange={e => setNewAdminUsername(e.target.value)} required placeholder="username..."
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Password *</label>
+                  <input type="password" value={newAdminPassword} onChange={e => setNewAdminPassword(e.target.value)} required placeholder="Min 6 chars..."
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Role</label>
+                  <select value={newAdminRole} onChange={e => setNewAdminRole(e.target.value)}
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple">
+                    <option value="ADMIN">Admin</option>
+                    <option value="SUPER_ADMIN">Super Admin</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 invisible">Action</label>
+                  <button type="submit" disabled={addAdminLoading}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-white gradient-header shadow hover:shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-60">
+                    {addAdminLoading ? 'Creating...' : '+ Create Admin'}
+                  </button>
+                </div>
+              </form>
+              {addAdminMsg && <p className={`text-xs font-semibold ${addAdminMsg.startsWith('✅') ? 'text-emerald-600' : 'text-rose-600'}`}>{addAdminMsg}</p>}
+            </div>
+
+            {/* Admin list */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700">Authorized System Administrators</span>
+                <button onClick={fetchAdminUsers} className="text-[10px] text-blue-500 font-bold hover:underline">↻ Refresh</button>
               </div>
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
+                  <tr>
+                    <th className="px-4 py-2">Name</th>
+                    <th className="px-4 py-2">Username</th>
+                    <th className="px-4 py-2">Role</th>
+                    <th className="px-4 py-2">Status</th>
+                    <th className="px-4 py-2">Last Login</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {adminUsers.length === 0 ? (
+                    <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">Loading admins...</td></tr>
+                  ) : adminUsers.map(u => (
+                    <tr key={u.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-2.5 font-bold text-slate-900">{u.name}</td>
+                      <td className="px-4 py-2.5 font-mono text-slate-600">@{u.username}</td>
+                      <td className="px-4 py-2.5">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                          {u.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-slate-400 text-[10px]">
+                        {u.last_login_at ? new Date(u.last_login_at).toLocaleString() : 'Never'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
-        {/* TAB 5: PROGRAM & SYSTEM SETTINGS */}
+        {/* TAB 5: SETTINGS — Reset Password Only */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                Program & System Settings
-              </h1>
-              <p className="text-xs text-slate-500 mt-1">
-                Configure growth formulas, target percentages, and reporting permissions
-              </p>
+              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Settings</h1>
+              <p className="text-xs text-slate-500 mt-1">Manage your account security</p>
             </div>
 
-            <form onSubmit={handleSaveSettings} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {settingsList.map((item, idx) => (
-                  <div key={item.key} className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                      {item.key.replace(/_/g, ' ')}
-                    </label>
-                    <input
-                      type="text"
-                      value={item.value}
-                      onChange={e => {
-                        const updated = [...settingsList];
-                        updated[idx].value = e.target.value;
-                        setSettingsList(updated);
-                      }}
-                      className="px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-hpv-purple"
-                    />
-                    <span className="text-[11px] text-slate-400">{item.description}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={savingSettings}
-                  className="px-6 py-3 rounded-xl font-bold text-xs text-white gradient-header shadow hover:shadow-md transition-all flex items-center gap-2"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>{savingSettings ? 'Saving Settings...' : 'Save Settings'}</span>
-                </button>
-              </div>
-            </form>
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-md">
+              <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <span className="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center">🔐</span>
+                Reset My Password
+              </h2>
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Current Password *</label>
+                  <input type="password" value={pwCurrent} onChange={e => setPwCurrent(e.target.value)} required placeholder="Current password"
+                    className="px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-hpv-purple" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">New Password *</label>
+                  <input type="password" value={pwNew} onChange={e => setPwNew(e.target.value)} required placeholder="Min 6 characters"
+                    className="px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-hpv-purple" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Confirm New Password *</label>
+                  <input type="password" value={pwConfirm} onChange={e => setPwConfirm(e.target.value)} required placeholder="Repeat new password"
+                    className="px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-hpv-purple" />
+                </div>
+                {pwMsg && <p className={`text-xs font-semibold ${pwMsg.startsWith('✅') ? 'text-emerald-600' : 'text-rose-600'}`}>{pwMsg}</p>}
+                <div className="pt-2 border-t border-slate-100 flex justify-end">
+                  <button type="submit" disabled={pwLoading}
+                    className="px-6 py-3 rounded-xl font-bold text-xs text-white gradient-header shadow hover:shadow-md transition-all flex items-center gap-2 disabled:opacity-60">
+                    <Save className="w-4 h-4" />
+                    <span>{pwLoading ? 'Changing...' : 'Change Password'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
+
 
         {/* TAB 6: AUDIT LOGS */}
         {activeTab === 'audit' && (

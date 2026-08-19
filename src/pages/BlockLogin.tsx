@@ -133,8 +133,13 @@ export const BlockLogin: React.FC = () => {
       </main>
 
       {/* Footer Branding */}
-      <footer className="max-w-md mx-auto w-full text-center py-2 text-xs text-slate-400">
-        Department of Health & Family Welfare • Government of Uttarakhand
+      <footer className="max-w-md mx-auto w-full text-center py-3 text-xs text-slate-400 space-y-2">
+        <div>Department of Health &amp; Family Welfare • Government of Uttarakhand</div>
+        <div className="flex items-center justify-center gap-2 opacity-70">
+          <span className="text-[10px] text-slate-400">Powered by</span>
+          <img src="/impactcode.png" alt="ImpactCode" className="h-5 object-contain" />
+          <span className="text-[10px] font-bold text-slate-500">ImpactCode</span>
+        </div>
       </footer>
     </div>
   );

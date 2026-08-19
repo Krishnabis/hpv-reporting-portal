@@ -273,7 +273,143 @@ app.post('/api/admin/login', async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
+// Change own password
+app.put('/api/admin/change-password', authenticateToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Current and new passwords required' });
+    if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
+
+    const userId = req.user.id;
+    let user;
+    if (useSupabase) {
+      const { data, error } = await supabase.from('admin_users').select('*').eq('id', userId).maybeSingle();
+      if (error) throw error;
+      user = data;
+    } else {
+      user = store.admin_users.find(u => u.id === userId);
+    }
+
+    if (!user || hashPassword(currentPassword) !== user.password_hash) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    const newHash = hashPassword(newPassword);
+    if (useSupabase) {
+      const { error } = await supabase.from('admin_users').update({ password_hash: newHash, updated_at: new Date().toISOString() }).eq('id', userId);
+      if (error) throw error;
+    } else {
+      const idx = store.admin_users.findIndex(u => u.id === userId);
+      if (idx >= 0) { store.admin_users[idx].password_hash = newHash; saveStore(); }
+    }
+
+    await logAudit(userId, 'CHANGE_PASSWORD', 'admin_user', userId);
+    res.json({ message: 'Password changed successfully' });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+// List admin users
+app.get('/api/admin/users', authenticateToken, async (req, res) => {
+  try {
+    if (useSupabase) {
+      const { data, error } = await supabase.from('admin_users').select('id, username, name, role, is_active, created_at, last_login_at').order('created_at', { ascending: false });
+      if (error) throw error;
+      return res.json(data);
+    }
+    res.json(store.admin_users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role, is_active: u.is_active, created_at: u.created_at })));
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Create new admin user
+app.post('/api/admin/users', authenticateToken, async (req, res) => {
+  try {
+    const { username, name, password, role = 'ADMIN' } = req.body;
+    if (!username || !name || !password) return res.status(400).json({ error: 'Username, name and password required' });
+    if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+
+    const newId = `admin-${Date.now()}`;
+    const passwordHash = hashPassword(password);
+
+    if (useSupabase) {
+      // Check if username already exists
+      const { data: existing } = await supabase.from('admin_users').select('id').eq('username', username).maybeSingle();
+      if (existing) return res.status(409).json({ error: 'Username already exists' });
+
+      const { error } = await supabase.from('admin_users').insert([{
+        id: newId, username, name, password_hash: passwordHash, role, is_active: true
+      }]);
+      if (error) throw error;
+    } else {
+      if (store.admin_users.find(u => u.username === username)) return res.status(409).json({ error: 'Username already exists' });
+      store.admin_users.push({ id: newId, username, name, password_hash: passwordHash, role, is_active: true, created_at: new Date().toISOString() });
+      saveStore();
+    }
+
+    await logAudit(req.user.id, 'CREATE_ADMIN', 'admin_user', newId);
+    res.json({ message: 'Admin user created successfully', id: newId });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+// Add new State
+app.post('/api/admin/locations/state', authenticateToken, async (req, res) => {
+  try {
+    const { name, lgd_code } = req.body;
+    if (!name || !lgd_code) return res.status(400).json({ error: 'Name and LGD code required' });
+    const newId = Date.now();
+    if (useSupabase) {
+      const { error } = await supabase.from('states').insert([{ id: newId, name, lgd_code: Number(lgd_code), is_active: true }]);
+      if (error) throw error;
+    } else {
+      store.states.push({ id: newId, name, lgd_code: Number(lgd_code), is_active: true });
+      saveStore();
+    }
+    await logAudit(req.user.id, 'CREATE_STATE', 'state', newId);
+    res.json({ message: 'State created', id: newId });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+// Add new District
+app.post('/api/admin/locations/district', authenticateToken, async (req, res) => {
+  try {
+    const { name, lgd_code, state_id } = req.body;
+    if (!name || !lgd_code || !state_id) return res.status(400).json({ error: 'Name, LGD code and state required' });
+    const newId = Date.now();
+    if (useSupabase) {
+      const { error } = await supabase.from('districts').insert([{ id: newId, name, lgd_code: Number(lgd_code), state_id: Number(state_id), is_active: true }]);
+      if (error) throw error;
+    } else {
+      store.districts.push({ id: newId, name, lgd_code: Number(lgd_code), state_id: Number(state_id), is_active: true });
+      saveStore();
+    }
+    await logAudit(req.user.id, 'CREATE_DISTRICT', 'district', newId);
+    res.json({ message: 'District created', id: newId });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+// Add new Block or Urban Body (is_urban flag)
+app.post('/api/admin/locations/block', authenticateToken, async (req, res) => {
+  try {
+    const { name, lgd_code, district_id, is_urban = false } = req.body;
+    if (!name || !lgd_code || !district_id) return res.status(400).json({ error: 'Name, LGD code and district required' });
+    const newId = Date.now();
+    if (useSupabase) {
+      const { error } = await supabase.from('blocks').insert([{
+        id: newId, name, lgd_code: Number(lgd_code), district_id: Number(district_id),
+        is_active: true, is_urban: Boolean(is_urban), code: String(lgd_code)
+      }]);
+      if (error) throw error;
+    } else {
+      store.blocks.push({ id: newId, name, lgd_code: Number(lgd_code), district_id: Number(district_id), is_active: true, is_urban: Boolean(is_urban), code: String(lgd_code) });
+      saveStore();
+    }
+    await logAudit(req.user.id, is_urban ? 'CREATE_URBAN_BODY' : 'CREATE_BLOCK', 'block', newId);
+    res.json({ message: `${is_urban ? 'Urban Body' : 'Block'} created`, id: newId });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
 // ─── Admin Dashboard ──────────────────────────────────────────────────────────
+
+
 
 app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
   try {
