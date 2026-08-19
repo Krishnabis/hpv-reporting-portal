@@ -82,45 +82,45 @@ export const AdminPopulation: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-auto max-h-[60vh]">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-slate-900 text-slate-100 uppercase tracking-wider text-[10px] font-bold">
+            <thead className="bg-slate-900 text-slate-100 uppercase tracking-wider text-[10px] font-bold sticky top-0 z-10 shadow-sm">
               <tr>
-                <th className="px-6 py-4">State</th>
-                <th className="px-6 py-4">District</th>
-                <th className="px-6 py-4">Block / Urban Body</th>
-                <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Population</th>
-                <th className="px-6 py-4">Unlock Access</th>
+                <th className="px-4 py-3">State</th>
+                <th className="px-4 py-3">District</th>
+                <th className="px-4 py-3">Block / Urban Body</th>
+                <th className="px-4 py-3">Type</th>
+                <th className="px-4 py-3 text-right">Population</th>
+                <th className="px-4 py-3 text-center">Unlock Access</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredData.map((row) => (
                 <tr key={row.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-slate-600">{row.state_name}</td>
-                  <td className="px-6 py-4 font-bold text-slate-900">{row.district_name}</td>
-                  <td className="px-6 py-4 font-bold text-hpv-purple">{row.name}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-2.5 font-medium text-slate-600">{row.state_name}</td>
+                  <td className="px-4 py-2.5 font-bold text-slate-900">{row.district_name}</td>
+                  <td className="px-4 py-2.5 font-bold text-hpv-purple">{row.name}</td>
+                  <td className="px-4 py-2.5">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
                       row.is_urban ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
                     }`}>
                       {row.is_urban ? 'Urban' : 'Rural'}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-2.5 text-right">
                     {!row.profile ? (
-                      <span className="text-slate-400 font-medium italic">Not Set</span>
+                      <span className="text-slate-400 font-medium italic text-xs">Not Set</span>
                     ) : (
                       <span className="font-mono font-extrabold text-slate-900">
                         {row.profile.base_population.toLocaleString()}
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-2.5 text-center">
                     {!row.profile ? (
                       <span className="text-slate-400 font-medium italic">—</span>
                     ) : (
-                      <div>
+                      <div className="flex items-center justify-center">
                         {row.profile.unlock_requested ? (
                           <div className="flex items-center gap-2">
                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-rose-100 text-rose-700 text-[10px] font-bold border border-rose-200">
@@ -156,7 +156,7 @@ export const AdminPopulation: React.FC = () => {
               
               {filteredData.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
                     No locations found matching your search.
                   </td>
                 </tr>
