@@ -167,7 +167,7 @@ app.get('/api/blocks/:id', async (req, res) => {
     const hpvTarget = profile ? Math.round(profile.base_population * 0.01) : 0;
 
     res.json({
-      block: { id: block.id, name: block.name, lgd_code: block.lgd_code, district_name: block.district_name, district_lgd_code: block.district_lgd_code, state_name: block.state_name, state_lgd_code: block.state_lgd_code },
+      block: { id: block.id, name: block.name, lgd_code: block.lgd_code, district_name: block.district_name, district_lgd_code: block.district_lgd_code, state_name: block.state_name, state_lgd_code: block.state_lgd_code, is_urban: Boolean(block.is_urban) },
       profile: profile ? { ...profile, current_population: profile.base_population, current_hpv_target: hpvTarget } : null,
       today_submitted: Boolean(todayReport),
       today_report: todayReport || null,
