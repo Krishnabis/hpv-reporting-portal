@@ -65,7 +65,7 @@ export const BlockLogin: React.FC = () => {
   };
 
   return (
-    <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-4 sm:p-6 lg:p-8">
+    <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-2 sm:p-4 lg:p-6">
       {/* Top Header */}
       <header className="max-w-md mx-auto w-full flex items-center justify-between py-2">
         <div className="bg-white rounded-[2rem] px-4 py-1.5 flex items-center justify-center shadow-sm shrink-0">
@@ -80,13 +80,13 @@ export const BlockLogin: React.FC = () => {
       </header>
 
       {/* Main Card Container */}
-      <main className="max-w-md mx-auto w-full my-auto py-8">
-        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/60 border border-slate-150 relative overflow-hidden">
+      <main className="max-w-md mx-auto w-full my-auto py-2">
+        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xl shadow-slate-200/60 border border-slate-150 relative overflow-hidden">
           {/* Top Accent */}
           <div className="absolute top-0 left-0 right-0 h-2 gradient-header" />
 
           {/* Heading Title & Tagline */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-5">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-hpv-pink-soft text-hpv-pink-dark mb-3">
               <Circle className="w-2 h-2 fill-current" />
               National Health Mission – Uttarakhand
@@ -108,7 +108,7 @@ export const BlockLogin: React.FC = () => {
           </div>
 
           {/* Block Selection Form */}
-          <form onSubmit={handleContinue} className="space-y-6">
+          <form onSubmit={handleContinue} className="space-y-4">
             
             {/* Urban / Rural Toggle */}
             <div className="flex bg-slate-100 p-1.5 rounded-xl">
@@ -142,7 +142,7 @@ export const BlockLogin: React.FC = () => {
             <button
               type="submit"
               disabled={!selectedBlock}
-              className={`w-full py-4 px-6 rounded-2xl font-bold text-white shadow-lg transition-all duration-200 flex items-center justify-center gap-2 group ${
+              className={`w-full py-3.5 px-6 rounded-2xl font-bold text-white shadow-lg transition-all duration-200 flex items-center justify-center gap-2 group ${
                 selectedBlock
                   ? 'gradient-header hover:shadow-hpv-purple/30 hover:scale-[1.01] active:scale-[0.99] cursor-pointer'
                   : 'bg-slate-300 shadow-none cursor-not-allowed'
@@ -154,7 +154,7 @@ export const BlockLogin: React.FC = () => {
           </form>
 
           {/* Footer Info */}
-          <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center text-xs text-slate-500">
+          <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-center text-xs text-slate-500">
             <span className="flex items-center gap-1 font-semibold text-slate-600">
               Due Listing & Coverage Tracking
             </span>
@@ -163,7 +163,7 @@ export const BlockLogin: React.FC = () => {
       </main>
 
       {/* Footer Branding */}
-      <footer className="max-w-md mx-auto w-full text-center py-3 text-xs text-slate-400 space-y-4">
+      <footer className="max-w-md mx-auto w-full text-center py-2 text-xs text-slate-400 space-y-2">
         <div>HPV Program Monitoring Portal • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
