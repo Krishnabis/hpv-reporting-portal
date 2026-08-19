@@ -65,8 +65,8 @@ export const AdminPopulation: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-6 w-full max-w-7xl mx-auto h-full flex flex-col gap-4">
-      {/* 20% Top Heading & Search */}
-      <div className="h-[20%] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
+      {/* Top Heading & Search */}
+      <div className="flex-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Population Access Control</h2>
           <p className="text-sm text-slate-500 mt-1">Manage and unlock population entry access for all locations.</p>
@@ -84,8 +84,8 @@ export const AdminPopulation: React.FC = () => {
         </div>
       </div>
 
-      {/* 20% High Priority Approval Table */}
-      <div className="h-[20%] shrink-0 bg-rose-50 rounded-2xl shadow-sm border border-rose-200 overflow-hidden flex flex-col">
+      {/* High Priority Approval Table */}
+      <div className="min-h-[220px] max-h-[35%] shrink-0 bg-rose-50 rounded-2xl shadow-sm border border-rose-200 overflow-hidden flex flex-col">
         <div className="px-6 py-3 border-b border-rose-200 flex items-center gap-3 shrink-0">
           <div className="p-1.5 bg-rose-100 rounded-lg text-rose-600 shadow-sm">
             <ShieldAlert className="w-4 h-4" />
