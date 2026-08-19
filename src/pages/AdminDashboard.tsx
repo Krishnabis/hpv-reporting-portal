@@ -380,7 +380,7 @@ export const AdminDashboard: React.FC = () => {
   const totalVacc = reportRows.reduce((sum, r) => sum + (r.beneficiaries_vaccinated || 0), 0);
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col lg:flex-row font-sans">
+    <div className="h-[100dvh] w-full bg-slate-100 flex flex-col lg:flex-row font-sans overflow-hidden">
       {/* Mobile Topbar */}
       <div className="lg:hidden bg-slate-900 text-white p-4 flex items-center justify-between sticky top-0 z-40">
         <Logo size="sm" variant="light" />
@@ -393,7 +393,7 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-50 bg-slate-900 text-slate-300 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-screen lg:shrink-0 ${
+      <aside className={`fixed inset-y-0 left-0 z-50 bg-slate-900 text-slate-300 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-full lg:shrink-0 ${
         mobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64'
       } ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} lg:translate-x-0`}>
         <div>
@@ -1146,7 +1146,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 3: LOCATIONS MASTER */}
         {activeTab === 'locations' && (
-          <div className="space-y-4 overflow-y-auto flex-1 min-h-0">
+          <div className="space-y-4 flex-1 min-h-0 flex flex-col pb-4">
             <div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                 Master Location Registry
@@ -1236,8 +1236,8 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="max-h-[500px] overflow-y-auto">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
+              <div className="overflow-y-auto flex-1">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0">
                     <tr>
@@ -1279,8 +1279,8 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 4: USERS MANAGEMENT */}
         {activeTab === 'users' && (
-          <div className="space-y-5 overflow-y-auto flex-1 min-h-0">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Admin User Management</h1>
+          <div className="space-y-5 flex-1 min-h-0 flex flex-col pb-4">
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight shrink-0">Admin User Management</h1>
 
             {/* Add new admin form */}
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
@@ -1324,13 +1324,14 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Admin list */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
                 <span className="text-xs font-bold text-slate-700">Authorized System Administrators</span>
                 <button onClick={fetchAdminUsers} className="text-[10px] text-blue-500 font-bold hover:underline">↻ Refresh</button>
               </div>
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
+              <div className="overflow-y-auto flex-1">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px] sticky top-0">
                   <tr>
                     <th className="px-4 py-2">Name</th>
                     <th className="px-4 py-2">Username</th>
@@ -1365,11 +1366,12 @@ export const AdminDashboard: React.FC = () => {
               </table>
             </div>
           </div>
+        </div>
         )}
 
         {/* TAB 5: SETTINGS — Reset Password Only */}
         {activeTab === 'settings' && (
-          <div className="space-y-6">
+          <div className="space-y-6 flex-1 min-h-0 overflow-y-auto pb-4">
             <div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Settings</h1>
               <p className="text-xs text-slate-500 mt-1">Manage your account security</p>
@@ -1412,7 +1414,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 6: AUDIT LOGS */}
         {activeTab === 'audit' && (
-          <div className="space-y-6">
+          <div className="space-y-6 flex-1 min-h-0 flex flex-col pb-4">
             <div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                 System Audit Logs
@@ -1422,8 +1424,8 @@ export const AdminDashboard: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="max-h-[600px] overflow-y-auto">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
+              <div className="overflow-y-auto flex-1">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0">
                     <tr>

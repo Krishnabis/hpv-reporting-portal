@@ -65,7 +65,7 @@ export const BlockLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 sm:p-6 lg:p-8">
+    <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-4 sm:p-6 lg:p-8">
       {/* Top Header */}
       <header className="max-w-md mx-auto w-full flex items-center justify-between py-2">
         <Logo size="md" />
