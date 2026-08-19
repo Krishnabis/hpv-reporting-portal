@@ -955,7 +955,7 @@ export const AdminDashboard: React.FC = () => {
                   <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 mb-0.5">
                     <Users className="w-3 h-3" />
                   </div>
-                  <p className="text-[9px] font-bold text-slate-500 line-clamp-1">Total {filterLevel === 'State' ? 'States' : filterLevel === 'District' ? 'Districts' : 'Blocks'}</p>
+                  <p className="text-[9px] font-bold text-slate-500 line-clamp-1">Total Count</p>
                   <p className="text-sm font-extrabold text-blue-700">{totalRows}</p>
                 </div>
                 <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
