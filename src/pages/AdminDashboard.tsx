@@ -980,14 +980,20 @@ export const AdminDashboard: React.FC = () => {
                     <FileText className="w-3 h-3" />
                   </div>
                   <p className="text-[9px] font-bold text-slate-500 line-clamp-1">Line List</p>
-                  <p className="text-sm font-extrabold text-purple-700">{totalLL.toLocaleString()}</p>
+                  <p className="text-sm font-extrabold text-purple-700">
+                    {totalLL.toLocaleString()}
+                    <span className="ml-1 text-[10px] text-purple-500 font-bold">({totalTarget > 0 ? Math.round((totalLL / totalTarget) * 100) : 0}%)</span>
+                  </p>
                 </div>
                 <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
                   <div className="w-6 h-6 bg-pink-50 rounded-full flex items-center justify-center text-pink-500 mb-0.5">
                     <Users className="w-3 h-3" />
                   </div>
                   <p className="text-[9px] font-bold text-slate-500 line-clamp-1">Vaccinated</p>
-                  <p className="text-sm font-extrabold text-pink-700">{totalVacc.toLocaleString()}</p>
+                  <p className="text-sm font-extrabold text-pink-700">
+                    {totalVacc.toLocaleString()}
+                    <span className="ml-1 text-[10px] text-pink-500 font-bold">({totalTarget > 0 ? Math.round((totalVacc / totalTarget) * 100) : 0}%)</span>
+                  </p>
                 </div>
               </div>
 
