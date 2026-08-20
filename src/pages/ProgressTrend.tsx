@@ -210,7 +210,10 @@ export const ProgressTrend: React.FC = () => {
             <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">
               HPV Vaccination Program
             </p>
-            <h1 className="text-xl font-extrabold tracking-tight">{block.name} {block.is_urban ? 'City (Urban)' : 'Block (Rural)'}</h1>
+            <h1 className="text-xl font-extrabold tracking-tight flex items-baseline gap-2">
+              <span>{block.name}</span>
+              <span className="text-sm font-medium text-slate-300">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'}</span>
+            </h1>
             <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>
           </div>
         </div>
@@ -304,7 +307,7 @@ export const ProgressTrend: React.FC = () => {
             </div>
           </div>
 
-          <div className="w-full flex-1 h-[250px] min-h-[250px]">
+          <div style={{ width: '100%', height: 300, minHeight: 300 }}>
             {chartData.length === 0 ? (
               <div className="flex h-full items-center justify-center text-slate-500 font-semibold text-sm">
                 No reporting data found for the selected range.
