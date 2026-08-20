@@ -431,11 +431,11 @@ export const AdminDashboard: React.FC = () => {
               title="Dashboard"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'dashboard'
-                  ? 'bg-hpv-purple-soft text-hpv-purple font-bold shadow-sm shadow-hpv-purple/10'
+                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <LayoutDashboard className={`w-5 h-5 shrink-0 ${activeTab === 'dashboard' ? 'text-hpv-purple' : 'text-slate-400'}`} />
+              <LayoutDashboard className={`w-5 h-5 shrink-0 ${activeTab === 'dashboard' ? 'text-emerald-600' : 'text-slate-400'}`} />
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Dashboard</span>
             </button>
 
@@ -444,11 +444,11 @@ export const AdminDashboard: React.FC = () => {
               title="Reports & Analytics"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'reports'
-                  ? 'bg-hpv-purple-soft text-hpv-purple font-bold shadow-sm shadow-hpv-purple/10'
+                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <FileText className={`w-5 h-5 shrink-0 ${activeTab === 'reports' ? 'text-hpv-purple' : 'text-slate-400'}`} />
+              <FileText className={`w-5 h-5 shrink-0 ${activeTab === 'reports' ? 'text-emerald-600' : 'text-slate-400'}`} />
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Reports</span>
             </button>
 
@@ -457,11 +457,11 @@ export const AdminDashboard: React.FC = () => {
               title="Population"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'population'
-                  ? 'bg-hpv-purple-soft text-hpv-purple font-bold shadow-sm shadow-hpv-purple/10'
+                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <Users className={`w-5 h-5 shrink-0 ${activeTab === 'population' ? 'text-hpv-purple' : 'text-slate-400'}`} />
+              <Users className={`w-5 h-5 shrink-0 ${activeTab === 'population' ? 'text-emerald-600' : 'text-slate-400'}`} />
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Population</span>
             </button>
 
@@ -471,11 +471,11 @@ export const AdminDashboard: React.FC = () => {
               title="Settings"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'settings'
-                  ? 'bg-hpv-purple-soft text-hpv-purple font-bold shadow-sm shadow-hpv-purple/10'
+                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <SettingsIcon className={`w-5 h-5 shrink-0 ${activeTab === 'settings' ? 'text-hpv-purple' : 'text-slate-400'}`} />
+              <SettingsIcon className={`w-5 h-5 shrink-0 ${activeTab === 'settings' ? 'text-emerald-600' : 'text-slate-400'}`} />
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Settings</span>
             </button>
 
@@ -489,7 +489,7 @@ export const AdminDashboard: React.FC = () => {
               <ShieldCheck className="w-4 h-4 text-hpv-teal-dark" />
             </div>
             <div className={`flex flex-col ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
-              <span className="text-xs font-bold text-slate-900 group-hover:text-hpv-purple transition-colors line-clamp-1">{adminUser?.name || 'State HPV Administrator'}</span>
+              <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-800 transition-colors line-clamp-1">{adminUser?.name || 'State HPV Administrator'}</span>
               <span className="text-[10px] text-slate-500 font-mono">@{adminUser?.username || 'UKHPV2026'}</span>
             </div>
           </div>
@@ -850,7 +850,7 @@ export const AdminDashboard: React.FC = () => {
             {/* Filter Form Card */}
             <div className="bg-white p-2.5 lg:px-4 lg:py-2.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 mb-2">
               <div className="flex items-center gap-2 text-sm font-bold text-slate-800 pb-2 lg:pb-0 shrink-0 border-b lg:border-b-0 lg:border-r border-slate-100 lg:pr-4">
-                <Filter className="w-4 h-4 text-hpv-purple" /> Filters
+                <Filter className="w-4 h-4 text-emerald-600" /> Filters
               </div>
 
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 w-full">
@@ -936,7 +936,7 @@ export const AdminDashboard: React.FC = () => {
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Report Result ({reportRows.length} Rows)
                   </span>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-hpv-purple-soft text-hpv-purple font-mono font-bold">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-mono font-bold">
                     Date: {filterDate}
                   </span>
                 </div>
@@ -997,7 +997,7 @@ export const AdminDashboard: React.FC = () => {
 
               {loadingReport ? (
                 <div className="py-12 text-center text-xs text-slate-500 flex flex-col items-center gap-2">
-                  <div className="w-8 h-8 border-3 border-hpv-purple border-t-transparent rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
                   <span>Generating aggregated report...</span>
                 </div>
               ) : reportRows.length > 0 ? (
@@ -1040,7 +1040,7 @@ export const AdminDashboard: React.FC = () => {
                               <td className="px-2 py-1 text-right font-semibold text-hpv-teal-dark">
                                 {row.line_list_received !== null ? row.line_list_received.toLocaleString() : '—'}
                               </td>
-                              <td className="px-2 py-1 text-right font-extrabold text-hpv-purple">
+                              <td className="px-2 py-1 text-right font-extrabold text-emerald-600">
                                 {row.beneficiaries_vaccinated !== null ? row.beneficiaries_vaccinated.toLocaleString() : '—'}
                               </td>
                               <td className="px-2 py-1 text-right">
@@ -1073,7 +1073,7 @@ export const AdminDashboard: React.FC = () => {
                             setRowsPerPage(Number(e.target.value));
                             setCurrentPage(1);
                           }}
-                          className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-hpv-purple"
+                          className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-600"
                         >
                           <option value={10}>10</option>
                           <option value={15}>15</option>
@@ -1160,7 +1160,7 @@ export const AdminDashboard: React.FC = () => {
             {/* Add New Location Panel */}
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <span className="w-5 h-5 bg-hpv-purple rounded-full flex items-center justify-center text-white text-[10px] font-bold">+</span>
+                <span className="w-5 h-5 bg-emerald-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold">+</span>
                 Add New Location
               </h2>
 
@@ -1168,7 +1168,7 @@ export const AdminDashboard: React.FC = () => {
               <div className="flex gap-2 flex-wrap">
                 {(['state', 'district', 'block', 'urban'] as const).map(t => (
                   <button key={t} onClick={() => { setAddLocType(t); setAddLocMsg(''); }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${addLocType === t ? 'bg-hpv-purple text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${addLocType === t ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                     {t === 'state' ? '🏛 New State' : t === 'district' ? '🗺 New District' : t === 'block' ? '🏘 New Block (Rural)' : '🏙 New Urban Body'}
                   </button>
                 ))}
@@ -1179,7 +1179,7 @@ export const AdminDashboard: React.FC = () => {
                 {(addLocType === 'district') && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State *</label>
-                    <select value={addLocStateId} onChange={e => setAddLocStateId(e.target.value)} required className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple">
+                    <select value={addLocStateId} onChange={e => setAddLocStateId(e.target.value)} required className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
                       <option value="">Select state...</option>
                       {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
@@ -1188,7 +1188,7 @@ export const AdminDashboard: React.FC = () => {
                 {(addLocType === 'block' || addLocType === 'urban') && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">District *</label>
-                    <select value={addLocDistrictId} onChange={e => setAddLocDistrictId(e.target.value)} required className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple">
+                    <select value={addLocDistrictId} onChange={e => setAddLocDistrictId(e.target.value)} required className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
                       <option value="">Select district...</option>
                       {allDistrictsList.map(d => (
                         <option key={d.id} value={d.id}>
@@ -1204,13 +1204,13 @@ export const AdminDashboard: React.FC = () => {
                     {addLocType === 'state' ? 'State Name' : addLocType === 'district' ? 'District Name' : addLocType === 'urban' ? 'Urban Body Name' : 'Block Name'} *
                   </label>
                   <input type="text" value={addLocName} onChange={e => setAddLocName(e.target.value)} required placeholder="Enter name..."
-                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple" />
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600" />
                 </div>
                 {/* LGD */}
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">LGD Code *</label>
                   <input type="number" value={addLocLgd} onChange={e => setAddLocLgd(e.target.value)} required placeholder="LGD code..."
-                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple" />
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600" />
                 </div>
                 {/* Submit */}
                 <div className="flex flex-col gap-1">
@@ -1293,22 +1293,22 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Full Name *</label>
                   <input type="text" value={newAdminName} onChange={e => setNewAdminName(e.target.value)} required placeholder="Full name..."
-                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple" />
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600" />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Username *</label>
                   <input type="text" value={newAdminUsername} onChange={e => setNewAdminUsername(e.target.value)} required placeholder="username..."
-                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple" />
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600" />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Password *</label>
                   <input type="password" value={newAdminPassword} onChange={e => setNewAdminPassword(e.target.value)} required placeholder="Min 6 chars..."
-                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple" />
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600" />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Role</label>
                   <select value={newAdminRole} onChange={e => setNewAdminRole(e.target.value)}
-                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-hpv-purple">
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
                     <option value="ADMIN">Admin</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
@@ -1387,17 +1387,17 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Current Password *</label>
                   <input type="password" value={pwCurrent} onChange={e => setPwCurrent(e.target.value)} required placeholder="Current password"
-                    className="px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-hpv-purple" />
+                    className="px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-600" />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">New Password *</label>
                   <input type="password" value={pwNew} onChange={e => setPwNew(e.target.value)} required placeholder="Min 6 characters"
-                    className="px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-hpv-purple" />
+                    className="px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-600" />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Confirm New Password *</label>
                   <input type="password" value={pwConfirm} onChange={e => setPwConfirm(e.target.value)} required placeholder="Repeat new password"
-                    className="px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-hpv-purple" />
+                    className="px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-600" />
                 </div>
                 {pwMsg && <p className={`text-xs font-semibold ${pwMsg.startsWith('✅') ? 'text-emerald-600' : 'text-rose-600'}`}>{pwMsg}</p>}
                 <div className="pt-2 border-t border-slate-100 flex justify-end">
@@ -1441,7 +1441,7 @@ export const AdminDashboard: React.FC = () => {
                     {auditLogs.map(log => (
                       <tr key={log.id} className="hover:bg-slate-50">
                         <td className="p-3 text-slate-500">{new Date(log.created_at).toLocaleString()}</td>
-                        <td className="p-3 font-bold text-hpv-purple">{log.user_id}</td>
+                        <td className="p-3 font-bold text-emerald-600">{log.user_id}</td>
                         <td className="p-3 font-bold text-slate-900">{log.action}</td>
                         <td className="p-3 text-slate-600">{log.entity_type}</td>
                         <td className="p-3 text-slate-400">{log.ip_address || '127.0.0.1'}</td>

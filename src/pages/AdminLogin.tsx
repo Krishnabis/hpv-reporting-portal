@@ -59,7 +59,7 @@ export const AdminLogin: React.FC = () => {
         </div>
         <a
           href="/"
-          className="text-xs font-semibold text-hpv-purple hover:text-hpv-purple-dark px-3 py-1.5 rounded-lg bg-hpv-purple-soft transition-colors"
+          className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 px-3 py-1.5 rounded-lg bg-emerald-50 transition-colors"
         >
           Block Portal
         </a>
@@ -68,10 +68,10 @@ export const AdminLogin: React.FC = () => {
       {/* Main Form */}
       <main className="max-w-md mx-auto w-full my-auto py-8">
         <div className="bg-white border border-slate-150 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/60 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1.5 gradient-pink" />
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-400 to-teal-500" />
 
           <div className="text-center mb-8">
-            <div className="inline-flex p-3 rounded-2xl bg-hpv-purple-dark text-hpv-pink mb-4 border border-hpv-pink/20">
+            <div className="inline-flex p-3 rounded-2xl bg-emerald-600 text-white mb-4 border border-emerald-500">
               <ShieldCheck className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -101,7 +101,7 @@ export const AdminLogin: React.FC = () => {
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   placeholder="Enter admin username"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-hpv-pink focus:ring-2 focus:ring-hpv-pink/20"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
             </div>
@@ -117,7 +117,7 @@ export const AdminLogin: React.FC = () => {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-hpv-pink focus:ring-2 focus:ring-hpv-pink/20"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
             </div>
@@ -125,7 +125,7 @@ export const AdminLogin: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-6 rounded-xl font-bold text-sm text-white gradient-pink shadow-lg shadow-hpv-pink/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <span>{loading ? 'Authenticating...' : 'LOGIN TO ADMIN'}</span>
               <ArrowRight className="w-4 h-4" />
@@ -133,7 +133,7 @@ export const AdminLogin: React.FC = () => {
           </form>
 
           <div className="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">
-            Initial Account Credentials: <span className="font-mono text-hpv-pink font-semibold">UKHPV2026</span>
+            Initial Account Credentials: <span className="font-mono text-emerald-600 font-semibold">UKHPV2026</span>
           </div>
         </div>
       </main>
