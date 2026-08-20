@@ -51,7 +51,7 @@ export const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-4 sm:p-6 lg:p-8">
+    <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-2 sm:p-4">
       {/* Top Header */}
       <header className="max-w-md mx-auto w-full flex items-center justify-between py-2">
         <div className="bg-white rounded-[2rem] px-5 py-2 flex items-center justify-center shadow-sm shrink-0">
@@ -66,12 +66,12 @@ export const AdminLogin: React.FC = () => {
       </header>
 
       {/* Main Form */}
-      <main className="max-w-md mx-auto w-full my-auto py-8">
-        <div className="bg-white border border-slate-150 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/60 relative overflow-hidden">
+      <main className="max-w-md mx-auto w-full my-auto py-2">
+        <div className="bg-white border border-slate-150 rounded-3xl p-5 sm:p-6 shadow-xl shadow-slate-200/60 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-400 to-teal-500" />
 
-          <div className="text-center mb-8">
-            <div className="inline-flex p-3 rounded-2xl bg-emerald-600 text-white mb-4 border border-emerald-500">
+          <div className="text-center mb-5">
+            <div className="inline-flex p-3 rounded-2xl bg-emerald-600 text-white mb-3 border border-emerald-500">
               <ShieldCheck className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -82,7 +82,7 @@ export const AdminLogin: React.FC = () => {
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-4">
             {errorMsg && (
               <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
@@ -132,7 +132,7 @@ export const AdminLogin: React.FC = () => {
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">
+          <div className="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-500">
             Initial Account Credentials: <span className="font-mono text-emerald-600 font-semibold">UKHPV2026</span>
           </div>
         </div>
