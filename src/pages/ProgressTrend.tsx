@@ -80,7 +80,7 @@ export const ProgressTrend: React.FC = () => {
     const target = Math.round(profile.base_population * 0.01);
     
     // 1. Filter by date range
-    let filtered = reports;
+    let filtered = [...reports];
     if (startDate) {
       filtered = filtered.filter(r => r.reporting_date >= startDate);
     }
@@ -129,8 +129,8 @@ export const ProgressTrend: React.FC = () => {
       return {
         dateLabel: key,
         rawDate: lastReport.reporting_date, // for sorting if needed
-        lineListedPct: Number(((lastReport.line_list_count / target) * 100).toFixed(1)),
-        vaccinatedPct: Number(((lastReport.beneficiaries_vaccinated / target) * 100).toFixed(1)),
+        lineListedPct: Math.round((lastReport.line_list_count / target) * 100),
+        vaccinatedPct: Math.round((lastReport.beneficiaries_vaccinated / target) * 100),
         rawLineList: lastReport.line_list_count,
         rawVaccinated: lastReport.beneficiaries_vaccinated
       };
@@ -141,8 +141,11 @@ export const ProgressTrend: React.FC = () => {
     
   }, [reports, profile, startDate, endDate, viewBy]);
 
-  const maxLineListed = chartData.length > 0 ? Math.max(...chartData.map(d => d.lineListedPct)) : 0;
-  const maxVaccinated = chartData.length > 0 ? Math.max(...chartData.map(d => d.vaccinatedPct)) : 0;
+  const latestData = chartData.length > 0 ? chartData[chartData.length - 1] : null;
+  const maxLineListed = latestData ? latestData.lineListedPct : 0;
+  const maxVaccinated = latestData ? latestData.vaccinatedPct : 0;
+  const maxLineListCount = latestData ? latestData.rawLineList : 0;
+  const maxVaccinatedCount = latestData ? latestData.rawVaccinated : 0;
 
   const handleDownload = () => {
     if (chartData.length === 0) return;
@@ -315,12 +318,12 @@ export const ProgressTrend: React.FC = () => {
           <div className="bg-sky-50 border-l-4 border-l-sky-500 rounded-2xl p-3 border-y border-r border-sky-100 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-bold text-sky-700 mb-1">Eligible Girls Line Listed</span>
             <span className="text-2xl font-extrabold font-mono text-sky-800">{maxLineListed}%</span>
-            <span className="text-xs font-semibold text-sky-600/80">Count: {reports.length > 0 ? reports[0].line_list_count.toLocaleString() : 0}</span>
+            <span className="text-xs font-semibold text-sky-600/80">Count: {maxLineListCount.toLocaleString()}</span>
           </div>
           <div className="bg-emerald-50 border-l-4 border-l-emerald-500 rounded-2xl p-3 border-y border-r border-emerald-100 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-bold text-emerald-700 mb-1">Eligible Girls Vaccinated</span>
             <span className="text-2xl font-extrabold font-mono text-emerald-800">{maxVaccinated}%</span>
-            <span className="text-xs font-semibold text-emerald-600/80">Count: {reports.length > 0 ? reports[0].beneficiaries_vaccinated.toLocaleString() : 0}</span>
+            <span className="text-xs font-semibold text-emerald-600/80">Count: {maxVaccinatedCount.toLocaleString()}</span>
           </div>
         </div>
 
