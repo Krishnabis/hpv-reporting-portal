@@ -512,10 +512,10 @@ export const AdminDashboard: React.FC = () => {
 
 
       {/* Main Area — flex column, fills remaining height */}
-      <main className="flex-1 flex flex-col min-h-0 overflow-hidden p-3 sm:p-4 w-full max-w-full">
+      <main className="flex-1 flex flex-col min-h-0 overflow-y-auto lg:overflow-hidden p-3 sm:p-4 w-full max-w-full">
         {/* TAB 1: DASHBOARD OVERVIEW */}
         {activeTab === 'dashboard' && (
-          <div className="flex flex-col h-full gap-2 min-h-0 max-w-7xl mx-auto w-full">
+          <div className="flex flex-col min-h-full lg:h-full gap-2 lg:min-h-0 max-w-7xl mx-auto w-full pb-10 lg:pb-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
@@ -650,9 +650,9 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Split Layout: Ranking & Map — flex-1 fills remaining height */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 flex-1 min-h-0">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-2 flex-none lg:flex-1 lg:min-h-0">
               {/* Left: District Ranking */}
-              <div className="lg:col-span-2 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden min-h-0">
+              <div className="lg:col-span-2 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
 
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
@@ -725,7 +725,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Right: Uttarakhand Interactive Map */}
-              <div className="lg:col-span-3 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden min-h-0">
+              <div className="lg:col-span-3 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-blue-500" /> Uttarakhand Overview
