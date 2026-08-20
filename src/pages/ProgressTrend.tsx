@@ -114,6 +114,9 @@ export const ProgressTrend: React.FC = () => {
         key = `BiW${biweekNo.toString().padStart(2, '0')} ${dCopy.getUTCFullYear()}`;
       } else if (viewBy === 'monthly') {
         key = d.toLocaleString('default', { month: 'short', year: 'numeric' });
+      } else if (viewBy === 'quarterly') {
+        const q = Math.floor(d.getMonth() / 3) + 1;
+        key = `Q${q} ${d.getFullYear()}`;
       }
       
       if (!groups[key]) groups[key] = [];
@@ -187,9 +190,10 @@ export const ProgressTrend: React.FC = () => {
   return (
     <div className="h-[100dvh] w-full bg-slate-50 flex flex-col overflow-hidden">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm shrink-0">
-        <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-end relative min-h-[60px]">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer" onClick={() => navigate('/')}>
-            <img src="/loginlogo.png" alt="Logo" className="h-10 object-contain hover:opacity-80 transition-opacity" />
+        <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-between relative min-h-[60px]">
+          <div className="cursor-pointer flex items-center gap-3" onClick={() => navigate('/')}>
+            <img src="/wheadinglogo.png" alt="Logo" className="h-10 object-contain hover:opacity-80 transition-opacity" />
+            <span className="text-slate-500 italic text-sm font-semibold hidden sm:inline-block">Track | Protect | Eliminate</span>
           </div>
           <button 
             onClick={() => navigate(`/report?blockId=${blockId}`)}
@@ -208,7 +212,7 @@ export const ProgressTrend: React.FC = () => {
           <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
             <Building2 className="w-24 h-24 text-white" />
           </div>
-          <div className="relative z-10">
+          <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">
               HPV Vaccination Program
             </p>
@@ -218,6 +222,34 @@ export const ProgressTrend: React.FC = () => {
             </h1>
             <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>
           </div>
+          
+          {/* Performance Category */}
+          {(() => {
+            const lastReport = reports[0];
+            const target = profile ? Math.round(profile.base_population * 0.01) : 0;
+            let perfPercentage = 0;
+            if (target > 0 && lastReport) {
+              perfPercentage = (lastReport.beneficiaries_vaccinated / target) * 100;
+            }
+            let catImg = 'cat1.png';
+            let catName = 'Aspirational';
+            if (perfPercentage >= 90) { catImg = 'cat4.png'; catName = 'Champions'; }
+            else if (perfPercentage >= 70) { catImg = 'cat3.png'; catName = 'High-Performing'; }
+            else if (perfPercentage >= 30) { catImg = 'cat2.png'; catName = 'Progressing'; }
+            
+            return (
+              <div className="relative z-10 mt-3 sm:mt-0 flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-1.5 self-start sm:self-auto">
+                <span className="text-[10px] uppercase font-bold text-slate-200">Category:</span>
+                <img src={`/${catImg}`} alt={catName} className="h-6 object-contain" />
+                <span className="text-sm font-bold text-white">{catName}</span>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div className="flex items-center gap-2 mt-4 px-1">
+          <Activity className="w-5 h-5 text-hpv-purple" />
+          <h2 className="text-lg font-bold text-slate-800 tracking-tight">Progress Trend</h2>
         </div>
 
         {/* Filter Bar */}
@@ -269,19 +301,19 @@ export const ProgressTrend: React.FC = () => {
         {/* Summary Metric Boxes */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="bg-white border-l-4 border-l-hpv-purple rounded-2xl p-3 border-y border-r border-slate-200 shadow-sm flex flex-col justify-center">
-            <span className="text-[10px] uppercase font-bold text-slate-500 mb-1">HPV Target Population</span>
-            <span className="text-2xl font-extrabold font-mono text-slate-900">{profile ? Math.round(profile.base_population * 0.01).toLocaleString() : 0}</span>
-            <span className="text-xs font-semibold text-slate-500">Goal</span>
+            <span className="text-[10px] uppercase font-bold text-slate-500 mb-1">HPV Vaccination Goal</span>
+            <span className="text-2xl font-extrabold font-mono text-slate-900">&gt;90%</span>
+            <span className="text-xs font-semibold text-slate-500">Goal: &gt;{profile ? Math.round(profile.base_population * 0.01 * 0.90).toLocaleString() : 0}</span>
           </div>
           <div className="bg-sky-50 border-l-4 border-l-sky-500 rounded-2xl p-3 border-y border-r border-sky-100 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-bold text-sky-700 mb-1">Eligible Girls Line Listed</span>
             <span className="text-2xl font-extrabold font-mono text-sky-800">{maxLineListed}%</span>
-            <span className="text-xs font-semibold text-sky-600/80">Cumulative Percentage</span>
+            <span className="text-xs font-semibold text-sky-600/80">Count: {reports.length > 0 ? reports[0].line_list_count.toLocaleString() : 0}</span>
           </div>
           <div className="bg-emerald-50 border-l-4 border-l-emerald-500 rounded-2xl p-3 border-y border-r border-emerald-100 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-bold text-emerald-700 mb-1">Eligible Girls Vaccinated</span>
             <span className="text-2xl font-extrabold font-mono text-emerald-800">{maxVaccinated}%</span>
-            <span className="text-xs font-semibold text-emerald-600/80">Cumulative Percentage</span>
+            <span className="text-xs font-semibold text-emerald-600/80">Count: {reports.length > 0 ? reports[0].beneficiaries_vaccinated.toLocaleString() : 0}</span>
           </div>
         </div>
 
@@ -305,6 +337,7 @@ export const ProgressTrend: React.FC = () => {
                 <option value="weekly">Weekly</option>
                 <option value="biweekly">Bi-weekly</option>
                 <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
               </select>
             </div>
           </div>
@@ -339,7 +372,7 @@ export const ProgressTrend: React.FC = () => {
                     height={36} 
                     wrapperStyle={{ fontSize: '12px', fontWeight: 600, paddingTop: '10px' }}
                   />
-                  <ReferenceLine y={100} label={{ position: 'top', value: `Goal: ${profile ? Math.round(profile.base_population * 0.01).toLocaleString() : 0} (100%)`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
+                  <ReferenceLine y={90} label={{ position: 'top', value: `Goal: ${profile ? Math.round(profile.base_population * 0.01 * 0.90).toLocaleString() : 0} (>90%)`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
                   <Line 
                     type="monotone" 
                     dataKey="lineListedPct" 
@@ -362,12 +395,22 @@ export const ProgressTrend: React.FC = () => {
               </ResponsiveContainer>
             )}
           </div>
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500 font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+            <div className="flex items-center gap-1.5">
+              <div className="w-4 h-4 bg-hpv-purple-soft/50 rounded flex items-center justify-center text-hpv-purple shrink-0">i</div>
+              <span>Run chart shows cumulative progress of line listing and vaccination against the target goal over time.</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-emerald-600 font-bold shrink-0">
+              <span className="w-4 h-4 bg-emerald-100 rounded flex items-center justify-center text-emerald-600">↑</span>
+              <span>Higher is better</span>
+            </div>
+          </div>
         </div>
 
       </main>
 
       <footer className="w-full text-center py-2 text-xs text-slate-400 px-4 space-y-1 shrink-0 bg-white border-t border-slate-200 mt-auto">
-        <div className="font-medium text-[11px] sm:text-[10px]">HPV Program Monitoring Portal • Version: 1.0 • UK 2026</div>
+        <div className="font-medium text-[11px] sm:text-[10px]">HPV Vaccination Program • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-8 object-contain" />

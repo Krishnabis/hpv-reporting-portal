@@ -515,7 +515,7 @@ export const AdminDashboard: React.FC = () => {
         <div className={`mx-3 mb-4 flex flex-col gap-2 ${sidebarCollapsed ? 'items-center' : ''}`}>
           {!sidebarCollapsed && (
             <div className="text-center font-medium text-[10px] text-slate-400 px-1 leading-snug">
-              HPV Program Monitoring Portal<br/>Version: 1.0 • UK 2026
+              HPV Vaccination Program<br/>Version: 1.0 • UK 2026
             </div>
           )}
           <div className="flex items-center justify-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity cursor-pointer">

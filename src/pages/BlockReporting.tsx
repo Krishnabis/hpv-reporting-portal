@@ -211,6 +211,13 @@ export const BlockReporting: React.FC = () => {
 
   if (!block) return null;
 
+  const formatDateStr = (dateStr: string) => {
+    if (!dateStr || dateStr === '—') return '—';
+    const d = new Date(dateStr);
+    const parts = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).split(' ');
+    return `${parts[0]} - ${parts[1]} - ${parts[2]}`;
+  };
+
   const todayStr = new Date().toISOString().split('T')[0];
   const hasPopulation = profile && profile.base_population > 0;
   
@@ -232,9 +239,10 @@ export const BlockReporting: React.FC = () => {
     <div className="h-[100dvh] w-full bg-slate-50 flex flex-col overflow-hidden">
       {/* Header Bar — compact, no "Change Block" or "Admin Portal" once in block view */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center justify-center relative min-h-[60px]">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer" onClick={() => navigate('/')}>
-            <img src="/loginlogo.png" alt="Logo" className="h-10 object-contain hover:opacity-80 transition-opacity" />
+        <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center relative min-h-[60px]">
+          <div className="cursor-pointer flex items-center gap-3" onClick={() => navigate('/')}>
+            <img src="/wheadinglogo.png" alt="Logo" className="h-10 object-contain hover:opacity-80 transition-opacity" />
+            <span className="text-slate-500 italic text-sm font-semibold hidden sm:inline-block">Track | Protect | Eliminate</span>
           </div>
         </div>
       </header>
@@ -258,17 +266,8 @@ export const BlockReporting: React.FC = () => {
               </h1>
               <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0 self-start sm:self-auto">
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 py-2 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-hpv-pink-light" />
-                <div>
-                  <span className="text-[9px] uppercase tracking-wider text-slate-300 font-semibold block">Last Report</span>
-                  <span className="text-sm font-bold text-white font-mono">
-                    {lastReport ? lastReport.reporting_date : '—'}
-                  </span>
-                </div>
-              </div>
-              {hasPopulation && (
+            {hasPopulation && (
+              <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0 self-start sm:self-auto">
                 <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 flex flex-col items-center justify-center">
                   <span className="text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-1">Performance Category</span>
                   <div className="flex items-center gap-2">
@@ -276,8 +275,8 @@ export const BlockReporting: React.FC = () => {
                     <span className="text-sm font-bold text-white tracking-wide">{catName}</span>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -379,15 +378,19 @@ export const BlockReporting: React.FC = () => {
         )}
 
         {/* Daily Reporting Section */}
-        <section className="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-            <div className="flex items-center gap-2 mb-2 sm:mb-0">
-              <Calendar className="w-5 h-5 text-hpv-pink" />
-              <div>
-                <h2 className="text-base font-bold text-slate-900">Daily Reporting</h2>
-                <p className="text-[11px] text-slate-500">Eligible Girls: Line Listed & Vaccinated (Cumulative Count)</p>
+        <section className="bg-white rounded-2xl p-0 border border-slate-200 shadow-sm overflow-hidden mt-6">
+          <div className="bg-hpv-purple-soft/30 px-3 py-2 border-b border-slate-200 flex items-center gap-2">
+            <div className="w-1 h-4 bg-hpv-purple rounded-full"></div>
+            <h2 className="text-sm font-bold text-hpv-purple-dark uppercase tracking-wider">Daily Reporting</h2>
+          </div>
+          <div className="p-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+              <div className="flex items-center gap-2 mb-2 sm:mb-0">
+                <Calendar className="w-5 h-5 text-hpv-pink" />
+                <div>
+                  <p className="text-[11px] text-slate-500"><span className="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-bold">Eligible Girls</span>: Line Listed & Vaccinated (Cumulative Count)</p>
+                </div>
               </div>
-            </div>
             <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto ${
               todaySubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
             }`}>
@@ -420,7 +423,7 @@ export const BlockReporting: React.FC = () => {
                   min="0"
                   value={lineListInput}
                   onChange={e => setLineListInput(e.target.value)}
-                  placeholder={(!todaySubmitted && lastReport) ? `Last entry: ${lastReport.line_list_count}` : "—"}
+                  placeholder={(!todaySubmitted && lastReport) ? `Last Submitted Date: ${formatDateStr(lastReport.reporting_date)}` : "—"}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
                 />
               </div>
@@ -433,7 +436,7 @@ export const BlockReporting: React.FC = () => {
                   min="0"
                   value={vaccinatedInput}
                   onChange={e => setVaccinatedInput(e.target.value)}
-                  placeholder={(!todaySubmitted && lastReport) ? `Last entry: ${lastReport.beneficiaries_vaccinated}` : "—"}
+                  placeholder={(!todaySubmitted && lastReport) ? `Last Submitted Date: ${formatDateStr(lastReport.reporting_date)}` : "—"}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
                 />
               </div>
@@ -462,6 +465,7 @@ export const BlockReporting: React.FC = () => {
               {savingReport ? 'Submitting...' : 'Submit Daily Report'}
             </button>
           </form>
+          </div>
         </section>
 
         {/* Progress Box */}
@@ -471,31 +475,24 @@ export const BlockReporting: React.FC = () => {
               <h2 className="text-sm font-bold text-slate-900">Cumulative Reporting Progress</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-center items-center text-center">
-                <span className="text-[10px] uppercase font-bold text-slate-500 mb-1">Last Entry Values</span>
-                <span className="text-xs font-semibold text-slate-700">Date: <span className="font-mono font-bold text-hpv-purple">{lastReport ? lastReport.reporting_date : '—'}</span></span>
-                <span className="text-xs font-semibold text-slate-700">Line Listed: <span className="font-mono font-bold">{lastLineList}</span></span>
-                <span className="text-xs font-semibold text-slate-700">Vaccinated: <span className="font-mono font-bold">{lastVaccinated}</span></span>
+              <div className="bg-sky-50 border border-sky-100 rounded-xl p-3 flex flex-col justify-center items-center text-center relative overflow-hidden">
+                <span className="text-[10px] uppercase font-bold text-sky-600 mb-1 z-10">Eligible Girls Line Listed</span>
+                <span className="text-2xl font-extrabold font-mono text-sky-700 leading-tight z-10">{target > 0 ? Math.round((lastLineList / target) * 100) : 0}%</span>
+                <span className="text-[10px] font-bold text-sky-700/70 mt-1 z-10">Count ({lastLineList.toLocaleString()})</span>
               </div>
-              <div className="bg-sky-50 border border-sky-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
-                <span className="text-[10px] uppercase font-bold text-sky-600 mb-1">Eligible Girls Line Listed</span>
-                <span className="text-2xl font-extrabold font-mono text-sky-700 leading-tight">{lastLineList}</span>
-                <span className="text-[10px] font-bold text-sky-600/80">({target > 0 ? Math.round((lastLineList / target) * 100) : 0}% of Target)</span>
+              <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col justify-center items-center text-center relative overflow-hidden">
+                <span className="text-[10px] uppercase font-bold text-emerald-600 mb-1 z-10">Eligible Girls Vaccinated</span>
+                <span className="text-2xl font-extrabold font-mono text-emerald-700 leading-tight z-10">{target > 0 ? Math.round((lastVaccinated / target) * 100) : 0}%</span>
+                <span className="text-[10px] font-bold text-emerald-700/70 mt-1 z-10">Count ({lastVaccinated.toLocaleString()})</span>
               </div>
-              <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
-                <span className="text-[10px] uppercase font-bold text-emerald-600 mb-1">Eligible Girls Vaccinated</span>
-                <span className="text-2xl font-extrabold font-mono text-emerald-700 leading-tight">{lastVaccinated}</span>
-                <span className="text-[10px] font-bold text-emerald-600/80">({target > 0 ? Math.round((lastVaccinated / target) * 100) : 0}% of Target)</span>
+              <div 
+                onClick={() => navigate('/progress-trend?blockId=' + blockId)}
+                className="bg-hpv-purple-soft/30 hover:bg-hpv-purple-soft/70 border border-hpv-purple/20 rounded-xl p-3 flex flex-col justify-center items-center text-center cursor-pointer transition-colors"
+              >
+                <Activity className="w-6 h-6 text-hpv-purple mb-2" />
+                <span className="text-xs font-bold text-hpv-purple uppercase tracking-wider">Click to view<br/>progress trends</span>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate('/progress-trend?blockId=' + blockId)}
-              className="w-full py-2.5 rounded-xl font-bold text-sm text-hpv-purple border border-hpv-purple/30 bg-hpv-purple-soft/50 hover:bg-hpv-purple-soft transition-all flex items-center justify-center gap-2"
-            >
-              <Activity className="w-4 h-4" />
-              View Progress Trend
-            </button>
           </section>
         )}
 
@@ -503,7 +500,7 @@ export const BlockReporting: React.FC = () => {
       </main>
 
       <footer className="max-w-3xl mx-auto w-full text-center py-4 text-xs text-slate-400 px-4 space-y-2">
-        <div className="font-medium text-[11px] sm:text-xs">HPV Program Monitoring Portal • Version: 1.0 • UK 2026</div>
+        <div className="font-medium text-[11px] sm:text-xs">HPV Vaccination Program • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-8 object-contain" />

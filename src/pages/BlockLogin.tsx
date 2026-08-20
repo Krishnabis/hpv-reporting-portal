@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Target, Circle, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Target, Circle, ShieldCheck, Download, Phone } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
 
@@ -73,7 +73,7 @@ export const BlockLogin: React.FC = () => {
         </div>
         <a
           href="/admin/login"
-          className="text-xs font-semibold text-hpv-purple hover:text-hpv-purple-dark px-3 py-1.5 rounded-lg bg-hpv-purple-soft transition-colors"
+          className="text-xs font-bold text-emerald-700 hover:text-emerald-800 px-3 py-1.5 rounded-lg bg-emerald-100 transition-colors"
         >
           Admin Login
         </a>
@@ -111,7 +111,7 @@ export const BlockLogin: React.FC = () => {
           <form onSubmit={handleContinue} className="space-y-4">
             
             {/* Urban / Rural Toggle */}
-            <div className="flex bg-slate-100 p-1.5 rounded-xl">
+            <div className="flex bg-slate-200 p-1.5 rounded-xl">
               <button
                 type="button"
                 onClick={() => { setIsUrban(false); setSelectedBlock(null); }}
@@ -154,18 +154,23 @@ export const BlockLogin: React.FC = () => {
           </form>
 
           {/* Footer Info */}
-          <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-center text-xs text-slate-500">
-            <span className="flex items-center gap-1.5 font-semibold text-slate-600">
-              <ShieldCheck className="w-4 h-4 text-blue-500" />
-              Due Listing & Coverage Tracking
-            </span>
+          <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs">
+            <a href="/tracker.pdf" download className="flex items-center gap-1.5 font-bold text-blue-600 hover:text-blue-700 transition-colors">
+              <Download className="w-4 h-4" />
+              HPV Due List Format
+            </a>
+            <div className="hidden sm:block w-px h-4 bg-slate-200" />
+            <a href="tel:+917457007286" className="flex items-center gap-1.5 font-bold text-slate-600 hover:text-slate-800 transition-colors">
+              <Phone className="w-4 h-4 text-emerald-500" />
+              Need help? +91-7457007286
+            </a>
           </div>
         </div>
       </main>
 
       {/* Footer Branding */}
       <footer className="max-w-md mx-auto w-full text-center py-2 text-xs text-slate-400 space-y-2">
-        <div>HPV Program Monitoring Portal • Version: 1.0 • UK 2026</div>
+        <div>HPV Vaccination Program • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-8 object-contain" />

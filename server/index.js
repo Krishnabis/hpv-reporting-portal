@@ -618,6 +618,55 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
+app.get('/api/public/overall-stats', async (req, res) => {
+  try {
+    const targetDateStr = req.query.date || new Date().toISOString().split('T')[0];
+    if (!useSupabase) return res.json({ total_blocks: 0, total_line_list: 0, total_vaccinated: 0, overall_coverage_pct: 0, overall_linelist_pct: 0 });
+
+    const { data: blocks, error: bErr } = await supabase.from('blocks').select('id, district_id').eq('is_active', true);
+    if (bErr) throw bErr;
+
+    const { data: profiles, error: pErr } = await supabase.from('block_reporting_profiles').select('block_id, base_population, initial_hpv_target');
+    if (pErr) throw pErr;
+
+    const { data: reports, error: rErr } = await supabase.from('daily_reports')
+      .select('block_id, line_list_count, beneficiaries_vaccinated, reporting_date')
+      .lte('reporting_date', targetDateStr)
+      .order('reporting_date', { ascending: false });
+    if (rErr) throw rErr;
+
+    const profileMap = {};
+    (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
+
+    const reportMap = {};
+    (reports || []).forEach(r => { 
+      if (!reportMap[r.block_id]) reportMap[r.block_id] = r;
+    });
+
+    let totalLineList = 0, totalVaccinated = 0, totalTarget = 0;
+
+    (blocks || []).forEach(b => {
+      const prof = profileMap[b.id];
+      const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
+      totalTarget += target;
+
+      const rep = reportMap[b.id];
+      if (rep) {
+        totalLineList += rep.line_list_count || 0;
+        totalVaccinated += rep.beneficiaries_vaccinated || 0;
+      }
+    });
+
+    res.json({
+      total_blocks: blocks?.length || 0,
+      total_target: totalTarget,
+      total_line_list: totalLineList,
+      total_vaccinated: totalVaccinated,
+      overall_coverage_pct: totalTarget > 0 ? ((totalVaccinated / totalTarget) * 100).toFixed(1) : 0,
+      overall_linelist_pct: totalTarget > 0 ? ((totalLineList / totalTarget) * 100).toFixed(1) : 0
+    });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
 
 app.get('/api/admin/reports', authenticateToken, async (req, res) => {
   try {

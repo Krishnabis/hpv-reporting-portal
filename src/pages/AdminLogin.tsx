@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, User, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Lock, User, ArrowRight, ShieldCheck, AlertCircle, Circle, Target, Activity } from 'lucide-react';
 import { Logo } from '../components/Logo';
 
 export const AdminLogin: React.FC = () => {
@@ -10,6 +10,14 @@ export const AdminLogin: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/api/public/overall-stats')
+      .then(res => res.json())
+      .then(data => setStats(data))
+      .catch(err => console.error('Failed to fetch public stats:', err));
+  }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +73,7 @@ export const AdminLogin: React.FC = () => {
         </div>
         <a
           href="/"
-          className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 px-3 py-1.5 rounded-lg bg-emerald-50 transition-colors"
+          className="text-xs font-semibold text-hpv-purple hover:text-hpv-purple-dark px-3 py-1.5 rounded-lg bg-hpv-purple-soft transition-colors"
         >
           Block Portal
         </a>
@@ -77,15 +85,31 @@ export const AdminLogin: React.FC = () => {
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-400 to-teal-500" />
 
           <div className="text-center mb-5">
-            <div className="inline-flex p-3 rounded-2xl bg-emerald-600 text-white mb-3 border border-emerald-500">
-              <ShieldCheck className="w-8 h-8" />
-            </div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              HPV Admin Portal
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-hpv-pink-soft text-hpv-pink-dark mb-3">
+              <Circle className="w-2 h-2 fill-current" />
+              National Health Mission – Uttarakhand
+            </span>
+            
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              HPV Vaccination Program
             </h1>
-            <p className="text-xs text-slate-500 mt-1">
-              Authorized State & District Executive Portal
+            
+            <div className="mt-3 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
+              <Target className="w-5 h-5 text-hpv-teal" />
+              Cervical Cancer Elimination
+            </div>
+
+            <p className="mt-4 text-[11px] font-medium text-slate-500 flex items-center justify-center gap-1.5 bg-slate-100/50 p-2 rounded-lg border border-slate-200/50">
+              <img src="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg" alt="India Flag" className="w-4 h-3 rounded-[2px] shadow-sm" />
+              <span>India: <strong className="text-slate-700">78,499</strong> new cases; <strong className="text-slate-700">42,392</strong> deaths <span className="text-[9px] text-slate-400">(NCRP-ICMR, 2024)</span></span>
             </p>
+          </div>
+
+          <div className="text-center mb-5">
+            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center justify-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              Admin Portal
+            </h2>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -146,19 +170,43 @@ export const AdminLogin: React.FC = () => {
               disabled={loading}
               className="w-full py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <span>{loading ? 'Authenticating...' : 'LOGIN TO ADMIN'}</span>
+              <span>{loading ? 'Authenticating...' : 'ADMIN LOGIN'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-500">
+          <div className="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-500 hidden">
             Initial Account Credentials: <span className="font-mono text-emerald-600 font-semibold">UKHPV2026</span>
           </div>
+
+          {/* Stats Boxes */}
+          {stats && (
+            <div className="mt-6 space-y-3">
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center">
+                <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Overall HPV Vaccination Goal</div>
+                <div className="text-[10px] text-slate-500">Target Population: &gt;90% of the 1% of all population of all the blocks/cities combines</div>
+                <div className="text-sm font-extrabold text-slate-800 mt-1">Goal: &gt;90%</div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100/50 text-center flex flex-col items-center justify-center">
+                  <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider leading-tight h-8 flex items-center">Eligible girls<br/>line listed</div>
+                  <div className="text-lg font-extrabold text-emerald-600 my-1">{stats.overall_linelist_pct}%</div>
+                  <div className="text-[10px] font-semibold text-emerald-700/70">Count: {stats.total_line_list?.toLocaleString()}</div>
+                </div>
+                <div className="bg-teal-50 rounded-xl p-3 border border-teal-100/50 text-center flex flex-col items-center justify-center">
+                  <div className="text-[10px] font-bold text-teal-800 uppercase tracking-wider leading-tight h-8 flex items-center">Eligible girls<br/>vaccinated</div>
+                  <div className="text-lg font-extrabold text-teal-600 my-1">{stats.overall_coverage_pct}%</div>
+                  <div className="text-[10px] font-semibold text-teal-700/70">Count: {stats.total_vaccinated?.toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
       <footer className="max-w-md mx-auto w-full text-center py-2 text-xs text-slate-500 space-y-2">
-        <div>HPV Program Monitoring Portal • Version: 1.0 • UK 2026</div>
+        <div>HPV Vaccination Program • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-500">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-8 object-contain" />
