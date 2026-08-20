@@ -427,7 +427,7 @@ export const BlockReporting: React.FC = () => {
                   min="0"
                   value={lineListInput}
                   onChange={e => setLineListInput(e.target.value)}
-                  placeholder={(!todaySubmitted && lastReport) ? lastReport.line_list_count.toString() : "—"}
+                  placeholder={lastReport ? lastReport.line_list_count.toString() : "—"}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
                 />
               </div>
@@ -440,7 +440,7 @@ export const BlockReporting: React.FC = () => {
                   min="0"
                   value={vaccinatedInput}
                   onChange={e => setVaccinatedInput(e.target.value)}
-                  placeholder={(!todaySubmitted && lastReport) ? lastReport.beneficiaries_vaccinated.toString() : "—"}
+                  placeholder={lastReport ? lastReport.beneficiaries_vaccinated.toString() : "—"}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
                 />
               </div>
