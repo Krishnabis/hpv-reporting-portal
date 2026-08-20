@@ -232,8 +232,10 @@ export const BlockReporting: React.FC = () => {
     <div className="h-[100dvh] w-full bg-slate-50 flex flex-col overflow-hidden">
       {/* Header Bar — compact, no "Change Block" or "Admin Portal" once in block view */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center justify-between">
-          <img src="/loginlogo.png" alt="Logo" className="h-10 object-contain" />
+        <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center justify-center relative min-h-[60px]">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer" onClick={() => navigate('/')}>
+            <img src="/loginlogo.png" alt="Logo" className="h-10 object-contain hover:opacity-80 transition-opacity" />
+          </div>
         </div>
       </header>
 
