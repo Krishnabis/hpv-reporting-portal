@@ -112,8 +112,8 @@ export const AdminDashboard: React.FC = () => {
 
   // Token Auth Verification
   useEffect(() => {
-    const token = localStorage.getItem('hpv_admin_token');
-    const userStr = localStorage.getItem('hpv_admin_user');
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+    const userStr = (localStorage.getItem('hpv_admin_user') || sessionStorage.getItem('hpv_admin_user'));
     if (!token || !userStr) {
       navigate('/admin/login');
       return;
@@ -128,7 +128,7 @@ export const AdminDashboard: React.FC = () => {
   const fetchKpis = () => {
     setLoadingKpis(true);
     fetch(`/api/admin/kpis?date=${filterDate}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('hpv_admin_token')}` }
+      headers: { 'Authorization': `Bearer ${(localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'))}` }
     })
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch KPIs');
@@ -182,7 +182,7 @@ export const AdminDashboard: React.FC = () => {
     });
 
     fetch(`/api/admin/reports/generate?${params.toString()}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('hpv_admin_token')}` }
+      headers: { 'Authorization': `Bearer ${(localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'))}` }
     })
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch reports');
@@ -199,7 +199,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const fetchMasterLocations = () => {
-    const token = localStorage.getItem('hpv_admin_token');
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
     Promise.all([
       fetch('/api/locations/blocks').then(r => r.json()),
       fetch('/api/locations/states').then(r => r.json()),
@@ -212,7 +212,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const fetchAdminUsers = () => {
-    const token = localStorage.getItem('hpv_admin_token');
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
     fetch('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(data => setAdminUsers(Array.isArray(data) ? data : []))
@@ -220,7 +220,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const fetchAuditLogs = () => {
-    const token = localStorage.getItem('hpv_admin_token');
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
     fetch('/api/admin/audit-logs', {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -234,7 +234,7 @@ export const AdminDashboard: React.FC = () => {
     if (pwNew !== pwConfirm) { setPwMsg('❌ New passwords do not match'); return; }
     if (pwNew.length < 6) { setPwMsg('❌ Password must be at least 6 characters'); return; }
     setPwLoading(true); setPwMsg('');
-    const token = localStorage.getItem('hpv_admin_token');
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
     try {
       const res = await fetch('/api/admin/change-password', {
         method: 'PUT',
@@ -253,7 +253,7 @@ export const AdminDashboard: React.FC = () => {
   const handleAddAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddAdminLoading(true); setAddAdminMsg('');
-    const token = localStorage.getItem('hpv_admin_token');
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
@@ -273,7 +273,7 @@ export const AdminDashboard: React.FC = () => {
   const handleAddLocation = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddLocLoading(true); setAddLocMsg('');
-    const token = localStorage.getItem('hpv_admin_token');
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
     try {
       let url = ''; let body: any = {};
       if (addLocType === 'state') {
@@ -309,6 +309,8 @@ export const AdminDashboard: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('hpv_admin_token');
     localStorage.removeItem('hpv_admin_user');
+    sessionStorage.removeItem('hpv_admin_token');
+    sessionStorage.removeItem('hpv_admin_user');
     navigate('/admin/login');
   };
 

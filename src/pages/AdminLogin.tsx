@@ -7,6 +7,7 @@ export const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('UKHPV2026');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -39,8 +40,13 @@ export const AdminLogin: React.FC = () => {
       })
       .then(data => {
         setLoading(false);
-        localStorage.setItem('hpv_admin_token', data.token);
-        localStorage.setItem('hpv_admin_user', JSON.stringify(data.user));
+        if (rememberMe) {
+          localStorage.setItem('hpv_admin_token', data.token);
+          localStorage.setItem('hpv_admin_user', JSON.stringify(data.user));
+        } else {
+          sessionStorage.setItem('hpv_admin_token', data.token);
+          sessionStorage.setItem('hpv_admin_user', JSON.stringify(data.user));
+        }
         navigate('/admin');
       })
       .catch((err: any) => {
@@ -120,6 +126,19 @@ export const AdminLogin: React.FC = () => {
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-emerald-600 bg-slate-50 border-slate-300 rounded focus:ring-emerald-500 focus:ring-2 cursor-pointer"
+              />
+              <label htmlFor="rememberMe" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                Remember me
+              </label>
             </div>
 
             <button

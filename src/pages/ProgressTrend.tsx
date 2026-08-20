@@ -339,7 +339,7 @@ export const ProgressTrend: React.FC = () => {
                     height={36} 
                     wrapperStyle={{ fontSize: '12px', fontWeight: 600, paddingTop: '10px' }}
                   />
-                  <ReferenceLine y={90} label={{ position: 'top', value: 'Goal (90%)', fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
+                  <ReferenceLine y={100} label={{ position: 'top', value: `Goal: ${profile ? Math.round(profile.base_population * 0.01).toLocaleString() : 0} (100%)`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
                   <Line 
                     type="monotone" 
                     dataKey="lineListedPct" 
