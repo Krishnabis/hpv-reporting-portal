@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Building2, ArrowLeft, Download, RotateCcw, Calendar as CalendarIcon } from 'lucide-react';
+import { Building2, ArrowLeft, Download, RotateCcw, Calendar as CalendarIcon, Activity } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend
 } from 'recharts';
