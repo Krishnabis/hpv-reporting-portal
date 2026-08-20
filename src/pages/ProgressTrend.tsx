@@ -212,39 +212,46 @@ export const ProgressTrend: React.FC = () => {
           <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
             <Building2 className="w-24 h-24 text-white" />
           </div>
-          <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">
-              HPV Vaccination Program
-            </p>
-            <h1 className="text-xl font-extrabold tracking-tight flex items-baseline gap-2">
-              <span>{block.name}</span>
-              <span className="text-sm font-medium text-slate-300">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'}</span>
-            </h1>
-            <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>
-          </div>
-          
-          {/* Performance Category */}
-          {(() => {
-            const lastReport = reports[0];
-            const target = profile ? Math.round(profile.base_population * 0.01) : 0;
-            let perfPercentage = 0;
-            if (target > 0 && lastReport) {
-              perfPercentage = (lastReport.beneficiaries_vaccinated / target) * 100;
-            }
-            let catImg = 'cat1.png';
-            let catName = 'Aspirational';
-            if (perfPercentage >= 90) { catImg = 'cat4.png'; catName = 'Champions'; }
-            else if (perfPercentage >= 70) { catImg = 'cat3.png'; catName = 'High-Performing'; }
-            else if (perfPercentage >= 30) { catImg = 'cat2.png'; catName = 'Progressing'; }
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+            <div>
+              <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">
+                HPV Vaccination Program
+              </p>
+              <h1 className="text-xl font-extrabold tracking-tight flex items-baseline gap-2">
+                <span>{block.name}</span>
+                <span className="text-sm font-medium text-slate-300">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'}</span>
+              </h1>
+              <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>
+            </div>
             
-            return (
-              <div className="relative z-10 mt-3 sm:mt-0 flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-3 py-1.5 self-start sm:self-auto">
-                <span className="text-[10px] uppercase font-bold text-slate-200">Category:</span>
-                <img src={`/${catImg}`} alt={catName} className="h-6 object-contain" />
-                <span className="text-sm font-bold text-white">{catName}</span>
-              </div>
-            );
-          })()}
+            {(() => {
+              const lastReport = reports[0];
+              const target = profile ? Math.round(profile.base_population * 0.01) : 0;
+              let perfPercentage = 0;
+              if (target > 0 && lastReport) {
+                perfPercentage = (lastReport.beneficiaries_vaccinated / target) * 100;
+              }
+              let catImg = 'cat1.png';
+              let catName = 'Aspirational';
+              if (perfPercentage >= 90) { catImg = 'cat4.png'; catName = 'Champions'; }
+              else if (perfPercentage >= 70) { catImg = 'cat3.png'; catName = 'High-Performing'; }
+              else if (perfPercentage >= 30) { catImg = 'cat2.png'; catName = 'Progressing'; }
+              
+              if (!profile || profile.base_population === 0) return null;
+              
+              return (
+                <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0 self-start sm:self-auto">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 flex flex-col items-center justify-center">
+                    <span className="text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-1">Performance Category</span>
+                    <div className="flex items-center gap-2">
+                      <img src={`/${catImg}`} alt={catName} className="h-8 object-contain" />
+                      <span className="text-sm font-bold text-white tracking-wide">{catName}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
         </div>
 
         <div className="flex items-center gap-2 mt-4 px-1">
