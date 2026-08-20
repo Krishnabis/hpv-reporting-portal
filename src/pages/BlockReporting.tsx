@@ -394,7 +394,9 @@ export const BlockReporting: React.FC = () => {
             <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto ${
               todaySubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
             }`}>
-              {todaySubmitted ? `✓ ${todayStr} Submitted` : `⚠ ${todayStr} Pending`}
+              {todaySubmitted 
+                ? `✓ last submitted on: ${formatDateStr(todayStr)}` 
+                : (lastReport ? `⚠ last submitted on: ${formatDateStr(lastReport.reporting_date)}` : `⚠ ${formatDateStr(todayStr)} Pending`)}
             </span>
           </div>
 
@@ -423,7 +425,7 @@ export const BlockReporting: React.FC = () => {
                   min="0"
                   value={lineListInput}
                   onChange={e => setLineListInput(e.target.value)}
-                  placeholder={(!todaySubmitted && lastReport) ? `Last Submitted Date: ${formatDateStr(lastReport.reporting_date)}` : "—"}
+                  placeholder={(!todaySubmitted && lastReport) ? lastReport.line_list_count.toString() : "—"}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
                 />
               </div>
@@ -436,7 +438,7 @@ export const BlockReporting: React.FC = () => {
                   min="0"
                   value={vaccinatedInput}
                   onChange={e => setVaccinatedInput(e.target.value)}
-                  placeholder={(!todaySubmitted && lastReport) ? `Last Submitted Date: ${formatDateStr(lastReport.reporting_date)}` : "—"}
+                  placeholder={(!todaySubmitted && lastReport) ? lastReport.beneficiaries_vaccinated.toString() : "—"}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
                 />
               </div>
