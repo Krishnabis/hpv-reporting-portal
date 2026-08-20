@@ -193,9 +193,9 @@ export const ProgressTrend: React.FC = () => {
   return (
     <div className="h-[100dvh] w-full bg-slate-50 flex flex-col overflow-hidden">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm shrink-0">
-        <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-between relative min-h-[60px]">
+        <div className="max-w-6xl mx-auto px-4 py-1.5 flex items-center justify-between relative min-h-[48px]">
           <div className="cursor-pointer flex items-center gap-3" onClick={() => navigate('/')}>
-            <img src="/headinglogo.png" alt="Logo" className="h-10 object-contain hover:opacity-80 transition-opacity" />
+            <img src="/headinglogo.png" alt="Logo" className="h-8 object-contain hover:opacity-80 transition-opacity" />
             <span className="text-slate-500 italic text-sm font-semibold hidden sm:inline-block">Track | Protect | Eliminate</span>
           </div>
           <button 
@@ -211,16 +211,16 @@ export const ProgressTrend: React.FC = () => {
       <main className="max-w-6xl mx-auto w-full px-4 py-2 flex flex-col gap-2 flex-1 overflow-hidden min-h-0">
         
         {/* Block Hero Card */}
-        <div className="shrink-0 gradient-header rounded-2xl p-3 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
+        <div className="shrink-0 gradient-header rounded-2xl py-2 px-3 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-            <Building2 className="w-24 h-24 text-white" />
+            <Building2 className="w-16 h-16 text-white" />
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
             <div>
               <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">
                 HPV Vaccination Program
               </p>
-              <h1 className="text-xl font-extrabold tracking-tight flex items-baseline gap-2">
+              <h1 className="text-lg font-extrabold tracking-tight flex items-baseline gap-2">
                 <span>{block.name}</span>
                 <span className="text-sm font-medium text-slate-300">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'}</span>
               </h1>
@@ -244,7 +244,7 @@ export const ProgressTrend: React.FC = () => {
               
               return (
                 <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0 self-start sm:self-auto">
-                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 flex flex-col items-center justify-center">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 py-1.5 flex flex-col items-center justify-center">
                     <span className="text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-1">Performance Category</span>
                     <div className="flex items-center gap-2">
                       <img src={`/${catImg}`} alt={catName} className="h-8 object-contain" />
@@ -257,13 +257,13 @@ export const ProgressTrend: React.FC = () => {
           </div>
         </div>
 
-        <div className="shrink-0 flex items-center gap-2 mt-2 px-1">
-          <Activity className="w-5 h-5 text-hpv-purple" />
-          <h2 className="text-lg font-bold text-slate-800 tracking-tight">Progress Trend</h2>
+        <div className="shrink-0 flex items-center gap-2 mt-1 px-1">
+          <Activity className="w-4 h-4 text-hpv-purple" />
+          <h2 className="text-base font-bold text-slate-800 tracking-tight">Progress Trend</h2>
         </div>
 
         {/* Filter Bar */}
-        <div className="shrink-0 bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-end justify-between gap-3">
+        <div className="shrink-0 bg-white rounded-xl p-2 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-end justify-between gap-2">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Date Range (Start)</label>
@@ -309,27 +309,27 @@ export const ProgressTrend: React.FC = () => {
         </div>
 
         {/* Summary Metric Boxes */}
-        <div className="shrink-0 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="bg-white border-l-4 border-l-hpv-purple rounded-2xl p-3 border-y border-r border-slate-200 shadow-sm flex flex-col justify-center">
-            <span className="text-[10px] uppercase font-bold text-slate-500 mb-1">HPV Vaccination Goal</span>
-            <span className="text-2xl font-extrabold font-mono text-slate-900">&gt;90%</span>
+        <div className="shrink-0 grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="bg-white border-l-4 border-l-hpv-purple rounded-xl p-2 border-y border-r border-slate-200 shadow-sm flex flex-col justify-center">
+            <span className="text-[10px] uppercase font-bold text-slate-500 mb-0.5">HPV Vaccination Goal</span>
+            <span className="text-xl font-extrabold font-mono text-slate-900">&gt;90%</span>
             <span className="text-xs font-semibold text-slate-500">Goal: &gt;{profile ? Math.round(profile.base_population * 0.01 * 0.90).toLocaleString() : 0}</span>
           </div>
-          <div className="bg-sky-50 border-l-4 border-l-sky-500 rounded-2xl p-3 border-y border-r border-sky-100 shadow-sm flex flex-col justify-center">
-            <span className="text-[10px] uppercase font-bold text-sky-700 mb-1">Eligible Girls Line Listed</span>
-            <span className="text-2xl font-extrabold font-mono text-sky-800">{maxLineListed}%</span>
+          <div className="bg-sky-50 border-l-4 border-l-sky-500 rounded-xl p-2 border-y border-r border-sky-100 shadow-sm flex flex-col justify-center">
+            <span className="text-[10px] uppercase font-bold text-sky-700 mb-0.5">Eligible Girls Line Listed</span>
+            <span className="text-xl font-extrabold font-mono text-sky-800">{maxLineListed}%</span>
             <span className="text-xs font-semibold text-sky-600/80">Count: {maxLineListCount.toLocaleString()}</span>
           </div>
-          <div className="bg-emerald-50 border-l-4 border-l-emerald-500 rounded-2xl p-3 border-y border-r border-emerald-100 shadow-sm flex flex-col justify-center">
-            <span className="text-[10px] uppercase font-bold text-emerald-700 mb-1">Eligible Girls Vaccinated</span>
-            <span className="text-2xl font-extrabold font-mono text-emerald-800">{maxVaccinated}%</span>
+          <div className="bg-emerald-50 border-l-4 border-l-emerald-500 rounded-xl p-2 border-y border-r border-emerald-100 shadow-sm flex flex-col justify-center">
+            <span className="text-[10px] uppercase font-bold text-emerald-700 mb-0.5">Eligible Girls Vaccinated</span>
+            <span className="text-xl font-extrabold font-mono text-emerald-800">{maxVaccinated}%</span>
             <span className="text-xs font-semibold text-emerald-600/80">Count: {maxVaccinatedCount.toLocaleString()}</span>
           </div>
         </div>
 
         {/* Chart Area */}
-        <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-sm flex flex-col flex-1 min-h-[150px] overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+        <div className="bg-white rounded-xl p-2 sm:p-3 border border-slate-200 shadow-sm flex flex-col flex-1 min-h-[150px] overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
             <div>
               <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 Run Chart – Cumulative Progress Over Time (%)
