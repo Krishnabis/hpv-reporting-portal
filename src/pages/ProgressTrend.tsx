@@ -208,10 +208,10 @@ export const ProgressTrend: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto w-full px-4 py-2 space-y-2 flex-1 overflow-y-auto min-h-0">
+      <main className="max-w-6xl mx-auto w-full px-4 py-2 flex flex-col gap-2 flex-1 overflow-hidden min-h-0">
         
         {/* Block Hero Card */}
-        <div className="gradient-header rounded-2xl p-3 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
+        <div className="shrink-0 gradient-header rounded-2xl p-3 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
             <Building2 className="w-24 h-24 text-white" />
           </div>
@@ -257,13 +257,13 @@ export const ProgressTrend: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 mt-4 px-1">
+        <div className="shrink-0 flex items-center gap-2 mt-2 px-1">
           <Activity className="w-5 h-5 text-hpv-purple" />
           <h2 className="text-lg font-bold text-slate-800 tracking-tight">Progress Trend</h2>
         </div>
 
         {/* Filter Bar */}
-        <div className="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-end justify-between gap-3">
+        <div className="shrink-0 bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-end justify-between gap-3">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Date Range (Start)</label>
@@ -309,7 +309,7 @@ export const ProgressTrend: React.FC = () => {
         </div>
 
         {/* Summary Metric Boxes */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="shrink-0 grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="bg-white border-l-4 border-l-hpv-purple rounded-2xl p-3 border-y border-r border-slate-200 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-bold text-slate-500 mb-1">HPV Vaccination Goal</span>
             <span className="text-2xl font-extrabold font-mono text-slate-900">&gt;90%</span>
@@ -328,7 +328,7 @@ export const ProgressTrend: React.FC = () => {
         </div>
 
         {/* Chart Area */}
-        <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-sm flex flex-col flex-1 min-h-[300px]">
+        <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-sm flex flex-col flex-1 min-h-[150px] overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
             <div>
               <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
