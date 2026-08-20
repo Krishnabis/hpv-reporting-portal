@@ -1003,7 +1003,7 @@ export const AdminDashboard: React.FC = () => {
               ) : reportRows.length > 0 ? (
                   /* DESKTOP/TABLET TABLE VIEW */
                   <>
-                    <div className="overflow-auto flex-1 rounded-xl border border-slate-200">
+                    <div className="overflow-auto flex-1 min-h-[300px] lg:min-h-0 rounded-xl border border-slate-200">
                       <table className="w-full text-left text-xs whitespace-nowrap">
                         <thead className="bg-[#1e1b4b] text-white font-semibold uppercase tracking-wider sticky top-0 z-10">
                           <tr>
@@ -1238,7 +1238,7 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Table */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
-              <div className="overflow-auto flex-1">
+              <div className="overflow-auto flex-1 min-h-[300px] lg:min-h-0">
                 <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0">
                     <tr>
@@ -1330,7 +1330,7 @@ export const AdminDashboard: React.FC = () => {
                 <span className="text-xs font-bold text-slate-700">Authorized System Administrators</span>
                 <button onClick={fetchAdminUsers} className="text-[10px] text-blue-500 font-bold hover:underline">↻ Refresh</button>
               </div>
-              <div className="overflow-auto flex-1">
+              <div className="overflow-auto flex-1 min-h-[300px] lg:min-h-0">
                 <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px] sticky top-0">
                   <tr>
@@ -1426,7 +1426,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
-              <div className="overflow-auto flex-1">
+              <div className="overflow-auto flex-1 min-h-[300px] lg:min-h-0">
                 <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0">
                     <tr>
