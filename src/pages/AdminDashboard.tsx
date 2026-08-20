@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
+import { AdminTrend } from '../components/AdminTrend';
 import { UttarakhandMap, getTier } from '../components/UttarakhandMap';
 import { AdminPopulation } from '../components/AdminPopulation';
 
@@ -48,7 +49,7 @@ interface ReportRow {
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'locations' | 'users' | 'settings' | 'audit' | 'population'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population'>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
@@ -467,6 +468,18 @@ export const AdminDashboard: React.FC = () => {
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Population</span>
             </button>
 
+            <button
+              onClick={() => handleTabChange('trend')}
+              title="Trend"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
+                activeTab === 'trend'
+                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <TrendingUp className={`w-5 h-5 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Trend</span>
+            </button>
 
             <button
               onClick={() => { handleTabChange('settings'); setMobileMenuOpen(false); }}
@@ -653,9 +666,10 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Split Layout: Ranking & Map — flex-1 fills remaining height */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-2 flex-none lg:flex-1 lg:min-h-0">
-              {/* Left: District Ranking */}
-              <div className="lg:col-span-2 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
-
+              {/* Left Column: District Ranking + Banner */}
+              <div className="lg:col-span-2 flex flex-col gap-2 lg:min-h-0">
+                {/* District Ranking */}
+                <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col flex-1 lg:overflow-hidden min-h-[400px] lg:min-h-0">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     <BarChart3 className="w-4 h-4 text-blue-500" /> District Ranking
@@ -725,6 +739,29 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Bottom Banner */}
+              <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 border border-blue-100 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm overflow-hidden relative shrink-0">
+                <div className="flex items-center gap-4 z-10">
+                  <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center shrink-0 border border-blue-200">
+                    <ShieldCheck className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-900 tracking-tight">HPV KAVACH Progress</h3>
+                    <p className="text-xs text-slate-600 mt-0.5">Track progress across Uttarakhand's districts and ensure no one is left behind.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 z-10 bg-white/50 px-3 py-1.5 rounded-xl border border-blue-100/50 shrink-0">
+                  <div className="text-right hidden sm:block">
+                    <span className="text-xs font-semibold text-slate-500 block">Together, we can build</span>
+                    <span className="text-sm font-bold text-blue-600 block">a healthier Uttarakhand</span>
+                  </div>
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0 border border-blue-200 shadow-sm">
+                    <Users className="w-5 h-5 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
 
               {/* Right: Uttarakhand Interactive Map */}
               <div className="lg:col-span-3 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
@@ -797,28 +834,6 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-[8px] text-slate-500 font-semibold">(Champions)</span>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Banner */}
-            <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 border border-blue-100 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm overflow-hidden relative mt-1">
-              <div className="flex items-center gap-4 z-10">
-                <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center shrink-0 border border-blue-200">
-                  <ShieldCheck className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-blue-900 tracking-tight">HPV KAVACH Progress</h3>
-                  <p className="text-xs text-slate-600 mt-0.5">Track progress across Uttarakhand's districts and ensure no one is left behind.</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 z-10 bg-white/50 px-3 py-1.5 rounded-xl border border-blue-100/50">
-                <div className="text-right hidden sm:block">
-                  <span className="text-xs font-semibold text-slate-500 block">Together, we can build</span>
-                  <span className="text-sm font-bold text-blue-600 block">a healthier Uttarakhand</span>
-                </div>
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0 border border-blue-200 shadow-sm">
-                  <Users className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
             </div>
@@ -1145,6 +1160,23 @@ export const AdminDashboard: React.FC = () => {
               )}
             </div>
           </div>
+        )}
+
+        {/* TAB 2.5: TREND */}
+        {activeTab === 'trend' && (
+          <AdminTrend
+            statesList={statesList}
+            districtsList={districtsList}
+            blocksList={blocksList}
+            filterLevel={filterLevel}
+            setFilterLevel={setFilterLevel}
+            filterStateId={filterStateId}
+            setFilterStateId={setFilterStateId}
+            filterDistrictId={filterDistrictId}
+            setFilterDistrictId={setFilterDistrictId}
+            filterBlockId={filterBlockId}
+            setFilterBlockId={setFilterBlockId}
+          />
         )}
 
         {/* TAB 3: LOCATIONS MASTER */}

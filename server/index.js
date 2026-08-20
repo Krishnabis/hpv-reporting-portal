@@ -702,6 +702,83 @@ app.get('/api/admin/audit-logs', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+app.get('/api/admin/trend', authenticateToken, async (req, res) => {
+  try {
+    const { level = 'STATE', districtId, blockId } = req.query;
+    if (!useSupabase) return res.json({ profile: { base_population: 0 }, reports: [] });
+
+    // 1. Fetch blocks
+    let bQuery = supabase.from('blocks').select('id, name').eq('is_active', true);
+    if (level === 'DISTRICT' && districtId && districtId !== 'ALL') {
+      bQuery = bQuery.eq('district_id', districtId);
+    } else if (level === 'BLOCK' && blockId && blockId !== 'ALL') {
+      bQuery = bQuery.eq('id', blockId);
+    }
+    const { data: blocks, error: bErr } = await bQuery;
+    if (bErr) throw bErr;
+    const blockIds = blocks.map(b => b.id);
+
+    if (blockIds.length === 0) {
+      return res.json({ profile: { base_population: 0 }, reports: [] });
+    }
+
+    // 2. Fetch profiles
+    const { data: profiles, error: pErr } = await supabase
+      .from('block_reporting_profiles')
+      .select('block_id, base_population')
+      .in('block_id', blockIds);
+    if (pErr) throw pErr;
+    
+    let totalBasePopulation = 0;
+    profiles.forEach(p => { totalBasePopulation += p.base_population || 0; });
+
+    // 3. Fetch all reports for these blocks
+    const { data: reports, error: rErr } = await supabase
+      .from('daily_reports')
+      .select('block_id, reporting_date, line_list_count, beneficiaries_vaccinated')
+      .in('block_id', blockIds)
+      .order('reporting_date', { ascending: true });
+    if (rErr) throw rErr;
+
+    // 4. Extract unique dates
+    const uniqueDates = [...new Set(reports.map(r => r.reporting_date))].sort();
+
+    // 5. Aggregate cumulative data per date
+    const aggregatedReports = [];
+    const latestPerBlock = {};
+    let rIdx = 0;
+    
+    for (const date of uniqueDates) {
+      while (rIdx < reports.length && reports[rIdx].reporting_date <= date) {
+        latestPerBlock[reports[rIdx].block_id] = reports[rIdx];
+        rIdx++;
+      }
+      
+      let sumLL = 0;
+      let sumVacc = 0;
+      for (const bId of Object.keys(latestPerBlock)) {
+        sumLL += latestPerBlock[bId].line_list_count || 0;
+        sumVacc += latestPerBlock[bId].beneficiaries_vaccinated || 0;
+      }
+      
+      aggregatedReports.push({
+        reporting_date: date,
+        line_list_count: sumLL,
+        beneficiaries_vaccinated: sumVacc
+      });
+    }
+    
+    res.json({
+      profile: { base_population: totalBasePopulation },
+      reports: aggregatedReports
+    });
+    
+  } catch (err) {
+    console.error('Trend generation error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
   try {
     const { date, districtId, blockId, level = 'BLOCK' } = req.query;
