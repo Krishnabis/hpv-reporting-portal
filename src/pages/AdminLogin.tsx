@@ -91,39 +91,39 @@ export const AdminLogin: React.FC = () => {
       </header>
 
       {/* Main Form */}
-      <main className="max-w-md mx-auto w-full my-auto py-1 flex-1 flex flex-col justify-center min-h-0">
-        <div className="bg-white border border-slate-150 rounded-3xl p-4 sm:p-6 shadow-xl shadow-slate-200/60 relative overflow-hidden flex flex-col min-h-0">
+      <main className="max-w-md mx-auto w-full flex-1 flex flex-col justify-center min-h-0">
+        <div className="bg-white border border-slate-150 rounded-3xl p-4 shadow-xl shadow-slate-200/60 relative overflow-hidden flex flex-col min-h-0">
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-400 to-teal-500" />
 
-          <div className="text-center mb-5">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-hpv-pink-soft text-hpv-pink-dark mb-3">
+          <div className="text-center mb-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-hpv-pink-soft text-hpv-pink-dark mb-2">
               <Circle className="w-2 h-2 fill-current" />
               National Health Mission – Uttarakhand
             </span>
             
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               HPV Vaccination Program
             </h1>
             
-            <div className="mt-2 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
-              <span className="text-xl">🎯</span>
+            <div className="mt-1 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
+              <span className="text-lg">🎯</span>
               Cervical Cancer Elimination
             </div>
 
-            <p className="mt-4 text-[11px] font-medium text-slate-500 flex items-center justify-center gap-1.5 bg-slate-100/50 p-2 rounded-lg border border-slate-200/50">
-              <img src="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg" alt="India Flag" className="w-4 h-3 rounded-[2px] shadow-sm" />
-              <span>India: <strong className="text-slate-700">78,499</strong> new cases; <strong className="text-slate-700">42,392</strong> deaths <span className="text-[9px] text-slate-400">(NCRP-ICMR, 2024)</span></span>
+            <p className="mt-2 text-[10px] font-medium text-slate-500 flex items-center justify-center gap-1.5 bg-slate-100/50 p-1.5 rounded-lg border border-slate-200/50">
+              <img src="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg" alt="India Flag" className="w-3 h-2 rounded-[2px] shadow-sm" />
+              <span>India: <strong className="text-slate-700">78,499</strong> new cases; <strong className="text-slate-700">42,392</strong> deaths <span className="text-[8px] text-slate-400">(NCRP-ICMR, 2024)</span></span>
             </p>
           </div>
 
-          <div className="text-center mb-5">
-            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center justify-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+          <div className="text-center mb-3">
+            <h2 className="text-lg font-extrabold text-slate-900 tracking-tight flex items-center justify-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               Admin Portal
             </h2>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-3 shrink-0">
+          <form onSubmit={handleLogin} className="space-y-2 shrink-0">
             {errorMsg && (
               <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
@@ -137,12 +137,12 @@ export const AdminLogin: React.FC = () => {
               </label>
               <div className="relative">
                 <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                <input
+                  <input
                   type="text"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   placeholder="Enter admin username"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
             </div>
@@ -153,12 +153,12 @@ export const AdminLogin: React.FC = () => {
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                <input
+                  <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
             </div>
@@ -179,7 +179,7 @@ export const AdminLogin: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-2.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
             >
               <span>{loading ? 'Authenticating...' : 'ADMIN LOGIN'}</span>
               <ArrowRight className="w-4 h-4" />
@@ -191,24 +191,24 @@ export const AdminLogin: React.FC = () => {
           </div>
 
           {/* Stats Boxes */}
-          <div className="mt-4 pt-4 border-t border-slate-100 shrink-0">
+          <div className="mt-3 pt-3 border-t border-slate-100 shrink-0">
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-slate-50 rounded-xl p-2 border border-slate-200 text-center flex flex-col justify-center">
-                  <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">Overall HPV Vaccination Goal</div>
-                  <div className="text-lg font-extrabold text-slate-800 my-1">&gt;90%</div>
-                  <div className="text-[10px] text-slate-500 font-semibold">Goal: &gt;{stats.total_target ? Math.round(stats.total_target * 0.90).toLocaleString() : 0}</div>
+                  <div className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-1">Overall HPV Vaccination Goal</div>
+                  <div className="text-base font-extrabold text-slate-800 my-0.5">&gt;90%</div>
+                  <div className="text-[9px] text-slate-500 font-semibold">Goal: &gt;{stats.total_target ? Math.round(stats.total_target * 0.90).toLocaleString() : 0}</div>
                 </div>
                 
                 <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100/50 text-center flex flex-col justify-center">
-                  <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider leading-tight h-6 flex items-center justify-center">Eligible girls line listed</div>
-                  <div className="text-lg font-extrabold text-emerald-600 my-1">{stats.overall_linelist_pct}%</div>
-                  <div className="text-[10px] font-semibold text-emerald-700/70">Count: {stats.total_line_list?.toLocaleString()}</div>
+                  <div className="text-[9px] font-bold text-emerald-800 uppercase tracking-wider leading-tight h-5 flex items-center justify-center">Eligible girls line listed</div>
+                  <div className="text-base font-extrabold text-emerald-600 my-0.5">{stats.overall_linelist_pct}%</div>
+                  <div className="text-[9px] font-semibold text-emerald-700/70">Count: {stats.total_line_list?.toLocaleString()}</div>
                 </div>
                 
                 <div className="bg-teal-50 rounded-xl p-3 border border-teal-100/50 text-center flex flex-col justify-center">
-                  <div className="text-[10px] font-bold text-teal-800 uppercase tracking-wider leading-tight h-6 flex items-center justify-center">Eligible girls vaccinated</div>
-                  <div className="text-lg font-extrabold text-teal-600 my-1">{stats.overall_coverage_pct}%</div>
-                  <div className="text-[10px] font-semibold text-teal-700/70">Count: {stats.total_vaccinated?.toLocaleString()}</div>
+                  <div className="text-[9px] font-bold text-teal-800 uppercase tracking-wider leading-tight h-5 flex items-center justify-center">Eligible girls vaccinated</div>
+                  <div className="text-base font-extrabold text-teal-600 my-0.5">{stats.overall_coverage_pct}%</div>
+                  <div className="text-[9px] font-semibold text-teal-700/70">Count: {stats.total_vaccinated?.toLocaleString()}</div>
                 </div>
             </div>
           </div>
