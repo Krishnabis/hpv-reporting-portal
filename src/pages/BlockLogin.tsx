@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Target, Circle } from 'lucide-react';
+import { ArrowRight, Target, Circle, ShieldCheck } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
 
@@ -102,7 +102,7 @@ export const BlockLogin: React.FC = () => {
             </div>
 
             <p className="mt-4 text-[11px] font-medium text-slate-500 flex items-center justify-center gap-1.5 bg-slate-100/50 p-2 rounded-lg border border-slate-200/50">
-              <span className="text-base">🇮🇳</span>
+              <img src="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg" alt="India Flag" className="w-4 h-3 rounded-[2px] shadow-sm" />
               <span>India: <strong className="text-slate-700">78,499</strong> new cases; <strong className="text-slate-700">42,392</strong> deaths <span className="text-[9px] text-slate-400">(NCRP-ICMR, 2024)</span></span>
             </p>
           </div>
@@ -155,7 +155,8 @@ export const BlockLogin: React.FC = () => {
 
           {/* Footer Info */}
           <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-center text-xs text-slate-500">
-            <span className="flex items-center gap-1 font-semibold text-slate-600">
+            <span className="flex items-center gap-1.5 font-semibold text-slate-600">
+              <ShieldCheck className="w-4 h-4 text-blue-500" />
               Due Listing & Coverage Tracking
             </span>
           </div>
