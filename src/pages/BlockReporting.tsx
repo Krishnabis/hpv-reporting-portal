@@ -4,9 +4,6 @@ import {
   Building2, Calendar, CheckCircle2, AlertTriangle,
   Save, Users, Clock, Lock, Activity, X
 } from 'lucide-react';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend
-} from 'recharts';
 import { Logo } from '../components/Logo';
 
 interface BlockData {
@@ -63,28 +60,6 @@ export const BlockReporting: React.FC = () => {
   const [savingReport, setSavingReport] = useState(false);
   const [reportSuccessMsg, setReportSuccessMsg] = useState('');
   const [reportErrorMsg, setReportErrorMsg] = useState('');
-  const [showTrendChart, setShowTrendChart] = useState(false);
-  const [trendData, setTrendData] = useState<any[]>([]);
-  const [loadingTrend, setLoadingTrend] = useState(false);
-
-  useEffect(() => {
-    if (showTrendChart && trendData.length === 0 && blockId) {
-      setLoadingTrend(true);
-      fetch(`/api/reports/block/${blockId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.error) {
-            const sortedData = data.sort((a: any, b: any) => a.reporting_date.localeCompare(b.reporting_date));
-            setTrendData(sortedData);
-          }
-          setLoadingTrend(false);
-        })
-        .catch(err => {
-          console.error('Error fetching trend data:', err);
-          setLoadingTrend(false);
-        });
-    }
-  }, [showTrendChart, blockId, trendData.length]);
 
   const fetchBlockDetails = () => {
     if (!blockId) return;
@@ -252,12 +227,6 @@ export const BlockReporting: React.FC = () => {
   else if (perfPercentage >= 70) catImg = 'cat3.png';
   else if (perfPercentage >= 30) catImg = 'cat2.png';
 
-  const chartData = trendData.map(report => ({
-    date: report.reporting_date,
-    lineListedPct: target > 0 ? Number(((report.line_list_count / target) * 100).toFixed(1)) : 0,
-    vaccinatedPct: target > 0 ? Number(((report.beneficiaries_vaccinated / target) * 100).toFixed(1)) : 0,
-  }));
-
   return (
     <div className="h-[100dvh] w-full bg-slate-50 flex flex-col overflow-hidden">
       {/* Header Bar — compact, no "Change Block" or "Admin Portal" once in block view */}
@@ -268,10 +237,10 @@ export const BlockReporting: React.FC = () => {
       </header>
 
       {/* Main Container — compact single-page layout */}
-      <main className="max-w-3xl mx-auto w-full px-4 py-4 space-y-4 flex-1 overflow-y-auto min-h-0">
+      <main className="max-w-3xl mx-auto w-full px-4 py-2 space-y-2 flex-1 overflow-y-auto min-h-0">
 
         {/* Block Hero Card */}
-        <div className="gradient-header rounded-2xl p-4 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
+        <div className="gradient-header rounded-2xl p-3 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
             <Building2 className="w-24 h-24 text-white" />
           </div>
@@ -306,7 +275,7 @@ export const BlockReporting: React.FC = () => {
         {/* Population Setup Section */}
         {!hasPopulation || (hasPopulation && profile?.is_unlocked) ? (
           /* FIRST TIME or EDITING: Full setup form */
-          <section className="bg-white rounded-2xl p-5 border-2 border-hpv-pink/40 shadow-sm">
+          <section className="bg-white rounded-2xl p-3 border-2 border-hpv-pink/40 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <Users className="w-5 h-5 text-hpv-purple" />
               <div>
@@ -366,7 +335,7 @@ export const BlockReporting: React.FC = () => {
           </section>
         ) : (
           /* ALREADY SET & LOCKED: Compact population info chip */
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-2">
             <div className="flex items-center gap-3 flex-wrap">
               <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
                 <Lock className="w-4 h-4 text-slate-400" />
@@ -401,7 +370,7 @@ export const BlockReporting: React.FC = () => {
         )}
 
         {/* Daily Reporting Section */}
-        <section className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+        <section className="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
             <div className="flex items-center gap-2 mb-2 sm:mb-0">
               <Calendar className="w-5 h-5 text-hpv-pink" />
@@ -488,7 +457,7 @@ export const BlockReporting: React.FC = () => {
 
         {/* Progress Box */}
         {hasPopulation && (
-          <section className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col gap-4">
+          <section className="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex flex-col gap-2">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <h2 className="text-sm font-bold text-slate-900">Cumulative Reporting Progress</h2>
             </div>
@@ -512,7 +481,7 @@ export const BlockReporting: React.FC = () => {
             </div>
             <button
               type="button"
-              onClick={() => setShowTrendChart(true)}
+              onClick={() => navigate('/progress-trend?blockId=' + blockId)}
               className="w-full py-2.5 rounded-xl font-bold text-sm text-hpv-purple border border-hpv-purple/30 bg-hpv-purple-soft/50 hover:bg-hpv-purple-soft transition-all flex items-center justify-center gap-2"
             >
               <Activity className="w-4 h-4" />
@@ -531,86 +500,6 @@ export const BlockReporting: React.FC = () => {
           <img src="/impactcode.png" alt="ImpactCode" className="h-8 object-contain" />
         </div>
       </footer>
-
-      {/* Trend Chart Modal */}
-      {showTrendChart && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">Run Chart – Cumulative Progress Over Time (%)</h2>
-                <p className="text-xs text-slate-500">View performance trends for {block.name}</p>
-              </div>
-              <button onClick={() => setShowTrendChart(false)} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4 sm:p-6 flex-1 overflow-hidden flex flex-col min-h-[400px]">
-              {loadingTrend ? (
-                <div className="flex items-center justify-center h-full text-slate-500 text-sm font-semibold">
-                  Loading trend data...
-                </div>
-              ) : chartData.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-slate-500 text-sm font-semibold">
-                  No reporting data available yet.
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis 
-                      dataKey="date" 
-                      tick={{ fontSize: 10, fill: '#64748b' }}
-                      tickMargin={10}
-                    />
-                    <YAxis 
-                      domain={[0, 100]} 
-                      tick={{ fontSize: 10, fill: '#64748b' }}
-                      tickFormatter={(value) => `${value}%`}
-                      width={40}
-                    />
-                    <Tooltip 
-                      formatter={(value: number) => [`${value}%`, '']}
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }}
-                    />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={36} 
-                      wrapperStyle={{ fontSize: '12px', fontWeight: 600, paddingTop: '10px' }}
-                    />
-                    <ReferenceLine y={90} label={{ position: 'top', value: 'Goal (90%)', fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
-                    <Line 
-                      type="monotone" 
-                      dataKey="lineListedPct" 
-                      name="Eligible Girls % Line Listed"
-                      stroke="#3b82f6" 
-                      strokeWidth={2}
-                      dot={{ r: 3, strokeWidth: 2 }}
-                      activeDot={{ r: 5 }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="vaccinatedPct" 
-                      name="Eligible Girls Vaccinated %"
-                      stroke="#10b981" 
-                      strokeWidth={2}
-                      dot={{ r: 3, strokeWidth: 2 }}
-                      activeDot={{ r: 5 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span className="flex items-center gap-1.5">
-                <span className="w-4 h-4 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold">i</span>
-                Run chart shows cumulative progress of line listing and vaccination against the target goal over time.
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );
