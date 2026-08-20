@@ -64,8 +64,19 @@ export const AdminLogin: React.FC = () => {
       });
   };
 
+  if (!stats) {
+    return (
+      <div className="h-[100dvh] w-full bg-slate-50 flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-semibold text-slate-600">Loading System Data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-2 sm:p-4">
+    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex flex-col justify-between p-2 sm:p-4">
       {/* Top Header */}
       <header className="max-w-md mx-auto w-full flex items-center justify-between py-2">
         <div className="bg-white rounded-[2rem] px-5 py-2 flex items-center justify-center shadow-sm shrink-0">
@@ -80,8 +91,8 @@ export const AdminLogin: React.FC = () => {
       </header>
 
       {/* Main Form */}
-      <main className="max-w-md mx-auto w-full my-auto py-2">
-        <div className="bg-white border border-slate-150 rounded-3xl p-5 sm:p-6 shadow-xl shadow-slate-200/60 relative overflow-hidden">
+      <main className="max-w-md mx-auto w-full my-auto py-1 flex-1 flex flex-col justify-center min-h-0">
+        <div className="bg-white border border-slate-150 rounded-3xl p-4 sm:p-6 shadow-xl shadow-slate-200/60 relative overflow-hidden flex flex-col min-h-0">
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-400 to-teal-500" />
 
           <div className="text-center mb-5">
@@ -94,7 +105,7 @@ export const AdminLogin: React.FC = () => {
               HPV Vaccination Program
             </h1>
             
-            <div className="mt-3 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
+            <div className="mt-2 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
               <span className="text-xl">🎯</span>
               Cervical Cancer Elimination
             </div>
@@ -112,7 +123,7 @@ export const AdminLogin: React.FC = () => {
             </h2>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-3 shrink-0">
             {errorMsg && (
               <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
@@ -180,10 +191,9 @@ export const AdminLogin: React.FC = () => {
           </div>
 
           {/* Stats Boxes */}
-          {stats && (
-            <div className="mt-6 pt-5 border-t border-slate-100">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center flex flex-col justify-center">
+          <div className="mt-4 pt-4 border-t border-slate-100 shrink-0">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-slate-50 rounded-xl p-2 border border-slate-200 text-center flex flex-col justify-center">
                   <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">Overall HPV Vaccination Goal</div>
                   <div className="text-lg font-extrabold text-slate-800 my-1">&gt;90%</div>
                   <div className="text-[10px] text-slate-500 font-semibold">Goal: &gt;{stats.total_target ? Math.round(stats.total_target * 0.90).toLocaleString() : 0}</div>
@@ -200,9 +210,8 @@ export const AdminLogin: React.FC = () => {
                   <div className="text-lg font-extrabold text-teal-600 my-1">{stats.overall_coverage_pct}%</div>
                   <div className="text-[10px] font-semibold text-teal-700/70">Count: {stats.total_vaccinated?.toLocaleString()}</div>
                 </div>
-              </div>
             </div>
-          )}
+          </div>
         </div>
       </main>
 
