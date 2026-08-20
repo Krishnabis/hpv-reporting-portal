@@ -180,9 +180,9 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
     setViewBy('daily');
   };
 
-  const stateOptions = statesList.map(s => ({ value: s.id.toString(), label: s.name }));
-  const districtOptions = [{ value: 'ALL', label: 'All Districts' }, ...districtsList.map(d => ({ value: d.id.toString(), label: `${d.name} (State: ${d.state_name})` }))];
-  const blockOptions = [{ value: 'ALL', label: 'All Blocks' }, ...blocksList.map(b => ({ value: b.id.toString(), label: `${b.name} (${b.district_name})` }))];
+  const stateOptions = statesList.map(s => ({ id: s.id.toString(), name: s.name }));
+  const districtOptions = [{ id: 'ALL', name: 'All Districts' }, ...districtsList.map(d => ({ id: d.id.toString(), name: `${d.name} (State: ${d.state_name})` }))];
+  const blockOptions = [{ id: 'ALL', name: 'All Blocks' }, ...blocksList.map(b => ({ id: b.id.toString(), name: `${b.name} (${b.district_name})` }))];
 
   return (
     <div className="flex flex-col min-h-full lg:h-full gap-2 lg:min-h-0 max-w-7xl mx-auto w-full pb-10 lg:pb-0">
@@ -211,21 +211,39 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
           {filterLevel === 'State' && (
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State</label>
-              <SearchableSelect options={stateOptions} value={filterStateId} onChange={setFilterStateId} placeholder="Select State..." />
+              <SearchableSelect 
+                label="State"
+                options={stateOptions} 
+                value={stateOptions.find(o => o.id === filterStateId) || null} 
+                onChange={(opt) => opt && setFilterStateId(opt.id.toString())} 
+                placeholder="Select State..." 
+              />
             </div>
           )}
 
           {filterLevel === 'District' && (
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">District</label>
-              <SearchableSelect options={districtOptions} value={filterDistrictId} onChange={setFilterDistrictId} placeholder="Select District..." />
+              <SearchableSelect 
+                label="District"
+                options={districtOptions} 
+                value={districtOptions.find(o => o.id === filterDistrictId) || null} 
+                onChange={(opt) => opt && setFilterDistrictId(opt.id.toString())} 
+                placeholder="Select District..." 
+              />
             </div>
           )}
 
           {filterLevel === 'Block' && (
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Block</label>
-              <SearchableSelect options={blockOptions} value={filterBlockId} onChange={setFilterBlockId} placeholder="Select Block..." />
+              <SearchableSelect 
+                label="Block"
+                options={blockOptions} 
+                value={blockOptions.find(o => o.id === filterBlockId) || null} 
+                onChange={(opt) => opt && setFilterBlockId(opt.id.toString())} 
+                placeholder="Select Block..." 
+              />
             </div>
           )}
         </div>
