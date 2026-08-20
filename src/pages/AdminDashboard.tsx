@@ -930,7 +930,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Generated Report Output Table / Cards */}
-            <div className="bg-white p-2 lg:p-3 rounded-2xl border border-slate-200 shadow-sm flex-1 min-h-[400px] lg:min-h-0 flex flex-col gap-2">
+            <div className="bg-white p-2 lg:p-3 rounded-2xl border border-slate-200 shadow-sm lg:flex-1 lg:min-h-0 flex flex-col gap-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -1003,7 +1003,7 @@ export const AdminDashboard: React.FC = () => {
               ) : reportRows.length > 0 ? (
                   /* DESKTOP/TABLET TABLE VIEW */
                   <>
-                    <div className="overflow-auto flex-1 min-h-[300px] lg:min-h-0 rounded-xl border border-slate-200">
+                    <div className="overflow-x-auto lg:overflow-auto lg:flex-1 rounded-xl border border-slate-200">
                       <table className="w-full text-left text-xs whitespace-nowrap">
                         <thead className="bg-[#1e1b4b] text-white font-semibold uppercase tracking-wider sticky top-0 z-10">
                           <tr>
@@ -1237,8 +1237,8 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
-              <div className="overflow-auto flex-1 min-h-[300px] lg:min-h-0">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden lg:flex-1 lg:min-h-0 flex flex-col">
+              <div className="overflow-x-auto lg:overflow-auto lg:flex-1">
                 <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0">
                     <tr>
@@ -1325,12 +1325,12 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Admin list */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
-              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden lg:flex-1 lg:min-h-0 flex flex-col">
+              <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-700">Authorized System Administrators</span>
                 <button onClick={fetchAdminUsers} className="text-[10px] text-blue-500 font-bold hover:underline">↻ Refresh</button>
               </div>
-              <div className="overflow-auto flex-1 min-h-[300px] lg:min-h-0">
+              <div className="overflow-x-auto lg:overflow-auto lg:flex-1">
                 <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px] sticky top-0">
                   <tr>
@@ -1425,8 +1425,8 @@ export const AdminDashboard: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
-              <div className="overflow-auto flex-1 min-h-[300px] lg:min-h-0">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden lg:flex-1 lg:min-h-0 flex flex-col">
+              <div className="overflow-x-auto lg:overflow-auto lg:flex-1">
                 <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0">
                     <tr>
