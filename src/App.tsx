@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { BlockLogin } from './pages/BlockLogin';
 import { BlockReporting } from './pages/BlockReporting';
 import { AdminLogin } from './pages/AdminLogin';
@@ -24,6 +25,7 @@ export const App: React.FC = () => {
           <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </ImagePreloader>
+      <SpeedInsights />
     </BrowserRouter>
   );
 };
