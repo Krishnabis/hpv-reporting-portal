@@ -116,12 +116,7 @@ export const AdminLogin: React.FC = () => {
             </p>
           </div>
 
-          <div className="text-center mb-3">
-            <h2 className="text-lg font-extrabold text-slate-900 tracking-tight flex items-center justify-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              Admin Portal
-            </h2>
-          </div>
+
 
           <form onSubmit={handleLogin} className="space-y-2 shrink-0">
             {errorMsg && (
@@ -219,7 +214,7 @@ export const AdminLogin: React.FC = () => {
         <div>HPV Vaccination Program • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-500">Powered by:</span>
-          <img src="/impactcode.png" alt="ImpactCode" className="h-8 object-contain" />
+          <img src="/impactcode.png" alt="ImpactCode" className="h-4 object-contain" />
         </div>
       </footer>
     </div>

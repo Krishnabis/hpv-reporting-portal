@@ -520,7 +520,7 @@ export const AdminDashboard: React.FC = () => {
           )}
           <div className="flex items-center justify-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity cursor-pointer">
             {!sidebarCollapsed && <span className="text-[10px] font-bold text-slate-400">Powered by:</span>}
-            <img src="/impactcode.png" alt="ImpactCode" className="h-6 object-contain" />
+            <img src="/impactcode.png" alt="ImpactCode" className="h-3 object-contain" />
           </div>
         </div>
       </aside>
