@@ -825,7 +825,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 2: REPORTS GENERATOR */}
         {activeTab === 'reports' && (
-          <div className="space-y-4 flex-1 min-h-0 flex flex-col pb-4">
+          <div className="space-y-4 flex-1 min-h-full lg:min-h-0 flex flex-col pb-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -930,7 +930,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Generated Report Output Table / Cards */}
-            <div className="bg-white p-2 lg:p-3 rounded-2xl border border-slate-200 shadow-sm flex-1 min-h-0 flex flex-col gap-2">
+            <div className="bg-white p-2 lg:p-3 rounded-2xl border border-slate-200 shadow-sm flex-1 min-h-[400px] lg:min-h-0 flex flex-col gap-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
