@@ -45,6 +45,7 @@ export const BlockReporting: React.FC = () => {
   const [todaySubmitted, setTodaySubmitted] = useState(false);
   const [lastReport, setLastReport] = useState<ReportData | null>(null);
 
+
   // One Time Form State
   const [basePopulationInput, setBasePopulationInput] = useState<string>('');
   const [savingProfile, setSavingProfile] = useState(false);
@@ -220,6 +221,7 @@ export const BlockReporting: React.FC = () => {
 
   const todayStr = new Date().toISOString().split('T')[0];
   const hasPopulation = profile && profile.base_population > 0;
+  const requirePopulationSetup = !hasPopulation;
   
   const target = profile ? Math.round(profile.base_population * 0.01) : 0;
   const lastVaccinated = lastReport?.beneficiaries_vaccinated || 0;
@@ -241,7 +243,7 @@ export const BlockReporting: React.FC = () => {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center relative min-h-[60px]">
           <div className="cursor-pointer flex items-center gap-3" onClick={() => navigate('/')}>
-            <img src="/wheadinglogo.png" alt="Logo" className="h-10 object-contain hover:opacity-80 transition-opacity" />
+            <img src="/headinglogo.png" alt="Logo" className="h-10 object-contain hover:opacity-80 transition-opacity" />
             <span className="text-slate-500 italic text-sm font-semibold hidden sm:inline-block">Track | Protect | Eliminate</span>
           </div>
         </div>

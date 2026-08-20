@@ -95,7 +95,7 @@ export const AdminLogin: React.FC = () => {
             </h1>
             
             <div className="mt-3 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
-              <Target className="w-5 h-5 text-hpv-teal" />
+              <span className="text-xl">🎯</span>
               Cervical Cancer Elimination
             </div>
 
@@ -181,21 +181,22 @@ export const AdminLogin: React.FC = () => {
 
           {/* Stats Boxes */}
           {stats && (
-            <div className="mt-6 space-y-3">
-              <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center">
-                <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Overall HPV Vaccination Goal</div>
-                <div className="text-[10px] text-slate-500">Target Population: &gt;90% of the 1% of all population of all the blocks/cities combines</div>
-                <div className="text-sm font-extrabold text-slate-800 mt-1">Goal: &gt;90%</div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100/50 text-center flex flex-col items-center justify-center">
-                  <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider leading-tight h-8 flex items-center">Eligible girls<br/>line listed</div>
+            <div className="mt-6 pt-5 border-t border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center flex flex-col justify-center">
+                  <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">Overall HPV Vaccination Goal</div>
+                  <div className="text-lg font-extrabold text-slate-800 my-1">&gt;90%</div>
+                  <div className="text-[10px] text-slate-500 font-semibold">Goal: &gt;{stats.total_target ? Math.round(stats.total_target * 0.90).toLocaleString() : 0}</div>
+                </div>
+                
+                <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100/50 text-center flex flex-col justify-center">
+                  <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider leading-tight h-6 flex items-center justify-center">Eligible girls line listed</div>
                   <div className="text-lg font-extrabold text-emerald-600 my-1">{stats.overall_linelist_pct}%</div>
                   <div className="text-[10px] font-semibold text-emerald-700/70">Count: {stats.total_line_list?.toLocaleString()}</div>
                 </div>
-                <div className="bg-teal-50 rounded-xl p-3 border border-teal-100/50 text-center flex flex-col items-center justify-center">
-                  <div className="text-[10px] font-bold text-teal-800 uppercase tracking-wider leading-tight h-8 flex items-center">Eligible girls<br/>vaccinated</div>
+                
+                <div className="bg-teal-50 rounded-xl p-3 border border-teal-100/50 text-center flex flex-col justify-center">
+                  <div className="text-[10px] font-bold text-teal-800 uppercase tracking-wider leading-tight h-6 flex items-center justify-center">Eligible girls vaccinated</div>
                   <div className="text-lg font-extrabold text-teal-600 my-1">{stats.overall_coverage_pct}%</div>
                   <div className="text-[10px] font-semibold text-teal-700/70">Count: {stats.total_vaccinated?.toLocaleString()}</div>
                 </div>
