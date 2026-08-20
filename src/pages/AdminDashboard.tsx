@@ -1004,7 +1004,7 @@ export const AdminDashboard: React.FC = () => {
                   /* DESKTOP/TABLET TABLE VIEW */
                   <>
                     <div className="overflow-auto flex-1 rounded-xl border border-slate-200">
-                      <table className="w-full text-left text-xs">
+                      <table className="w-full text-left text-xs whitespace-nowrap">
                         <thead className="bg-[#1e1b4b] text-white font-semibold uppercase tracking-wider sticky top-0 z-10">
                           <tr>
                             <th className="px-2 py-1.5">District / Block</th>
@@ -1064,8 +1064,8 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     
                     {/* Pagination Controls */}
-                    <div className="flex items-center justify-between px-2 pt-2 border-t border-slate-100">
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-2 pt-3 border-t border-slate-100">
+                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                         <span className="text-xs text-slate-500 font-medium">Show</span>
                         <select
                           value={rowsPerPage}
@@ -1080,14 +1080,14 @@ export const AdminDashboard: React.FC = () => {
                           <option value={20}>20</option>
                           <option value={50}>50</option>
                         </select>
-                        <span className="text-xs text-slate-500 font-medium">entries per page</span>
+                        <span className="text-xs text-slate-500 font-medium">entries</span>
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <div className="text-xs text-slate-500 font-medium">
+                      <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-4">
+                        <div className="text-xs text-slate-500 font-medium whitespace-nowrap">
                           {(currentPage - 1) * rowsPerPage + 1}-{Math.min(currentPage * rowsPerPage, totalRows)} of {totalRows}
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
