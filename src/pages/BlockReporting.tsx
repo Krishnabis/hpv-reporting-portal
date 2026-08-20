@@ -223,9 +223,10 @@ export const BlockReporting: React.FC = () => {
     perfPercentage = (lastVaccinated / target) * 100;
   }
   let catImg = 'cat1.png';
-  if (perfPercentage >= 90) catImg = 'cat4.png';
-  else if (perfPercentage >= 70) catImg = 'cat3.png';
-  else if (perfPercentage >= 30) catImg = 'cat2.png';
+  let catName = 'Aspirational';
+  if (perfPercentage >= 90) { catImg = 'cat4.png'; catName = 'Champions'; }
+  else if (perfPercentage >= 70) { catImg = 'cat3.png'; catName = 'High-Performing'; }
+  else if (perfPercentage >= 30) { catImg = 'cat2.png'; catName = 'Progressing'; }
 
   return (
     <div className="h-[100dvh] w-full bg-slate-50 flex flex-col overflow-hidden">
@@ -263,9 +264,12 @@ export const BlockReporting: React.FC = () => {
                 </div>
               </div>
               {hasPopulation && (
-                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 py-2 flex flex-col items-center justify-center">
-                  <span className="text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-0.5">Performance Category</span>
-                  <img src={`/${catImg}`} alt="Category" className="h-6 object-contain" />
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 flex flex-col items-center justify-center">
+                  <span className="text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-1">Performance Category</span>
+                  <div className="flex items-center gap-2">
+                    <img src={`/${catImg}`} alt={catName} className="h-8 object-contain" />
+                    <span className="text-sm font-bold text-white tracking-wide">{catName}</span>
+                  </div>
                 </div>
               )}
             </div>

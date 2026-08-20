@@ -199,10 +199,10 @@ export const ProgressTrend: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto w-full px-4 py-4 space-y-4 flex-1 overflow-y-auto min-h-0">
+      <main className="max-w-6xl mx-auto w-full px-4 py-2 space-y-2 flex-1 overflow-y-auto min-h-0">
         
         {/* Block Hero Card */}
-        <div className="gradient-header rounded-2xl p-4 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
+        <div className="gradient-header rounded-2xl p-3 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
             <Building2 className="w-24 h-24 text-white" />
           </div>
@@ -216,7 +216,7 @@ export const ProgressTrend: React.FC = () => {
         </div>
 
         {/* Filter Bar */}
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-end justify-between gap-3">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Date Range (Start)</label>
@@ -262,18 +262,18 @@ export const ProgressTrend: React.FC = () => {
         </div>
 
         {/* Summary Metric Boxes */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white border-l-4 border-l-hpv-purple rounded-2xl p-4 border-y border-r border-slate-200 shadow-sm flex flex-col justify-center">
-            <span className="text-[10px] uppercase font-bold text-slate-500 mb-1">Target Coverage</span>
-            <span className="text-2xl font-extrabold font-mono text-slate-900">90%</span>
-            <span className="text-xs font-semibold text-slate-500">Minimum Goal</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="bg-white border-l-4 border-l-hpv-purple rounded-2xl p-3 border-y border-r border-slate-200 shadow-sm flex flex-col justify-center">
+            <span className="text-[10px] uppercase font-bold text-slate-500 mb-1">HPV Target Population</span>
+            <span className="text-2xl font-extrabold font-mono text-slate-900">{profile ? Math.round(profile.base_population * 0.01).toLocaleString() : 0}</span>
+            <span className="text-xs font-semibold text-slate-500">Goal</span>
           </div>
-          <div className="bg-sky-50 border-l-4 border-l-sky-500 rounded-2xl p-4 border-y border-r border-sky-100 shadow-sm flex flex-col justify-center">
+          <div className="bg-sky-50 border-l-4 border-l-sky-500 rounded-2xl p-3 border-y border-r border-sky-100 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-bold text-sky-700 mb-1">Eligible Girls Line Listed</span>
             <span className="text-2xl font-extrabold font-mono text-sky-800">{maxLineListed}%</span>
             <span className="text-xs font-semibold text-sky-600/80">Cumulative Percentage</span>
           </div>
-          <div className="bg-emerald-50 border-l-4 border-l-emerald-500 rounded-2xl p-4 border-y border-r border-emerald-100 shadow-sm flex flex-col justify-center">
+          <div className="bg-emerald-50 border-l-4 border-l-emerald-500 rounded-2xl p-3 border-y border-r border-emerald-100 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-bold text-emerald-700 mb-1">Eligible Girls Vaccinated</span>
             <span className="text-2xl font-extrabold font-mono text-emerald-800">{maxVaccinated}%</span>
             <span className="text-xs font-semibold text-emerald-600/80">Cumulative Percentage</span>
@@ -281,10 +281,10 @@ export const ProgressTrend: React.FC = () => {
         </div>
 
         {/* Chart Area */}
-        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-sm flex flex-col min-h-[450px]">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-sm flex flex-col flex-1 min-h-[300px]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
             <div>
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 Run Chart – Cumulative Progress Over Time (%)
                 <div className="w-4 h-4 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold" title="Shows cumulative progress over the selected interval">i</div>
               </h2>
@@ -304,7 +304,7 @@ export const ProgressTrend: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex-1 min-h-[300px]">
+          <div className="w-full flex-1 h-[250px] min-h-[250px]">
             {chartData.length === 0 ? (
               <div className="flex h-full items-center justify-center text-slate-500 font-semibold text-sm">
                 No reporting data found for the selected range.
@@ -361,8 +361,8 @@ export const ProgressTrend: React.FC = () => {
 
       </main>
 
-      <footer className="w-full text-center py-4 text-xs text-slate-400 px-4 space-y-2 shrink-0 bg-white border-t border-slate-200 mt-auto">
-        <div className="font-medium text-[11px] sm:text-xs">HPV Program Monitoring Portal • Version: 1.0 • UK 2026</div>
+      <footer className="w-full text-center py-2 text-xs text-slate-400 px-4 space-y-1 shrink-0 bg-white border-t border-slate-200 mt-auto">
+        <div className="font-medium text-[11px] sm:text-[10px]">HPV Program Monitoring Portal • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-8 object-contain" />
