@@ -337,7 +337,13 @@ export const ProgressTrend: React.FC = () => {
             <div>
               <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 Run Chart – Cumulative Progress Over Time (%)
-                <div className="w-4 h-4 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold cursor-help" title="Shows cumulative progress over the selected interval. Higher is better.">i</div>
+                <div tabIndex={0} className="relative group flex items-center justify-center outline-none">
+                  <div className="w-4 h-4 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-[10px] font-bold cursor-help transition-colors">i</div>
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus:opacity-100 group-focus:visible transition-all w-max bg-slate-800 text-white text-[11px] font-bold py-1.5 px-3 rounded-lg shadow-xl z-50 text-center pointer-events-none">
+                    Higher is Better!
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                  </div>
+                </div>
               </h2>
             </div>
             <div className="flex items-center gap-2 shrink-0">
