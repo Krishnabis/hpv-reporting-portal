@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Plus, Minus, Maximize } from 'lucide-react';
 
 export interface DistrictMapData {
   district: string;
@@ -64,20 +65,39 @@ export function getTier(pct: number) {
   };
 }
 
-export function UttarakhandMap({ data, selectedKpi }: Props) {
+export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
+  const [hoveredDistrict, setHoveredDistrict] = useState<string | null>(null);
+  const [scale, setScale] = useState(1);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleZoomIn = () => setScale(prev => Math.min(prev + 0.25, 4));
+  const handleZoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.5));
+  const handleResetZoom = () => setScale(1);
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (e.deltaY < 0) {
+      setScale(prev => Math.min(prev + 0.1, 4));
+    } else {
+      setScale(prev => Math.max(prev - 0.1, 0.5));
+    }
+  };
+
   const dataMap: Record<string, DistrictMapData> = {};
   data.forEach(d => { dataMap[d.district] = d; });
 
   const kpiForMap = selectedKpi === 'both' ? 'coverage' : selectedKpi;
 
   return (
-    <div className="relative w-full h-full select-none">
-      <div className="absolute inset-0 flex items-center justify-center p-2">
-        <svg
-          viewBox="58 0 1192 1067"
-          className="max-w-full max-h-full"
-          style={{ display: 'block' }}
-        >
+    <div 
+      className="relative w-full h-full min-h-[300px] flex items-center justify-center bg-[#f8fafc] rounded-xl overflow-hidden border border-slate-200"
+      onWheel={handleWheel}
+      ref={containerRef}
+    >
+      <svg
+        viewBox="58 0 1192 1067"
+        className="w-full h-full max-h-[500px] drop-shadow-md transition-transform duration-200 ease-out"
+        style={{ transform: `scale(${scale})` }}
+      >
         <defs>
           <filter id="dShadow" x="-5%" y="-5%" width="110%" height="110%">
             <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#00000018" />
@@ -98,6 +118,7 @@ export function UttarakhandMap({ data, selectedKpi }: Props) {
               strokeLinejoin="round"
               filter="url(#dShadow)"
               style={{ transition: 'fill 0.3s' }}
+              onMouseEnter={() => setHoveredDistrict(name)}
             />
           );
         })}
@@ -146,6 +167,18 @@ export function UttarakhandMap({ data, selectedKpi }: Props) {
           );
         })}
       </svg>
+      
+      {/* Zoom Controls */}
+      <div className="absolute bottom-4 right-4 flex flex-col gap-1.5 z-10 bg-white/80 backdrop-blur p-1 rounded-lg shadow-sm border border-slate-200">
+        <button onClick={handleZoomIn} className="p-1.5 bg-white hover:bg-slate-100 rounded text-slate-600 transition-colors" title="Zoom In">
+          <Plus className="w-4 h-4" />
+        </button>
+        <button onClick={handleResetZoom} className="p-1.5 bg-white hover:bg-slate-100 rounded text-slate-600 transition-colors border-y border-slate-100" title="Reset Zoom">
+          <Maximize className="w-4 h-4" />
+        </button>
+        <button onClick={handleZoomOut} className="p-1.5 bg-white hover:bg-slate-100 rounded text-slate-600 transition-colors" title="Zoom Out">
+          <Minus className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
