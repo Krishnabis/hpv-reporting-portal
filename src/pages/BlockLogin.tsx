@@ -115,14 +115,14 @@ export const BlockLogin: React.FC = () => {
               <button
                 type="button"
                 onClick={() => { setIsUrban(false); setSelectedBlock(null); }}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isUrban ? 'bg-[#311155] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isUrban ? 'bg-hpv-purple-soft text-[#311155] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 Block (Rural)
               </button>
               <button
                 type="button"
                 onClick={() => { setIsUrban(true); setSelectedBlock(null); }}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isUrban ? 'bg-[#311155] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isUrban ? 'bg-hpv-purple-soft text-[#311155] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 City (Urban)
               </button>
