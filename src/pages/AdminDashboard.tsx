@@ -4,7 +4,7 @@ import {
   LayoutDashboard, FileText, MapPin, Users, Settings as SettingsIcon,
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
-  Building2, ClipboardList, FileSpreadsheet, Target
+  Building2, ClipboardList, FileSpreadsheet, Target, Bell
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
@@ -482,7 +482,7 @@ export const AdminDashboard: React.FC = () => {
               }`}
             >
               <div className="relative">
-                <ShieldAlert className={`w-5 h-5 shrink-0 ${activeTab === 'population' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                <Bell className={`w-5 h-5 shrink-0 ${activeTab === 'population' ? 'text-emerald-600' : 'text-slate-400'}`} />
                 {alertCount > 0 && (
                   <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
                 )}
