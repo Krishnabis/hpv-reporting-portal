@@ -102,7 +102,7 @@ export const AdminLogin: React.FC = () => {
             </span>
             
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              HPV Vaccination Program
+              HPV Vaccination Monitoring Portal
             </h1>
             
             <div className="mt-1 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
@@ -211,7 +211,7 @@ export const AdminLogin: React.FC = () => {
       </main>
 
       <footer className="max-w-md mx-auto w-full text-center py-2 text-xs text-slate-500 space-y-2">
-        <div>HPV Vaccination Program • Version: 1.0 • UK 2026</div>
+        <div>HPV Vaccination Monitoring Portal • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-500">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-4 object-contain" />
