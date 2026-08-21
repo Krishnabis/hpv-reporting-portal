@@ -207,7 +207,7 @@ export const ProgressTrend: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto w-full px-4 py-2 flex flex-col gap-2 flex-1 overflow-y-auto sm:overflow-hidden min-h-0">
+      <main className="max-w-6xl mx-auto w-full px-4 py-2 flex flex-col gap-2 flex-1 overflow-y-auto min-h-0">
         
         {/* Block Hero Card */}
         <div className="shrink-0 gradient-header rounded-2xl py-2 px-3 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
@@ -256,9 +256,9 @@ export const ProgressTrend: React.FC = () => {
           </div>
         </div>
 
-        <div className="shrink-0 flex items-center gap-2 mt-1 px-1">
-          <Activity className="w-4 h-4 text-hpv-purple" />
-          <h2 className="text-base font-bold text-slate-800 tracking-tight">Progress Trend</h2>
+        <div className="flex items-center gap-2 px-1">
+          <Activity className="w-5 h-5 text-hpv-purple" />
+          <h2 className="text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-hpv-purple to-hpv-pink tracking-tight uppercase">Progress Trend</h2>
         </div>
 
         {/* Filter Bar */}
@@ -332,7 +332,7 @@ export const ProgressTrend: React.FC = () => {
         </div>
 
         {/* Chart Area */}
-        <div className="bg-white rounded-xl p-2 sm:p-3 border border-slate-200 shadow-sm flex flex-col flex-1 min-h-[150px] overflow-hidden">
+        <div className="bg-white rounded-xl p-2 sm:p-3 border border-slate-200 shadow-sm flex flex-col flex-1 min-h-[350px] overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
             <div>
               <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
