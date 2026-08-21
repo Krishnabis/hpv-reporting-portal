@@ -111,18 +111,18 @@ export const BlockLogin: React.FC = () => {
           <form onSubmit={handleContinue} className="space-y-4">
             
             {/* Urban / Rural Toggle */}
-            <div className="flex bg-slate-200 p-1.5 rounded-xl">
+            <div className="flex bg-slate-100/50 border border-slate-200/50 p-1.5 rounded-xl">
               <button
                 type="button"
                 onClick={() => { setIsUrban(false); setSelectedBlock(null); }}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isUrban ? 'bg-white text-hpv-purple shadow-sm border border-slate-200/60' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isUrban ? 'bg-[#311155] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 Block (Rural)
               </button>
               <button
                 type="button"
                 onClick={() => { setIsUrban(true); setSelectedBlock(null); }}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isUrban ? 'bg-white text-hpv-purple shadow-sm border border-slate-200/60' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isUrban ? 'bg-[#311155] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 City (Urban)
               </button>
@@ -170,7 +170,7 @@ export const BlockLogin: React.FC = () => {
 
       {/* Footer Branding */}
       <footer className="max-w-md mx-auto w-full text-center py-2 text-xs text-slate-400 space-y-2">
-        <div>HPV Vaccination Program • Version: 1.0 • UK 2026</div>
+        <div>HPV Vaccination Monitoring portal • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-4 object-contain" />

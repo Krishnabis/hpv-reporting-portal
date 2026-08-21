@@ -430,7 +430,7 @@ export const ProgressTrend: React.FC = () => {
       </main>
 
       <footer className="w-full text-center py-2 text-xs text-slate-400 px-4 space-y-1 shrink-0 bg-white border-t border-slate-200 mt-auto">
-        <div className="font-medium text-[11px] sm:text-[10px]">HPV Vaccination Program • Version: 1.0 • UK 2026</div>
+        <div className="font-medium text-[11px] sm:text-[10px]">HPV Vaccination Monitoring portal • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-4 object-contain" />
