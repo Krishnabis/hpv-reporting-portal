@@ -68,11 +68,13 @@ export function getTier(pct: number) {
 export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
   const [hoveredDistrict, setHoveredDistrict] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.25, 4));
   const handleZoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.5));
-  const handleResetZoom = () => setScale(1);
 
   const handleWheel = (e: React.WheelEvent) => {
     if (e.deltaY < 0) {
@@ -82,6 +84,21 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
     }
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   const dataMap: Record<string, DistrictMapData> = {};
   data.forEach(d => { dataMap[d.district] = d; });
 
@@ -89,14 +106,18 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
 
   return (
     <div 
-      className="relative w-full h-full min-h-[300px] flex items-center justify-center bg-[#f8fafc] rounded-xl overflow-hidden border border-slate-200"
+      className={`relative w-full h-full min-h-[300px] flex items-center justify-center bg-[#f8fafc] rounded-xl overflow-hidden border border-slate-200 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       onWheel={handleWheel}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={() => { setHoveredDistrict(null); setIsDragging(false); }}
       ref={containerRef}
     >
       <svg
         viewBox="58 0 1192 1067"
-        className="w-full h-full max-h-[500px] drop-shadow-md transition-transform duration-200 ease-out"
-        style={{ transform: `scale(${scale})` }}
+        className={`w-full h-full max-h-[500px] drop-shadow-md ${isDragging ? '' : 'transition-transform duration-200 ease-out'}`}
+        style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})` }}
       >
         <defs>
           <filter id="dShadow" x="-5%" y="-5%" width="110%" height="110%">
@@ -173,10 +194,7 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
         <button onClick={handleZoomIn} className="p-1.5 bg-white hover:bg-slate-100 rounded text-slate-600 transition-colors" title="Zoom In">
           <Plus className="w-4 h-4" />
         </button>
-        <button onClick={handleResetZoom} className="p-1.5 bg-white hover:bg-slate-100 rounded text-slate-600 transition-colors border-y border-slate-100" title="Reset Zoom">
-          <Maximize className="w-4 h-4" />
-        </button>
-        <button onClick={handleZoomOut} className="p-1.5 bg-white hover:bg-slate-100 rounded text-slate-600 transition-colors" title="Zoom Out">
+        <button onClick={handleZoomOut} className="p-1.5 bg-white hover:bg-slate-100 rounded text-slate-600 transition-colors border-t border-slate-100" title="Zoom Out">
           <Minus className="w-4 h-4" />
         </button>
       </div>

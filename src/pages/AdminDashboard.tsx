@@ -754,13 +754,13 @@ export const AdminDashboard: React.FC = () => {
               {/* Right: Uttarakhand Interactive Map */}
               <div className="lg:col-span-3 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-blue-500" /> Uttarakhand Overview
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-blue-500" /> Uttarakhand Overview
                   </h3>
                   <span className="text-xs font-semibold text-slate-500">13 Districts</span>
                 </div>
 
-                <div className="text-[10px] text-center text-slate-500 mb-2 mt-1">
+                <div className="text-[10px] text-left text-slate-500 mb-2 mt-1">
                   <span className="font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded mr-1">Showing:</span>
                   {selectedKpi === 'coverage' || selectedKpi === 'both' ? (
                     <span>
