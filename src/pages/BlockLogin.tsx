@@ -97,7 +97,7 @@ export const BlockLogin: React.FC = () => {
             </h1>
             
             <div className="mt-3 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
-              <Target className="w-5 h-5 text-hpv-teal" />
+              <span className="text-xl">🎯</span>
               Cervical Cancer Elimination
             </div>
 
