@@ -755,24 +755,57 @@ export const AdminDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Bottom Banner */}
-              <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 border border-blue-100 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm overflow-hidden relative shrink-0">
-                <div className="flex items-center gap-4 z-10">
-                  <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center shrink-0 border border-blue-200">
-                    <ShieldCheck className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-blue-900 tracking-tight">HPV KAVACH Progress</h3>
-                    <p className="text-xs text-slate-600 mt-0.5">Track progress across Uttarakhand's districts and ensure no one is left behind.</p>
-                  </div>
+              {/* Bottom Banner - Global Strategy */}
+              <div className="bg-white border-2 border-slate-100 rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col gap-1.5 p-1.5 bg-[#f8fafc]">
+                {/* Header */}
+                <div className="bg-[#021a40] p-1.5 px-3 rounded-lg flex items-center justify-center gap-2 shadow-sm">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 text-[#f472b6]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C8.69 2 6 4.69 6 8c0 2.21 1.2 4.14 3.03 5.25L4.44 21.4c-.22.39.06.88.51.88h2.39l3.52-6.28 1.14-.65c.34.15.71.24 1.09.24.38 0 .75-.09 1.09-.24l1.14.65 3.52 6.28h2.39c.45 0 .73-.49.51-.88l-4.59-8.15C19.8 12.14 21 10.21 21 8c0-3.31-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+                  </svg>
+                  <h3 className="text-[12px] sm:text-[14px] font-bold text-white tracking-wide">
+                    Global Strategy to Eliminate Cervical Cancer by 2030
+                  </h3>
                 </div>
-                <div className="flex items-center gap-3 z-10 bg-white/50 px-3 py-1.5 rounded-xl border border-blue-100/50 shrink-0">
-                  <div className="text-right hidden sm:block">
-                    <span className="text-xs font-semibold text-slate-500 block">Together, we can build</span>
-                    <span className="text-sm font-bold text-blue-600 block">a healthier Uttarakhand</span>
+                {/* 3 Boxes Grid */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  {/* Pink Box */}
+                  <div className="flex flex-col px-2 py-2 bg-[#fff0f5] border border-[#fbcfe8] border-b-4 border-b-[#f472b6] rounded-lg relative overflow-hidden group">
+                    <div className="flex justify-between items-start z-10 w-full mb-1">
+                      <div className="flex items-end gap-0.5">
+                        <span className="text-2xl sm:text-3xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
+                        <span className="text-sm font-bold text-[#e93c7a] leading-none mb-0.5">%</span>
+                      </div>
+                      <div className="text-xl sm:text-2xl opacity-80 group-hover:scale-110 transition-transform">🛡️💉</div>
+                    </div>
+                    <p className="text-[9px] sm:text-[10px] text-slate-800 font-bold leading-tight z-10 pr-1 mt-auto">
+                      of Girls Vaccinated<br/>Against HPV by Age 15
+                    </p>
                   </div>
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0 border border-blue-200 shadow-sm">
-                    <Users className="w-5 h-5 text-blue-600" />
+                  {/* Teal Box */}
+                  <div className="flex flex-col px-2 py-2 bg-[#f0fdfa] border border-[#ccfbf1] border-b-4 border-b-[#2dd4bf] rounded-lg relative overflow-hidden group">
+                    <div className="flex justify-between items-start z-10 w-full mb-1">
+                      <div className="flex items-end gap-0.5">
+                        <span className="text-2xl sm:text-3xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
+                        <span className="text-sm font-bold text-[#0d9488] leading-none mb-0.5">%</span>
+                      </div>
+                      <div className="text-xl sm:text-2xl opacity-80 group-hover:scale-110 transition-transform">🧪</div>
+                    </div>
+                    <p className="text-[9px] sm:text-[10px] text-slate-800 font-bold leading-tight z-10 pr-1 mt-auto">
+                      of Women Screened with a<br/>high-performance test by<br/>Ages 35 and 45
+                    </p>
+                  </div>
+                  {/* Purple Box */}
+                  <div className="flex flex-col px-2 py-2 bg-[#faf5ff] border border-[#e9d5ff] border-b-4 border-b-[#a855f7] rounded-lg relative overflow-hidden group">
+                    <div className="flex justify-between items-start z-10 w-full mb-1">
+                      <div className="flex items-end gap-0.5">
+                        <span className="text-2xl sm:text-3xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
+                        <span className="text-sm font-bold text-[#7e22ce] leading-none mb-0.5">%</span>
+                      </div>
+                      <div className="text-xl sm:text-2xl opacity-80 group-hover:scale-110 transition-transform">🏥</div>
+                    </div>
+                    <p className="text-[9px] sm:text-[10px] text-slate-800 font-bold leading-tight z-10 pr-1 mt-auto">
+                      of Women identified with<br/>Cervical Disease<br/>Receive Treatment
+                    </p>
                   </div>
                 </div>
               </div>
