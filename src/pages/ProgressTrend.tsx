@@ -195,8 +195,7 @@ export const ProgressTrend: React.FC = () => {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm shrink-0">
         <div className="max-w-6xl mx-auto px-4 py-1.5 flex items-center justify-between relative min-h-[48px]">
           <div className="cursor-pointer flex items-center gap-3" onClick={() => navigate('/')}>
-            <img src="/headinglogo.png" alt="Logo" className="h-8 object-contain hover:opacity-80 transition-opacity" />
-            <span className="text-slate-500 italic text-sm font-semibold hidden sm:inline-block">Track | Protect | Eliminate</span>
+            <img src="/headinglogo.png" alt="Logo" className="h-14 object-contain hover:opacity-80 transition-opacity" />
           </div>
           <button 
             onClick={() => navigate(`/report?blockId=${blockId}`)}
@@ -244,7 +243,7 @@ export const ProgressTrend: React.FC = () => {
               
               return (
                 <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0 self-start sm:self-auto">
-                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 py-1.5 flex flex-col items-center justify-center">
+                  <div className="bg-white/25 backdrop-blur-md border border-white/20 rounded-xl px-3 py-1.5 flex flex-col items-center justify-center">
                     <span className="text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-1">Performance Category</span>
                     <div className="flex items-center gap-2">
                       <img src={`/${catImg}`} alt={catName} className="h-8 object-contain" />

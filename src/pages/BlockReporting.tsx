@@ -242,9 +242,8 @@ export const BlockReporting: React.FC = () => {
       {/* Header Bar — compact, no "Change Block" or "Admin Portal" once in block view */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center relative min-h-[60px]">
-          <div className="cursor-pointer flex items-center gap-3" onClick={() => navigate('/')}>
-            <img src="/headinglogo.png" alt="Logo" className="h-10 object-contain hover:opacity-80 transition-opacity" />
-            <span className="text-slate-500 italic text-sm font-semibold hidden sm:inline-block">Track | Protect | Eliminate</span>
+          <div className="cursor-pointer flex items-center gap-3" onClick={() => {}}>
+            <img src="/headinglogo.png" alt="Logo" className="h-14 object-contain hover:opacity-80 transition-opacity" />
           </div>
         </div>
       </header>
@@ -270,7 +269,7 @@ export const BlockReporting: React.FC = () => {
             </div>
             {hasPopulation && (
               <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0 self-start sm:self-auto">
-                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 flex flex-col items-center justify-center">
+                <div className="bg-white/25 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 flex flex-col items-center justify-center">
                   <span className="text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-1">Performance Category</span>
                   <div className="flex items-center gap-2">
                     <img src={`/${catImg}`} alt={catName} className="h-8 object-contain" />
@@ -357,7 +356,7 @@ export const BlockReporting: React.FC = () => {
                 </p>
               </div>
               <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block" />
-              <div className="hidden sm:block">
+              <div>
                 <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">HPV Target (1%)</p>
                 <p className="text-lg font-extrabold text-slate-900 font-mono leading-tight">
                   {Math.round(profile.base_population * 0.01).toLocaleString()}
@@ -380,15 +379,16 @@ export const BlockReporting: React.FC = () => {
         )}
 
         {/* Daily Reporting Section */}
-        <section className="bg-white rounded-2xl p-0 border border-slate-200 shadow-sm overflow-hidden mt-6">
-          <div className="bg-hpv-purple-soft/30 px-3 py-2 border-b border-slate-200 flex items-center gap-2">
+        <section className="bg-white rounded-2xl p-0 border border-slate-200 shadow-sm relative overflow-hidden mt-6">
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-hpv-purple to-hpv-pink z-10" />
+          <div className="bg-hpv-purple-soft/30 px-3 py-2 pt-3 border-b border-slate-200 flex items-center gap-2">
             <div className="w-1 h-4 bg-hpv-purple rounded-full"></div>
             <h2 className="text-sm font-bold text-hpv-purple-dark uppercase tracking-wider">Daily Reporting</h2>
           </div>
           <div className="p-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
               <div className="flex items-center gap-2 mb-2 sm:mb-0">
-                <Calendar className="w-5 h-5 text-hpv-pink" />
+                <Users className="w-5 h-5 text-hpv-pink" />
                 <div>
                   <p className="text-[11px] text-slate-500"><span className="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-bold">Eligible Girls</span>: Line Listed & Vaccinated (Cumulative Count)</p>
                 </div>
@@ -406,7 +406,7 @@ export const BlockReporting: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Date */}
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Date *</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5"><Calendar className="w-4 h-4 text-hpv-pink" /> Date *</label>
                 <input
                   type="date"
                   value={reportingDate}
