@@ -195,13 +195,19 @@ export const AdminLogin: React.FC = () => {
                 </div>
                 
                 <div className="bg-emerald-50 rounded-xl p-2 border border-emerald-100/50 text-center flex flex-col justify-center">
-                  <div className="text-[9px] font-bold text-emerald-800 uppercase tracking-wider leading-tight h-5 flex items-center justify-center">Eligible girls line listed</div>
+                  <div className="text-[9px] font-bold text-emerald-800 uppercase tracking-wider leading-tight h-8 flex flex-col items-center justify-center text-center">
+                    <span>Eligible girls</span>
+                    <span>line listed</span>
+                  </div>
                   <div className="text-base font-extrabold text-emerald-600 my-0.5 leading-none">{stats.overall_linelist_pct}%</div>
                   <div className="text-[9px] font-semibold text-emerald-700/70">Count: {stats.total_line_list?.toLocaleString()}</div>
                 </div>
                 
                 <div className="bg-teal-50 rounded-xl p-2 border border-teal-100/50 text-center flex flex-col justify-center">
-                  <div className="text-[9px] font-bold text-teal-800 uppercase tracking-wider leading-tight h-5 flex items-center justify-center">Eligible girls vaccinated</div>
+                  <div className="text-[9px] font-bold text-teal-800 uppercase tracking-wider leading-tight h-8 flex flex-col items-center justify-center text-center">
+                    <span>Eligible girls</span>
+                    <span>vaccinated</span>
+                  </div>
                   <div className="text-base font-extrabold text-teal-600 my-0.5 leading-none">{stats.overall_coverage_pct}%</div>
                   <div className="text-[9px] font-semibold text-teal-700/70">Count: {stats.total_vaccinated?.toLocaleString()}</div>
                 </div>

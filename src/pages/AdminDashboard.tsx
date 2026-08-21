@@ -111,6 +111,9 @@ export const AdminDashboard: React.FC = () => {
   // Dashboard KPI selector
   const [selectedKpi, setSelectedKpi] = useState<'coverage' | 'linelist' | 'both'>('coverage');
 
+  // Alerts Count
+  const [alertCount, setAlertCount] = useState(0);
+
   // Token Auth Verification
   useEffect(() => {
     const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
@@ -124,7 +127,21 @@ export const AdminDashboard: React.FC = () => {
     fetchDistricts();
     fetchMasterLocations();
     fetchReport();
+    fetchAlertCount();
   }, []);
+
+  const fetchAlertCount = () => {
+    fetch('/api/admin/population-setup', {
+      headers: { 'Authorization': `Bearer ${(localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'))}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setAlertCount(data.filter(item => item.profile?.unlock_requested).length);
+        }
+      })
+      .catch(err => console.error(err));
+  };
 
   const fetchKpis = () => {
     setLoadingKpis(true);
@@ -457,15 +474,25 @@ export const AdminDashboard: React.FC = () => {
 
             <button
               onClick={() => handleTabChange('population')}
-              title="Population"
-              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
+              title="Alerts"
+              className={`w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all duration-200 group relative overflow-hidden ${
                 activeTab === 'population'
-                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm border border-emerald-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
               }`}
             >
-              <Users className={`w-5 h-5 shrink-0 ${activeTab === 'population' ? 'text-emerald-600' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Population</span>
+              <div className="relative">
+                <ShieldAlert className={`w-5 h-5 shrink-0 ${activeTab === 'population' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                {alertCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
+                )}
+              </div>
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Alerts</span>
+              {alertCount > 0 && !sidebarCollapsed && (
+                <span className="ml-auto bg-rose-100 text-rose-600 py-0.5 px-2 rounded-full text-[10px] font-bold">
+                  {alertCount}
+                </span>
+              )}
             </button>
 
             <button
