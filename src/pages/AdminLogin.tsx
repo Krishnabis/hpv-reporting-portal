@@ -84,9 +84,9 @@ export const AdminLogin: React.FC = () => {
         </div>
         <a
           href="/"
-          className="text-xs font-semibold text-hpv-purple hover:text-hpv-purple-dark px-3 py-1.5 rounded-lg bg-hpv-purple-soft transition-colors"
+          className="text-xs font-bold text-hpv-purple bg-hpv-purple-soft hover:bg-hpv-purple/20 px-4 py-2 rounded-xl transition-colors shrink-0"
         >
-          Block Portal
+          Reporting Login
         </a>
       </header>
 
@@ -189,20 +189,20 @@ export const AdminLogin: React.FC = () => {
           <div className="mt-3 pt-3 border-t border-slate-100 shrink-0">
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-slate-50 rounded-xl p-2 border border-slate-200 text-center flex flex-col justify-center">
-                  <div className="text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-1">Overall HPV Vaccination Goal</div>
-                  <div className="text-base font-extrabold text-slate-800 my-0.5">&gt;90%</div>
+                  <div className="text-[9px] font-bold text-slate-600 uppercase tracking-wider leading-tight h-5 flex items-center justify-center">Overall HPV Vaccination Goal</div>
+                  <div className="text-base font-extrabold text-slate-800 my-0.5 leading-none">&gt;90%</div>
                   <div className="text-[9px] text-slate-500 font-semibold">Goal: &gt;{stats.total_target ? Math.round(stats.total_target * 0.90).toLocaleString() : 0}</div>
                 </div>
                 
-                <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100/50 text-center flex flex-col justify-center">
+                <div className="bg-emerald-50 rounded-xl p-2 border border-emerald-100/50 text-center flex flex-col justify-center">
                   <div className="text-[9px] font-bold text-emerald-800 uppercase tracking-wider leading-tight h-5 flex items-center justify-center">Eligible girls line listed</div>
-                  <div className="text-base font-extrabold text-emerald-600 my-0.5">{stats.overall_linelist_pct}%</div>
+                  <div className="text-base font-extrabold text-emerald-600 my-0.5 leading-none">{stats.overall_linelist_pct}%</div>
                   <div className="text-[9px] font-semibold text-emerald-700/70">Count: {stats.total_line_list?.toLocaleString()}</div>
                 </div>
                 
-                <div className="bg-teal-50 rounded-xl p-3 border border-teal-100/50 text-center flex flex-col justify-center">
+                <div className="bg-teal-50 rounded-xl p-2 border border-teal-100/50 text-center flex flex-col justify-center">
                   <div className="text-[9px] font-bold text-teal-800 uppercase tracking-wider leading-tight h-5 flex items-center justify-center">Eligible girls vaccinated</div>
-                  <div className="text-base font-extrabold text-teal-600 my-0.5">{stats.overall_coverage_pct}%</div>
+                  <div className="text-base font-extrabold text-teal-600 my-0.5 leading-none">{stats.overall_coverage_pct}%</div>
                   <div className="text-[9px] font-semibold text-teal-700/70">Count: {stats.total_vaccinated?.toLocaleString()}</div>
                 </div>
             </div>
