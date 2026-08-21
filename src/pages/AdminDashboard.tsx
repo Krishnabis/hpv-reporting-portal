@@ -132,7 +132,7 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   const fetchAlertCount = () => {
-    fetch('/api/admin/population-setup', {
+    fetch('/api/admin/population', {
       headers: { 'Authorization': `Bearer ${(localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'))}` }
     })
       .then(res => res.json())
@@ -835,12 +835,12 @@ export const AdminDashboard: React.FC = () => {
                   {selectedKpi === 'coverage' || selectedKpi === 'both' ? (
                     <span>
                       <span className="text-blue-600 font-semibold">Vaccination Coverage (%)</span>
-                      <span className="text-slate-800 italic font-semibold"> = (Vaccinated / HPV Target) x 100</span>
+                      <span className="text-slate-500 italic font-medium"> = (Vaccinated / HPV Target) x 100</span>
                     </span>
                   ) : (
                     <span>
                       <span className="text-blue-600 font-semibold">Line Listed (%)</span>
-                      <span className="text-slate-800 italic font-semibold"> = (Line Listed / HPV Target) x 100</span>
+                      <span className="text-slate-500 italic font-medium"> = (Line Listed / HPV Target) x 100</span>
                     </span>
                   )}
                 </div>
