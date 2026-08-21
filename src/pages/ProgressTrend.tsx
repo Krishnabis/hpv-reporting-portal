@@ -311,23 +311,23 @@ export const ProgressTrend: React.FC = () => {
         <div className="shrink-0 grid grid-cols-2 md:grid-cols-4 gap-2">
           <div className="bg-slate-50 border-l-4 border-l-slate-400 rounded-xl p-2 border-y border-r border-slate-200 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-bold text-slate-500 leading-tight">Total Population</span>
-            <span className="text-xl font-extrabold font-mono text-slate-900 leading-tight">{profile ? profile.base_population.toLocaleString() : 0}</span>
-            <span className="text-[10px] font-semibold text-slate-500">HPV Target (1%): {profile ? Math.round(profile.base_population * 0.01).toLocaleString() : 0}</span>
+            <span className="text-xl font-extrabold font-mono text-slate-900 leading-tight">{profile ? profile.base_population.toLocaleString('en-IN') : 0}</span>
+            <span className="text-[10px] font-semibold text-slate-500">HPV Target (1%): {profile ? Math.round(profile.base_population * 0.01).toLocaleString('en-IN') : 0}</span>
           </div>
           <div className="bg-white border-l-4 border-l-hpv-purple rounded-xl p-2 border-y border-r border-slate-200 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-bold text-slate-500 leading-tight">HPV Vaccination Goal</span>
             <span className="text-xl font-extrabold font-mono text-slate-900 leading-tight">&gt;90%</span>
-            <span className="text-[10px] font-semibold text-slate-500">Goal: &gt;{profile ? Math.round(profile.base_population * 0.01 * 0.90).toLocaleString() : 0}</span>
+            <span className="text-[10px] font-semibold text-slate-500">Goal: &gt;{profile ? Math.round(profile.base_population * 0.01 * 0.90).toLocaleString('en-IN') : 0}</span>
           </div>
           <div className="bg-sky-50 border-l-4 border-l-sky-500 rounded-xl p-2 border-y border-r border-sky-100 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-bold text-sky-700 leading-tight">Eligible Girls Line Listed</span>
             <span className="text-lg sm:text-xl font-extrabold font-mono text-sky-800 leading-tight">{maxLineListed}%</span>
-            <span className="text-[10px] font-semibold text-sky-600/80">Count: {maxLineListCount.toLocaleString()}</span>
+            <span className="text-[10px] font-semibold text-sky-600/80">Count: {maxLineListCount.toLocaleString('en-IN')}</span>
           </div>
           <div className="bg-emerald-50 border-l-4 border-l-emerald-500 rounded-xl p-2 border-y border-r border-emerald-100 shadow-sm flex flex-col justify-center">
             <span className="text-[10px] uppercase font-bold text-emerald-700 leading-tight">Eligible Girls Vaccinated</span>
             <span className="text-lg sm:text-xl font-extrabold font-mono text-emerald-800 leading-tight">{maxVaccinated}%</span>
-            <span className="text-[10px] font-semibold text-emerald-600/80">Count: {maxVaccinatedCount.toLocaleString()}</span>
+            <span className="text-[10px] font-semibold text-emerald-600/80">Count: {maxVaccinatedCount.toLocaleString('en-IN')}</span>
           </div>
         </div>
 
@@ -392,7 +392,7 @@ export const ProgressTrend: React.FC = () => {
                     height={36} 
                     wrapperStyle={{ fontSize: '12px', fontWeight: 600, paddingTop: '10px' }}
                   />
-                  <ReferenceLine y={90} label={{ position: 'top', value: `Goal: ${profile ? Math.round(profile.base_population * 0.01 * 0.90).toLocaleString() : 0} (>90%)`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
+                  <ReferenceLine y={90} label={{ position: 'top', value: `Goal: ${profile ? Math.round(profile.base_population * 0.01 * 0.90).toLocaleString('en-IN') : 0} (>90%)`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
                   <Line 
                     type="monotone" 
                     dataKey="lineListedPct" 

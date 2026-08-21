@@ -331,7 +331,7 @@ export const BlockReporting: React.FC = () => {
               {parsedBasePop > 0 && (
                 <div className="bg-hpv-teal-soft/40 border border-hpv-teal/20 rounded-xl px-4 py-2 flex items-center justify-between">
                   <span className="text-xs text-hpv-teal-dark font-semibold">Estimated HPV Target (1%)</span>
-                  <span className="font-mono font-extrabold text-slate-900 text-base">{Math.round(parsedBasePop * 0.01).toLocaleString()}</span>
+                  <span className="font-mono font-extrabold text-slate-900 text-base">{Math.round(parsedBasePop * 0.01).toLocaleString('en-IN')}</span>
                 </div>
               )}
               {profileSuccessMsg && (
@@ -352,14 +352,14 @@ export const BlockReporting: React.FC = () => {
               <div>
                 <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'} Population</p>
                 <p className="text-lg font-extrabold text-slate-900 font-mono leading-tight">
-                  {profile.base_population.toLocaleString()}
+                  {profile.base_population.toLocaleString('en-IN')}
                 </p>
               </div>
               <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block" />
               <div>
                 <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">HPV Target (1%)</p>
                 <p className="text-lg font-extrabold text-slate-900 font-mono leading-tight">
-                  {Math.round(profile.base_population * 0.01).toLocaleString()}
+                  {Math.round(profile.base_population * 0.01).toLocaleString('en-IN')}
                 </p>
               </div>
             </div>
@@ -482,12 +482,12 @@ export const BlockReporting: React.FC = () => {
               <div className="bg-sky-50 border border-sky-100 rounded-xl p-3 flex flex-col justify-center items-center text-center relative overflow-hidden">
                 <span className="text-[10px] uppercase font-bold text-sky-600 mb-1 z-10">Eligible Girls Line Listed</span>
                 <span className="text-2xl font-extrabold font-mono text-sky-700 leading-tight z-10">{target > 0 ? Math.round((lastLineList / target) * 100) : 0}%</span>
-                <span className="text-[10px] font-bold text-sky-700/70 mt-1 z-10">Count ({lastLineList.toLocaleString()})</span>
+                <span className="text-[10px] font-bold text-sky-700/70 mt-1 z-10">Count ({lastLineList.toLocaleString('en-IN')})</span>
               </div>
               <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col justify-center items-center text-center relative overflow-hidden">
                 <span className="text-[10px] uppercase font-bold text-emerald-600 mb-1 z-10">Eligible Girls Vaccinated</span>
                 <span className="text-2xl font-extrabold font-mono text-emerald-700 leading-tight z-10">{target > 0 ? Math.round((lastVaccinated / target) * 100) : 0}%</span>
-                <span className="text-[10px] font-bold text-emerald-700/70 mt-1 z-10">Count ({lastVaccinated.toLocaleString()})</span>
+                <span className="text-[10px] font-bold text-emerald-700/70 mt-1 z-10">Count ({lastVaccinated.toLocaleString('en-IN')})</span>
               </div>
               <div 
                 onClick={() => navigate('/progress-trend?blockId=' + blockId)}

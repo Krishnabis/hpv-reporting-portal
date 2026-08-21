@@ -286,7 +286,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
             <div className="bg-white border-l-4 border-l-emerald-600 rounded-2xl p-3 border-y border-r border-slate-200 shadow-sm flex flex-col justify-center">
               <span className="text-[10px] uppercase font-bold text-slate-500 mb-1">HPV Target Population</span>
-              <span className="text-2xl font-extrabold font-mono text-slate-900">{profile ? Math.round(profile.base_population * 0.01).toLocaleString() : 0}</span>
+              <span className="text-2xl font-extrabold font-mono text-slate-900">{profile ? Math.round(profile.base_population * 0.01).toLocaleString('en-IN') : 0}</span>
               <span className="text-xs font-semibold text-slate-500">Goal ({scopeName})</span>
             </div>
             <div className="bg-sky-50 border-l-4 border-l-sky-500 rounded-2xl p-3 border-y border-r border-sky-100 shadow-sm flex flex-col justify-center">
@@ -333,7 +333,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
                     <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => `${value}%`} width={40} />
                     <Tooltip formatter={(value: number) => [`${value}%`, '']} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }} />
                     <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 600, paddingTop: '10px' }} />
-                    <ReferenceLine y={100} label={{ position: 'top', value: `Goal: ${profile ? Math.round(profile.base_population * 0.01).toLocaleString() : 0} (100%)`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
+                    <ReferenceLine y={100} label={{ position: 'top', value: `Goal: ${profile ? Math.round(profile.base_population * 0.01).toLocaleString('en-IN') : 0} (100%)`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
                     <Line type="monotone" dataKey="lineListedPct" name="Eligible Girls % Line Listed" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }} />
                     <Line type="monotone" dataKey="vaccinatedPct" name="Eligible Girls Vaccinated %" stroke="#10b981" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }} />
                   </LineChart>

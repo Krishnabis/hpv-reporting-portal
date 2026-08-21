@@ -122,7 +122,7 @@ export const AdminPopulation: React.FC = () => {
                     </td>
                     <td className="px-4 py-2 text-right">
                       <span className="font-mono font-extrabold text-rose-900">
-                        {row.profile!.base_population.toLocaleString()}
+                        {row.profile!.base_population.toLocaleString('en-IN')}
                       </span>
                     </td>
                     <td className="px-4 py-2 text-center">
@@ -182,7 +182,7 @@ export const AdminPopulation: React.FC = () => {
                       <span className="text-slate-400 font-medium italic text-xs">Not Set</span>
                     ) : (
                       <span className="font-mono font-extrabold text-slate-900">
-                        {row.profile.base_population.toLocaleString()}
+                        {row.profile.base_population.toLocaleString('en-IN')}
                       </span>
                     )}
                   </td>

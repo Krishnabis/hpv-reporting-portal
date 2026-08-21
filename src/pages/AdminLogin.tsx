@@ -191,7 +191,7 @@ export const AdminLogin: React.FC = () => {
               <div className="bg-slate-50 rounded-xl p-2 border border-slate-200 text-center flex flex-col justify-center">
                   <div className="text-[9px] font-bold text-slate-600 uppercase tracking-wider leading-tight h-5 flex items-center justify-center">Overall HPV Vaccination Goal</div>
                   <div className="text-base font-extrabold text-slate-800 my-0.5 leading-none">&gt;90%</div>
-                  <div className="text-[9px] text-slate-500 font-semibold">Goal: &gt;{stats.total_target ? Math.round(stats.total_target * 0.90).toLocaleString() : 0}</div>
+                  <div className="text-[9px] text-slate-500 font-semibold">Goal: &gt;{stats.total_target ? Math.round(stats.total_target * 0.90).toLocaleString('en-IN') : 0}</div>
                 </div>
                 
                 <div className="bg-emerald-50 rounded-xl p-2 border border-emerald-100/50 text-center flex flex-col justify-center">
@@ -200,7 +200,7 @@ export const AdminLogin: React.FC = () => {
                     <span>line listed</span>
                   </div>
                   <div className="text-base font-extrabold text-emerald-600 my-0.5 leading-none">{stats.overall_linelist_pct}%</div>
-                  <div className="text-[9px] font-semibold text-emerald-700/70">Count: {stats.total_line_list?.toLocaleString()}</div>
+                  <div className="text-[9px] font-semibold text-emerald-700/70">Count: {stats.total_line_list?.toLocaleString('en-IN')}</div>
                 </div>
                 
                 <div className="bg-teal-50 rounded-xl p-2 border border-teal-100/50 text-center flex flex-col justify-center">
@@ -209,7 +209,7 @@ export const AdminLogin: React.FC = () => {
                     <span>vaccinated</span>
                   </div>
                   <div className="text-base font-extrabold text-teal-600 my-0.5 leading-none">{stats.overall_coverage_pct}%</div>
-                  <div className="text-[9px] font-semibold text-teal-700/70">Count: {stats.total_vaccinated?.toLocaleString()}</div>
+                  <div className="text-[9px] font-semibold text-teal-700/70">Count: {stats.total_vaccinated?.toLocaleString('en-IN')}</div>
                 </div>
             </div>
           </div>
