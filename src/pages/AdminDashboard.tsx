@@ -4,7 +4,8 @@ import {
   LayoutDashboard, FileText, MapPin, Users, Settings as SettingsIcon,
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
-  Building2, ClipboardList, FileSpreadsheet, Target, Bell
+  Building2, ClipboardList, FileSpreadsheet, Target, Bell,
+  Syringe, Search, HeartPulse
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
@@ -488,8 +489,8 @@ export const AdminDashboard: React.FC = () => {
                 )}
               </div>
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Alerts</span>
-              {alertCount > 0 && !sidebarCollapsed && (
-                <span className="ml-auto bg-rose-100 text-rose-600 py-0.5 px-2 rounded-full text-[10px] font-bold">
+              {!sidebarCollapsed && (
+                <span className={`ml-auto py-0.5 px-2 rounded-full text-[10px] font-bold ${alertCount > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500'}`}>
                   {alertCount}
                 </span>
               )}
@@ -680,9 +681,9 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Split Layout: Ranking & Map — flex-1 fills remaining height */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-2 flex-none lg:flex-1 lg:min-h-0">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-2 flex-none lg:flex-1 lg:min-h-0">
               {/* Left Column: District Ranking + Banner */}
-              <div className="lg:col-span-2 flex flex-col gap-2 lg:min-h-0">
+              <div className="lg:col-span-1 flex flex-col gap-2 lg:min-h-0">
                 {/* District Ranking */}
                 <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col flex-1 lg:overflow-hidden min-h-[400px] lg:min-h-0">
                 <div className="flex items-center justify-between mb-3">
@@ -767,43 +768,52 @@ export const AdminDashboard: React.FC = () => {
                   </h3>
                 </div>
                 {/* 3 Boxes Grid */}
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-3 gap-1.5 flex-1">
                   {/* Pink Box */}
-                  <div className="flex flex-col px-2 py-2 bg-[#fff0f5] border border-[#fbcfe8] border-b-4 border-b-[#f472b6] rounded-lg relative overflow-hidden group">
-                    <div className="flex justify-between items-start z-10 w-full mb-1">
-                      <div className="flex items-end gap-0.5">
-                        <span className="text-2xl sm:text-3xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
-                        <span className="text-sm font-bold text-[#e93c7a] leading-none mb-0.5">%</span>
+                  <div className="flex flex-col p-2.5 bg-[#fff0f5] border border-[#fbcfe8] border-b-[4px] sm:border-b-[6px] border-b-[#f472b6] rounded-xl relative overflow-hidden group h-full">
+                    <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
+                      <div className="flex items-baseline gap-0.5">
+                        <span className="text-3xl sm:text-4xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
+                        <span className="text-xl font-black text-[#e93c7a] leading-none">%</span>
                       </div>
-                      <div className="text-xl sm:text-2xl opacity-80 group-hover:scale-110 transition-transform">🛡️💉</div>
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 bg-pink-100 rounded-full flex items-center justify-center border border-pink-200 shadow-sm shrink-0">
+                        <Syringe className="w-4 h-4 sm:w-6 sm:h-6 text-[#e93c7a] transform -rotate-45" />
+                      </div>
                     </div>
-                    <p className="text-[9px] sm:text-[10px] text-slate-800 font-bold leading-tight z-10 pr-1 mt-auto">
+                    <div className="h-px bg-[#fbcfe8] w-2/3 my-1.5" />
+                    <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
                       of Girls Vaccinated<br/>Against HPV by Age 15
                     </p>
                   </div>
                   {/* Teal Box */}
-                  <div className="flex flex-col px-2 py-2 bg-[#f0fdfa] border border-[#ccfbf1] border-b-4 border-b-[#2dd4bf] rounded-lg relative overflow-hidden group">
-                    <div className="flex justify-between items-start z-10 w-full mb-1">
-                      <div className="flex items-end gap-0.5">
-                        <span className="text-2xl sm:text-3xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
-                        <span className="text-sm font-bold text-[#0d9488] leading-none mb-0.5">%</span>
+                  <div className="flex flex-col p-2.5 bg-[#f0fdfa] border border-[#ccfbf1] border-b-[4px] sm:border-b-[6px] border-b-[#2dd4bf] rounded-xl relative overflow-hidden group h-full">
+                    <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
+                      <div className="flex items-baseline gap-0.5">
+                        <span className="text-3xl sm:text-4xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
+                        <span className="text-xl font-black text-[#0d9488] leading-none">%</span>
                       </div>
-                      <div className="text-xl sm:text-2xl opacity-80 group-hover:scale-110 transition-transform">🧪</div>
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 bg-teal-100 rounded-full flex items-center justify-center border border-teal-200 shadow-sm shrink-0">
+                        <Search className="w-4 h-4 sm:w-6 sm:h-6 text-[#0d9488]" />
+                      </div>
                     </div>
-                    <p className="text-[9px] sm:text-[10px] text-slate-800 font-bold leading-tight z-10 pr-1 mt-auto">
+                    <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
+                    <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
                       of Women Screened with a<br/>high-performance test by<br/>Ages 35 and 45
                     </p>
                   </div>
                   {/* Purple Box */}
-                  <div className="flex flex-col px-2 py-2 bg-[#faf5ff] border border-[#e9d5ff] border-b-4 border-b-[#a855f7] rounded-lg relative overflow-hidden group">
-                    <div className="flex justify-between items-start z-10 w-full mb-1">
-                      <div className="flex items-end gap-0.5">
-                        <span className="text-2xl sm:text-3xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
-                        <span className="text-sm font-bold text-[#7e22ce] leading-none mb-0.5">%</span>
+                  <div className="flex flex-col p-2.5 bg-[#faf5ff] border border-[#e9d5ff] border-b-[4px] sm:border-b-[6px] border-b-[#a855f7] rounded-xl relative overflow-hidden group h-full">
+                    <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
+                      <div className="flex items-baseline gap-0.5">
+                        <span className="text-3xl sm:text-4xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
+                        <span className="text-xl font-black text-[#7e22ce] leading-none">%</span>
                       </div>
-                      <div className="text-xl sm:text-2xl opacity-80 group-hover:scale-110 transition-transform">🏥</div>
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 bg-purple-100 rounded-full flex items-center justify-center border border-purple-200 shadow-sm shrink-0">
+                        <HeartPulse className="w-4 h-4 sm:w-6 sm:h-6 text-[#7e22ce]" />
+                      </div>
                     </div>
-                    <p className="text-[9px] sm:text-[10px] text-slate-800 font-bold leading-tight z-10 pr-1 mt-auto">
+                    <div className="h-px bg-[#e9d5ff] w-2/3 my-1.5" />
+                    <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
                       of Women identified with<br/>Cervical Disease<br/>Receive Treatment
                     </p>
                   </div>
@@ -812,7 +822,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
               {/* Right: Uttarakhand Interactive Map */}
-              <div className="lg:col-span-3 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
+              <div className="lg:col-span-1 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     <MapPin className="w-4 h-4 text-blue-500" /> Uttarakhand Overview
@@ -821,7 +831,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 <div className="text-[10px] text-left text-slate-500 mb-2 mt-1">
-                  <span className="font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded mr-1">Showing:</span>
+                  <span className="font-bold bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded mr-1">Showing:</span>
                   {selectedKpi === 'coverage' || selectedKpi === 'both' ? (
                     <span>
                       <span className="text-blue-600 font-semibold">Vaccination Coverage (%)</span>
@@ -853,6 +863,14 @@ export const AdminDashboard: React.FC = () => {
                       No data to display on map.
                     </div>
                   )}
+                </div>
+
+                {/* Map Tier Legend */}
+                <div className="flex flex-wrap justify-center gap-2 mt-2 pt-2 border-t border-slate-100">
+                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-red-100 text-red-700">Aspirational 0-30%</span>
+                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-yellow-100 text-yellow-700">Progressing 30-70%</span>
+                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-blue-100 text-blue-700">High Performance 70-90%</span>
+                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-100 text-emerald-700">Champion 90%+</span>
                 </div>
               </div>
             </div>
