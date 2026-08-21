@@ -61,7 +61,7 @@ export const ProgressTrend: React.FC = () => {
 
         setBlock(blockData.block);
         setProfile(blockData.profile);
-        
+
         if (!reportsData.error) {
           setReports(reportsData);
         }
@@ -71,14 +71,14 @@ export const ProgressTrend: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [blockId, navigate]);
 
   const chartData = useMemo(() => {
     if (!profile || profile.base_population === 0 || reports.length === 0) return [];
     const target = Math.round(profile.base_population * 0.01);
-    
+
     // 1. Filter by date range
     let filtered = [...reports];
     if (startDate) {
@@ -87,29 +87,29 @@ export const ProgressTrend: React.FC = () => {
     if (endDate) {
       filtered = filtered.filter(r => r.reporting_date <= endDate);
     }
-    
+
     // Sort ascending
     filtered.sort((a, b) => a.reporting_date.localeCompare(b.reporting_date));
-    
+
     // 2. Group by view
     const groups: Record<string, ReportData[]> = {};
     filtered.forEach(r => {
       const d = new Date(r.reporting_date);
       let key = r.reporting_date; // daily
-      
+
       if (viewBy === 'weekly') {
         const dCopy = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
         const dayNum = dCopy.getUTCDay() || 7;
         dCopy.setUTCDate(dCopy.getUTCDate() + 4 - dayNum);
-        const yearStart = new Date(Date.UTC(dCopy.getUTCFullYear(),0,1));
-        const weekNo = Math.ceil((((dCopy.getTime() - yearStart.getTime()) / 86400000) + 1)/7);
+        const yearStart = new Date(Date.UTC(dCopy.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((dCopy.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
         key = `W${weekNo.toString().padStart(2, '0')} ${dCopy.getUTCFullYear()}`;
       } else if (viewBy === 'biweekly') {
         const dCopy = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
         const dayNum = dCopy.getUTCDay() || 7;
         dCopy.setUTCDate(dCopy.getUTCDate() + 4 - dayNum);
-        const yearStart = new Date(Date.UTC(dCopy.getUTCFullYear(),0,1));
-        const weekNo = Math.ceil((((dCopy.getTime() - yearStart.getTime()) / 86400000) + 1)/7);
+        const yearStart = new Date(Date.UTC(dCopy.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((dCopy.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
         const biweekNo = Math.ceil(weekNo / 2);
         key = `BiW${biweekNo.toString().padStart(2, '0')} ${dCopy.getUTCFullYear()}`;
       } else if (viewBy === 'monthly') {
@@ -118,11 +118,11 @@ export const ProgressTrend: React.FC = () => {
         const q = Math.floor(d.getMonth() / 3) + 1;
         key = `Q${q} ${d.getFullYear()}`;
       }
-      
+
       if (!groups[key]) groups[key] = [];
       groups[key].push(r);
     });
-    
+
     // 3. For cumulative metrics, take the LAST report in each group
     const aggregated = Object.entries(groups).map(([key, groupReports]) => {
       const lastReport = groupReports[groupReports.length - 1];
@@ -135,10 +135,10 @@ export const ProgressTrend: React.FC = () => {
         rawVaccinated: lastReport.beneficiaries_vaccinated
       };
     });
-    
+
     // Sorting by the raw date of the last item in the group ensures chronological order
     return aggregated.sort((a, b) => a.rawDate.localeCompare(b.rawDate));
-    
+
   }, [reports, profile, startDate, endDate, viewBy]);
 
   const latestData = chartData.length > 0 ? chartData[chartData.length - 1] : null;
@@ -152,17 +152,17 @@ export const ProgressTrend: React.FC = () => {
     const headers = ['Date', 'Line Listed Count', 'Line Listed %', 'Vaccinated Count', 'Vaccinated %'];
     const csvContent = [
       headers.join(','),
-      ...chartData.map(row => 
+      ...chartData.map(row =>
         [
-          `"${row.dateLabel}"`, 
-          row.rawLineList, 
-          row.lineListedPct, 
-          row.rawVaccinated, 
+          `"${row.dateLabel}"`,
+          row.rawLineList,
+          row.lineListedPct,
+          row.rawVaccinated,
           row.vaccinatedPct
         ].join(',')
       )
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -197,7 +197,7 @@ export const ProgressTrend: React.FC = () => {
           <div className="cursor-pointer flex items-center gap-3" onClick={() => navigate('/')}>
             <img src="/headinglogo.png" alt="Logo" className="h-14 object-contain hover:opacity-80 transition-opacity" />
           </div>
-          <button 
+          <button
             onClick={() => navigate(`/report?blockId=${blockId}`)}
             className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-hpv-purple bg-slate-100 hover:bg-hpv-purple-soft px-3 py-1.5 rounded-lg transition-colors"
           >
@@ -208,7 +208,7 @@ export const ProgressTrend: React.FC = () => {
       </header>
 
       <main className="max-w-6xl mx-auto w-full px-4 py-2 flex flex-col gap-2 flex-1 overflow-y-auto min-h-0">
-        
+
         {/* Block Hero Card */}
         <div className="shrink-0 gradient-header rounded-2xl py-2 px-3 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
@@ -225,7 +225,7 @@ export const ProgressTrend: React.FC = () => {
               </h1>
               <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>
             </div>
-            
+
             {(() => {
               const lastReport = reports[0];
               const target = profile ? Math.round(profile.base_population * 0.01) : 0;
@@ -238,9 +238,9 @@ export const ProgressTrend: React.FC = () => {
               if (perfPercentage >= 90) { catImg = 'cat4.png'; catName = 'Champions'; }
               else if (perfPercentage >= 70) { catImg = 'cat3.png'; catName = 'High-Performing'; }
               else if (perfPercentage >= 30) { catImg = 'cat2.png'; catName = 'Progressing'; }
-              
+
               if (!profile || profile.base_population === 0) return null;
-              
+
               return (
                 <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0 self-start sm:self-auto">
                   <div className="bg-white/25 backdrop-blur-md border border-white/20 rounded-xl px-3 py-1.5 flex flex-col items-center justify-center">
@@ -268,8 +268,8 @@ export const ProgressTrend: React.FC = () => {
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Date Range (Start)</label>
               <div className="relative">
                 <CalendarIcon className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   value={startDate}
                   onChange={e => setStartDate(e.target.value)}
                   className="pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-hpv-purple/20"
@@ -280,15 +280,15 @@ export const ProgressTrend: React.FC = () => {
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Date Range (End)</label>
               <div className="relative">
                 <CalendarIcon className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   value={endDate}
                   onChange={e => setEndDate(e.target.value)}
                   className="pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-hpv-purple/20"
                 />
               </div>
             </div>
-            <button 
+            <button
               onClick={handleReset}
               className="px-4 py-2 flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
             >
@@ -297,7 +297,7 @@ export const ProgressTrend: React.FC = () => {
             </button>
           </div>
 
-          <button 
+          <button
             onClick={handleDownload}
             disabled={chartData.length === 0}
             className="px-4 py-2 flex items-center justify-center gap-1.5 text-xs font-bold text-white bg-hpv-purple hover:bg-hpv-purple-dark rounded-lg transition-colors disabled:opacity-50"
@@ -348,8 +348,8 @@ export const ProgressTrend: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">View By</label>
-              <select 
-                value={viewBy} 
+              <select
+                value={viewBy}
                 onChange={e => setViewBy(e.target.value)}
                 className="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:border-hpv-purple"
               >
@@ -371,42 +371,42 @@ export const ProgressTrend: React.FC = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis 
-                    dataKey="dateLabel" 
+                  <XAxis
+                    dataKey="dateLabel"
                     tick={{ fontSize: 10, fill: '#64748b' }}
                     tickMargin={10}
                   />
-                  <YAxis 
-                    domain={[0, 100]} 
+                  <YAxis
+                    domain={[0, 100]}
                     tick={{ fontSize: 10, fill: '#64748b' }}
                     tickFormatter={(value) => `${value}%`}
                     width={40}
                   />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value: number) => [`${value}%`, '']}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }}
                   />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    height={36} 
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
                     wrapperStyle={{ fontSize: '12px', fontWeight: 600, paddingTop: '10px' }}
                   />
                   <ReferenceLine y={90} label={{ position: 'top', value: `Goal: ${profile ? Math.round(profile.base_population * 0.01 * 0.90).toLocaleString('en-IN') : 0} (>90%)`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
-                  <Line 
-                    type="monotone" 
-                    dataKey="lineListedPct" 
+                  <Line
+                    type="monotone"
+                    dataKey="lineListedPct"
                     name="Eligible Girls % Line Listed"
-                    stroke="#3b82f6" 
+                    stroke="#3b82f6"
                     strokeWidth={2}
                     dot={{ r: 3, strokeWidth: 2 }}
                     activeDot={{ r: 5 }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="vaccinatedPct" 
+                  <Line
+                    type="monotone"
+                    dataKey="vaccinatedPct"
                     name="Eligible Girls Vaccinated %"
-                    stroke="#10b981" 
+                    stroke="#10b981"
                     strokeWidth={2}
                     dot={{ r: 3, strokeWidth: 2 }}
                     activeDot={{ r: 5 }}
@@ -430,7 +430,7 @@ export const ProgressTrend: React.FC = () => {
       </main>
 
       <footer className="w-full text-center py-2 text-xs text-slate-400 px-4 space-y-1 shrink-0 bg-white border-t border-slate-200 mt-auto">
-        <div className="font-medium text-[11px] sm:text-[10px]">HPV Vaccination Monitoring portal • Version: 1.0 • UK 2026</div>
+        <div className="font-medium text-[11px] sm:text-[10px]">HPV Vaccination Monitoring Portal • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-4 object-contain" />

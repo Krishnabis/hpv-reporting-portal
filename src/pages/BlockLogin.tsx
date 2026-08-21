@@ -8,10 +8,10 @@ export const BlockLogin: React.FC = () => {
   const navigate = useNavigate();
   const [districts, setDistricts] = useState<OptionItem[]>([]);
   const [allBlocks, setAllBlocks] = useState<any[]>([]);
-  
+
   const [selectedDistrict, setSelectedDistrict] = useState<OptionItem | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<OptionItem | null>(null);
-  
+
   const [loading, setLoading] = useState(true);
 
   const [isUrban, setIsUrban] = useState(false);
@@ -91,11 +91,11 @@ export const BlockLogin: React.FC = () => {
               <Circle className="w-2 h-2 fill-current" />
               National Health Mission – Uttarakhand
             </span>
-            
+
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               HPV Vaccination Program
             </h1>
-            
+
             <div className="mt-3 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
               <span className="text-xl">🎯</span>
               Cervical Cancer Elimination
@@ -109,7 +109,7 @@ export const BlockLogin: React.FC = () => {
 
           {/* Block Selection Form */}
           <form onSubmit={handleContinue} className="space-y-4">
-            
+
             {/* Urban / Rural Toggle */}
             <div className="flex bg-slate-100/50 border border-slate-200/50 p-1.5 rounded-xl">
               <button
@@ -142,11 +142,10 @@ export const BlockLogin: React.FC = () => {
             <button
               type="submit"
               disabled={!selectedBlock}
-              className={`w-full py-3.5 px-6 rounded-2xl font-bold text-white shadow-lg transition-all duration-200 flex items-center justify-center gap-2 group ${
-                selectedBlock
+              className={`w-full py-3.5 px-6 rounded-2xl font-bold text-white shadow-lg transition-all duration-200 flex items-center justify-center gap-2 group ${selectedBlock
                   ? 'gradient-header hover:shadow-hpv-purple/30 hover:scale-[1.01] active:scale-[0.99] cursor-pointer'
                   : 'bg-slate-300 shadow-none cursor-not-allowed'
-              }`}
+                }`}
             >
               <span>Continue to Reporting</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -170,7 +169,7 @@ export const BlockLogin: React.FC = () => {
 
       {/* Footer Branding */}
       <footer className="max-w-md mx-auto w-full text-center py-2 text-xs text-slate-400 space-y-2">
-        <div>HPV Vaccination Monitoring portal • Version: 1.0 • UK 2026</div>
+        <div>HPV Vaccination Monitoring Portal • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-4 object-contain" />

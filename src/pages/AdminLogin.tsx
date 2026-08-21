@@ -100,11 +100,11 @@ export const AdminLogin: React.FC = () => {
               <Circle className="w-2 h-2 fill-current" />
               National Health Mission – Uttarakhand
             </span>
-            
+
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               HPV Vaccination Program
             </h1>
-            
+
             <div className="mt-1 flex items-center justify-center gap-2 text-sm font-bold text-hpv-purple">
               <span className="text-lg">🎯</span>
               Cervical Cancer Elimination
@@ -132,7 +132,7 @@ export const AdminLogin: React.FC = () => {
               </label>
               <div className="relative">
                 <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                  <input
+                <input
                   type="text"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
@@ -148,7 +148,7 @@ export const AdminLogin: React.FC = () => {
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                  <input
+                <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
@@ -189,35 +189,35 @@ export const AdminLogin: React.FC = () => {
           <div className="mt-3 pt-3 border-t border-slate-100 shrink-0">
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-slate-50 rounded-xl p-2 border border-slate-200 text-center flex flex-col justify-center">
-                  <div className="text-[9px] font-bold text-slate-600 uppercase tracking-wider leading-tight h-5 flex items-center justify-center">Overall HPV Vaccination Goal</div>
-                  <div className="text-base font-extrabold text-slate-800 my-0.5 leading-none">&gt;90%</div>
-                  <div className="text-[9px] text-slate-500 font-semibold">Goal: &gt;{stats.total_target ? Math.round(stats.total_target * 0.90).toLocaleString('en-IN') : 0}</div>
+                <div className="text-[9px] font-bold text-slate-600 uppercase tracking-wider leading-tight h-5 flex items-center justify-center">Overall HPV Vaccination Goal</div>
+                <div className="text-base font-extrabold text-slate-800 my-0.5 leading-none">&gt;90%</div>
+                <div className="text-[9px] text-slate-500 font-semibold">Goal: &gt;{stats.total_target ? Math.round(stats.total_target * 0.90).toLocaleString('en-IN') : 0}</div>
+              </div>
+
+              <div className="bg-emerald-50 rounded-xl p-2 border border-emerald-100/50 text-center flex flex-col justify-center">
+                <div className="text-[9px] font-bold text-emerald-800 uppercase tracking-wider leading-tight h-8 flex flex-col items-center justify-center text-center">
+                  <span>Eligible girls</span>
+                  <span>line listed</span>
                 </div>
-                
-                <div className="bg-emerald-50 rounded-xl p-2 border border-emerald-100/50 text-center flex flex-col justify-center">
-                  <div className="text-[9px] font-bold text-emerald-800 uppercase tracking-wider leading-tight h-8 flex flex-col items-center justify-center text-center">
-                    <span>Eligible girls</span>
-                    <span>line listed</span>
-                  </div>
-                  <div className="text-base font-extrabold text-emerald-600 my-0.5 leading-none">{stats.overall_linelist_pct}%</div>
-                  <div className="text-[9px] font-semibold text-emerald-700/70">Count: {stats.total_line_list?.toLocaleString('en-IN')}</div>
+                <div className="text-base font-extrabold text-emerald-600 my-0.5 leading-none">{stats.overall_linelist_pct}%</div>
+                <div className="text-[9px] font-semibold text-emerald-700/70">Count: {stats.total_line_list?.toLocaleString('en-IN')}</div>
+              </div>
+
+              <div className="bg-teal-50 rounded-xl p-2 border border-teal-100/50 text-center flex flex-col justify-center">
+                <div className="text-[9px] font-bold text-teal-800 uppercase tracking-wider leading-tight h-8 flex flex-col items-center justify-center text-center">
+                  <span>Eligible girls</span>
+                  <span>vaccinated</span>
                 </div>
-                
-                <div className="bg-teal-50 rounded-xl p-2 border border-teal-100/50 text-center flex flex-col justify-center">
-                  <div className="text-[9px] font-bold text-teal-800 uppercase tracking-wider leading-tight h-8 flex flex-col items-center justify-center text-center">
-                    <span>Eligible girls</span>
-                    <span>vaccinated</span>
-                  </div>
-                  <div className="text-base font-extrabold text-teal-600 my-0.5 leading-none">{stats.overall_coverage_pct}%</div>
-                  <div className="text-[9px] font-semibold text-teal-700/70">Count: {stats.total_vaccinated?.toLocaleString('en-IN')}</div>
-                </div>
+                <div className="text-base font-extrabold text-teal-600 my-0.5 leading-none">{stats.overall_coverage_pct}%</div>
+                <div className="text-[9px] font-semibold text-teal-700/70">Count: {stats.total_vaccinated?.toLocaleString('en-IN')}</div>
+              </div>
             </div>
           </div>
         </div>
       </main>
 
       <footer className="max-w-md mx-auto w-full text-center py-2 text-xs text-slate-500 space-y-2">
-        <div>HPV Vaccination Monitoring portal • Version: 1.0 • UK 2026</div>
+        <div>HPV Vaccination Monitoring Portal • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-500">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-4 object-contain" />

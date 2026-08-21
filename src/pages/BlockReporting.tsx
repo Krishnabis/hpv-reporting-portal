@@ -222,11 +222,11 @@ export const BlockReporting: React.FC = () => {
   const todayStr = new Date().toISOString().split('T')[0];
   const hasPopulation = profile && profile.base_population > 0;
   const requirePopulationSetup = !hasPopulation;
-  
+
   const target = profile ? Math.round(profile.base_population * 0.01) : 0;
   const lastVaccinated = lastReport?.beneficiaries_vaccinated || 0;
   const lastLineList = lastReport?.line_list_count || 0;
-  
+
   let perfPercentage = 0;
   if (target > 0) {
     perfPercentage = (lastVaccinated / target) * 100;
@@ -393,82 +393,81 @@ export const BlockReporting: React.FC = () => {
                   <p className="text-[11px] text-slate-500"><span className="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-bold">Eligible Girls</span>: Line Listed & Vaccinated (Cumulative Count)</p>
                 </div>
               </div>
-            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto ${
-              todaySubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-            }`}>
-              {todaySubmitted 
-                ? `✓ last submitted on: ${formatDateStr(todayStr)}` 
-                : (lastReport ? `⚠ last submitted on: ${formatDateStr(lastReport.reporting_date)}` : `⚠ ${formatDateStr(todayStr)} Pending`)}
-            </span>
-          </div>
-
-          <form onSubmit={handleSaveReport} className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Date */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5"><Calendar className="w-4 h-4 text-hpv-pink" /> Date *</label>
-                <input
-                  type="date"
-                  value={reportingDate}
-                  onChange={e => {
-                    setReportingDate(e.target.value);
-                    setLineListInput('');
-                    setVaccinatedInput('');
-                  }}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
-                />
-              </div>
-
-              {/* Line List */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Line listed <span className="lowercase italic text-[9px] normal-case">(enter cumulative data)</span></label>
-                <input
-                  type="number"
-                  min="0"
-                  value={lineListInput}
-                  onChange={e => setLineListInput(e.target.value)}
-                  placeholder={lastReport ? lastReport.line_list_count.toString() : "—"}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
-                />
-              </div>
-
-              {/* Vaccinated */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Vaccinated <span className="lowercase italic text-[9px] normal-case">(enter cumulative data)</span></label>
-                <input
-                  type="number"
-                  min="0"
-                  value={vaccinatedInput}
-                  onChange={e => setVaccinatedInput(e.target.value)}
-                  placeholder={lastReport ? lastReport.beneficiaries_vaccinated.toString() : "—"}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
-                />
-              </div>
+              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto ${todaySubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                }`}>
+                {todaySubmitted
+                  ? `✓ last submitted on: ${formatDateStr(todayStr)}`
+                  : (lastReport ? `⚠ last submitted on: ${formatDateStr(lastReport.reporting_date)}` : `⚠ ${formatDateStr(todayStr)} Pending`)}
+              </span>
             </div>
 
-            {/* Alerts */}
-            {reportErrorMsg && (
-              <div className="p-2.5 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                {reportErrorMsg}
-              </div>
-            )}
-            {reportSuccessMsg && (
-              <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                {reportSuccessMsg}
-              </div>
-            )}
+            <form onSubmit={handleSaveReport} className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Date */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5"><Calendar className="w-4 h-4 text-hpv-pink" /> Date *</label>
+                  <input
+                    type="date"
+                    value={reportingDate}
+                    onChange={e => {
+                      setReportingDate(e.target.value);
+                      setLineListInput('');
+                      setVaccinatedInput('');
+                    }}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
+                  />
+                </div>
 
-            <button
-              type="submit"
-              disabled={savingReport || !lineListInput || !vaccinatedInput}
-              className="w-full py-3 rounded-xl font-bold text-sm text-white gradient-header shadow-md hover:shadow-hpv-purple/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <Save className="w-4 h-4" />
-              {savingReport ? 'Submitting...' : 'Submit Daily Report'}
-            </button>
-          </form>
+                {/* Line List */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Line listed <span className="lowercase italic text-[9px] normal-case">(enter cumulative data)</span></label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={lineListInput}
+                    onChange={e => setLineListInput(e.target.value)}
+                    placeholder={lastReport ? lastReport.line_list_count.toString() : "—"}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
+                  />
+                </div>
+
+                {/* Vaccinated */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Vaccinated <span className="lowercase italic text-[9px] normal-case">(enter cumulative data)</span></label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={vaccinatedInput}
+                    onChange={e => setVaccinatedInput(e.target.value)}
+                    placeholder={lastReport ? lastReport.beneficiaries_vaccinated.toString() : "—"}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
+                  />
+                </div>
+              </div>
+
+              {/* Alerts */}
+              {reportErrorMsg && (
+                <div className="p-2.5 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                  {reportErrorMsg}
+                </div>
+              )}
+              {reportSuccessMsg && (
+                <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  {reportSuccessMsg}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={savingReport || !lineListInput || !vaccinatedInput}
+                className="w-full py-3 rounded-xl font-bold text-sm text-white gradient-header shadow-md hover:shadow-hpv-purple/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                {savingReport ? 'Submitting...' : 'Submit Daily Report'}
+              </button>
+            </form>
           </div>
         </section>
 
@@ -489,12 +488,12 @@ export const BlockReporting: React.FC = () => {
                 <span className="text-2xl font-extrabold font-mono text-emerald-700 leading-tight z-10">{target > 0 ? Math.round((lastVaccinated / target) * 100) : 0}%</span>
                 <span className="text-[10px] font-bold text-emerald-700/70 mt-1 z-10">Count ({lastVaccinated.toLocaleString('en-IN')})</span>
               </div>
-              <div 
+              <div
                 onClick={() => navigate('/progress-trend?blockId=' + blockId)}
                 className="bg-hpv-purple-soft/30 hover:bg-hpv-purple-soft/70 border border-hpv-purple/20 rounded-xl p-3 flex flex-col justify-center items-center text-center cursor-pointer transition-colors"
               >
                 <Activity className="w-6 h-6 text-hpv-purple mb-2" />
-                <span className="text-xs font-bold text-hpv-purple uppercase tracking-wider">Click to view<br/>progress trends</span>
+                <span className="text-xs font-bold text-hpv-purple uppercase tracking-wider">Click to view<br />progress trends</span>
               </div>
             </div>
           </section>
@@ -504,7 +503,7 @@ export const BlockReporting: React.FC = () => {
       </main>
 
       <footer className="max-w-3xl mx-auto w-full text-center py-4 text-xs text-slate-400 px-4 space-y-2">
-        <div className="font-medium text-[11px] sm:text-xs">HPV Vaccination Monitoring portal • Version: 1.0 • UK 2026</div>
+        <div className="font-medium text-[11px] sm:text-xs">HPV Vaccination Monitoring Portal • Version: 1.0 • UK 2026</div>
         <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
           <img src="/impactcode.png" alt="ImpactCode" className="h-4 object-contain" />
