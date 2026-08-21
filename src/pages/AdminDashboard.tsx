@@ -524,9 +524,19 @@ export const AdminDashboard: React.FC = () => {
 
           </nav>
         </div>
+        {/* Slogan Badge */}
+        <div className={`mx-3 mt-auto mb-2 flex items-center justify-between gap-2 bg-blue-50/50 px-3 py-2 rounded-xl border border-blue-100/50 shrink-0 ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
+          <div className="text-right flex-1">
+            <span className="text-[10px] font-semibold text-slate-500 block">Together, we can build</span>
+            <span className="text-[11px] font-bold text-blue-600 block">a healthier Uttarakhand</span>
+          </div>
+          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0 border border-blue-200 shadow-sm">
+            <Users className="w-4 h-4 text-blue-600" />
+          </div>
+        </div>
 
         {/* User Info & Logout */}
-        <div className={`mx-3 mt-auto mb-2 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer group flex items-center ${sidebarCollapsed ? 'p-2 justify-center lg:mx-2 lg:mb-2' : 'p-4 justify-between'}`} onClick={() => { setMobileMenuOpen(false); handleLogout(); }} title="Logout">
+        <div className={`mx-3 mb-2 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer group flex items-center ${sidebarCollapsed ? 'p-2 justify-center lg:mx-2 lg:mb-2 mt-auto' : 'p-4 justify-between'}`} onClick={() => { setMobileMenuOpen(false); handleLogout(); }} title="Logout">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-hpv-teal-soft flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4 text-hpv-teal-dark" />
