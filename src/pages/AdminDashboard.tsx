@@ -830,11 +830,11 @@ export const AdminDashboard: React.FC = () => {
                     <div className="flex flex-col p-2 bg-white/80 border border-[#fbcfe8] border-b-[4px] sm:border-b-[6px] border-b-[#f472b6] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
                       <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
                         <div className="flex items-baseline gap-0.5">
-                          <span className="text-3xl sm:text-4xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
-                          <span className="text-xl font-black text-[#e93c7a] leading-none">%</span>
+                          <span className="text-2xl sm:text-3xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
+                          <span className="text-lg sm:text-xl font-black text-[#e93c7a] leading-none">%</span>
                         </div>
-                        <div className="w-8 h-8 sm:w-11 sm:h-11 bg-pink-50 rounded-full flex items-center justify-center border border-pink-100 shadow-sm shrink-0">
-                          <Syringe className="w-4 h-4 sm:w-6 sm:h-6 text-[#e93c7a] transform -rotate-45" />
+                        <div className="w-7 h-7 sm:w-9 sm:h-9 bg-pink-50 rounded-full flex items-center justify-center border border-pink-100 shadow-sm shrink-0">
+                          <Syringe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#e93c7a] transform -rotate-45" />
                         </div>
                       </div>
                       <div className="h-px bg-[#fbcfe8] w-2/3 my-1.5" />
@@ -846,11 +846,11 @@ export const AdminDashboard: React.FC = () => {
                     <div className="flex flex-col p-2 bg-white/80 border border-[#ccfbf1] border-b-[4px] sm:border-b-[6px] border-b-[#2dd4bf] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
                       <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
                         <div className="flex items-baseline gap-0.5">
-                          <span className="text-3xl sm:text-4xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
-                          <span className="text-xl font-black text-[#0d9488] leading-none">%</span>
+                          <span className="text-2xl sm:text-3xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
+                          <span className="text-lg sm:text-xl font-black text-[#0d9488] leading-none">%</span>
                         </div>
-                        <div className="w-8 h-8 sm:w-11 sm:h-11 bg-teal-50 rounded-full flex items-center justify-center border border-teal-100 shadow-sm shrink-0">
-                          <SearchIcon className="w-4 h-4 sm:w-6 sm:h-6 text-[#0d9488]" />
+                        <div className="w-7 h-7 sm:w-9 sm:h-9 bg-teal-50 rounded-full flex items-center justify-center border border-teal-100 shadow-sm shrink-0">
+                          <SearchIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0d9488]" />
                         </div>
                       </div>
                       <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
@@ -862,11 +862,11 @@ export const AdminDashboard: React.FC = () => {
                     <div className="flex flex-col p-2 bg-white/80 border border-[#e9d5ff] border-b-[4px] sm:border-b-[6px] border-b-[#a855f7] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
                       <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
                         <div className="flex items-baseline gap-0.5">
-                          <span className="text-3xl sm:text-4xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
-                          <span className="text-xl font-black text-[#7e22ce] leading-none">%</span>
+                          <span className="text-2xl sm:text-3xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
+                          <span className="text-lg sm:text-xl font-black text-[#7e22ce] leading-none">%</span>
                         </div>
-                        <div className="w-8 h-8 sm:w-11 sm:h-11 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100 shadow-sm shrink-0">
-                          <HeartPulse className="w-4 h-4 sm:w-6 sm:h-6 text-[#7e22ce]" />
+                        <div className="w-7 h-7 sm:w-9 sm:h-9 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100 shadow-sm shrink-0">
+                          <HeartPulse className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7e22ce]" />
                         </div>
                       </div>
                       <div className="h-px bg-[#e9d5ff] w-2/3 my-1.5" />
@@ -878,11 +878,12 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Right Side Strategy Text */}
-                <div className="w-full sm:w-[140px] lg:w-[160px] p-3 sm:p-4 flex flex-col justify-center items-end text-right border-t sm:border-t-0 sm:border-l border-[#fbcfe8] bg-[#fff0f5] shrink-0">
-                  <svg className="w-6 h-6 sm:w-8 sm:h-8 shrink-0 text-[#e93c7a] drop-shadow-sm mb-2" viewBox="0 0 24 24" fill="currentColor">
+                <div className="w-full sm:w-[140px] lg:w-[160px] p-3 sm:p-4 flex flex-col justify-center items-end text-right border-t sm:border-t-0 sm:border-l border-[#fbcfe8] bg-[#fff0f5] shrink-0 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-pink-100 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none opacity-50"></div>
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 text-[#e93c7a] drop-shadow-sm mb-2 relative z-10" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2C8.69 2 6 4.69 6 8c0 2.21 1.2 4.14 3.03 5.25L4.44 21.4c-.22.39.06.88.51.88h2.39l3.52-6.28 1.14-.65c.34.15.71.24 1.09.24.38 0 .75-.09 1.09-.24l1.14.65 3.52 6.28h2.39c.45 0 .73-.49.51-.88l-4.59-8.15C19.8 12.14 21 10.21 21 8c0-3.31-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
                   </svg>
-                  <h3 className="text-[11px] sm:text-[12px] lg:text-[13px] font-extrabold text-[#e93c7a] tracking-wide leading-snug">
+                  <h3 className="text-[12px] sm:text-[13px] lg:text-[14px] font-bold text-[#b81d5b] tracking-tight leading-snug relative z-10 [text-wrap:balance]">
                     Global Strategy to Eliminate Cervical Cancer by 2030
                   </h3>
                 </div>
