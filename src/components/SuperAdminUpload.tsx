@@ -4,7 +4,7 @@ import { parse } from 'csv-parse/browser/esm/sync';
 
 export const SuperAdminUpload: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: 'error' | 'success', text: string, details?: string[] } | null>(null);
 
   const handleDownloadTemplate = (type: 'block-pop' | 'city-pop' | 'block-live' | 'city-live') => {
     let headers = '';
@@ -58,11 +58,12 @@ export const SuperAdminUpload: React.FC = () => {
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || 'Upload failed');
         
-        const errorText = json.errors?.length ? ` (with ${json.errors.length} errors, check console)` : '';
-        setMessage({ type: 'success', text: `Successfully processed ${json.successCount} records${errorText}.` });
-        if (json.errors?.length) {
-          console.warn("Upload Warnings:", json.errors);
-        }
+        const errorText = json.errors?.length ? ` (Skipped ${json.errors.length} rows with errors)` : '';
+        setMessage({ 
+          type: 'success', 
+          text: `Successfully processed ${json.successCount} records${errorText}.`,
+          details: json.errors || []
+        });
       } catch (err: any) {
         setMessage({ type: 'error', text: err.message || 'Failed to parse or upload CSV.' });
       } finally {
@@ -118,9 +119,20 @@ export const SuperAdminUpload: React.FC = () => {
       </div>
 
       {message && (
-        <div className={`p-3 rounded-xl border flex items-center gap-2 text-sm font-semibold ${message.type === 'error' ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'}`}>
-          {message.type === 'error' ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-          {message.text}
+        <div className={`p-4 rounded-xl border flex flex-col gap-2 text-sm font-semibold ${message.type === 'error' ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'}`}>
+          <div className="flex items-center gap-2">
+            {message.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+            {message.text}
+          </div>
+          {message.details && message.details.length > 0 && (
+            <div className="mt-2 bg-white/60 p-3 rounded-lg border border-emerald-200/50 max-h-40 overflow-y-auto text-xs text-slate-700 font-mono space-y-1">
+              {message.details.map((err, idx) => (
+                <div key={idx} className="text-rose-600 border-b border-rose-100/50 pb-1 last:border-0 last:pb-0">
+                  • {err}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
