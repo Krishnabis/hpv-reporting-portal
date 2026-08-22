@@ -10,16 +10,16 @@ export const SuperAdminUpload: React.FC = () => {
     let headers = '';
     let filename = '';
     if (type === 'block-pop') {
-      headers = 'State,District,Block,population\nUttarakhand,Dehradun,Vikasnagar,150000';
+      headers = 'State,District,Block,population\n';
       filename = 'Block_Population_Template.csv';
     } else if (type === 'city-pop') {
-      headers = 'State,District,City,population\nUttarakhand,Dehradun,Dehradun City,500000';
+      headers = 'State,District,City,population\n';
       filename = 'City_Population_Template.csv';
     } else if (type === 'block-live') {
-      headers = 'State,District,Block,linelisted,vaccinated\nUttarakhand,Dehradun,Vikasnagar,1200,900';
+      headers = 'State,District,Block,linelisted,vaccinated\n';
       filename = 'Block_LiveData_Template.csv';
     } else if (type === 'city-live') {
-      headers = 'State,District,City,linelisted,vaccinated\nUttarakhand,Dehradun,Dehradun City,4000,3100';
+      headers = 'State,District,City,linelisted,vaccinated\n';
       filename = 'City_LiveData_Template.csv';
     }
 
