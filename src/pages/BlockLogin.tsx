@@ -53,7 +53,7 @@ export const BlockLogin: React.FC = () => {
       id: b.id,
       name: b.name,
       subtitle: `(State: Uttarakhand, District: ${b.district_name})`,
-      typeLabel: b.is_urban ? 'CITY(URBAN)' : 'BLOCK(RURAL)',
+      typeLabel: b.is_urban ? 'CITY (URBAN)' : 'BLOCK',
       district_id: b.district_id,
       district_name: b.district_name
     }));
