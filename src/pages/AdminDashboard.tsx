@@ -130,7 +130,6 @@ export const AdminDashboard: React.FC = () => {
     setAdminUser(JSON.parse(userStr));
     setIsAuthenticating(false);
     fetchKpis();
-    fetchDistricts();
     fetchMasterLocations();
     fetchReport();
     fetchAlertCount();
