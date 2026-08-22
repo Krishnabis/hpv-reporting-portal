@@ -822,66 +822,69 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Bottom Banner - Global Strategy */}
-              <div className="bg-white border-2 border-slate-100 rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col gap-1.5 p-1.5 bg-[#f8fafc]">
-                {/* 4 Boxes Grid */}
-                <div className="grid grid-cols-4 gap-1.5 flex-1">
-                  {/* Pink Box */}
-                  <div className="flex flex-col p-2.5 bg-[#fff0f5] border border-[#fbcfe8] border-b-[4px] sm:border-b-[6px] border-b-[#f472b6] rounded-xl relative overflow-hidden group h-full">
-                    <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                      <div className="flex items-baseline gap-0.5">
-                        <span className="text-3xl sm:text-4xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
-                        <span className="text-xl font-black text-[#e93c7a] leading-none">%</span>
+              <div className="bg-[#fff0f5] border-2 border-[#fbcfe8] rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col sm:flex-row items-stretch relative">
+                {/* 3 Boxes Area */}
+                <div className="flex-1 p-1.5 sm:p-2.5">
+                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2 h-full">
+                    {/* Pink Box */}
+                    <div className="flex flex-col p-2 bg-white/80 border border-[#fbcfe8] border-b-[4px] sm:border-b-[6px] border-b-[#f472b6] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
+                      <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
+                        <div className="flex items-baseline gap-0.5">
+                          <span className="text-3xl sm:text-4xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
+                          <span className="text-xl font-black text-[#e93c7a] leading-none">%</span>
+                        </div>
+                        <div className="w-8 h-8 sm:w-11 sm:h-11 bg-pink-50 rounded-full flex items-center justify-center border border-pink-100 shadow-sm shrink-0">
+                          <Syringe className="w-4 h-4 sm:w-6 sm:h-6 text-[#e93c7a] transform -rotate-45" />
+                        </div>
                       </div>
-                      <div className="w-8 h-8 sm:w-11 sm:h-11 bg-pink-100 rounded-full flex items-center justify-center border border-pink-200 shadow-sm shrink-0">
-                        <Syringe className="w-4 h-4 sm:w-6 sm:h-6 text-[#e93c7a] transform -rotate-45" />
-                      </div>
+                      <div className="h-px bg-[#fbcfe8] w-2/3 my-1.5" />
+                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
+                        of Girls Vaccinated<br/>Against HPV by Age 15
+                      </p>
                     </div>
-                    <div className="h-px bg-[#fbcfe8] w-2/3 my-1.5" />
-                    <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
-                      of Girls Vaccinated<br/>Against HPV by Age 15
-                    </p>
-                  </div>
-                  {/* Teal Box */}
-                  <div className="flex flex-col p-2.5 bg-[#f0fdfa] border border-[#ccfbf1] border-b-[4px] sm:border-b-[6px] border-b-[#2dd4bf] rounded-xl relative overflow-hidden group h-full">
-                    <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                      <div className="flex items-baseline gap-0.5">
-                        <span className="text-3xl sm:text-4xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
-                        <span className="text-xl font-black text-[#0d9488] leading-none">%</span>
+                    {/* Teal Box */}
+                    <div className="flex flex-col p-2 bg-white/80 border border-[#ccfbf1] border-b-[4px] sm:border-b-[6px] border-b-[#2dd4bf] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
+                      <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
+                        <div className="flex items-baseline gap-0.5">
+                          <span className="text-3xl sm:text-4xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
+                          <span className="text-xl font-black text-[#0d9488] leading-none">%</span>
+                        </div>
+                        <div className="w-8 h-8 sm:w-11 sm:h-11 bg-teal-50 rounded-full flex items-center justify-center border border-teal-100 shadow-sm shrink-0">
+                          <SearchIcon className="w-4 h-4 sm:w-6 sm:h-6 text-[#0d9488]" />
+                        </div>
                       </div>
-                      <div className="w-8 h-8 sm:w-11 sm:h-11 bg-teal-100 rounded-full flex items-center justify-center border border-teal-200 shadow-sm shrink-0">
-                        <SearchIcon className="w-4 h-4 sm:w-6 sm:h-6 text-[#0d9488]" />
-                      </div>
+                      <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
+                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
+                        of Women Screened with a<br/>high-performance test by<br/>Ages 35 and 45
+                      </p>
                     </div>
-                    <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
-                    <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
-                      of Women Screened with a<br/>high-performance test by<br/>Ages 35 and 45
-                    </p>
-                  </div>
-                  {/* Purple Box */}
-                  <div className="flex flex-col p-2.5 bg-[#faf5ff] border border-[#e9d5ff] border-b-[4px] sm:border-b-[6px] border-b-[#a855f7] rounded-xl relative overflow-hidden group h-full">
-                    <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                      <div className="flex items-baseline gap-0.5">
-                        <span className="text-3xl sm:text-4xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
-                        <span className="text-xl font-black text-[#7e22ce] leading-none">%</span>
+                    {/* Purple Box */}
+                    <div className="flex flex-col p-2 bg-white/80 border border-[#e9d5ff] border-b-[4px] sm:border-b-[6px] border-b-[#a855f7] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
+                      <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
+                        <div className="flex items-baseline gap-0.5">
+                          <span className="text-3xl sm:text-4xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
+                          <span className="text-xl font-black text-[#7e22ce] leading-none">%</span>
+                        </div>
+                        <div className="w-8 h-8 sm:w-11 sm:h-11 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100 shadow-sm shrink-0">
+                          <HeartPulse className="w-4 h-4 sm:w-6 sm:h-6 text-[#7e22ce]" />
+                        </div>
                       </div>
-                      <div className="w-8 h-8 sm:w-11 sm:h-11 bg-purple-100 rounded-full flex items-center justify-center border border-purple-200 shadow-sm shrink-0">
-                        <HeartPulse className="w-4 h-4 sm:w-6 sm:h-6 text-[#7e22ce]" />
-                      </div>
+                      <div className="h-px bg-[#e9d5ff] w-2/3 my-1.5" />
+                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
+                        of Women identified with<br/>Cervical Disease<br/>Receive Treatment
+                      </p>
                     </div>
-                    <div className="h-px bg-[#e9d5ff] w-2/3 my-1.5" />
-                    <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
-                      of Women identified with<br/>Cervical Disease<br/>Receive Treatment
-                    </p>
                   </div>
-                  {/* Strategy Box */}
-                  <div className="flex flex-col p-2.5 bg-[#fff0f5] border border-[#fbcfe8] rounded-xl relative overflow-hidden group h-full justify-center items-end text-right gap-1.5 shadow-inner">
-                    <svg className="w-6 h-6 sm:w-8 sm:h-8 shrink-0 text-[#f472b6] drop-shadow-sm" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C8.69 2 6 4.69 6 8c0 2.21 1.2 4.14 3.03 5.25L4.44 21.4c-.22.39.06.88.51.88h2.39l3.52-6.28 1.14-.65c.34.15.71.24 1.09.24.38 0 .75-.09 1.09-.24l1.14.65 3.52 6.28h2.39c.45 0 .73-.49.51-.88l-4.59-8.15C19.8 12.14 21 10.21 21 8c0-3.31-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
-                    </svg>
-                    <h3 className="text-[10px] sm:text-[11px] font-bold text-[#e93c7a] tracking-wide leading-snug">
-                      Global Strategy to Eliminate Cervical Cancer by 2030
-                    </h3>
-                  </div>
+                </div>
+
+                {/* Right Side Strategy Text */}
+                <div className="w-full sm:w-[140px] lg:w-[160px] p-3 sm:p-4 flex flex-col justify-center items-end text-right border-t sm:border-t-0 sm:border-l border-[#fbcfe8] bg-[#fff0f5] shrink-0">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8 shrink-0 text-[#e93c7a] drop-shadow-sm mb-2" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C8.69 2 6 4.69 6 8c0 2.21 1.2 4.14 3.03 5.25L4.44 21.4c-.22.39.06.88.51.88h2.39l3.52-6.28 1.14-.65c.34.15.71.24 1.09.24.38 0 .75-.09 1.09-.24l1.14.65 3.52 6.28h2.39c.45 0 .73-.49.51-.88l-4.59-8.15C19.8 12.14 21 10.21 21 8c0-3.31-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+                  </svg>
+                  <h3 className="text-[11px] sm:text-[12px] lg:text-[13px] font-extrabold text-[#e93c7a] tracking-wide leading-snug">
+                    Global Strategy to Eliminate Cervical Cancer by 2030
+                  </h3>
                 </div>
               </div>
             </div>
@@ -902,9 +905,9 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-purple-900 font-semibold">Vaccination Coverage (%)</span>
                       <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
                           Vaccination Coverage (%) = (Vaccinated / HPV Target) x 100
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
+                          <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
                         </div>
                       </div>
                     </div>
@@ -913,9 +916,9 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-purple-900 font-semibold">Line Listed (%)</span>
                       <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
                           Line Listed (%) = (Line Listed / HPV Target) x 100
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
+                          <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
                         </div>
                       </div>
                     </div>
