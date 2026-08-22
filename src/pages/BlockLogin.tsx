@@ -58,9 +58,23 @@ export const BlockLogin: React.FC = () => {
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedBlock) {
+      localStorage.setItem('hpv_last_block_id', String(selectedBlock.id));
       navigate(`/report?blockId=${selectedBlock.id}`);
     }
   };
+
+  // Restore last selected block
+  useEffect(() => {
+    if (!loading && availableBlockOptions.length > 0 && !selectedBlock) {
+      const lastId = localStorage.getItem('hpv_last_block_id');
+      if (lastId) {
+        const found = availableBlockOptions.find(b => String(b.id) === lastId);
+        if (found) {
+          setSelectedBlock(found);
+        }
+      }
+    }
+  }, [loading, availableBlockOptions, selectedBlock]);
 
   return (
     <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-2 sm:p-4 lg:p-6">

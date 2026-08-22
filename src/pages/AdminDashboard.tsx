@@ -116,6 +116,8 @@ export const AdminDashboard: React.FC = () => {
   // Alerts Count
   const [alertCount, setAlertCount] = useState(0);
 
+  const [isAuthenticating, setIsAuthenticating] = useState(true);
+
   // Token Auth Verification
   useEffect(() => {
     const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
@@ -125,12 +127,13 @@ export const AdminDashboard: React.FC = () => {
       return;
     }
     setAdminUser(JSON.parse(userStr));
+    setIsAuthenticating(false);
     fetchKpis();
     fetchDistricts();
     fetchMasterLocations();
     fetchReport();
     fetchAlertCount();
-  }, []);
+  }, [navigate]);
 
   const fetchAlertCount = () => {
     fetch('/api/admin/population', {
@@ -401,6 +404,17 @@ export const AdminDashboard: React.FC = () => {
   const totalTarget = reportRows.reduce((sum, r) => sum + (r.hpv_target || 0), 0);
   const totalLL = reportRows.reduce((sum, r) => sum + (r.line_list_received || 0), 0);
   const totalVacc = reportRows.reduce((sum, r) => sum + (r.beneficiaries_vaccinated || 0), 0);
+
+  if (isAuthenticating) {
+    return (
+      <div className="h-[100dvh] w-full bg-slate-100 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-sm font-bold text-slate-500">Checking authentication...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[100dvh] w-full bg-slate-100 flex flex-col lg:flex-row font-sans overflow-hidden">

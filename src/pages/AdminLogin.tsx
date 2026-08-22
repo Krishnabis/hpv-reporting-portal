@@ -5,7 +5,7 @@ import { Logo } from '../components/Logo';
 
 export const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('UKHPV2026');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
