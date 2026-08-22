@@ -20,6 +20,7 @@ interface KPIState {
   total_line_list: number;
   total_vaccinated: number;
   total_target: number;
+  total_population?: number;
   overall_coverage_pct: number;
   overall_linelist_pct: number;
   district_chart_data: Array<{
@@ -669,7 +670,7 @@ export const AdminDashboard: React.FC = () => {
                       TOTAL POPULATION
                     </span>
                     <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none mt-1">
-                      {kpis?.total_target ? (kpis.total_target * 100).toLocaleString('en-IN') : '—'}
+                      {kpis?.total_population ? kpis.total_population.toLocaleString('en-IN') : '—'}
                     </span>
                   </div>
                 </div>

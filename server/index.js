@@ -641,6 +641,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     let totalVaccinated = 0;
     let reportingToday = 0;
     let totalTarget = 0;
+    let totalPopulation = 0;
 
     const districtStats = {};
 
@@ -651,7 +652,10 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       const prof = profileMap[b.id];
       // Target is stored directly OR calculated as 1% of base_population
       const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
+      const pop = prof?.base_population || 0;
+      
       totalTarget += target;
+      totalPopulation += pop;
       districtStats[dName].target += target;
 
       const rep = reportMap[b.id];
@@ -681,6 +685,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       total_line_list: totalLineList,
       total_vaccinated: totalVaccinated,
       total_target: totalTarget,
+      total_population: totalPopulation,
       overall_coverage_pct: totalTarget > 0 ? parseFloat(((totalVaccinated / totalTarget) * 100).toFixed(1)) : 0,
       overall_linelist_pct: totalTarget > 0 ? parseFloat(((totalLineList / totalTarget) * 100).toFixed(1)) : 0,
       district_chart_data,
@@ -714,12 +719,14 @@ app.get('/api/public/overall-stats', async (req, res) => {
       if (!reportMap[r.block_id]) reportMap[r.block_id] = r;
     });
 
-    let totalLineList = 0, totalVaccinated = 0, totalTarget = 0;
+    let totalLineList = 0, totalVaccinated = 0, totalTarget = 0, totalPopulation = 0;
 
     (blocks || []).forEach(b => {
       const prof = profileMap[b.id];
       const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
+      const pop = prof?.base_population || 0;
       totalTarget += target;
+      totalPopulation += pop;
 
       const rep = reportMap[b.id];
       if (rep) {
@@ -731,6 +738,7 @@ app.get('/api/public/overall-stats', async (req, res) => {
     res.json({
       total_blocks: blocks?.length || 0,
       total_target: totalTarget,
+      total_population: totalPopulation,
       total_line_list: totalLineList,
       total_vaccinated: totalVaccinated,
       overall_coverage_pct: totalTarget > 0 ? ((totalVaccinated / totalTarget) * 100).toFixed(1) : 0,
