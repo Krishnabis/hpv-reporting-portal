@@ -160,7 +160,7 @@ export const SuperAdminUpload: React.FC = () => {
         {/* Live Data */}
         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Activity className="w-5 h-5 text-emerald-600" />
+            <ActivityIcon className="w-5 h-5 text-emerald-600" />
             <h2 className="text-base font-bold text-slate-800">Upload Live Data</h2>
           </div>
           <div className="grid grid-cols-1 gap-4">
