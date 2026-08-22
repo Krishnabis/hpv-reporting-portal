@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Target, Circle, ShieldCheck, Download, Phone } from 'lucide-react';
+import { ArrowRight, Target, Circle, ShieldCheck, Download, Phone, Eye, EyeOff } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
 
@@ -14,6 +14,7 @@ export const BlockLogin: React.FC = () => {
 
   // Passcode state
   const [passcode, setPasscode] = useState('');
+  const [showPasscode, setShowPasscode] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -97,7 +98,7 @@ export const BlockLogin: React.FC = () => {
 
   const handleForgotPasscode = async () => {
     if (!selectedBlock) return;
-    if (!window.confirm(`Reset passcode to default (2026) for ${selectedBlock.label}?`)) return;
+    if (!window.confirm(`Reset passcode to default for ${selectedBlock.label}?`)) return;
     
     try {
       const res = await fetch('/api/blocks/reset-passcode', {
@@ -106,7 +107,7 @@ export const BlockLogin: React.FC = () => {
         body: JSON.stringify({ blockId: selectedBlock.id })
       });
       if (res.ok) {
-        alert('Passcode reset to default (2026)');
+        alert('Passcode reset to default');
         setPasscode('');
       } else {
         const data = await res.json();
@@ -184,7 +185,7 @@ export const BlockLogin: React.FC = () => {
           <form onSubmit={handleContinue} className="space-y-4">
 
             <SearchableSelect
-              label="SELECT YOUR BLOCK (RURAL) OR CITY (URBAN)"
+              label="SELECT YOUR BLOCK OR CITY"
               placeholder={loading ? "Loading..." : "Type or search block or city..."}
               options={availableBlockOptions}
               value={selectedBlock}
@@ -203,17 +204,26 @@ export const BlockLogin: React.FC = () => {
                 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    4-Digit Passcode
+                    Enter 4-Digit Passcode
                   </label>
-                  <input
-                    type="password"
-                    maxLength={4}
-                    value={passcode}
-                    onChange={e => setPasscode(e.target.value.replace(/\\D/g, ''))}
-                    placeholder="e.g. 2026"
-                    disabled={isLoggingIn}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPasscode ? "text" : "password"}
+                      maxLength={4}
+                      value={passcode}
+                      onChange={e => setPasscode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="****"
+                      disabled={isLoggingIn}
+                      className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasscode(!showPasscode)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                    >
+                      {showPasscode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="mt-3 flex items-center justify-between">

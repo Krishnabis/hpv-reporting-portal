@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Building2, Calendar, CheckCircle2, AlertTriangle,
-  Save, Users, Clock, Lock, Activity, X, Settings
+  Save, Users, Clock, Lock, Activity, X, Settings, Eye, EyeOff
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 
@@ -68,6 +68,9 @@ export const BlockReporting: React.FC = () => {
   const [currentPasscode, setCurrentPasscode] = useState('');
   const [newPasscode, setNewPasscode] = useState('');
   const [confirmNewPasscode, setConfirmNewPasscode] = useState('');
+  const [showCurrentPasscode, setShowCurrentPasscode] = useState(false);
+  const [showNewPasscode, setShowNewPasscode] = useState(false);
+  const [showConfirmPasscode, setShowConfirmPasscode] = useState(false);
   const [changePasscodeError, setChangePasscodeError] = useState('');
   const [isChangingPasscode, setIsChangingPasscode] = useState(false);
 
@@ -603,33 +606,63 @@ export const BlockReporting: React.FC = () => {
               )}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-700">Current Passcode</label>
-                <input
-                  type="password"
-                  maxLength={4}
-                  value={currentPasscode}
-                  onChange={e => setCurrentPasscode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
-                />
+                <div className="relative">
+                  <input
+                    type={showCurrentPasscode ? "text" : "password"}
+                    maxLength={4}
+                    value={currentPasscode}
+                    onChange={e => setCurrentPasscode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="****"
+                    className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPasscode(!showCurrentPasscode)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                  >
+                    {showCurrentPasscode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-700">New Passcode</label>
-                <input
-                  type="password"
-                  maxLength={4}
-                  value={newPasscode}
-                  onChange={e => setNewPasscode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
-                />
+                <div className="relative">
+                  <input
+                    type={showNewPasscode ? "text" : "password"}
+                    maxLength={4}
+                    value={newPasscode}
+                    onChange={e => setNewPasscode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="****"
+                    className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPasscode(!showNewPasscode)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                  >
+                    {showNewPasscode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-700">Confirm New Passcode</label>
-                <input
-                  type="password"
-                  maxLength={4}
-                  value={confirmNewPasscode}
-                  onChange={e => setConfirmNewPasscode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPasscode ? "text" : "password"}
+                    maxLength={4}
+                    value={confirmNewPasscode}
+                    onChange={e => setConfirmNewPasscode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="****"
+                    className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPasscode(!showConfirmPasscode)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                  >
+                    {showConfirmPasscode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <button
                 type="submit"
