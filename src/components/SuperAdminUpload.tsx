@@ -6,21 +6,15 @@ export const SuperAdminUpload: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success', text: string, errors?: string[], successes?: string[] } | null>(null);
 
-  const handleDownloadTemplate = (type: 'block-pop' | 'city-pop' | 'block-live' | 'city-live') => {
+  const handleDownloadTemplate = (type: 'population' | 'livedata') => {
     let headers = '';
     let filename = '';
-    if (type === 'block-pop') {
-      headers = 'State,District,Block,population\n';
-      filename = 'Block_Population_Template.csv';
-    } else if (type === 'city-pop') {
-      headers = 'State,District,City,population\n';
-      filename = 'City_Population_Template.csv';
-    } else if (type === 'block-live') {
-      headers = 'State,District,Block,linelisted,vaccinated\n';
-      filename = 'Block_LiveData_Template.csv';
-    } else if (type === 'city-live') {
-      headers = 'State,District,City,linelisted,vaccinated\n';
-      filename = 'City_LiveData_Template.csv';
+    if (type === 'population') {
+      headers = 'State,District,BlockOrCity,population\n';
+      filename = 'Population_Template.csv';
+    } else if (type === 'livedata') {
+      headers = 'State,District,BlockOrCity,linelisted,vaccinated\n';
+      filename = 'LiveData_Template.csv';
     }
 
     const blob = new Blob([headers], { type: 'text/csv' });
@@ -79,7 +73,7 @@ export const SuperAdminUpload: React.FC = () => {
     reader.readAsText(file);
   };
 
-  const renderSection = (title: string, btnText: string, type: 'block-pop' | 'city-pop' | 'block-live' | 'city-live', apiEndpoint: string, colorClass: string) => {
+  const renderSection = (title: string, btnText: string, type: 'population' | 'livedata', apiEndpoint: string, colorClass: string) => {
     return (
       <div className={`p-4 rounded-xl border ${colorClass} bg-white flex flex-col gap-3 justify-between shadow-sm hover:shadow-md transition-all`}>
         <div>
@@ -150,32 +144,29 @@ export const SuperAdminUpload: React.FC = () => {
         <div className="text-sm font-semibold text-hpv-purple animate-pulse">Processing CSV upload...</div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Population Section */}
-        <div className="bg-slate-50 rounded-2xl border border-slate-200 p-5 space-y-4">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
-            <UsersIcon className="w-5 h-5 text-indigo-500" />
-            Upload Population Data
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {renderSection('Block Population', 'Upload Block Population', 'block-pop', '/api/superadmin/upload-population', 'border-indigo-100')}
-            {renderSection('City Population', 'Upload City Population', 'city-pop', '/api/superadmin/upload-population', 'border-indigo-100')}
+        {/* Population Data */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <UsersIcon className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-base font-bold text-slate-800">Upload Population Data</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {renderSection('Population', 'Upload Population', 'population', '/api/superadmin/upload-population', 'border-indigo-100')}
           </div>
         </div>
 
-        {/* Live Data Section */}
-        <div className="bg-slate-50 rounded-2xl border border-slate-200 p-5 space-y-4">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
-            <ActivityIcon className="w-5 h-5 text-emerald-500" />
-            Upload Live Data
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {renderSection('Block Live Data', 'Upload Block Live Data', 'block-live', '/api/superadmin/upload-livedata', 'border-emerald-100')}
-            {renderSection('City Live Data', 'Upload City Live Data', 'city-live', '/api/superadmin/upload-livedata', 'border-emerald-100')}
+        {/* Live Data */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity className="w-5 h-5 text-emerald-600" />
+            <h2 className="text-base font-bold text-slate-800">Upload Live Data</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {renderSection('Live Data', 'Upload Live Data', 'livedata', '/api/superadmin/upload-livedata', 'border-emerald-100')}
           </div>
         </div>
-
       </div>
     </div>
   );

@@ -1013,7 +1013,7 @@ app.post('/api/superadmin/upload-population', authenticateToken, async (req, res
       const row = data[i];
       const stateName = (row.State || row.state || '').trim().toLowerCase();
       const distName = (row.District || row.district || '').trim().toLowerCase();
-      const blockName = (row.Block || row.block || row.City || row.city || '').trim().toLowerCase();
+      const blockName = (row.BlockOrCity || row.blockorcity || row.Block || row.block || row.City || row.city || '').trim().toLowerCase();
       const popStr = row.population || row.Population;
       const basePop = parseInt(popStr, 10);
 
@@ -1099,7 +1099,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
       const row = data[i];
       const stateName = (row.State || row.state || '').trim().toLowerCase();
       const distName = (row.District || row.district || '').trim().toLowerCase();
-      const blockName = (row.Block || row.block || row.City || row.city || '').trim().toLowerCase();
+      const blockName = (row.BlockOrCity || row.blockorcity || row.Block || row.block || row.City || row.city || '').trim().toLowerCase();
       
       const llStr = row.linelisted || row.LineListed || row.linelist || row.LineList || '0';
       const vaccStr = row.vaccinated || row.Vaccinated || '0';
