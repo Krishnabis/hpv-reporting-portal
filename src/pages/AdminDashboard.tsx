@@ -405,12 +405,15 @@ export const AdminDashboard: React.FC = () => {
   const totalLL = reportRows.reduce((sum, r) => sum + (r.line_list_received || 0), 0);
   const totalVacc = reportRows.reduce((sum, r) => sum + (r.beneficiaries_vaccinated || 0), 0);
 
-  if (isAuthenticating) {
+  const isInitialLoading = isAuthenticating || (kpis === null && loadingKpis) || (reportRows.length === 0 && loadingReport);
+  if (isInitialLoading) {
     return (
       <div className="h-[100dvh] w-full bg-slate-100 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-sm font-bold text-slate-500">Checking authentication...</div>
+          <div className="text-sm font-bold text-slate-500">
+            {isAuthenticating ? 'Checking authentication...' : 'Loading Dashboard...'}
+          </div>
         </div>
       </div>
     );
@@ -830,11 +833,11 @@ export const AdminDashboard: React.FC = () => {
                     <div className="flex flex-col p-2 bg-white/80 border border-[#fbcfe8] border-b-[4px] sm:border-b-[6px] border-b-[#f472b6] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
                       <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
                         <div className="flex items-baseline gap-0.5">
-                          <span className="text-2xl sm:text-3xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
-                          <span className="text-lg sm:text-xl font-black text-[#e93c7a] leading-none">%</span>
+                          <span className="text-[15px] sm:text-[18px] font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
+                          <span className="text-[11px] sm:text-[12px] font-black text-[#e93c7a] leading-none">%</span>
                         </div>
-                        <div className="w-7 h-7 sm:w-9 sm:h-9 bg-pink-50 rounded-full flex items-center justify-center border border-pink-100 shadow-sm shrink-0">
-                          <Syringe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#e93c7a] transform -rotate-45" />
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 bg-pink-50 rounded-full flex items-center justify-center border border-pink-100 shadow-sm shrink-0">
+                          <Syringe className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#e93c7a] transform -rotate-45" />
                         </div>
                       </div>
                       <div className="h-px bg-[#fbcfe8] w-2/3 my-1.5" />
@@ -846,11 +849,11 @@ export const AdminDashboard: React.FC = () => {
                     <div className="flex flex-col p-2 bg-white/80 border border-[#ccfbf1] border-b-[4px] sm:border-b-[6px] border-b-[#2dd4bf] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
                       <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
                         <div className="flex items-baseline gap-0.5">
-                          <span className="text-2xl sm:text-3xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
-                          <span className="text-lg sm:text-xl font-black text-[#0d9488] leading-none">%</span>
+                          <span className="text-[15px] sm:text-[18px] font-black text-[#0d9488] leading-none tracking-tighter">70</span>
+                          <span className="text-[11px] sm:text-[12px] font-black text-[#0d9488] leading-none">%</span>
                         </div>
-                        <div className="w-7 h-7 sm:w-9 sm:h-9 bg-teal-50 rounded-full flex items-center justify-center border border-teal-100 shadow-sm shrink-0">
-                          <SearchIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0d9488]" />
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 bg-teal-50 rounded-full flex items-center justify-center border border-teal-100 shadow-sm shrink-0">
+                          <SearchIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#0d9488]" />
                         </div>
                       </div>
                       <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
@@ -862,11 +865,11 @@ export const AdminDashboard: React.FC = () => {
                     <div className="flex flex-col p-2 bg-white/80 border border-[#e9d5ff] border-b-[4px] sm:border-b-[6px] border-b-[#a855f7] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
                       <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
                         <div className="flex items-baseline gap-0.5">
-                          <span className="text-2xl sm:text-3xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
-                          <span className="text-lg sm:text-xl font-black text-[#7e22ce] leading-none">%</span>
+                          <span className="text-[15px] sm:text-[18px] font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
+                          <span className="text-[11px] sm:text-[12px] font-black text-[#7e22ce] leading-none">%</span>
                         </div>
-                        <div className="w-7 h-7 sm:w-9 sm:h-9 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100 shadow-sm shrink-0">
-                          <HeartPulse className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7e22ce]" />
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100 shadow-sm shrink-0">
+                          <HeartPulse className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#7e22ce]" />
                         </div>
                       </div>
                       <div className="h-px bg-[#e9d5ff] w-2/3 my-1.5" />
