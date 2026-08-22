@@ -621,7 +621,7 @@ export const AdminDashboard: React.FC = () => {
                 )}
                 <div className="flex items-center gap-2 group relative">
                   <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-1.5">
-                    <span className="text-emerald-600">Monitoring Dashboard:</span>
+                    <span className="text-[#188E94]">Monitoring Dashboard:</span>
                     <span className="text-purple-900">Uttarakhand</span>
                   </h1>
                   <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0 relative">
