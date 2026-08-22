@@ -672,7 +672,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between z-10 relative">
                   <span className="text-[9px] text-slate-400">HPV Target population (1%)</span>
-                  <span className="text-[10px] font-bold font-mono text-slate-700">{kpis?.total_target?.toLocaleString('en-IN') || '—'}</span>
+                  <span className="text-[10px] font-bold font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">{kpis?.total_target?.toLocaleString('en-IN') || '—'}</span>
                 </div>
               </div>
 
@@ -719,28 +719,28 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                   <span className="text-[9px] text-slate-400">Count:</span>
-                  <span className="text-[10px] font-bold font-mono text-slate-700">{kpis?.total_line_list?.toLocaleString('en-IN') || '—'}</span>
+                  <span className="text-[10px] font-bold font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{kpis?.total_line_list?.toLocaleString('en-IN') || '—'}</span>
                 </div>
               </div>
 
               {/* Card 4: Total Vaccinated */}
-              <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-rose-500 flex flex-col justify-between">
+              <div className="bg-[#fff0f5] p-3 rounded-xl border border-pink-200 shadow-sm relative overflow-hidden border-t-4 border-t-pink-500 flex flex-col justify-between">
                 <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                  <div className="w-10 h-10 rounded-xl bg-pink-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
                     <ShieldCheck className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
                       ELIGIBLE GIRLS VACCINATED
                     </span>
-                    <span className="text-2xl font-extrabold font-mono text-rose-500 leading-none mt-1">
+                    <span className="text-2xl font-extrabold font-mono text-pink-600 leading-none mt-1">
                       {kpis ? kpis.overall_coverage_pct : 0}%
                     </span>
                   </div>
                 </div>
-                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <span className="text-[9px] text-slate-400">Count:</span>
-                  <span className="text-[10px] font-bold font-mono text-slate-700">{kpis?.total_vaccinated?.toLocaleString('en-IN') || '—'}</span>
+                <div className="mt-3 pt-2 border-t border-pink-200/60 flex items-center justify-between gap-2">
+                  <span className="text-[9px] text-slate-500">Count:</span>
+                  <span className="text-[10px] font-bold font-mono text-pink-700 bg-pink-100 px-1.5 py-0.5 rounded">{kpis?.total_vaccinated?.toLocaleString('en-IN') || '—'}</span>
                 </div>
               </div>
             </div>
