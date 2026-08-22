@@ -390,7 +390,10 @@ export const ProgressTrend: React.FC = () => {
                     width={40}
                   />
                   <Tooltip
-                    formatter={(value: number) => [`${value}%`, '']}
+                    formatter={(value: number, name: string, props: any) => {
+                      const count = props.dataKey === 'lineListedPct' ? props.payload.rawLineList : props.payload.rawVaccinated;
+                      return [`${value}% (${count.toLocaleString('en-IN')})`, ''];
+                    }}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }}
                   />

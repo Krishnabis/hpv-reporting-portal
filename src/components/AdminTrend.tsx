@@ -152,6 +152,9 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
 
   const maxLineListed = chartData.length > 0 ? Math.max(...chartData.map(d => d.lineListedPct)) : 0;
   const maxVaccinated = chartData.length > 0 ? Math.max(...chartData.map(d => d.vaccinatedPct)) : 0;
+  
+  const maxLineListedCount = chartData.length > 0 ? chartData[chartData.length - 1].rawLineList : 0;
+  const maxVaccinatedCount = chartData.length > 0 ? chartData[chartData.length - 1].rawVaccinated : 0;
 
   const handleDownload = () => {
     if (chartData.length === 0) return;
@@ -297,12 +300,14 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
             <div className="bg-sky-50 border-l-4 border-l-sky-500 rounded-2xl p-3 border-y border-r border-sky-100 shadow-sm flex flex-col justify-center">
               <span className="text-[10px] uppercase font-bold text-sky-700 mb-1">Eligible Girls Line Listed</span>
               <span className="text-2xl font-extrabold font-mono text-sky-800">{maxLineListed}%</span>
-              <span className="text-xs font-semibold text-sky-600/80">Cumulative Percentage</span>
+              <span className="text-xs font-semibold text-sky-600/80 mb-1">Cumulative Percentage</span>
+              <span className="text-[11px] font-bold text-sky-700">Count: {maxLineListedCount.toLocaleString('en-IN')}</span>
             </div>
             <div className="bg-emerald-50 border-l-4 border-l-emerald-500 rounded-2xl p-3 border-y border-r border-emerald-100 shadow-sm flex flex-col justify-center">
               <span className="text-[10px] uppercase font-bold text-emerald-700 mb-1">Eligible Girls Vaccinated</span>
               <span className="text-2xl font-extrabold font-mono text-emerald-800">{maxVaccinated}%</span>
-              <span className="text-xs font-semibold text-emerald-600/80">Cumulative Percentage</span>
+              <span className="text-xs font-semibold text-emerald-600/80 mb-1">Cumulative Percentage</span>
+              <span className="text-[11px] font-bold text-emerald-700">Count: {maxVaccinatedCount.toLocaleString('en-IN')}</span>
             </div>
           </div>
 
@@ -336,7 +341,14 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="dateLabel" tick={{ fontSize: 10, fill: '#64748b' }} tickMargin={10} />
                     <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(value) => `${value}%`} width={40} />
-                    <Tooltip formatter={(value: number) => [`${value}%`, '']} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }} />
+                    <Tooltip 
+                      formatter={(value: number, name: string, props: any) => {
+                        const count = props.dataKey === 'lineListedPct' ? props.payload.rawLineList : props.payload.rawVaccinated;
+                        return [`${value}% (${count.toLocaleString('en-IN')})`, ''];
+                      }} 
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                      labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }} 
+                    />
                     <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 600, paddingTop: '10px' }} />
                     <ReferenceLine y={100} label={{ position: 'top', value: `Goal: ${profile ? Math.round(profile.base_population * 0.01).toLocaleString('en-IN') : 0} (100%)`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
                     <Line type="monotone" dataKey="lineListedPct" name="Eligible Girls % Line Listed" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }} />

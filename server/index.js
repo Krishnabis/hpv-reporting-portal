@@ -1182,7 +1182,22 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
       
       const llStr = row.linelisted || row.LineListed || row.linelist || row.LineList || '0';
       const vaccStr = row.vaccinated || row.Vaccinated || '0';
-      const reportingDate = row['Date(YYYY-MM-DD)'] || row.Date || row.date || today;
+      
+      let rawDate = (row['Date(DD-MM-YYYY)'] || row['Date(YYYY-MM-DD)'] || row.Date || row.date || today).trim();
+      let reportingDate = rawDate;
+      if (rawDate !== today) {
+        const parts = rawDate.split(/[-/]/);
+        if (parts.length === 3) {
+          if (parts[2].length === 4) {
+            // Format is DD-MM-YYYY or MM-DD-YYYY. Since template says DD-MM-YYYY, assume DD is first
+            reportingDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          } else if (parts[0].length === 4) {
+            // Format is YYYY-MM-DD
+            reportingDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+          }
+        }
+      }
+
       const lineList = parseInt(llStr, 10);
       const vaccinated = parseInt(vaccStr, 10);
 
