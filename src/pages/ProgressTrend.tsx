@@ -207,7 +207,7 @@ export const ProgressTrend: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto w-full px-4 py-2 flex flex-col gap-2 flex-1 overflow-y-auto min-h-0">
+      <main className="max-w-6xl mx-auto w-full px-4 py-2 flex flex-col gap-2 flex-1 min-h-0">
 
         {/* Block Hero Card */}
         <div className="shrink-0 gradient-header rounded-2xl py-2 px-3 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
@@ -332,15 +332,17 @@ export const ProgressTrend: React.FC = () => {
         </div>
 
         {/* Chart Area */}
-        <div className="bg-white rounded-xl p-2 sm:p-3 border border-slate-200 shadow-sm flex flex-col flex-1 min-h-[350px] overflow-hidden">
+        <div className="bg-white rounded-xl p-2 sm:p-3 border border-slate-200 shadow-sm flex flex-col flex-1 min-h-[250px]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
             <div>
               <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 Run Chart – Cumulative Progress Over Time (%)
                 <div tabIndex={0} className="relative group flex items-center justify-center outline-none">
                   <div className="w-4 h-4 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-[10px] font-bold cursor-help transition-colors">i</div>
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus:opacity-100 group-focus:visible transition-all w-max bg-slate-800 text-white text-[11px] font-bold py-1.5 px-3 rounded-lg shadow-xl z-50 text-center pointer-events-none">
-                    Higher is Better!
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus:opacity-100 group-focus:visible transition-all w-[250px] bg-slate-800 text-white text-[11px] font-bold py-2 px-3 rounded-lg shadow-xl z-50 text-center pointer-events-none">
+                    Run chart shows cumulative progress of line listing and vaccination against the target goal over time.
+                    <br />
+                    <span className="text-emerald-400 mt-1 block">↑ Higher is better</span>
                     <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
                   </div>
                 </div>
@@ -362,7 +364,7 @@ export const ProgressTrend: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ width: '100%', height: 300, minHeight: 300 }}>
+          <div className="flex-1 w-full min-h-0 relative">
             {chartData.length === 0 ? (
               <div className="flex h-full items-center justify-center text-slate-500 font-semibold text-sm">
                 No reporting data found for the selected range.
@@ -414,16 +416,6 @@ export const ProgressTrend: React.FC = () => {
                 </LineChart>
               </ResponsiveContainer>
             )}
-          </div>
-          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500 font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 bg-hpv-purple-soft/50 rounded flex items-center justify-center text-hpv-purple shrink-0">i</div>
-              <span>Run chart shows cumulative progress of line listing and vaccination against the target goal over time.</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-emerald-600 font-bold shrink-0">
-              <span className="w-4 h-4 bg-emerald-100 rounded flex items-center justify-center text-emerald-600">↑</span>
-              <span>Higher is better</span>
-            </div>
           </div>
         </div>
 
