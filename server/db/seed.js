@@ -99,15 +99,19 @@ async function seed() {
       insertSettingStmt.run(id, key, val, desc);
     }
 
-    // Seed Admin User (superadmin / superadmin123)
-    const hash = hashPassword('superadmin123');
+    // Seed Admin User (UKHPV2026 / UKHPV2026)
+    const hash1 = hashPassword('UKHPV2026');
+
+    // Seed Super Admin User (superadmin / superadmin123)
+    const hash2 = hashPassword('superadmin123');
 
     const insertAdminStmt = db.prepare(`
       INSERT INTO admin_users (id, username, password_hash, name, role)
       VALUES (?, ?, ?, ?, ?)
     `);
 
-    insertAdminStmt.run('usr-admin-1', 'superadmin', hash, 'State HPV Administrator', 'SUPER_ADMIN');
+    insertAdminStmt.run('usr-admin-1', 'UKHPV2026', hash1, 'State HPV Administrator', 'ADMIN');
+    insertAdminStmt.run('usr-superadmin-1', 'superadmin', hash2, 'Super Administrator', 'SUPER_ADMIN');
 
     // Seed sample reporting profiles & daily cumulative snapshots for demo
     const blocks = db.prepare('SELECT * FROM blocks').all().slice(0, 15);
@@ -142,7 +146,8 @@ async function seed() {
   console.log(`📍 States Seeded: ${stateMap.size}`);
   console.log(`📍 Districts Seeded: ${districtMap.size}`);
   console.log(`📍 Blocks Seeded: ${blockCount}`);
-  console.log(`🔑 Admin Credentials: Username=superadmin, Password=superadmin123`);
+  console.log(`🔑 Admin Credentials: Username=UKHPV2026, Password=UKHPV2026`);
+  console.log(`🔑 Super Admin Credentials: Username=superadmin, Password=superadmin123`);
 }
 
 seed().catch(err => {
