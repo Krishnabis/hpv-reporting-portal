@@ -14,8 +14,6 @@ export const BlockLogin: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
 
-  const [isUrban, setIsUrban] = useState(false);
-
   // Fetch all districts and blocks on mount
   useEffect(() => {
     setLoading(true);
@@ -41,13 +39,12 @@ export const BlockLogin: React.FC = () => {
       });
   }, []);
 
-  // Filter available blocks based on Urban/Rural toggle
+  // List all available blocks and cities combined
   const availableBlockOptions: OptionItem[] = allBlocks
-    .filter(b => !!b.is_urban === isUrban)
     .map(b => ({
       id: b.id,
       name: b.name,
-      subtitle: `(State: Uttarakhand, District: ${b.district_name})`,
+      subtitle: `(State: Uttarakhand, District: ${b.district_name}, Type: ${b.is_urban ? 'City' : 'Block'})`,
       district_id: b.district_id,
       district_name: b.district_name
     }));
@@ -110,32 +107,14 @@ export const BlockLogin: React.FC = () => {
           {/* Block Selection Form */}
           <form onSubmit={handleContinue} className="space-y-4">
 
-            {/* Urban / Rural Toggle */}
-            <div className="flex bg-slate-100/50 border border-slate-200/50 p-1.5 rounded-xl">
-              <button
-                type="button"
-                onClick={() => { setIsUrban(false); setSelectedBlock(null); }}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isUrban ? 'bg-hpv-purple-soft text-[#311155] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Block (Rural)
-              </button>
-              <button
-                type="button"
-                onClick={() => { setIsUrban(true); setSelectedBlock(null); }}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isUrban ? 'bg-hpv-purple-soft text-[#311155] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                City (Urban)
-              </button>
-            </div>
-
             <SearchableSelect
-              label={isUrban ? "SELECT CITY" : "SELECT BLOCK"}
-              placeholder={loading ? "Loading..." : `Type or search ${isUrban ? 'city' : 'block'}...`}
+              label="SELECT YOUR BLOCK (RURAL) OR CITY (URBAN)"
+              placeholder={loading ? "Loading..." : "Type or search block or city..."}
               options={availableBlockOptions}
               value={selectedBlock}
               onChange={handleBlockChange}
               disabled={loading}
-              emptyText={`No matching ${isUrban ? 'cities' : 'blocks'} found`}
+              emptyText="No matching blocks or cities found"
             />
 
             {/* Submit Action */}
