@@ -202,7 +202,10 @@ export const AdminLogin: React.FC = () => {
           <div className="mt-3 pt-3 border-t border-slate-100 shrink-0">
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-slate-50 rounded-xl p-2 border border-slate-200 text-center flex flex-col justify-center">
-                <div className="text-[9px] font-bold text-slate-600 uppercase tracking-wider leading-tight h-5 flex items-center justify-center">Overall HPV Vaccination Goal</div>
+                <div className="text-[9px] font-bold text-slate-600 uppercase tracking-wider leading-tight h-8 flex flex-col items-center justify-center text-center">
+                  <span>Overall HPV</span>
+                  <span>Vaccination Goal</span>
+                </div>
                 <div className="text-base font-extrabold text-slate-800 my-0.5 leading-none">&gt;90%</div>
                 <div className="text-[9px] text-slate-500 font-semibold">Goal: &gt;{stats.total_target ? Math.round(stats.total_target * 0.90).toLocaleString('en-IN') : 0}</div>
               </div>
