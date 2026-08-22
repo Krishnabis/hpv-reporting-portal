@@ -15,7 +15,7 @@ export const BlockLogin: React.FC = () => {
   // Passcode state
   const [passcode, setPasscode] = useState('');
   const [showPasscode, setShowPasscode] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const hasRestored = useRef(false);
