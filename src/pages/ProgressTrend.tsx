@@ -95,9 +95,14 @@ export const ProgressTrend: React.FC = () => {
     const groups: Record<string, ReportData[]> = {};
     filtered.forEach(r => {
       const d = new Date(r.reporting_date);
-      let key = r.reporting_date; // daily
+      let key = '';
 
-      if (viewBy === 'weekly') {
+      if (viewBy === 'daily') {
+        const day = d.getUTCDate().toString().padStart(2, '0');
+        const month = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+        const year = d.getUTCFullYear();
+        key = `${day}-${month}-${year}`;
+      } else if (viewBy === 'weekly') {
         const dCopy = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
         const dayNum = dCopy.getUTCDay() || 7;
         dCopy.setUTCDate(dCopy.getUTCDate() + 4 - dayNum);

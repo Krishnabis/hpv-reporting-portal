@@ -103,9 +103,14 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
     const groups: Record<string, ReportData[]> = {};
     filtered.forEach(r => {
       const d = new Date(r.reporting_date);
-      let key = r.reporting_date; // daily
+      let key = '';
       
-      if (viewBy === 'weekly') {
+      if (viewBy === 'daily') {
+        const day = d.getUTCDate().toString().padStart(2, '0');
+        const month = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+        const year = d.getUTCFullYear();
+        key = `${day}-${month}-${year}`;
+      } else if (viewBy === 'weekly') {
         const dCopy = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
         const dayNum = dCopy.getUTCDay() || 7;
         dCopy.setUTCDate(dCopy.getUTCDate() + 4 - dayNum);
@@ -181,7 +186,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
   };
 
   const stateOptions = statesList.map(s => ({ id: s.id.toString(), name: s.name }));
-  const districtOptions = [{ id: 'ALL', name: 'All Districts' }, ...districtsList.map(d => ({ id: d.id.toString(), name: `${d.name} (State: ${d.state_name})` }))];
+  const districtOptions = [{ id: 'ALL', name: 'All Districts' }, ...districtsList.map(d => ({ id: d.id.toString(), name: d.name }))];
   const blockOptions = [{ id: 'ALL', name: 'All Blocks' }, ...blocksList.map(b => ({ id: b.id.toString(), name: `${b.name} (${b.district_name})` }))];
 
   return (
