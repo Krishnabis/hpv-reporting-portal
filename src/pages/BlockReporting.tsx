@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Building2, Calendar, CheckCircle2, AlertTriangle,
-  Save, Users, Clock, Lock, Activity, X
+  Save, Users, Clock, Lock, Activity, X, Settings
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 
@@ -62,6 +62,15 @@ export const BlockReporting: React.FC = () => {
   const [reportSuccessMsg, setReportSuccessMsg] = useState('');
   const [reportErrorMsg, setReportErrorMsg] = useState('');
 
+  // Settings & Passcode State
+  const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
+  const [showChangePasscodeModal, setShowChangePasscodeModal] = useState(false);
+  const [currentPasscode, setCurrentPasscode] = useState('');
+  const [newPasscode, setNewPasscode] = useState('');
+  const [confirmNewPasscode, setConfirmNewPasscode] = useState('');
+  const [changePasscodeError, setChangePasscodeError] = useState('');
+  const [isChangingPasscode, setIsChangingPasscode] = useState(false);
+
   const fetchBlockDetails = () => {
     if (!blockId) return;
     setLoading(true);
@@ -96,8 +105,45 @@ export const BlockReporting: React.FC = () => {
       navigate('/');
       return;
     }
+
+    const token = localStorage.getItem(`hpv_block_token_${blockId}`) || sessionStorage.getItem(`hpv_block_token_${blockId}`);
+    if (!token) {
+      navigate('/'); // Redirect to login if unauthenticated
+      return;
+    }
+
     fetchBlockDetails();
-  }, [blockId]);
+  }, [blockId, navigate]);
+
+  const handleChangePasscode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPasscode !== confirmNewPasscode) {
+      setChangePasscodeError('New passcodes do not match');
+      return;
+    }
+    setIsChangingPasscode(true);
+    setChangePasscodeError('');
+    
+    try {
+      const res = await fetch('/api/blocks/change-passcode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blockId, currentPasscode, newPasscode })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to change passcode');
+      
+      alert('Passcode changed successfully!');
+      setShowChangePasscodeModal(false);
+      setCurrentPasscode('');
+      setNewPasscode('');
+      setConfirmNewPasscode('');
+    } catch (err: any) {
+      setChangePasscodeError(err.message);
+    } finally {
+      setIsChangingPasscode(false);
+    }
+  };
 
   const parsedBasePop = parseInt(basePopulationInput, 10) || 0;
 
@@ -241,9 +287,40 @@ export const BlockReporting: React.FC = () => {
     <div className="h-[100dvh] w-full bg-slate-50 flex flex-col overflow-hidden">
       {/* Header Bar — compact, no "Change Block" or "Admin Portal" once in block view */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center relative min-h-[60px]">
+        <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center justify-between relative min-h-[60px]">
           <div className="cursor-pointer flex items-center gap-3" onClick={() => navigate('/')}>
             <img src="/headinglogo.png" alt="Logo" className="h-14 object-contain hover:opacity-80 transition-opacity" />
+          </div>
+          <div className="relative">
+            <button 
+              onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
+              className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+            {showSettingsDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50">
+                <button 
+                  onClick={() => {
+                    setShowSettingsDropdown(false);
+                    setShowChangePasscodeModal(true);
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  Change Passcode
+                </button>
+                <button 
+                  onClick={() => {
+                    localStorage.removeItem(`hpv_block_token_${blockId}`);
+                    sessionStorage.removeItem(`hpv_block_token_${blockId}`);
+                    navigate('/');
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -499,6 +576,72 @@ export const BlockReporting: React.FC = () => {
           </section>
         )}
 
+
+      {showChangePasscodeModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <h3 className="font-extrabold text-slate-900">Change Passcode</h3>
+              <button 
+                onClick={() => {
+                  setShowChangePasscodeModal(false);
+                  setCurrentPasscode('');
+                  setNewPasscode('');
+                  setConfirmNewPasscode('');
+                  setChangePasscodeError('');
+                }} 
+                className="text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleChangePasscode} className="p-5 space-y-4">
+              {changePasscodeError && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-semibold">
+                  {changePasscodeError}
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">Current Passcode</label>
+                <input
+                  type="password"
+                  maxLength={4}
+                  value={currentPasscode}
+                  onChange={e => setCurrentPasscode(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">New Passcode</label>
+                <input
+                  type="password"
+                  maxLength={4}
+                  value={newPasscode}
+                  onChange={e => setNewPasscode(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">Confirm New Passcode</label>
+                <input
+                  type="password"
+                  maxLength={4}
+                  value={confirmNewPasscode}
+                  onChange={e => setConfirmNewPasscode(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isChangingPasscode || currentPasscode.length !== 4 || newPasscode.length !== 4 || confirmNewPasscode.length !== 4}
+                className="w-full py-3.5 px-4 rounded-xl font-bold text-white gradient-header shadow-lg shadow-hpv-purple/20 disabled:opacity-50 disabled:cursor-not-allowed mt-2 transition-all hover:shadow-hpv-purple/40"
+              >
+                {isChangingPasscode ? 'Saving...' : 'Save Passcode'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       </main>
 

@@ -152,6 +152,76 @@ app.get('/api/locations/blocks', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── Block Auth ───────────────────────────────────────────────────────────────
+
+app.post('/api/blocks/login', async (req, res) => {
+  try {
+    const { blockId, passcode } = req.body;
+    let actualPasscode = '2026';
+    if (useSupabase) {
+      const { data } = await supabase.from('blocks').select('passcode').eq('id', blockId).maybeSingle();
+      if (data && data.passcode) actualPasscode = data.passcode;
+    } else {
+      const b = store.blocks.find(x => x.id === Number(blockId));
+      if (b && b.passcode) actualPasscode = b.passcode;
+    }
+    
+    if (passcode === actualPasscode) {
+      const token = Buffer.from(`block_auth_${blockId}_${Date.now()}`).toString('base64');
+      res.json({ success: true, token });
+    } else {
+      res.status(401).json({ error: 'Invalid passcode' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/blocks/change-passcode', async (req, res) => {
+  try {
+    const { blockId, currentPasscode, newPasscode } = req.body;
+    let actualPasscode = '2026';
+    if (useSupabase) {
+      const { data } = await supabase.from('blocks').select('passcode').eq('id', blockId).maybeSingle();
+      if (data && data.passcode) actualPasscode = data.passcode;
+    } else {
+      const b = store.blocks.find(x => x.id === Number(blockId));
+      if (b && b.passcode) actualPasscode = b.passcode;
+    }
+    
+    if (currentPasscode !== actualPasscode) {
+      return res.status(401).json({ error: 'Incorrect current passcode' });
+    }
+    
+    if (useSupabase) {
+      await supabase.from('blocks').update({ passcode: newPasscode }).eq('id', blockId);
+    } else {
+      const b = store.blocks.find(x => x.id === Number(blockId));
+      if (b) b.passcode = newPasscode;
+      saveStore();
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/blocks/reset-passcode', async (req, res) => {
+  try {
+    const { blockId } = req.body;
+    if (useSupabase) {
+      await supabase.from('blocks').update({ passcode: null }).eq('id', blockId);
+    } else {
+      const b = store.blocks.find(x => x.id === Number(blockId));
+      if (b) b.passcode = null;
+      saveStore();
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Block Reporting ──────────────────────────────────────────────────────────
 
 app.get('/api/blocks/:id', async (req, res) => {

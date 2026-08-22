@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Target, Circle, ShieldCheck, Download, Phone } from 'lucide-react';
 import { Logo } from '../components/Logo';
@@ -11,6 +11,13 @@ export const BlockLogin: React.FC = () => {
 
   const [selectedDistrict, setSelectedDistrict] = useState<OptionItem | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<OptionItem | null>(null);
+
+  // Passcode state
+  const [passcode, setPasscode] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const hasRestored = useRef(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -55,26 +62,80 @@ export const BlockLogin: React.FC = () => {
     setSelectedBlock(item);
   };
 
-  const handleContinue = (e: React.FormEvent) => {
+  const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedBlock) {
+    if (!selectedBlock) return;
+    
+    setLoginError('');
+    setIsLoggingIn(true);
+    
+    try {
+      const res = await fetch('/api/blocks/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blockId: selectedBlock.id, passcode })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Invalid passcode');
+      }
+      
       localStorage.setItem('hpv_last_block_id', String(selectedBlock.id));
+      if (rememberMe) {
+        localStorage.setItem(`hpv_block_token_${selectedBlock.id}`, data.token);
+      } else {
+        sessionStorage.setItem(`hpv_block_token_${selectedBlock.id}`, data.token);
+      }
       navigate(`/report?blockId=${selectedBlock.id}`);
+    } catch (err: any) {
+      setLoginError(err.message);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
-  // Restore last selected block
+  const handleForgotPasscode = async () => {
+    if (!selectedBlock) return;
+    if (!window.confirm(`Reset passcode to default (2026) for ${selectedBlock.label}?`)) return;
+    
+    try {
+      const res = await fetch('/api/blocks/reset-passcode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blockId: selectedBlock.id })
+      });
+      if (res.ok) {
+        alert('Passcode reset to default (2026)');
+        setPasscode('');
+      } else {
+        const data = await res.json();
+        alert('Error: ' + data.error);
+      }
+    } catch (err) {
+      alert('Failed to reset passcode.');
+    }
+  };
+
+  // Restore last selected block and auto-login if remembered
   useEffect(() => {
-    if (!loading && availableBlockOptions.length > 0 && !selectedBlock) {
+    if (!loading && availableBlockOptions.length > 0 && !hasRestored.current) {
+      hasRestored.current = true;
       const lastId = localStorage.getItem('hpv_last_block_id');
       if (lastId) {
         const found = availableBlockOptions.find(b => String(b.id) === lastId);
         if (found) {
           setSelectedBlock(found);
+          // Check if we have a valid token in localStorage for this block
+          const token = localStorage.getItem(`hpv_block_token_${lastId}`);
+          if (token) {
+            // Auto login!
+            navigate(`/report?blockId=${lastId}`);
+          }
         }
       }
     }
-  }, [loading, availableBlockOptions, selectedBlock]);
+  }, [loading, availableBlockOptions, navigate]);
 
   return (
     <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-2 sm:p-4 lg:p-6">
@@ -128,21 +189,71 @@ export const BlockLogin: React.FC = () => {
               options={availableBlockOptions}
               value={selectedBlock}
               onChange={handleBlockChange}
-              disabled={loading}
+              disabled={loading || isLoggingIn}
               emptyText="No matching blocks or cities found"
             />
+            
+            {selectedBlock && (
+              <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                {loginError && (
+                  <div className="mb-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-semibold">
+                    {loginError}
+                  </div>
+                )}
+                
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    4-Digit Passcode
+                  </label>
+                  <input
+                    type="password"
+                    maxLength={4}
+                    value={passcode}
+                    onChange={e => setPasscode(e.target.value.replace(/\\D/g, ''))}
+                    placeholder="e.g. 2026"
+                    disabled={isLoggingIn}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
+                  />
+                </div>
+                
+                <div className="mt-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="rememberMe"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      disabled={isLoggingIn}
+                      className="w-4 h-4 text-hpv-purple bg-slate-50 border-slate-300 rounded focus:ring-hpv-purple focus:ring-2 cursor-pointer"
+                    />
+                    <label htmlFor="rememberMe" className="text-xs font-semibold text-slate-700 cursor-pointer select-none">
+                      Remember me
+                    </label>
+                  </div>
+                  
+                  <button 
+                    type="button"
+                    onClick={handleForgotPasscode}
+                    disabled={isLoggingIn}
+                    className="text-[11px] font-bold text-slate-500 hover:text-hpv-purple transition-colors"
+                  >
+                    Forgot Passcode?
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Submit Action */}
             <button
               type="submit"
-              disabled={!selectedBlock}
-              className={`w-full py-3.5 px-6 rounded-2xl font-bold text-white shadow-lg transition-all duration-200 flex items-center justify-center gap-2 group ${selectedBlock
+              disabled={!selectedBlock || isLoggingIn}
+              className={`w-full py-3.5 px-6 rounded-2xl font-bold text-white shadow-lg transition-all duration-200 flex items-center justify-center gap-2 group ${selectedBlock && !isLoggingIn
                   ? 'gradient-header hover:shadow-hpv-purple/30 hover:scale-[1.01] active:scale-[0.99] cursor-pointer'
                   : 'bg-slate-300 shadow-none cursor-not-allowed'
                 }`}
             >
-              <span>Continue to Reporting</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <span>{isLoggingIn ? 'Verifying...' : 'Continue to Reporting'}</span>
+              {!isLoggingIn && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
             </button>
           </form>
 
