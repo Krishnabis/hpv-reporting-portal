@@ -1197,18 +1197,6 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
         continue;
       }
 
-      const blockReports = dailyReports.filter(r => r.block_id === blockId);
-      let latestDateStr = '';
-      if (blockReports.length > 0) {
-        blockReports.sort((a, b) => new Date(b.reporting_date) - new Date(a.reporting_date));
-        latestDateStr = blockReports[0].reporting_date;
-      }
-
-      if (latestDateStr && new Date(reportingDate) < new Date(latestDateStr)) {
-        errors.push(`Row ${i + 1}: Skipped ${blockName}. Database has newer data (${latestDateStr}) than CSV (${reportingDate}).`);
-        continue;
-      }
-
       if (useSupabase) {
         const existing = dailyReports.find(r => r.block_id === blockId && r.reporting_date === reportingDate);
         let sError = null;
