@@ -5,11 +5,12 @@ import {
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
   Building2, ClipboardList, FileSpreadsheet, Target, Bell,
-  Syringe, Search, HeartPulse
+  Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Users as UsersIcon
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
 import { AdminTrend } from '../components/AdminTrend';
+import { SuperAdminUpload } from '../components/SuperAdminUpload';
 import { UttarakhandMap, getTier } from '../components/UttarakhandMap';
 import { AdminPopulation } from '../components/AdminPopulation';
 
@@ -50,7 +51,7 @@ interface ReportRow {
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload'>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
@@ -509,6 +510,34 @@ export const AdminDashboard: React.FC = () => {
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Trend</span>
             </button>
 
+            {adminUser?.role === 'SUPER_ADMIN' && (
+              <button
+                onClick={() => { handleTabChange('users'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
+                  activeTab === 'users'
+                    ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <UsersIcon className={`w-5 h-5 shrink-0 ${activeTab === 'users' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Admin Users</span>
+              </button>
+            )}
+
+            {adminUser?.role === 'SUPER_ADMIN' && (
+              <button
+                onClick={() => { handleTabChange('upload'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
+                  activeTab === 'upload'
+                    ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <UploadCloud className={`w-5 h-5 shrink-0 ${activeTab === 'upload' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Upload CSV</span>
+              </button>
+            )}
+
             <button
               onClick={() => { handleTabChange('settings'); setMobileMenuOpen(false); }}
               title="Settings"
@@ -803,7 +832,7 @@ export const AdminDashboard: React.FC = () => {
                         <span className="text-xl font-black text-[#0d9488] leading-none">%</span>
                       </div>
                       <div className="w-8 h-8 sm:w-11 sm:h-11 bg-teal-100 rounded-full flex items-center justify-center border border-teal-200 shadow-sm shrink-0">
-                        <Search className="w-4 h-4 sm:w-6 sm:h-6 text-[#0d9488]" />
+                        <SearchIcon className="w-4 h-4 sm:w-6 sm:h-6 text-[#0d9488]" />
                       </div>
                     </div>
                     <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
@@ -986,7 +1015,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={fetchReport}
                     className="w-full px-4 py-2 rounded-xl text-xs font-bold text-white gradient-header shadow hover:shadow-md transition-all flex items-center justify-center gap-2"
                   >
-                    <Search className="w-4 h-4 text-hpv-teal-light" />
+                    <SearchIcon className="w-4 h-4 text-hpv-teal-light" />
                     <span>GENERATE REPORT</span>
                   </button>
                 </div>
@@ -1307,7 +1336,7 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Search */}
             <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-              <Search className="w-5 h-5 text-slate-400 ml-1" />
+              <SearchIcon className="w-5 h-5 text-slate-400 ml-1" />
               <input
                 type="text"
                 value={locationSearch}
@@ -1537,6 +1566,10 @@ export const AdminDashboard: React.FC = () => {
 
         {activeTab === 'population' && (
           <AdminPopulation />
+        )}
+
+        {activeTab === 'upload' && adminUser?.role === 'SUPER_ADMIN' && (
+          <SuperAdminUpload />
         )}
       </main>
     </div>
