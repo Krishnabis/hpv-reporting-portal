@@ -69,7 +69,7 @@ export const AdminDashboard: React.FC = () => {
   const [filterBlockId, setFilterBlockId] = useState<string>('ALL');
 
   const [districtsList, setDistrictsList] = useState<any[]>([]);
-  const [blocksList, setBlocksList] = useState<any[]>([]);
+
 
   const [reportRows, setReportRows] = useState<ReportRow[]>([]);
   const [reportSortOrder, setReportSortOrder] = useState<string>('');
@@ -176,24 +176,32 @@ export const AdminDashboard: React.FC = () => {
     }
   }, [filterDate]);
 
-  const fetchDistricts = () => {
+  const [allBlocksList, setAllBlocksList] = useState<any[]>([]);
+
+  // Fetch locations on mount
+  useEffect(() => {
     fetch('/api/locations/districts')
       .then(res => res.json())
       .then(data => setDistrictsList(Array.isArray(data) ? data : []))
       .catch(err => console.error(err));
-  };
 
-  // Fetch blocks when district filter changes
-  useEffect(() => {
+    fetch('/api/locations/blocks')
+      .then(res => res.json())
+      .then(data => setAllBlocksList(Array.isArray(data) ? data : []))
+      .catch(err => console.error(err));
+  }, []);
+
+  // Filter blocks when district filter changes
+  const blocksList = useMemo(() => {
     if (filterDistrictId && filterDistrictId !== 'ALL') {
-      fetch(`/api/locations/blocks?districtId=${filterDistrictId}`)
-        .then(res => res.json())
-        .then(data => setBlocksList(Array.isArray(data) ? data : []))
-        .catch(err => console.error(err));
-    } else {
-      setBlocksList([]);
-      setFilterBlockId('ALL');
+      return allBlocksList.filter(b => String(b.district_id) === String(filterDistrictId));
     }
+    return allBlocksList;
+  }, [filterDistrictId, allBlocksList]);
+
+  // Reset block filter when district changes
+  useEffect(() => {
+    setFilterBlockId('ALL');
   }, [filterDistrictId]);
 
   const fetchReport = () => {
