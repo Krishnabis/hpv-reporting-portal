@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Building2, ArrowLeft, Download, RotateCcw, Calendar as CalendarIcon, Activity } from 'lucide-react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend, LabelList
 } from 'recharts';
 
 interface BlockData {
@@ -324,15 +324,15 @@ export const ProgressTrend: React.FC = () => {
             <span className="text-xl font-extrabold font-mono text-slate-900 leading-tight">&gt;90%</span>
             <span className="text-[10px] font-semibold text-slate-500">Goal: &gt;{profile ? Math.round(profile.base_population * 0.01 * 0.90).toLocaleString('en-IN') : 0}</span>
           </div>
-          <div className="bg-sky-50 border-l-4 border-l-sky-500 rounded-xl p-2 border-y border-r border-sky-100 shadow-sm flex flex-col justify-center">
-            <span className="text-[10px] uppercase font-bold text-sky-700 leading-tight">Eligible Girls Line Listed</span>
-            <span className="text-lg sm:text-xl font-extrabold font-mono text-sky-800 leading-tight">{maxLineListed}%</span>
-            <span className="text-[10px] font-semibold text-sky-600/80">Count: {maxLineListCount.toLocaleString('en-IN')}</span>
-          </div>
           <div className="bg-emerald-50 border-l-4 border-l-emerald-500 rounded-xl p-2 border-y border-r border-emerald-100 shadow-sm flex flex-col justify-center">
-            <span className="text-[10px] uppercase font-bold text-emerald-700 leading-tight">Eligible Girls Vaccinated</span>
-            <span className="text-lg sm:text-xl font-extrabold font-mono text-emerald-800 leading-tight">{maxVaccinated}%</span>
-            <span className="text-[10px] font-semibold text-emerald-600/80">Count: {maxVaccinatedCount.toLocaleString('en-IN')}</span>
+            <span className="text-[10px] uppercase font-bold text-emerald-700 leading-tight">Eligible Girls Line Listed</span>
+            <span className="text-lg sm:text-xl font-extrabold font-mono text-emerald-800 leading-tight">{maxLineListed}%</span>
+            <span className="text-[10px] font-semibold text-emerald-600/80">Count: {maxLineListCount.toLocaleString('en-IN')}</span>
+          </div>
+          <div className="bg-pink-50 border-l-4 border-l-pink-500 rounded-xl p-2 border-y border-r border-pink-100 shadow-sm flex flex-col justify-center">
+            <span className="text-[10px] uppercase font-bold text-pink-700 leading-tight">Eligible Girls Vaccinated</span>
+            <span className="text-lg sm:text-xl font-extrabold font-mono text-pink-800 leading-tight">{maxVaccinated}%</span>
+            <span className="text-[10px] font-semibold text-pink-600/80">Count: {maxVaccinatedCount.toLocaleString('en-IN')}</span>
           </div>
         </div>
 
@@ -391,8 +391,10 @@ export const ProgressTrend: React.FC = () => {
                   />
                   <Tooltip
                     formatter={(value: number, name: string, props: any) => {
-                      const count = props.dataKey === 'lineListedPct' ? props.payload.rawLineList : props.payload.rawVaccinated;
-                      return [`${value}% (${count.toLocaleString('en-IN')})`, ''];
+                      if (props.dataKey === 'vaccinatedPct') {
+                        return [`${value}% (${props.payload.rawVaccinated.toLocaleString('en-IN')})`, ''];
+                      }
+                      return [`${value}%`, ''];
                     }}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }}
@@ -407,7 +409,7 @@ export const ProgressTrend: React.FC = () => {
                     type="monotone"
                     dataKey="lineListedPct"
                     name="Eligible Girls % Line Listed"
-                    stroke="#3b82f6"
+                    stroke="#10b981"
                     strokeWidth={2}
                     dot={{ r: 3, strokeWidth: 2 }}
                     activeDot={{ r: 5 }}
@@ -416,11 +418,25 @@ export const ProgressTrend: React.FC = () => {
                     type="monotone"
                     dataKey="vaccinatedPct"
                     name="Eligible Girls Vaccinated %"
-                    stroke="#10b981"
+                    stroke="#ec4899"
                     strokeWidth={2}
                     dot={{ r: 3, strokeWidth: 2 }}
                     activeDot={{ r: 5 }}
-                  />
+                  >
+                    <LabelList 
+                      dataKey="vaccinatedPct" 
+                      content={(props: any) => {
+                        const { x, y, value, index } = props;
+                        const dataPoint = chartData[index];
+                        if (!dataPoint) return null;
+                        return (
+                          <text x={x} y={y - 12} fill="#ec4899" fontSize={10} fontWeight="bold" textAnchor="middle">
+                            {`${value}% (${dataPoint.rawVaccinated.toLocaleString('en-IN')})`}
+                          </text>
+                        );
+                      }}
+                    />
+                  </Line>
                 </LineChart>
               </ResponsiveContainer>
             )}
