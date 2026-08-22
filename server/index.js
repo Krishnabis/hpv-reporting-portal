@@ -1182,7 +1182,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
       
       const llStr = row.linelisted || row.LineListed || row.linelist || row.LineList || '0';
       const vaccStr = row.vaccinated || row.Vaccinated || '0';
-      const reportingDate = row.Date || row.date || today;
+      const reportingDate = row['Date(YYYY-MM-DD)'] || row.Date || row.date || today;
       const lineList = parseInt(llStr, 10);
       const vaccinated = parseInt(vaccStr, 10);
 
