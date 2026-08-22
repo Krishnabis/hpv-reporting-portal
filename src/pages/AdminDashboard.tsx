@@ -760,8 +760,8 @@ export const AdminDashboard: React.FC = () => {
                     onChange={e => setSelectedKpi(e.target.value as 'coverage' | 'linelist' | 'both')}
                     className="px-2 py-1 rounded-md border border-slate-200 text-[10px] font-semibold text-slate-700 focus:outline-none focus:border-blue-500 bg-white cursor-pointer"
                   >
-                    <option value="coverage">% Vaccination Coverage</option>
-                    <option value="linelist">% Line List</option>
+                    <option value="coverage">Vaccination Coverage (%)</option>
+                    <option value="linelist">Line Listed (%)</option>
                     <option value="both">Both</option>
                   </select>
                 </div>
@@ -896,11 +896,11 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 <div className="text-[10px] text-left text-slate-500 mb-2 mt-1 flex items-center flex-wrap gap-1">
-                  <span className="font-bold bg-purple-100 text-hpv-purple px-1.5 py-0.5 rounded">Showing:</span>
+                  <span className="font-bold bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded">Showing:</span>
                   {selectedKpi === 'coverage' || selectedKpi === 'both' ? (
                     <div className="flex items-center gap-1 group relative">
-                      <span className="text-hpv-purple font-semibold">Vaccination Coverage (%)</span>
-                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-hpv-purple transition-colors shrink-0">
+                      <span className="text-purple-900 font-semibold">Vaccination Coverage (%)</span>
+                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
                           Vaccination Coverage (%) = (Vaccinated / HPV Target) x 100
@@ -910,8 +910,8 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                   ) : (
                     <div className="flex items-center gap-1 group relative">
-                      <span className="text-hpv-purple font-semibold">Line Listed (%)</span>
-                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-hpv-purple transition-colors shrink-0">
+                      <span className="text-purple-900 font-semibold">Line Listed (%)</span>
+                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
                           Line Listed (%) = (Line Listed / HPV Target) x 100
