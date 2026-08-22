@@ -1032,10 +1032,17 @@ app.post('/api/superadmin/upload-population', authenticateToken, async (req, res
       
       if (useSupabase) {
         const existing = profiles.find(p => p.block_id === blockId);
+        let sError = null;
         if (existing) {
-          await supabase.from('block_reporting_profiles').update({ base_population: basePop, initial_hpv_target: target }).eq('id', existing.id);
+          const { error } = await supabase.from('block_reporting_profiles').update({ base_population: basePop, initial_hpv_target: target }).eq('id', existing.id);
+          sError = error;
         } else {
-          await supabase.from('block_reporting_profiles').insert([{ block_id: blockId, base_population: basePop, population_base_date: new Date().toISOString().split('T')[0], initial_hpv_target: target }]);
+          const { error } = await supabase.from('block_reporting_profiles').insert([{ block_id: blockId, base_population: basePop, population_base_date: new Date().toISOString().split('T')[0], initial_hpv_target: target }]);
+          sError = error;
+        }
+        if (sError) {
+          errors.push(`Row ${i + 1}: DB Error for ${blockName} - ${sError.message || JSON.stringify(sError)}`);
+          continue;
         }
       } else {
         const existingIdx = store.block_reporting_profiles.findIndex(p => p.block_id === blockId);
@@ -1111,10 +1118,17 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
 
       if (useSupabase) {
         const existing = dailyReports.find(r => r.block_id === blockId && r.reporting_date === today);
+        let sError = null;
         if (existing) {
-          await supabase.from('daily_reports').update({ line_list_count: lineList, beneficiaries_vaccinated: vaccinated }).eq('id', existing.id);
+          const { error } = await supabase.from('daily_reports').update({ line_list_count: lineList, beneficiaries_vaccinated: vaccinated }).eq('id', existing.id);
+          sError = error;
         } else {
-          await supabase.from('daily_reports').insert([{ block_id: blockId, reporting_date: today, line_list_count: lineList, beneficiaries_vaccinated: vaccinated, submitted_by: 'Super Admin CSV' }]);
+          const { error } = await supabase.from('daily_reports').insert([{ block_id: blockId, reporting_date: today, line_list_count: lineList, beneficiaries_vaccinated: vaccinated, submitted_by: 'Super Admin CSV' }]);
+          sError = error;
+        }
+        if (sError) {
+          errors.push(`Row ${i + 1}: DB Error for ${blockName} - ${sError.message || JSON.stringify(sError)}`);
+          continue;
         }
       } else {
         const existingIdx = store.daily_reports.findIndex(r => r.block_id === blockId && r.reporting_date === today);
