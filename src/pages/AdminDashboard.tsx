@@ -899,6 +899,7 @@ export const AdminDashboard: React.FC = () => {
                   <span className="font-bold bg-purple-100 text-hpv-purple px-1.5 py-0.5 rounded">Showing:</span>
                   {selectedKpi === 'coverage' || selectedKpi === 'both' ? (
                     <div className="flex items-center gap-1 group relative">
+                      <span className="text-hpv-purple font-semibold">Vaccination Coverage (%)</span>
                       <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-hpv-purple transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
@@ -906,10 +907,10 @@ export const AdminDashboard: React.FC = () => {
                           <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
                         </div>
                       </div>
-                      <span className="text-hpv-purple font-semibold">Vaccination Coverage (%)</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1 group relative">
+                      <span className="text-hpv-purple font-semibold">Line Listed (%)</span>
                       <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-hpv-purple transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
@@ -917,7 +918,6 @@ export const AdminDashboard: React.FC = () => {
                           <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
                         </div>
                       </div>
-                      <span className="text-hpv-purple font-semibold">Line Listed (%)</span>
                     </div>
                   )}
                 </div>
