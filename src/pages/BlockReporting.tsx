@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Building2, Calendar, CheckCircle2, AlertTriangle,
-  Save, Users, Clock, Lock, Activity, X, Settings, Eye, EyeOff
+  Save, Users, Clock, Lock, Activity, X, Settings, Eye, EyeOff, Bell
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 
@@ -61,6 +61,11 @@ export const BlockReporting: React.FC = () => {
   const [savingReport, setSavingReport] = useState(false);
   const [reportSuccessMsg, setReportSuccessMsg] = useState('');
   const [reportErrorMsg, setReportErrorMsg] = useState('');
+
+  // Decrement Alert Modal
+  const [showDecrementAlert, setShowDecrementAlert] = useState(false);
+  const [decrementAlertMsg, setDecrementAlertMsg] = useState('');
+  const [pendingReportPayload, setPendingReportPayload] = useState<any>(null);
 
   // Settings & Passcode State
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
@@ -197,6 +202,33 @@ export const BlockReporting: React.FC = () => {
       })
       .catch(err => console.error(err));
   };
+  const submitReportToApi = (payload: any) => {
+    setSavingReport(true);
+    setReportErrorMsg('');
+    setReportSuccessMsg('');
+
+    fetch(`/api/reports/block/${blockId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(res => res.json())
+      .then(data => {
+        setSavingReport(false);
+        if (data.error) {
+          setReportErrorMsg(data.error);
+        } else {
+          setReportSuccessMsg(`Report for ${payload.reporting_date} saved!`);
+          fetchBlockDetails();
+          setTimeout(() => setReportSuccessMsg(''), 3000);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        setSavingReport(false);
+        setReportErrorMsg('Failed to save daily report');
+      });
+  };
 
   const handleSaveReport = (e: React.FormEvent) => {
     e.preventDefault();
@@ -216,6 +248,13 @@ export const BlockReporting: React.FC = () => {
       return;
     }
 
+    const payload = {
+      reporting_date: reportingDate,
+      line_list_count: lineList,
+      beneficiaries_vaccinated: vaccinated,
+      submitted_by: 'Block Operator'
+    };
+
     if (lastReport && (lineList < lastReport.line_list_count || vaccinated < lastReport.beneficiaries_vaccinated)) {
       const d = new Date(lastReport.reporting_date);
       const parts = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).split(' ');
@@ -224,43 +263,15 @@ export const BlockReporting: React.FC = () => {
       const currentValStr = `Line Listed: ${lineList}, Vaccinated: ${vaccinated}`;
       const lastValStr = `Line Listed: ${lastReport.line_list_count}, Vaccinated: ${lastReport.beneficiaries_vaccinated}`;
       
-      const confirmMsg = `The current value (${currentValStr}) is less than the last value (${lastValStr}) submitted on (${dateStr}).\n\nAre you sure you want to save it?`;
+      const confirmMsg = `The current value (${currentValStr}) is less than the last value (${lastValStr}) submitted on (${dateStr}). Are you sure you want to save it?`;
       
-      if (!window.confirm(confirmMsg)) {
-        return;
-      }
+      setDecrementAlertMsg(confirmMsg);
+      setPendingReportPayload(payload);
+      setShowDecrementAlert(true);
+      return;
     }
 
-    setSavingReport(true);
-    setReportErrorMsg('');
-    setReportSuccessMsg('');
-
-    fetch(`/api/reports/block/${blockId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        reporting_date: reportingDate,
-        line_list_count: lineList,
-        beneficiaries_vaccinated: vaccinated,
-        submitted_by: 'Block Operator'
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        setSavingReport(false);
-        if (data.error) {
-          setReportErrorMsg(data.error);
-        } else {
-          setReportSuccessMsg(`Report for ${reportingDate} saved!`);
-          fetchBlockDetails();
-          setTimeout(() => setReportSuccessMsg(''), 3000);
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        setSavingReport(false);
-        setReportErrorMsg('Failed to save daily report');
-      });
+    submitReportToApi(payload);
   };
 
   if (loading) {
@@ -597,96 +608,132 @@ export const BlockReporting: React.FC = () => {
 
       {showChangePasscodeModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="font-extrabold text-slate-900">Change Passcode</h3>
-              <button 
-                onClick={() => {
-                  setShowChangePasscodeModal(false);
-                  setCurrentPasscode('');
-                  setNewPasscode('');
-                  setConfirmNewPasscode('');
-                  setChangePasscodeError('');
-                }} 
-                className="text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition-colors"
-              >
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-hpv-purple py-4 px-5 flex items-center justify-between">
+              <h2 className="text-white font-bold text-lg flex items-center gap-2">
+                <Lock className="w-5 h-5" /> Change Passcode
+              </h2>
+              <button onClick={() => setShowChangePasscodeModal(false)} className="text-white/70 hover:text-white transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
+            
             <form onSubmit={handleChangePasscode} className="p-5 space-y-4">
               {changePasscodeError && (
-                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-semibold">
+                <div className="p-2.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 text-xs font-semibold">
                   {changePasscodeError}
                 </div>
               )}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">Current Passcode</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Passcode</label>
                 <div className="relative">
                   <input
-                    type={showCurrentPasscode ? "text" : "password"}
-                    maxLength={4}
+                    type={showCurrentPasscode ? 'text' : 'password'}
                     value={currentPasscode}
-                    onChange={e => setCurrentPasscode(e.target.value.replace(/\D/g, ''))}
-                    placeholder="****"
-                    className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
+                    onChange={e => setCurrentPasscode(e.target.value)}
+                    maxLength={4}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xl text-center tracking-widest text-hpv-purple font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all placeholder:text-slate-300"
+                    placeholder="••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPasscode(!showCurrentPasscode)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                    className="absolute right-3 top-3.5 text-slate-400 hover:text-hpv-purple transition-colors"
                   >
-                    {showCurrentPasscode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showCurrentPasscode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">New Passcode</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">New 4-Digit Passcode</label>
                 <div className="relative">
                   <input
-                    type={showNewPasscode ? "text" : "password"}
-                    maxLength={4}
+                    type={showNewPasscode ? 'text' : 'password'}
                     value={newPasscode}
-                    onChange={e => setNewPasscode(e.target.value.replace(/\D/g, ''))}
-                    placeholder="****"
-                    className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
+                    onChange={e => setNewPasscode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    maxLength={4}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xl text-center tracking-widest text-emerald-600 font-bold focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-slate-300"
+                    placeholder="••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPasscode(!showNewPasscode)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                    className="absolute right-3 top-3.5 text-slate-400 hover:text-hpv-purple transition-colors"
                   >
-                    {showNewPasscode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showNewPasscode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">Confirm New Passcode</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Re-enter New Passcode</label>
                 <div className="relative">
                   <input
-                    type={showConfirmPasscode ? "text" : "password"}
-                    maxLength={4}
+                    type={showConfirmPasscode ? 'text' : 'password'}
                     value={confirmNewPasscode}
-                    onChange={e => setConfirmNewPasscode(e.target.value.replace(/\D/g, ''))}
-                    placeholder="****"
-                    className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold tracking-[0.5em] text-center text-slate-900 focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all"
+                    onChange={e => setConfirmNewPasscode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    maxLength={4}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xl text-center tracking-widest text-emerald-600 font-bold focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-slate-300"
+                    placeholder="••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPasscode(!showConfirmPasscode)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                    className="absolute right-3 top-3.5 text-slate-400 hover:text-hpv-purple transition-colors"
                   >
-                    {showConfirmPasscode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showConfirmPasscode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
               <button
                 type="submit"
-                disabled={isChangingPasscode || currentPasscode.length !== 4 || newPasscode.length !== 4 || confirmNewPasscode.length !== 4}
-                className="w-full py-3.5 px-4 rounded-xl font-bold text-white gradient-header shadow-lg shadow-hpv-purple/20 disabled:opacity-50 disabled:cursor-not-allowed mt-2 transition-all hover:shadow-hpv-purple/40"
+                disabled={isChangingPasscode || !currentPasscode || newPasscode.length !== 4 || confirmNewPasscode.length !== 4}
+                className="w-full py-3.5 mt-2 rounded-xl font-bold text-white gradient-header shadow-lg disabled:opacity-50 hover:shadow-hpv-purple/30 transition-all"
               >
-                {isChangingPasscode ? 'Saving...' : 'Save Passcode'}
+                {isChangingPasscode ? 'Updating...' : 'Update Passcode'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Decrement Alert Modal */}
+      {showDecrementAlert && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-hpv-purple/10 py-3 px-4 flex items-center gap-2 border-b border-hpv-purple/20">
+              <div className="bg-rose-100 p-1.5 rounded-full shrink-0">
+                <Bell className="w-4 h-4 text-rose-600" />
+              </div>
+              <h2 className="text-sm font-bold text-hpv-purple">Alert</h2>
+            </div>
+            
+            <div className="p-5 text-sm text-slate-700 font-medium">
+              {decrementAlertMsg}
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowDecrementAlert(false);
+                  setPendingReportPayload(null);
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowDecrementAlert(false);
+                  if (pendingReportPayload) {
+                    submitReportToApi(pendingReportPayload);
+                    setPendingReportPayload(null);
+                  }
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-hpv-purple text-white hover:bg-hpv-purple-dark transition-colors shadow-md"
+              >
+                Yes, Save It
+              </button>
+            </div>
           </div>
         </div>
       )}
