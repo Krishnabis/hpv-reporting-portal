@@ -185,7 +185,7 @@ export const BlockLogin: React.FC = () => {
           <form onSubmit={handleContinue} className="space-y-4">
 
             <SearchableSelect
-              label="SELECT YOUR BLOCK OR CITY"
+              label="SELECT YOUR BLOCK OR CITY (URBAN)"
               placeholder={loading ? "Loading..." : "Type or search block or city..."}
               options={availableBlockOptions}
               value={selectedBlock}
