@@ -52,10 +52,19 @@ export const SuperAdminUpload: React.FC = () => {
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || 'Upload failed');
         
-        const errorText = json.errors?.length ? ` (Skipped ${json.errors.length} rows with errors)` : '';
+        let messageText = `Successfully processed ${json.successCount} records${json.errors?.length ? ` (Skipped ${json.errors.length} rows with errors)` : ''}.`;
+        let messageType: 'success' | 'error' = 'success';
+        
+        if (json.successCount === 0 && json.errors?.length > 0) {
+          messageText = `No records were added or updated. All rows were skipped (older data or errors).`;
+          messageType = 'error'; // Show red box since nothing was added
+        } else if (json.successCount > 0 && json.errors?.length > 0) {
+          messageText = `Added/Updated ${json.successCount} records. Skipped ${json.errors.length} rows containing older data or errors.`;
+        }
+
         setMessage({ 
-          type: 'success', 
-          text: `Successfully processed ${json.successCount} records${errorText}.`,
+          type: messageType, 
+          text: messageText,
           errors: json.errors || [],
           successes: json.details || []
         });
