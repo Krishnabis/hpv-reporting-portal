@@ -1037,7 +1037,8 @@ app.post('/api/superadmin/upload-population', authenticateToken, async (req, res
           const { error } = await supabase.from('block_reporting_profiles').update({ base_population: basePop, initial_hpv_target: target }).eq('id', existing.id);
           sError = error;
         } else {
-          const { error } = await supabase.from('block_reporting_profiles').insert([{ block_id: blockId, base_population: basePop, population_base_date: new Date().toISOString().split('T')[0], initial_hpv_target: target }]);
+          const profId = `prof-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          const { error } = await supabase.from('block_reporting_profiles').insert([{ id: profId, block_id: blockId, base_population: basePop, population_base_date: new Date().toISOString().split('T')[0], initial_hpv_target: target }]);
           sError = error;
         }
         if (sError) {
@@ -1123,7 +1124,8 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
           const { error } = await supabase.from('daily_reports').update({ line_list_count: lineList, beneficiaries_vaccinated: vaccinated }).eq('id', existing.id);
           sError = error;
         } else {
-          const { error } = await supabase.from('daily_reports').insert([{ block_id: blockId, reporting_date: today, line_list_count: lineList, beneficiaries_vaccinated: vaccinated, submitted_by: 'Super Admin CSV' }]);
+          const reportId = `rep-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          const { error } = await supabase.from('daily_reports').insert([{ id: reportId, block_id: blockId, reporting_date: today, line_list_count: lineList, beneficiaries_vaccinated: vaccinated, submitted_by: 'Super Admin CSV' }]);
           sError = error;
         }
         if (sError) {
