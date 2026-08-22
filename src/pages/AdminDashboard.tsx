@@ -690,9 +690,14 @@ export const AdminDashboard: React.FC = () => {
                     <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
                       TOTAL REPORTING SITES
                     </span>
-                    <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none mt-1">
-                      {kpis ? kpis.total_blocks : '—'}
-                    </span>
+                    <div className="flex items-baseline gap-1.5 mt-1">
+                      <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none">
+                        {kpis ? kpis.total_blocks : '—'}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Blocks/Cities
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
