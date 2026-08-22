@@ -216,6 +216,21 @@ export const BlockReporting: React.FC = () => {
       return;
     }
 
+    if (lastReport && (lineList < lastReport.line_list_count || vaccinated < lastReport.beneficiaries_vaccinated)) {
+      const d = new Date(lastReport.reporting_date);
+      const parts = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).split(' ');
+      const dateStr = `${parts[0]} - ${parts[1]} - ${parts[2]}`;
+      
+      const currentValStr = `Line Listed: ${lineList}, Vaccinated: ${vaccinated}`;
+      const lastValStr = `Line Listed: ${lastReport.line_list_count}, Vaccinated: ${lastReport.beneficiaries_vaccinated}`;
+      
+      const confirmMsg = `The current value (${currentValStr}) is less than the last value (${lastValStr}) submitted on (${dateStr}).\n\nAre you sure you want to save it?`;
+      
+      if (!window.confirm(confirmMsg)) {
+        return;
+      }
+    }
+
     setSavingReport(true);
     setReportErrorMsg('');
     setReportSuccessMsg('');
@@ -427,10 +442,10 @@ export const BlockReporting: React.FC = () => {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-2">
             <div className="flex items-center gap-3 flex-wrap">
               <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                <Lock className="w-4 h-4 text-slate-400" />
+                <Users className="w-4 h-4 text-slate-400" />
               </div>
               <div>
-                <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'} Population</p>
+                <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">POPULATION</p>
                 <p className="text-lg font-extrabold text-slate-900 font-mono leading-tight">
                   {profile.base_population.toLocaleString('en-IN')}
                 </p>
