@@ -613,13 +613,25 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'dashboard' && (
           <div className="flex flex-col min-h-full lg:h-full gap-2 lg:min-h-0 max-w-7xl mx-auto w-full pb-10 lg:pb-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                  Monitoring Dashboard: Uttarakhand
-                </h1>
-                <p className="text-[11px] text-slate-500 mt-0.5 font-medium italic">
-                  (Track progress and performance for timely action.)
-                </p>
+              <div className="flex flex-col gap-0.5">
+                {kpis?.latest_reporting_date && (
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    Last Updated On: {new Date(kpis.latest_reporting_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, ' ')}
+                  </span>
+                )}
+                <div className="flex items-center gap-2 group relative">
+                  <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-1.5">
+                    <span className="text-hpv-teal-dark">Monitoring Dashboard:</span>
+                    <span className="text-hpv-purple">Uttarakhand</span>
+                  </h1>
+                  <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0 relative">
+                    <span className="text-xs font-bold italic font-serif">i</span>
+                    <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-max max-w-[200px] bg-slate-800 text-white text-[10px] p-2 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 font-medium">
+                      (Track progress and performance for timely action.)
+                      <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-y-4 border-y-transparent border-r-4 border-r-slate-800" />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
@@ -811,17 +823,8 @@ export const AdminDashboard: React.FC = () => {
 
               {/* Bottom Banner - Global Strategy */}
               <div className="bg-white border-2 border-slate-100 rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col gap-1.5 p-1.5 bg-[#f8fafc]">
-                {/* Header */}
-                <div className="bg-[#021a40] p-1.5 px-3 rounded-lg flex items-center justify-center gap-2 shadow-sm">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 text-[#f472b6]" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C8.69 2 6 4.69 6 8c0 2.21 1.2 4.14 3.03 5.25L4.44 21.4c-.22.39.06.88.51.88h2.39l3.52-6.28 1.14-.65c.34.15.71.24 1.09.24.38 0 .75-.09 1.09-.24l1.14.65 3.52 6.28h2.39c.45 0 .73-.49.51-.88l-4.59-8.15C19.8 12.14 21 10.21 21 8c0-3.31-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
-                  </svg>
-                  <h3 className="text-[12px] sm:text-[14px] font-bold text-white tracking-wide">
-                    Global Strategy to Eliminate Cervical Cancer by 2030
-                  </h3>
-                </div>
-                {/* 3 Boxes Grid */}
-                <div className="grid grid-cols-3 gap-1.5 flex-1">
+                {/* 4 Boxes Grid */}
+                <div className="grid grid-cols-4 gap-1.5 flex-1">
                   {/* Pink Box */}
                   <div className="flex flex-col p-2.5 bg-[#fff0f5] border border-[#fbcfe8] border-b-[4px] sm:border-b-[6px] border-b-[#f472b6] rounded-xl relative overflow-hidden group h-full">
                     <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
@@ -869,6 +872,15 @@ export const AdminDashboard: React.FC = () => {
                     <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
                       of Women identified with<br/>Cervical Disease<br/>Receive Treatment
                     </p>
+                  </div>
+                  {/* Strategy Box */}
+                  <div className="flex flex-col p-2.5 bg-[#fff0f5] border border-[#fbcfe8] rounded-xl relative overflow-hidden group h-full justify-center items-end text-right gap-1.5 shadow-inner">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8 shrink-0 text-[#f472b6] drop-shadow-sm" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C8.69 2 6 4.69 6 8c0 2.21 1.2 4.14 3.03 5.25L4.44 21.4c-.22.39.06.88.51.88h2.39l3.52-6.28 1.14-.65c.34.15.71.24 1.09.24.38 0 .75-.09 1.09-.24l1.14.65 3.52 6.28h2.39c.45 0 .73-.49.51-.88l-4.59-8.15C19.8 12.14 21 10.21 21 8c0-3.31-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+                    </svg>
+                    <h3 className="text-[10px] sm:text-[11px] font-bold text-[#e93c7a] tracking-wide leading-snug">
+                      Global Strategy to Eliminate Cervical Cancer by 2030
+                    </h3>
                   </div>
                 </div>
               </div>

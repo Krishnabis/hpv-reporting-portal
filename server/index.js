@@ -602,7 +602,7 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
 app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
   try {
     const targetDateStr = req.query.date || new Date().toISOString().split('T')[0];
-    if (!useSupabase) return res.json({ total_blocks: 0, reporting_today: 0, total_line_list: 0, total_vaccinated: 0, overall_coverage_pct: 0, overall_linelist_pct: 0, district_chart_data: [] });
+    if (!useSupabase) return res.json({ total_blocks: 0, reporting_today: 0, total_line_list: 0, total_vaccinated: 0, overall_coverage_pct: 0, overall_linelist_pct: 0, district_chart_data: [], latest_reporting_date: null });
 
     // 1. Fetch all active blocks with district info
     const { data: blocks, error: bErr } = await supabase
@@ -683,7 +683,8 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       total_target: totalTarget,
       overall_coverage_pct: totalTarget > 0 ? parseFloat(((totalVaccinated / totalTarget) * 100).toFixed(1)) : 0,
       overall_linelist_pct: totalTarget > 0 ? parseFloat(((totalLineList / totalTarget) * 100).toFixed(1)) : 0,
-      district_chart_data
+      district_chart_data,
+      latest_reporting_date: reports && reports.length > 0 ? reports[0].reporting_date : null
     });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
