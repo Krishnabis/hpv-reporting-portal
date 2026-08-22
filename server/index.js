@@ -1103,6 +1103,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
       
       const llStr = row.linelisted || row.LineListed || row.linelist || row.LineList || '0';
       const vaccStr = row.vaccinated || row.Vaccinated || '0';
+      const reportingDate = row.Date || row.date || today;
       const lineList = parseInt(llStr, 10);
       const vaccinated = parseInt(vaccStr, 10);
 
@@ -1118,14 +1119,14 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
       }
 
       if (useSupabase) {
-        const existing = dailyReports.find(r => r.block_id === blockId && r.reporting_date === today);
+        const existing = dailyReports.find(r => r.block_id === blockId && r.reporting_date === reportingDate);
         let sError = null;
         if (existing) {
           const { error } = await supabase.from('daily_reports').update({ line_list_count: lineList, beneficiaries_vaccinated: vaccinated }).eq('id', existing.id);
           sError = error;
         } else {
           const reportId = `rep-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-          const { error } = await supabase.from('daily_reports').insert([{ id: reportId, block_id: blockId, reporting_date: today, line_list_count: lineList, beneficiaries_vaccinated: vaccinated, submitted_by: 'Super Admin CSV' }]);
+          const { error } = await supabase.from('daily_reports').insert([{ id: reportId, block_id: blockId, reporting_date: reportingDate, line_list_count: lineList, beneficiaries_vaccinated: vaccinated, submitted_by: 'Super Admin CSV' }]);
           sError = error;
         }
         if (sError) {
@@ -1133,7 +1134,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
           continue;
         }
       } else {
-        const existingIdx = store.daily_reports.findIndex(r => r.block_id === blockId && r.reporting_date === today);
+        const existingIdx = store.daily_reports.findIndex(r => r.block_id === blockId && r.reporting_date === reportingDate);
         if (existingIdx >= 0) {
           store.daily_reports[existingIdx].line_list_count = lineList;
           store.daily_reports[existingIdx].beneficiaries_vaccinated = vaccinated;
@@ -1141,7 +1142,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
           store.daily_reports.push({
             id: `rep-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
             block_id: blockId,
-            reporting_date: today,
+            reporting_date: reportingDate,
             line_list_count: lineList,
             beneficiaries_vaccinated: vaccinated,
             submitted_by: 'Super Admin CSV'
@@ -1152,7 +1153,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
       const actualBlock = blocks.find(b => b.id === blockId);
       const distId = actualBlock ? actualBlock.district_id : 'N/A';
       const bName = actualBlock ? actualBlock.name : blockName;
-      details.push(`Added live data (Line list: ${lineList}, Vaccinated: ${vaccinated}) to ${bName} (Block ID: ${blockId}, District ID: ${distId})`);
+      details.push(`Added live data (Line list: ${lineList}, Vaccinated: ${vaccinated}, Date: ${reportingDate}) to ${bName} (Block ID: ${blockId}, District ID: ${distId})`);
       
       successCount++;
     }

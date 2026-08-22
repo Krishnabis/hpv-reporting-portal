@@ -14,11 +14,16 @@ export const AdminLogin: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
+    const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+    if (token) {
+      navigate('/admin');
+    }
+
     fetch('/api/public/overall-stats')
       .then(res => res.json())
       .then(data => setStats(data))
       .catch(err => console.error('Failed to fetch public stats:', err));
-  }, []);
+  }, [navigate]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();

@@ -44,7 +44,8 @@ export const BlockLogin: React.FC = () => {
     .map(b => ({
       id: b.id,
       name: b.name,
-      subtitle: `(State: Uttarakhand, District: ${b.district_name}, Type: ${b.is_urban ? 'City' : 'Block'})`,
+      subtitle: `(State: Uttarakhand, District: ${b.district_name})`,
+      typeLabel: b.is_urban ? 'CITY(URBAN)' : 'BLOCK(RURAL)',
       district_id: b.district_id,
       district_name: b.district_name
     }));
@@ -69,7 +70,7 @@ export const BlockLogin: React.FC = () => {
           <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-16 sm:h-20 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105" />
         </div>
         <a
-          href="/admin/login"
+          href="/admin"
           className="text-xs font-bold text-emerald-700 hover:text-emerald-800 px-3 py-1.5 rounded-lg bg-emerald-100 transition-colors"
         >
           Admin Login
@@ -78,9 +79,9 @@ export const BlockLogin: React.FC = () => {
 
       {/* Main Card Container */}
       <main className="max-w-md mx-auto w-full my-auto py-2">
-        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xl shadow-slate-200/60 border border-slate-150 relative overflow-hidden">
+        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xl shadow-slate-200/60 border border-slate-150 relative">
           {/* Top Accent */}
-          <div className="absolute top-0 left-0 right-0 h-2 gradient-header" />
+          <div className="absolute top-0 left-0 right-0 h-2 gradient-header rounded-t-3xl" />
 
           {/* Heading Title & Tagline */}
           <div className="text-center mb-5">

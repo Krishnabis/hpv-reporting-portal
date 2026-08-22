@@ -7,6 +7,7 @@ export interface OptionItem {
   district_id?: number | string;
   district_name?: string;
   subtitle?: string;
+  typeLabel?: string;
 }
 
 interface SearchableSelectProps {
@@ -151,7 +152,10 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                     }`}
                   >
                     <div className="flex flex-col">
-                      <span className="text-sm font-semibold">{opt.name}</span>
+                      <span className="text-sm font-semibold">
+                        {opt.name}
+                        {opt.typeLabel && <span className="text-slate-400 font-normal ml-1">- {opt.typeLabel}</span>}
+                      </span>
                       {opt.subtitle && <span className="text-xs text-slate-400 font-normal">{opt.subtitle}</span>}
                     </div>
 
