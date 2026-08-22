@@ -1007,6 +1007,7 @@ app.post('/api/superadmin/upload-population', authenticateToken, async (req, res
     const locMap = buildLocationMap(blocks, districts, states);
     let successCount = 0;
     let errors = [];
+    let details = [];
 
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
@@ -1051,12 +1052,18 @@ app.post('/api/superadmin/upload-population', authenticateToken, async (req, res
           });
         }
       }
+      
+      const actualBlock = blocks.find(b => b.id === blockId);
+      const distId = actualBlock ? actualBlock.district_id : 'N/A';
+      const bName = actualBlock ? actualBlock.name : blockName;
+      details.push(`Added population: ${basePop} to ${bName} (Block ID: ${blockId}, District ID: ${distId})`);
+      
       successCount++;
     }
     
     if (!useSupabase) saveStore();
     await logAudit(req.user.id, 'UPLOAD_POPULATION', 'bulk', null);
-    res.json({ message: 'Upload completed', successCount, errors });
+    res.json({ message: 'Upload completed', successCount, errors, details });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
@@ -1078,6 +1085,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
     const today = new Date().toISOString().split('T')[0];
     let successCount = 0;
     let errors = [];
+    let details = [];
 
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
@@ -1124,12 +1132,18 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
           });
         }
       }
+      
+      const actualBlock = blocks.find(b => b.id === blockId);
+      const distId = actualBlock ? actualBlock.district_id : 'N/A';
+      const bName = actualBlock ? actualBlock.name : blockName;
+      details.push(`Added live data (Line list: ${lineList}, Vaccinated: ${vaccinated}) to ${bName} (Block ID: ${blockId}, District ID: ${distId})`);
+      
       successCount++;
     }
 
     if (!useSupabase) saveStore();
     await logAudit(req.user.id, 'UPLOAD_LIVEDATA', 'bulk', null);
-    res.json({ message: 'Upload completed', successCount, errors });
+    res.json({ message: 'Upload completed', successCount, errors, details });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 

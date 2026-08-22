@@ -4,7 +4,7 @@ import { parse } from 'csv-parse/browser/esm/sync';
 
 export const SuperAdminUpload: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'error' | 'success', text: string, details?: string[] } | null>(null);
+  const [message, setMessage] = useState<{ type: 'error' | 'success', text: string, errors?: string[], successes?: string[] } | null>(null);
 
   const handleDownloadTemplate = (type: 'block-pop' | 'city-pop' | 'block-live' | 'city-live') => {
     let headers = '';
@@ -62,7 +62,8 @@ export const SuperAdminUpload: React.FC = () => {
         setMessage({ 
           type: 'success', 
           text: `Successfully processed ${json.successCount} records${errorText}.`,
-          details: json.errors || []
+          errors: json.errors || [],
+          successes: json.details || []
         });
       } catch (err: any) {
         setMessage({ type: 'error', text: err.message || 'Failed to parse or upload CSV.' });
@@ -124,11 +125,20 @@ export const SuperAdminUpload: React.FC = () => {
             {message.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
             {message.text}
           </div>
-          {message.details && message.details.length > 0 && (
+          {message.errors && message.errors.length > 0 && (
             <div className="mt-2 bg-white/60 p-3 rounded-lg border border-emerald-200/50 max-h-40 overflow-y-auto text-xs text-slate-700 font-mono space-y-1">
-              {message.details.map((err, idx) => (
+              {message.errors.map((err, idx) => (
                 <div key={idx} className="text-rose-600 border-b border-rose-100/50 pb-1 last:border-0 last:pb-0">
                   • {err}
+                </div>
+              ))}
+            </div>
+          )}
+          {message.successes && message.successes.length > 0 && (
+            <div className="mt-2 bg-white/60 p-3 rounded-lg border border-emerald-200/50 max-h-40 overflow-y-auto text-xs text-slate-700 font-mono space-y-1">
+              {message.successes.map((msg, idx) => (
+                <div key={idx} className="text-emerald-700 border-b border-emerald-100/50 pb-1 last:border-0 last:pb-0">
+                  ✓ {msg}
                 </div>
               ))}
             </div>
