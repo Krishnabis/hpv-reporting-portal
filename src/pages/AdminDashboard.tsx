@@ -763,7 +763,7 @@ export const AdminDashboard: React.FC = () => {
 
                 {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
                   <div className="flex-1 min-h-0 overflow-y-auto">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 lg:content-between h-full min-h-max">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 sm:gap-y-1.5 pb-2">
                     {[...kpis.district_chart_data]
                        .sort((a, b) => {
                         const pa = selectedKpi === 'linelist' ? a.lineListPct : a.coveragePct;
