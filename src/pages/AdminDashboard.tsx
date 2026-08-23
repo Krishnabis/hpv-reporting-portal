@@ -928,8 +928,8 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.district_name 
-                          ? <span> - {adminUser.district_name} Admin</span>
+                        {adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
+                          ? <span> - {adminUser.district_name || 'District'} Admin</span>
                           : <span> - State Admin</span>
                         }
                       </span>
@@ -1293,8 +1293,8 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.district_name 
-                          ? <span> - {adminUser.district_name} Admin</span>
+                        {adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
+                          ? <span> - {adminUser.district_name || 'District'} Admin</span>
                           : <span> - State Admin</span>
                         }
                       </span>
