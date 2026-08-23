@@ -447,7 +447,12 @@ app.post('/api/admin/login', async (req, res) => {
     let stateName = null;
     let districtName = null;
     if (useSupabase) {
-      const { data, error } = await supabase.from('admin_users').select('*, states(name), districts(name)').eq('username', username).eq('is_active', true).maybeSingle();
+      let { data, error } = await supabase.from('admin_users').select('*, states(name), districts(name)').eq('username', username).eq('is_active', true).maybeSingle();
+      if (error && error.code === '42703') {
+        const fallback = await supabase.from('admin_users').select('*, states(name)').eq('username', username).eq('is_active', true).maybeSingle();
+        data = fallback.data;
+        error = fallback.error;
+      }
       if (error) throw error;
       user = data;
       if (user?.states) stateName = user.states.name;
@@ -515,7 +520,12 @@ app.put('/api/admin/change-password', authenticateToken, async (req, res) => {
 app.get('/api/admin/users', authenticateToken, async (req, res) => {
   try {
     if (useSupabase) {
-      const { data, error } = await supabase.from('admin_users').select('id, username, name, role, is_active, created_at, last_login_at, state_id, states(name), district_id, districts(name)').order('created_at', { ascending: false });
+      let { data, error } = await supabase.from('admin_users').select('id, username, name, role, is_active, created_at, last_login_at, state_id, states(name), district_id, districts(name)').order('created_at', { ascending: false });
+      if (error && error.code === '42703') {
+        const fallback = await supabase.from('admin_users').select('id, username, name, role, is_active, created_at, last_login_at, state_id, states(name)').order('created_at', { ascending: false });
+        data = fallback.data;
+        error = fallback.error;
+      }
       if (error) throw error;
       return res.json(data.map(u => ({ ...u, state_name: u.states ? u.states.name : null, district_name: u.districts ? u.districts.name : null })));
     }
@@ -538,9 +548,15 @@ app.post('/api/admin/users', authenticateToken, async (req, res) => {
       const { data: existing } = await supabase.from('admin_users').select('id').eq('username', username).maybeSingle();
       if (existing) return res.status(409).json({ error: 'Username already exists' });
 
-      const { error } = await supabase.from('admin_users').insert([{
+      let { error } = await supabase.from('admin_users').insert([{
         id: newId, username, name, password_hash: passwordHash, role, is_active: true, state_id: state_id ? Number(state_id) : null, district_id: district_id ? Number(district_id) : null
       }]);
+      if (error && error.code === '42703') {
+        const fallback = await supabase.from('admin_users').insert([{
+          id: newId, username, name, password_hash: passwordHash, role, is_active: true, state_id: state_id ? Number(state_id) : null
+        }]);
+        error = fallback.error;
+      }
       if (error) throw error;
     } else {
       if (store.admin_users.find(u => u.username === username)) return res.status(409).json({ error: 'Username already exists' });

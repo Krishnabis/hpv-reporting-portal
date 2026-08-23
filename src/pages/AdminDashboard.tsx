@@ -324,7 +324,14 @@ export const AdminDashboard: React.FC = () => {
     const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
     fetch('/api/admin/users', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
-      .then(data => setAdminUsers(Array.isArray(data) ? data : []))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setAdminUsers(data);
+        } else {
+          console.error('Failed to fetch admin users:', data);
+          setAdminUsers([]);
+        }
+      })
       .catch(err => console.error(err));
   };
 
@@ -374,7 +381,7 @@ export const AdminDashboard: React.FC = () => {
           username: newAdminUsername, 
           name: newAdminName, 
           password: newAdminPassword, 
-          role: newAdminRole, 
+          role: newAdminRole === 'ADMIN' && newAdminDistrictId ? 'DISTRICT_ADMIN' : newAdminRole, 
           state_id: newAdminStateId || undefined,
           district_id: newAdminDistrictId || undefined
         })
@@ -681,10 +688,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-receiving')}
                     title="Stock Receiving"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-receiving' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      activeTab === 'stock-receiving' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
-                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-pink-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Receiving</span>
                   </button>
 
@@ -693,10 +700,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-issuing')}
                     title="Stock Issuing"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-issuing' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      activeTab === 'stock-issuing' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
-                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'stock-issuing' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'stock-issuing' ? 'text-pink-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Issuing</span>
                   </button>
 
@@ -705,10 +712,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('month-end-balance')}
                     title="Month End Balance"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'month-end-balance' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      activeTab === 'month-end-balance' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
-                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-pink-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Month End Balance</span>
                   </button>
                 </div>
@@ -1595,11 +1602,10 @@ export const AdminDashboard: React.FC = () => {
                   <select value={newAdminRole} onChange={e => setNewAdminRole(e.target.value)}
                     className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
                     <option value="ADMIN">State Admin</option>
-                    <option value="DISTRICT_ADMIN">District Admin</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
                 </div>
-                {(newAdminRole === 'ADMIN' || newAdminRole === 'DISTRICT_ADMIN') && (
+                {newAdminRole === 'ADMIN' && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State *</label>
                     <select value={newAdminStateId} onChange={e => { setNewAdminStateId(e.target.value); setNewAdminDistrictId(''); }} required
@@ -1609,12 +1615,12 @@ export const AdminDashboard: React.FC = () => {
                     </select>
                   </div>
                 )}
-                {newAdminRole === 'DISTRICT_ADMIN' && newAdminStateId && (
+                {newAdminRole === 'ADMIN' && newAdminStateId && (
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">District *</label>
-                    <select value={newAdminDistrictId} onChange={e => setNewAdminDistrictId(e.target.value)} required
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">District (Optional)</label>
+                    <select value={newAdminDistrictId} onChange={e => setNewAdminDistrictId(e.target.value)}
                       className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
-                      <option value="">Select District</option>
+                      <option value="">State-level only</option>
                       {districtsList.filter(d => String(d.state_id) === String(newAdminStateId)).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                     </select>
                   </div>
