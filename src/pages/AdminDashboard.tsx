@@ -293,13 +293,22 @@ export const AdminDashboard: React.FC = () => {
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name: newAdminName, username: newAdminUsername, password: newAdminPassword, role: newAdminRole })
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          username: newAdminUsername, 
+          name: newAdminName, 
+          password: newAdminPassword, 
+          role: newAdminRole, 
+          state_id: newAdminStateId || undefined 
+        })
       });
       const data = await res.json();
       if (!res.ok) { setAddAdminMsg(`❌ ${data.error}`); } else {
         setAddAdminMsg('✅ Admin created successfully!');
-        setNewAdminName(''); setNewAdminUsername(''); setNewAdminPassword('');
+        setNewAdminName(''); setNewAdminUsername(''); setNewAdminPassword(''); setNewAdminStateId('');
         fetchAdminUsers();
       }
     } catch { setAddAdminMsg('❌ Request failed'); }
@@ -1358,6 +1367,16 @@ export const AdminDashboard: React.FC = () => {
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
                 </div>
+                {newAdminRole === 'ADMIN' && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State *</label>
+                    <select value={newAdminStateId} onChange={e => setNewAdminStateId(e.target.value)} required
+                      className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
+                      <option value="">Select State</option>
+                      {states.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
+                )}
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 invisible">Action</label>
                   <button type="submit" disabled={addAdminLoading}
@@ -1382,6 +1401,7 @@ export const AdminDashboard: React.FC = () => {
                     <th className="px-4 py-2">Name</th>
                     <th className="px-4 py-2">Username</th>
                     <th className="px-4 py-2">Role</th>
+                    <th className="px-4 py-2">State</th>
                     <th className="px-4 py-2">Status</th>
                     <th className="px-4 py-2">Last Login</th>
                   </tr>
@@ -1397,6 +1417,9 @@ export const AdminDashboard: React.FC = () => {
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
                           {u.role}
                         </span>
+                      </td>
+                      <td className="px-4 py-2.5 font-semibold text-slate-500">
+                        {u.state_name || '-'}
                       </td>
                       <td className="px-4 py-2.5">
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
