@@ -901,7 +901,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     const { data: rawReports, error: rErr } = await reportQuery;
     if (rErr) throw rErr;
     
-    let validReports = rawReports;
+    let validReports = rawReports || [];
     if (targetStateId) validReports = validReports.filter(r => r.blocks?.state_id == targetStateId);
     if (userDistrictId) validReports = validReports.filter(r => r.blocks?.district_id == userDistrictId);
 
