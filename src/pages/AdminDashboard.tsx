@@ -53,7 +53,7 @@ interface ReportRow {
   vaccination_coverage_pct: number | null;
 }
 
-export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitoring' }> = ({ mode = 'monitoring' }) => {
+export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity'>('dashboard');
@@ -730,21 +730,12 @@ export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitorin
 
         {/* Dashboard Switcher Button */}
         <div className={`mx-3 mt-auto mb-2 shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`}>
-          {mode === 'monitoring' ? (
-            <button 
-              onClick={() => { setMobileMenuOpen(false); navigate('/admin/vaccine-monitoring'); }}
-              className="w-full bg-pink-50 hover:bg-pink-100 text-pink-600 border border-pink-200 rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
-            >
-              Go to Vaccine Management Dashboard
-            </button>
-          ) : (
-            <button 
-              onClick={() => { setMobileMenuOpen(false); navigate('/admin'); }}
-              className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
-            >
-              Go to Monitoring Dashboard
-            </button>
-          )}
+          <button 
+            onClick={() => { setMobileMenuOpen(false); navigate('/admin/vaccine-monitoring'); }}
+            className="w-full bg-pink-50 hover:bg-pink-100 text-pink-600 border border-pink-200 rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
+          >
+            Go to Vaccine Management Dashboard
+          </button>
         </div>
 
         {/* Slogan Badge */}
@@ -802,7 +793,7 @@ export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitorin
                 <div className="flex items-center gap-2 group relative">
                   <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-1.5">
                     <span className="text-[#188E94]">
-                      {mode === 'vaccine-monitoring' ? 'Vaccine Monitoring Dashboard:' : 'Monitoring Dashboard:'}
+                      Monitoring Dashboard:
                     </span>
                     {adminUser?.role === 'SUPER_ADMIN' ? (
                       <select 
@@ -847,7 +838,6 @@ export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitorin
             </div>
 
             {/* KPI Cards Grid */}
-            {mode === 'monitoring' ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 {/* Card 1: Total Population */}
                 <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-blue-500 flex flex-col justify-between">
@@ -943,23 +933,7 @@ export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitorin
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[100px]">
-                    <div className="flex gap-3 items-center opacity-50">
-                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                        <Activity className="w-5 h-5 text-slate-400" />
-                      </div>
-                      <div className="flex flex-col min-w-0 flex-1 gap-2">
-                        <div className="h-2.5 bg-slate-200 rounded w-full"></div>
-                        <div className="h-6 bg-slate-200 rounded w-1/2"></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+
 
             {/* Split Layout: Ranking & Map — flex-1 fills remaining height */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-2 flex-none lg:flex-1 lg:min-h-0">
