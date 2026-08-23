@@ -1287,6 +1287,8 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
     await logAudit(req.user.id, 'UPLOAD_LIVEDATA', 'bulk', null);
     res.json({ message: 'Upload completed', successCount, errors, details });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
 // ─── Super Admin CSV Uploads: Locations ──────────────────────────────────────────
 
 app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res) => {
@@ -1541,5 +1543,6 @@ app.listen(PORT, () => {
   console.log(`🚀 HPV Reporting Portal API on port ${PORT}`);
   console.log(`📊 DB: ${useSupabase ? 'Supabase JS (HTTPS)' : 'JSON fallback'}`);
 });
+
 
 export default app;
