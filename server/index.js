@@ -448,7 +448,7 @@ app.post('/api/admin/login', async (req, res) => {
     let districtName = null;
     if (useSupabase) {
       let { data, error } = await supabase.from('admin_users').select('*, states(name), districts(name)').eq('username', username).eq('is_active', true).maybeSingle();
-      if (error && error.code === '42703') {
+      if (error && (error.code === '42703' || error.code === 'PGRST204' || (error.message && error.message.includes('district')))) {
         const fallback = await supabase.from('admin_users').select('*, states(name)').eq('username', username).eq('is_active', true).maybeSingle();
         data = fallback.data;
         error = fallback.error;
@@ -521,7 +521,7 @@ app.get('/api/admin/users', authenticateToken, async (req, res) => {
   try {
     if (useSupabase) {
       let { data, error } = await supabase.from('admin_users').select('id, username, name, role, is_active, created_at, last_login_at, state_id, states(name), district_id, districts(name)').order('created_at', { ascending: false });
-      if (error && error.code === '42703') {
+      if (error && (error.code === '42703' || error.code === 'PGRST204' || (error.message && error.message.includes('district')))) {
         const fallback = await supabase.from('admin_users').select('id, username, name, role, is_active, created_at, last_login_at, state_id, states(name)').order('created_at', { ascending: false });
         data = fallback.data;
         error = fallback.error;
@@ -551,7 +551,7 @@ app.post('/api/admin/users', authenticateToken, async (req, res) => {
       let { error } = await supabase.from('admin_users').insert([{
         id: newId, username, name, password_hash: passwordHash, role, is_active: true, state_id: state_id ? Number(state_id) : null, district_id: district_id ? Number(district_id) : null
       }]);
-      if (error && error.code === '42703') {
+      if (error && (error.code === '42703' || error.code === 'PGRST204' || (error.message && error.message.includes('district')))) {
         const fallback = await supabase.from('admin_users').insert([{
           id: newId, username, name, password_hash: passwordHash, role, is_active: true, state_id: state_id ? Number(state_id) : null
         }]);

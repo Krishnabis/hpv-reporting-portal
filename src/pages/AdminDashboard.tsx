@@ -1976,13 +1976,13 @@ export const AdminDashboard: React.FC = () => {
                     </select>
                   </div>
                 )}
-                {newAdminRole === 'ADMIN' && newAdminStateId && (
+                {newAdminRole === 'ADMIN' && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">District (Optional)</label>
-                    <select value={newAdminDistrictId} onChange={e => setNewAdminDistrictId(e.target.value)}
-                      className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
-                      <option value="">State-level only</option>
-                      {districtsList.filter(d => String(d.state_id) === String(newAdminStateId)).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    <select value={newAdminDistrictId} onChange={e => setNewAdminDistrictId(e.target.value)} disabled={!newAdminStateId}
+                      className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600 disabled:opacity-50">
+                      <option value="">{newAdminStateId ? 'State-level only' : 'Select State first'}</option>
+                      {newAdminStateId && districtsList.filter(d => String(d.state_id) === String(newAdminStateId)).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                     </select>
                   </div>
                 )}
@@ -2011,6 +2011,7 @@ export const AdminDashboard: React.FC = () => {
                     <th className="px-4 py-2">Username</th>
                     <th className="px-4 py-2">Role</th>
                     <th className="px-4 py-2">State</th>
+                    <th className="px-4 py-2">District</th>
                     <th className="px-4 py-2">Status</th>
                     <th className="px-4 py-2">Last Login</th>
                   </tr>
@@ -2027,9 +2028,8 @@ export const AdminDashboard: React.FC = () => {
                           {u.role}
                         </span>
                       </td>
-                      <td className="px-4 py-2.5 font-semibold text-slate-500">
-                        {u.district_name ? `${u.district_name}, ` : ''}{u.state_name || '-'}
-                      </td>
+                      <td className="px-4 py-2.5 font-semibold text-slate-500">{u.state_name || '-'}</td>
+                      <td className="px-4 py-2.5 font-semibold text-slate-500">{u.district_name || '-'}</td>
                       <td className="px-4 py-2.5">
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
                           {u.is_active ? 'Active' : 'Inactive'}
