@@ -1223,8 +1223,16 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-purple-900 font-semibold">Vaccination Coverage (%)</span>
                       <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
-                          Vaccination Coverage (%) = (Vaccinated / HPV Target) x 100
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium shadow-xl">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-semibold text-slate-200">Vaccination Coverage (%) =</span>
+                            <div className="flex flex-col items-center">
+                              <span className="text-[9px]">Vaccinated</span>
+                              <div className="w-full h-px bg-slate-500 my-1"></div>
+                              <span className="text-[9px]">HPV Target</span>
+                            </div>
+                            <span className="text-[10px] font-semibold text-slate-200">× 100</span>
+                          </div>
                           <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
                         </div>
                       </div>
@@ -1234,8 +1242,16 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-purple-900 font-semibold">Line Listed (%)</span>
                       <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
-                          Line Listed (%) = (Line Listed / HPV Target) x 100
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium shadow-xl">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-semibold text-slate-200">Line Listed (%) =</span>
+                            <div className="flex flex-col items-center">
+                              <span className="text-[9px]">Line Listed</span>
+                              <div className="w-full h-px bg-slate-500 my-1"></div>
+                              <span className="text-[9px]">HPV Target</span>
+                            </div>
+                            <span className="text-[10px] font-semibold text-slate-200">× 100</span>
+                          </div>
                           <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
                         </div>
                       </div>
