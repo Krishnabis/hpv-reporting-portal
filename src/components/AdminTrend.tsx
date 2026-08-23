@@ -13,12 +13,15 @@ interface ReportData {
 
 interface AdminTrendProps {
   statesList: any[];
+  divisionsList: any[];
   districtsList: any[];
   blocksList: any[];
-  filterLevel: 'State' | 'District' | 'Block';
-  setFilterLevel: (level: 'State' | 'District' | 'Block') => void;
+  filterLevel: 'State' | 'Division' | 'District' | 'Block';
+  setFilterLevel: (level: 'State' | 'Division' | 'District' | 'Block') => void;
   filterStateId: string;
   setFilterStateId: (id: string) => void;
+  filterDivisionId: string;
+  setFilterDivisionId: (id: string) => void;
   filterDistrictId: string;
   setFilterDistrictId: (id: string) => void;
   filterBlockId: string;
@@ -26,9 +29,10 @@ interface AdminTrendProps {
 }
 
 export const AdminTrend: React.FC<AdminTrendProps> = ({
-  statesList, districtsList, blocksList,
+  statesList, divisionsList, districtsList, blocksList,
   filterLevel, setFilterLevel,
   filterStateId, setFilterStateId,
+  filterDivisionId, setFilterDivisionId,
   filterDistrictId, setFilterDistrictId,
   filterBlockId, setFilterBlockId
 }) => {
@@ -47,6 +51,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
       const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
       const params = new URLSearchParams({
         level: filterLevel.toUpperCase(),
+        divisionId: filterDivisionId,
         districtId: filterDistrictId,
         blockId: filterBlockId
       });
@@ -62,6 +67,12 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
       if (filterLevel === 'State') {
         const state = statesList.find(s => s.id.toString() === filterStateId);
         setScopeName(state ? state.name : 'State');
+      } else if (filterLevel === 'Division') {
+        if (filterDivisionId === 'ALL') setScopeName('All Divisions');
+        else {
+          const div = divisionsList.find(d => d.id.toString() === filterDivisionId);
+          setScopeName(div ? div.name : 'Division');
+        }
       } else if (filterLevel === 'District') {
         if (filterDistrictId === 'ALL') setScopeName('All Districts');
         else {
@@ -211,6 +222,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
             <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Select Area</label>
             <select value={filterLevel} onChange={e => setFilterLevel(e.target.value as any)} className="px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold focus:border-emerald-500 focus:outline-none">
               <option value="State">State</option>
+              <option value="Division">Division</option>
               <option value="District">District</option>
               <option value="Block">Block</option>
             </select>
@@ -225,6 +237,19 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
                 value={stateOptions.find(o => o.id === filterStateId) || null} 
                 onChange={(opt) => opt && setFilterStateId(opt.id.toString())} 
                 placeholder="Select State..." 
+              />
+            </div>
+          )}
+
+          {filterLevel === 'Division' && (
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Division</label>
+              <SearchableSelect 
+                label="Division"
+                options={[{value: 'ALL', label: 'All Divisions'}, ...divisionsList.filter(d => String(d.state_id) === filterStateId).map(d => ({ value: d.id.toString(), label: d.name }))]} 
+                value={filterDivisionId} 
+                onChange={setFilterDivisionId} 
+                placeholder="Select Division..." 
               />
             </div>
           )}

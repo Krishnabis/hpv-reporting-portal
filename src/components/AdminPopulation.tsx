@@ -5,6 +5,7 @@ interface PopulationData {
   id: number;
   name: string;
   is_urban: boolean;
+  division_name: string;
   district_name: string;
   state_name: string;
   profile: {
@@ -103,6 +104,7 @@ export const AdminPopulation: React.FC<{ activeStateId?: string }> = ({ activeSt
               <thead className="bg-rose-100 text-rose-900 uppercase tracking-wider text-[10px] font-bold sticky top-0 z-10 shadow-sm">
                 <tr>
                   <th className="px-4 py-3">State</th>
+                  <th className="px-4 py-3">Division</th>
                   <th className="px-4 py-3">District</th>
                   <th className="px-4 py-3">Block / Urban Body</th>
                   <th className="px-4 py-3">Type</th>
@@ -114,6 +116,7 @@ export const AdminPopulation: React.FC<{ activeStateId?: string }> = ({ activeSt
                 {pendingRequests.map((row) => (
                   <tr key={row.id} className="hover:bg-rose-100/50 transition-colors">
                     <td className="px-4 py-2 font-medium text-rose-800">{row.state_name}</td>
+                    <td className="px-4 py-2 font-medium text-rose-800">{row.division_name || '—'}</td>
                     <td className="px-4 py-2 font-bold text-rose-900">{row.district_name}</td>
                     <td className="px-4 py-2 font-bold text-hpv-purple">{row.name}</td>
                     <td className="px-4 py-2">
@@ -160,6 +163,7 @@ export const AdminPopulation: React.FC<{ activeStateId?: string }> = ({ activeSt
             <thead className="bg-slate-900 text-slate-100 uppercase tracking-wider text-[10px] font-bold sticky top-0 z-10 shadow-sm">
               <tr>
                 <th className="px-4 py-3">State</th>
+                <th className="px-4 py-3">Division</th>
                 <th className="px-4 py-3">District</th>
                 <th className="px-4 py-3">Block / Urban Body</th>
                 <th className="px-4 py-3">Type</th>
@@ -171,6 +175,7 @@ export const AdminPopulation: React.FC<{ activeStateId?: string }> = ({ activeSt
               {filteredData.map((row) => (
                 <tr key={row.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-2.5 font-medium text-slate-600">{row.state_name}</td>
+                  <td className="px-4 py-2.5 font-medium text-slate-600">{row.division_name || '—'}</td>
                   <td className="px-4 py-2.5 font-bold text-slate-900">{row.district_name}</td>
                   <td className="px-4 py-2.5 font-bold text-hpv-purple">{row.name}</td>
                   <td className="px-4 py-2.5">

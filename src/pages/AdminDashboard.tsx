@@ -56,6 +56,10 @@ interface ReportRow {
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity'>('dashboard');
+  
+  const [analyticsOpen, setAnalyticsOpen] = useState(true);
+  const [usersOpen, setUsersOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
@@ -88,6 +92,7 @@ export const AdminDashboard: React.FC = () => {
   const [locationSearch, setLocationSearch] = useState('');
   const [statesList, setStatesList] = useState<any[]>([]);
   const [allDistrictsList, setAllDistrictsList] = useState<any[]>([]);
+  const [divisionsList, setDivisionsList] = useState<any[]>([]);
   // Location add form
   const [addLocType, setAddLocType] = useState<'state' | 'district' | 'block' | 'urban'>('block');
   const [addLocName, setAddLocName] = useState('');
@@ -252,6 +257,7 @@ export const AdminDashboard: React.FC = () => {
     const params = new URLSearchParams({
       date: filterDate,
       level: filterLevel,
+      divisionId: filterDivisionId,
       districtId: filterDistrictId,
       blockId: filterBlockId
     });
@@ -279,11 +285,13 @@ export const AdminDashboard: React.FC = () => {
       fetch('/api/locations/blocks').then(r => r.json()),
       fetch('/api/locations/states').then(r => r.json()),
       fetch('/api/locations/districts').then(r => r.json()),
-    ]).then(([blocks, states, districts]) => {
+      fetch('/api/locations/divisions').then(r => r.json()),
+    ]).then(([blocks, states, districts, divisions]) => {
       setMasterBlocks(Array.isArray(blocks) ? blocks : []);
       setStatesList(Array.isArray(states) ? states : []);
       setStates(Array.isArray(states) ? states : []);
       setAllDistrictsList(Array.isArray(districts) ? districts : []);
+      setDivisionsList(Array.isArray(divisions) ? divisions : []);
     }).catch(err => console.error(err));
   };
 
@@ -386,6 +394,9 @@ export const AdminDashboard: React.FC = () => {
   const handleTabChange = (tab: any) => {
     setActiveTab(tab);
     setMobileMenuOpen(false);
+    if (tab === 'reports' || tab === 'trend') setAnalyticsOpen(true);
+    if (tab === 'users' || tab === 'activity') setUsersOpen(true);
+    if (tab === 'upload' || tab === 'settings') setSettingsOpen(true);
     if (tab === 'locations') fetchMasterLocations();
     if (tab === 'users') fetchAdminUsers();
     if (tab === 'audit') fetchAuditLogs();
@@ -527,10 +538,11 @@ export const AdminDashboard: React.FC = () => {
             </button>
           </div>
 
-          {/* Navigation Links */}
+                    {/* Navigation Links */}
           <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+            {/* Dashboard */}
             <button
-              onClick={() => { handleTabChange('dashboard'); setMobileMenuOpen(false); }}
+              onClick={() => handleTabChange('dashboard')}
               title="Dashboard"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'dashboard'
@@ -542,19 +554,7 @@ export const AdminDashboard: React.FC = () => {
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Dashboard</span>
             </button>
 
-            <button
-              onClick={() => { handleTabChange('reports'); setMobileMenuOpen(false); }}
-              title="Reports & Analytics"
-              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === 'reports'
-                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <FileText className={`w-5 h-5 shrink-0 ${activeTab === 'reports' ? 'text-emerald-600' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Reports</span>
-            </button>
-
+            {/* Alerts */}
             <button
               onClick={() => handleTabChange('population')}
               title="Alerts"
@@ -578,75 +578,126 @@ export const AdminDashboard: React.FC = () => {
               )}
             </button>
 
-            <button
-              onClick={() => handleTabChange('trend')}
-              title="Trend"
-              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === 'trend'
-                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <TrendingUp className={`w-5 h-5 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Trend</span>
-            </button>
-
-            {adminUser?.role === 'SUPER_ADMIN' && (
-              <button
-                onClick={() => { handleTabChange('users'); setMobileMenuOpen(false); }}
-                className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
-                  activeTab === 'users'
-                    ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                }`}
+            {/* Analytics */}
+            <div className="pt-2">
+              <button 
+                onClick={() => { if (!sidebarCollapsed) setAnalyticsOpen(!analyticsOpen) }}
+                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                title="Analytics"
               >
-                <UsersIcon className={`w-5 h-5 shrink-0 ${activeTab === 'users' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Admin Users</span>
+                <span className={sidebarCollapsed ? 'hidden' : ''}>Analytics</span>
+                {!sidebarCollapsed && (
+                  <ChevronDown className={`w-4 h-4 transition-transform ${analyticsOpen ? '' : '-rotate-90'}`} />
+                )}
               </button>
+              
+              {(analyticsOpen || sidebarCollapsed) && (
+                <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
+                  <button
+                    onClick={() => handleTabChange('reports')}
+                    title="Reports"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'reports' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'reports' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Reports</span>
+                  </button>
+                  <button
+                    onClick={() => handleTabChange('trend')}
+                    title="Trend"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'trend' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Trend</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* User Management */}
+            {adminUser?.role === 'SUPER_ADMIN' && (
+              <div className="pt-2">
+                <button 
+                  onClick={() => { if (!sidebarCollapsed) setUsersOpen(!usersOpen) }}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                  title="User Management"
+                >
+                  <span className={sidebarCollapsed ? 'hidden' : ''}>User Management</span>
+                  {!sidebarCollapsed && (
+                    <ChevronDown className={`w-4 h-4 transition-transform ${usersOpen ? '' : '-rotate-90'}`} />
+                  )}
+                </button>
+                
+                {(usersOpen || sidebarCollapsed) && (
+                  <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
+                    <button
+                      onClick={() => handleTabChange('users')}
+                      title="Admin Users"
+                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                        activeTab === 'users' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <UsersIcon className={`w-4 h-4 shrink-0 ${activeTab === 'users' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Admin Users</span>
+                    </button>
+                    <button
+                      onClick={() => handleTabChange('activity')}
+                      title="Activity"
+                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                        activeTab === 'activity' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'activity' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Activity</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
 
+            {/* Settings */}
             {adminUser?.role === 'SUPER_ADMIN' && (
-              <button
-                onClick={() => { handleTabChange('upload'); setMobileMenuOpen(false); }}
-                className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
-                  activeTab === 'upload'
-                    ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                }`}
-              >
-                <UploadCloud className={`w-5 h-5 shrink-0 ${activeTab === 'upload' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Upload CSV</span>
-              </button>
+              <div className="pt-2">
+                <button 
+                  onClick={() => { if (!sidebarCollapsed) setSettingsOpen(!settingsOpen) }}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                  title="Settings"
+                >
+                  <span className={sidebarCollapsed ? 'hidden' : ''}>Settings</span>
+                  {!sidebarCollapsed && (
+                    <ChevronDown className={`w-4 h-4 transition-transform ${settingsOpen ? '' : '-rotate-90'}`} />
+                  )}
+                </button>
+                
+                {(settingsOpen || sidebarCollapsed) && (
+                  <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
+                    <button
+                      onClick={() => handleTabChange('upload')}
+                      title="Upload CSV"
+                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                        activeTab === 'upload' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <UploadCloud className={`w-4 h-4 shrink-0 ${activeTab === 'upload' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Upload CSV</span>
+                    </button>
+                    <button
+                      onClick={() => handleTabChange('settings')}
+                      title="Update Password"
+                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                        activeTab === 'settings' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <SettingsIcon className={`w-4 h-4 shrink-0 ${activeTab === 'settings' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Update Password</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
-
-            {adminUser?.role === 'SUPER_ADMIN' && (
-              <button
-                onClick={() => { handleTabChange('activity'); setMobileMenuOpen(false); }}
-                title="Activity"
-                className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
-                  activeTab === 'activity'
-                    ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                }`}
-              >
-                <Activity className={`w-5 h-5 shrink-0 ${activeTab === 'activity' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Activity</span>
-              </button>
-            )}
-
-            <button
-              onClick={() => { handleTabChange('settings'); setMobileMenuOpen(false); }}
-              title="Settings"
-              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === 'settings'
-                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <SettingsIcon className={`w-5 h-5 shrink-0 ${activeTab === 'settings' ? 'text-emerald-600' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Settings</span>
-            </button>
-
           </nav>
         </div>
         {/* Slogan Badge */}
@@ -1377,12 +1428,15 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'trend' && (
           <AdminTrend
             statesList={statesList}
+            divisionsList={divisionsList}
             districtsList={filteredDistricts}
             blocksList={blocksList}
             filterLevel={filterLevel}
             setFilterLevel={setFilterLevel}
             filterStateId={filterStateId}
             setFilterStateId={setFilterStateId}
+            filterDivisionId={filterDivisionId}
+            setFilterDivisionId={setFilterDivisionId}
             filterDistrictId={filterDistrictId}
             setFilterDistrictId={setFilterDistrictId}
             filterBlockId={filterBlockId}

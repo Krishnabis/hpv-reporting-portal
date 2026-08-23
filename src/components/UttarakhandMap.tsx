@@ -151,7 +151,18 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
                 onMouseEnter={() => setHoveredDistrict(name)}
               />
             );
-          })}
+          })}          {/* Garhwal outer division border only */}
+          {Object.entries(PATHS).filter(([name]) => GARHWAL.includes(name)).map(([name, path]) => (
+            <path
+              key={`outline-${name}`}
+              d={path}
+              fill="none"
+              stroke="pink"
+              strokeWidth={4}
+              strokeLinejoin="round"
+              pointerEvents="none"
+            />
+          ))}
         </g>
 
         {/* Kumaon Division — shifted slightly right/down */}
@@ -173,7 +184,18 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
                 onMouseEnter={() => setHoveredDistrict(name)}
               />
             );
-          })}
+          })}          {/* Kumaon outer division border only */}
+          {Object.entries(PATHS).filter(([name]) => KUMAON.includes(name)).map(([name, path]) => (
+            <path
+              key={`outline-${name}`}
+              d={path}
+              fill="none"
+              stroke="#8b4513"
+              strokeWidth={4}
+              strokeLinejoin="round"
+              pointerEvents="none"
+            />
+          ))}
         </g>
 
         {/* Labels — offset per division to stay aligned with their group's transform */}
