@@ -56,12 +56,13 @@ interface ReportRow {
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'vaccine-management' | 'stock-receiving' | 'stock-issuing' | 'month-end-balance' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity'>('dashboard');
   
 
   const [usersOpen, setUsersOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [reportingOpen, setReportingOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
@@ -131,8 +132,9 @@ export const AdminDashboard: React.FC = () => {
   const [newAdminName, setNewAdminName] = useState('');
   const [newAdminUsername, setNewAdminUsername] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
-  const [newAdminStateId, setNewAdminStateId] = useState('');
   const [newAdminRole, setNewAdminRole] = useState('ADMIN');
+  const [newAdminStateId, setNewAdminStateId] = useState('');
+  const [newAdminDistrictId, setNewAdminDistrictId] = useState('');
   const [addAdminMsg, setAddAdminMsg] = useState('');
   const [addAdminLoading, setAddAdminLoading] = useState(false);
 
@@ -373,13 +375,14 @@ export const AdminDashboard: React.FC = () => {
           name: newAdminName, 
           password: newAdminPassword, 
           role: newAdminRole, 
-          state_id: newAdminStateId || undefined 
+          state_id: newAdminStateId || undefined,
+          district_id: newAdminDistrictId || undefined
         })
       });
       const data = await res.json();
       if (!res.ok) { setAddAdminMsg(`❌ ${data.error}`); } else {
         setAddAdminMsg('✅ Admin created successfully!');
-        setNewAdminName(''); setNewAdminUsername(''); setNewAdminPassword(''); setNewAdminStateId('');
+        setNewAdminName(''); setNewAdminUsername(''); setNewAdminPassword(''); setNewAdminStateId(''); setNewAdminDistrictId('');
         fetchAdminUsers();
       }
     } catch { setAddAdminMsg('❌ Request failed'); }
@@ -578,6 +581,20 @@ export const AdminDashboard: React.FC = () => {
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Dashboard</span>
             </button>
 
+            {/* HPV Vaccine Management */}
+            <button
+              onClick={() => handleTabChange('vaccine-management')}
+              title="HPV Vaccine Management"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
+                activeTab === 'vaccine-management'
+                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <Syringe className={`w-5 h-5 shrink-0 ${activeTab === 'vaccine-management' ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Vaccine Management</span>
+            </button>
+
             {/* Alerts */}
             <button
               onClick={() => handleTabChange('population')}
@@ -639,6 +656,60 @@ export const AdminDashboard: React.FC = () => {
                   >
                     <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Trend</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Reporting Group */}
+            <div className="pt-2">
+              <button 
+                onClick={() => { if (!sidebarCollapsed) setReportingOpen(!reportingOpen) }}
+                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                title="Reporting"
+              >
+                <span className={sidebarCollapsed ? 'hidden' : ''}>Reporting</span>
+                {!sidebarCollapsed && (
+                  <ChevronDown className={`w-4 h-4 transition-transform ${reportingOpen ? '' : '-rotate-90'}`} />
+                )}
+              </button>
+              
+              {(reportingOpen || sidebarCollapsed) && (
+                <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
+                  {/* Stock Receiving */}
+                  <button
+                    onClick={() => handleTabChange('stock-receiving')}
+                    title="Stock Receiving"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'stock-receiving' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Receiving</span>
+                  </button>
+
+                  {/* Stock Issuing */}
+                  <button
+                    onClick={() => handleTabChange('stock-issuing')}
+                    title="Stock Issuing"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'stock-issuing' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'stock-issuing' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Issuing</span>
+                  </button>
+
+                  {/* Month End Balance */}
+                  <button
+                    onClick={() => handleTabChange('month-end-balance')}
+                    title="Month End Balance"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'month-end-balance' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Month End Balance</span>
                   </button>
                 </div>
               )}
@@ -733,7 +804,7 @@ export const AdminDashboard: React.FC = () => {
         <div className={`mx-3 mt-auto mb-2 flex items-center justify-between gap-2 bg-blue-50/50 px-3 py-2 rounded-xl border border-blue-100/50 shrink-0 ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
           <div className="text-right flex-1">
             <span className="text-[10px] font-semibold text-slate-500 block">Together, we can build</span>
-            <span className="text-[11px] font-bold text-blue-600 block">a healthier {adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name : 'India') : (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'State')}</span>
+            <span className="text-[11px] font-bold text-blue-600 block">a healthier {adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name : 'India') : (adminUser?.district_name ? `${adminUser.district_name}, ` : '') + (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'State')}</span>
           </div>
           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0 border border-blue-200 shadow-sm">
             <Users className="w-4 h-4 text-blue-600" />
@@ -1523,17 +1594,28 @@ export const AdminDashboard: React.FC = () => {
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Role</label>
                   <select value={newAdminRole} onChange={e => setNewAdminRole(e.target.value)}
                     className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
-                    <option value="ADMIN">Admin</option>
+                    <option value="ADMIN">State Admin</option>
+                    <option value="DISTRICT_ADMIN">District Admin</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
                 </div>
-                {newAdminRole === 'ADMIN' && (
+                {(newAdminRole === 'ADMIN' || newAdminRole === 'DISTRICT_ADMIN') && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State *</label>
-                    <select value={newAdminStateId} onChange={e => setNewAdminStateId(e.target.value)} required
+                    <select value={newAdminStateId} onChange={e => { setNewAdminStateId(e.target.value); setNewAdminDistrictId(''); }} required
                       className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
                       <option value="">Select State</option>
-                      {states.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                {newAdminRole === 'DISTRICT_ADMIN' && newAdminStateId && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">District *</label>
+                    <select value={newAdminDistrictId} onChange={e => setNewAdminDistrictId(e.target.value)} required
+                      className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
+                      <option value="">Select District</option>
+                      {districtsList.filter(d => String(d.state_id) === String(newAdminStateId)).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                     </select>
                   </div>
                 )}
@@ -1579,7 +1661,7 @@ export const AdminDashboard: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-4 py-2.5 font-semibold text-slate-500">
-                        {u.state_name || '-'}
+                        {u.district_name ? `${u.district_name}, ` : ''}{u.state_name || '-'}
                       </td>
                       <td className="px-4 py-2.5">
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
