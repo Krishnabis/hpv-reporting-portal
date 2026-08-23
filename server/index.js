@@ -435,12 +435,18 @@ app.post('/api/admin/login', async (req, res) => {
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
     let user;
+    let stateName = null;
     if (useSupabase) {
-      const { data, error } = await supabase.from('admin_users').select('*').eq('username', username).eq('is_active', true).maybeSingle();
+      const { data, error } = await supabase.from('admin_users').select('*, states(name)').eq('username', username).eq('is_active', true).maybeSingle();
       if (error) throw error;
       user = data;
+      if (user?.states) stateName = user.states.name;
     } else {
       user = store.admin_users.find(u => u.username === username && u.is_active);
+      if (user?.state_id) {
+          const s = store.states.find(st => st.id === user.state_id);
+          if (s) stateName = s.name;
+      }
     }
 
     if (!user || hashPassword(password) !== user.password_hash) return res.status(401).json({ error: 'Invalid credentials' });
@@ -449,9 +455,9 @@ app.post('/api/admin/login', async (req, res) => {
       await supabase.from('admin_users').update({ last_login_at: new Date().toISOString() }).eq('id', user.id);
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name, state_id: user.state_id }, JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name, state_id: user.state_id, state_name: stateName }, JWT_SECRET, { expiresIn: '24h' });
     await logAudit(user.id, 'ADMIN_LOGIN', 'admin_user', user.id);
-    res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role, state_id: user.state_id } });
+    res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role, state_id: user.state_id, state_name: stateName } });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 

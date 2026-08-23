@@ -46,7 +46,7 @@ export const UPMap: React.FC<Props> = ({ data, selectedKpi }) => {
       <div className="text-center p-6">
         <h3 className="text-lg font-bold text-slate-700 mb-2">Uttar Pradesh Map</h3>
         <p className="text-sm text-slate-500 max-w-md mx-auto">
-          Please upload <code className="bg-slate-200 px-1 py-0.5 rounded text-rose-600">UP_MAP.svg</code> to the public folder. We will then process the file and map IDs 1-72 to the districts.
+          Please upload <code className="bg-slate-200 px-1 py-0.5 rounded text-rose-600">map_up.svg</code> to the public folder. We will then process the file and map IDs 1-72 to the districts.
         </p>
       </div>
     </div>

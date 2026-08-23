@@ -194,13 +194,30 @@ export const AdminDashboard: React.FC = () => {
       .catch(err => console.error(err));
   }, []);
 
+  const activeStateId = adminUser?.role === 'SUPER_ADMIN' ? dashboardStateId : String(adminUser?.state_id || '');
+
+  // Filter districts by active state
+  const filteredDistricts = useMemo(() => {
+    if (!activeStateId) return allDistrictsList;
+    return allDistrictsList.filter(d => String(d.state_id) === activeStateId);
+  }, [allDistrictsList, activeStateId]);
+
+  // Filter blocks by active state
+  const filteredBlocks = useMemo(() => {
+    if (!activeStateId) return masterBlocks;
+    return masterBlocks.filter(b => {
+      const d = allDistrictsList.find(dist => dist.id === b.district_id);
+      return d && String(d.state_id) === activeStateId;
+    });
+  }, [masterBlocks, allDistrictsList, activeStateId]);
+
   // Filter blocks when district filter changes
   const blocksList = useMemo(() => {
     if (filterDistrictId && filterDistrictId !== 'ALL') {
-      return allBlocksList.filter(b => String(b.district_id) === String(filterDistrictId));
+      return filteredBlocks.filter(b => String(b.district_id) === String(filterDistrictId));
     }
-    return allBlocksList;
-  }, [filterDistrictId, allBlocksList]);
+    return filteredBlocks;
+  }, [filterDistrictId, filteredBlocks]);
 
   // Reset block filter when district changes
   useEffect(() => {
@@ -596,7 +613,7 @@ export const AdminDashboard: React.FC = () => {
         <div className={`mx-3 mt-auto mb-2 flex items-center justify-between gap-2 bg-blue-50/50 px-3 py-2 rounded-xl border border-blue-100/50 shrink-0 ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
           <div className="text-right flex-1">
             <span className="text-[10px] font-semibold text-slate-500 block">Together, we can build</span>
-            <span className="text-[11px] font-bold text-blue-600 block">a healthier {adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name : 'India') : (adminUser?.state_name || 'State')}</span>
+            <span className="text-[11px] font-bold text-blue-600 block">a healthier {adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name : 'India') : (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'State')}</span>
           </div>
           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0 border border-blue-200 shadow-sm">
             <Users className="w-4 h-4 text-blue-600" />
@@ -935,7 +952,7 @@ export const AdminDashboard: React.FC = () => {
               <div className="lg:col-span-1 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-blue-500" /> {adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || 'State')} Overview
+                    <MapPin className="w-4 h-4 text-blue-500" /> {adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'State')} Overview
                   </h3>
                   <span className="text-xs font-semibold text-slate-500">13 Districts</span>
                 </div>
@@ -970,7 +987,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex-1 min-h-0 overflow-hidden relative pb-1">
                   {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
                     <StateMap
-                      stateName={adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || 'India')}
+                      stateName={adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'India')}
                       data={kpis.district_chart_data.map(d => ({
                         district: d.district,
                         coveragePct: d.coveragePct,
@@ -1066,8 +1083,8 @@ export const AdminDashboard: React.FC = () => {
                     <SearchableSelect
                       label="State"
                       placeholder="Search state..."
-                      options={adminUser?.role === 'SUPER_ADMIN' ? statesList.map(s => ({ id: String(s.id), name: s.name })) : (adminUser?.state_name ? [{ id: String(adminUser?.state_id), name: adminUser.state_name }] : [])}
-                      value={dashboardStateId ? { id: dashboardStateId, name: statesList.find(s => String(s.id) === dashboardStateId)?.name || '' } : (adminUser?.state_name ? { id: String(adminUser?.state_id), name: adminUser.state_name } : null)}
+                      options={adminUser?.role === 'SUPER_ADMIN' ? statesList.map(s => ({ id: String(s.id), name: s.name })) : ((adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '')) ? [{ id: String(adminUser?.state_id), name: (adminUser?.state_name || statesList.find(s => String(s.id) === String(adminUser?.state_id))?.name || '') }] : [])}
+                      value={dashboardStateId ? { id: dashboardStateId, name: statesList.find(s => String(s.id) === dashboardStateId)?.name || '' } : ((adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '')) ? { id: String(adminUser?.state_id), name: (adminUser?.state_name || statesList.find(s => String(s.id) === String(adminUser?.state_id))?.name || '') } : null)}
                       onChange={() => {}}
                     />
                   )}
@@ -1076,8 +1093,8 @@ export const AdminDashboard: React.FC = () => {
                     <SearchableSelect
                       label="District"
                       placeholder="Search district..."
-                      options={districtsList.map(d => ({ id: String(d.id), name: `${d.name} (State: ${statesList.find(s => s.id === d.state_id)?.name || 'Unknown'})` }))}
-                      value={filterDistrictId === 'ALL' ? null : { id: filterDistrictId, name: districtsList.find(d => String(d.id) === filterDistrictId) ? `${districtsList.find(d => String(d.id) === filterDistrictId)?.name} (State: ${statesList.find(s => s.id === districtsList.find(d => String(d.id) === filterDistrictId)?.state_id)?.name || 'Unknown'})` : '' }}
+                      options={filteredDistricts.map(d => ({ id: String(d.id), name: `${d.name} (State: ${statesList.find(s => s.id === d.state_id)?.name || 'Unknown'})` }))}
+                      value={filterDistrictId === 'ALL' ? null : { id: filterDistrictId, name: filteredDistricts.find(d => String(d.id) === filterDistrictId) ? `${districtsList.find(d => String(d.id) === filterDistrictId)?.name} (State: ${statesList.find(s => s.id === filteredDistricts.find(d => String(d.id) === filterDistrictId)?.state_id)?.name || 'Unknown'})` : '' }}
                       onChange={item => setFilterDistrictId(item ? String(item.id) : 'ALL')}
                     />
                   )}
@@ -1086,8 +1103,8 @@ export const AdminDashboard: React.FC = () => {
                     <SearchableSelect
                       label="Block"
                       placeholder="Search block..."
-                      options={masterBlocks.map(b => ({ id: String(b.id), name: `${b.name} (State: ${b.state_name || statesList.find(s => s.id === allDistrictsList.find(d => d.id === b.district_id)?.state_id)?.name}, District: ${b.district_name})` }))}
-                      value={filterBlockId === 'ALL' ? null : { id: filterBlockId, name: masterBlocks.find(b => String(b.id) === filterBlockId) ? `${masterBlocks.find(b => String(b.id) === filterBlockId)?.name} (State: ${masterBlocks.find(b => String(b.id) === filterBlockId)?.state_name || 'Unknown'}, District: ${masterBlocks.find(b => String(b.id) === filterBlockId)?.district_name})` : '' }}
+                      options={filteredBlocks.map(b => ({ id: String(b.id), name: `${b.name} (State: ${b.state_name || statesList.find(s => s.id === allDistrictsList.find(d => d.id === b.district_id)?.state_id)?.name}, District: ${b.district_name})` }))}
+                      value={filterBlockId === 'ALL' ? null : { id: filterBlockId, name: filteredBlocks.find(b => String(b.id) === filterBlockId) ? `${masterBlocks.find(b => String(b.id) === filterBlockId)?.name} (State: ${masterBlocks.find(b => String(b.id) === filterBlockId)?.state_name || 'Unknown'}, District: ${masterBlocks.find(b => String(b.id) === filterBlockId)?.district_name})` : '' }}
                       onChange={item => setFilterBlockId(item ? String(item.id) : 'ALL')}
                     />
                   )}
@@ -1326,7 +1343,7 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'trend' && (
           <AdminTrend
             statesList={statesList}
-            districtsList={districtsList}
+            districtsList={filteredDistricts}
             blocksList={blocksList}
             filterLevel={filterLevel}
             setFilterLevel={setFilterLevel}
