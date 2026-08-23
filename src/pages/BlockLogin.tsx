@@ -6,9 +6,11 @@ import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
 
 export const BlockLogin: React.FC = () => {
   const navigate = useNavigate();
+  const [states, setStates] = useState<OptionItem[]>([]);
   const [districts, setDistricts] = useState<OptionItem[]>([]);
   const [allBlocks, setAllBlocks] = useState<any[]>([]);
 
+  const [selectedState, setSelectedState] = useState<OptionItem | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<OptionItem | null>(null);
   const [selectedBlock, setSelectedBlock] = useState<OptionItem | null>(null);
 
@@ -26,13 +28,27 @@ export const BlockLogin: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     Promise.all([
+      fetch('/api/locations/states').then(res => res.json()),
       fetch('/api/locations/districts').then(res => res.json()),
       fetch('/api/locations/blocks').then(res => res.json())
     ])
-      .then(([districtsData, blocksData]) => {
+      .then(([statesData, districtsData, blocksData]) => {
+        const mappedStates = statesData.map((s: any) => ({
+          id: s.id,
+          name: s.name
+        }));
+        setStates(mappedStates);
+        
+        const lastStateId = localStorage.getItem('hpv_last_state_id');
+        if (lastStateId) {
+          const found = mappedStates.find((s: any) => String(s.id) === lastStateId);
+          if (found) setSelectedState(found);
+        }
+
         const mappedDistricts = districtsData.map((d: any) => ({
           id: d.id,
-          name: d.name
+          name: d.name,
+          state_id: d.state_id
         }));
         setDistricts(mappedDistricts);
 
@@ -52,13 +68,23 @@ export const BlockLogin: React.FC = () => {
     .map(b => ({
       id: b.id,
       name: b.name,
-      subtitle: `(State: Uttarakhand, District: ${b.district_name})`,
+      subtitle: `(District: ${b.district_name})`,
       typeLabel: b.is_urban ? 'CITY (URBAN)' : 'BLOCK',
       district_id: b.district_id,
       district_name: b.district_name
     }));
 
-  // Handle Block selection
+  const handleStateChange = (item: OptionItem | null) => {
+    setSelectedState(item);
+    if (item) {
+      localStorage.setItem('hpv_last_state_id', String(item.id));
+    } else {
+      localStorage.removeItem('hpv_last_state_id');
+    }
+    setSelectedDistrict(null);
+    setSelectedBlock(null);
+  };
+
   const handleBlockChange = (item: OptionItem | null) => {
     setSelectedBlock(item);
   };

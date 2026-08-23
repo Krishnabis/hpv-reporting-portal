@@ -64,6 +64,8 @@ export const AdminDashboard: React.FC = () => {
 
   // Report Generator Filter State
   const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [dashboardStateId, setDashboardStateId] = useState<string>('');
+  const [states, setStates] = useState<any[]>([]);
   const [filterLevel, setFilterLevel] = useState<'State' | 'District' | 'Block'>('District');
   const [filterStateId, setFilterStateId] = useState<string>('5');
   const [filterDistrictId, setFilterDistrictId] = useState<string>('ALL');
@@ -105,6 +107,7 @@ export const AdminDashboard: React.FC = () => {
   const [newAdminName, setNewAdminName] = useState('');
   const [newAdminUsername, setNewAdminUsername] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [newAdminStateId, setNewAdminStateId] = useState('');
   const [newAdminRole, setNewAdminRole] = useState('ADMIN');
   const [addAdminMsg, setAddAdminMsg] = useState('');
   const [addAdminLoading, setAddAdminLoading] = useState(false);
@@ -137,7 +140,7 @@ export const AdminDashboard: React.FC = () => {
   }, [navigate]);
 
   const fetchAlertCount = () => {
-    fetch('/api/admin/population', {
+    fetch(`/api/admin/population?state_id=${dashboardStateId}`, {
       headers: { 'Authorization': `Bearer ${(localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'))}` }
     })
       .then(res => res.json())
@@ -151,7 +154,7 @@ export const AdminDashboard: React.FC = () => {
 
   const fetchKpis = () => {
     setLoadingKpis(true);
-    fetch(`/api/admin/kpis?date=${filterDate}`, {
+    fetch(`/api/admin/kpis?date=${filterDate}&state_id=${dashboardStateId}`, {
       headers: { 'Authorization': `Bearer ${(localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'))}` }
     })
       .then(res => {
@@ -213,7 +216,7 @@ export const AdminDashboard: React.FC = () => {
       blockId: filterBlockId
     });
 
-    fetch(`/api/admin/reports/generate?${params.toString()}`, {
+    fetch(`/api/admin/reports/generate?${params.toString()}&state_id=${dashboardStateId}`, {
       headers: { 'Authorization': `Bearer ${(localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'))}` }
     })
       .then(res => {
@@ -233,6 +236,7 @@ export const AdminDashboard: React.FC = () => {
   const fetchMasterLocations = () => {
     const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
     Promise.all([
+      fetch('/api/locations/states').then(r => r.json()).then(data => setStates(data)),
       fetch('/api/locations/blocks').then(r => r.json()),
       fetch('/api/locations/states').then(r => r.json()),
       fetch('/api/locations/districts').then(r => r.json()),

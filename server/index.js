@@ -449,9 +449,9 @@ app.post('/api/admin/login', async (req, res) => {
       await supabase.from('admin_users').update({ last_login_at: new Date().toISOString() }).eq('id', user.id);
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name }, JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name, state_id: user.state_id }, JWT_SECRET, { expiresIn: '24h' });
     await logAudit(user.id, 'ADMIN_LOGIN', 'admin_user', user.id);
-    res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role } });
+    res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role, state_id: user.state_id } });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
@@ -494,18 +494,18 @@ app.put('/api/admin/change-password', authenticateToken, async (req, res) => {
 app.get('/api/admin/users', authenticateToken, async (req, res) => {
   try {
     if (useSupabase) {
-      const { data, error } = await supabase.from('admin_users').select('id, username, name, role, is_active, created_at, last_login_at').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('admin_users').select('id, username, name, role, is_active, created_at, last_login_at, state_id, states(name)').order('created_at', { ascending: false });
       if (error) throw error;
-      return res.json(data);
+      return res.json(data.map(u => ({ ...u, state_name: u.states ? u.states.name : null })));
     }
-    res.json(store.admin_users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role, is_active: u.is_active, created_at: u.created_at })));
+    res.json(store.admin_users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role, is_active: u.is_active, created_at: u.created_at, state_id: u.state_id })));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // Create new admin user
 app.post('/api/admin/users', authenticateToken, async (req, res) => {
   try {
-    const { username, name, password, role = 'ADMIN' } = req.body;
+    const { username, name, password, role = 'ADMIN', state_id } = req.body;
     if (!username || !name || !password) return res.status(400).json({ error: 'Username, name and password required' });
     if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
 
@@ -518,12 +518,12 @@ app.post('/api/admin/users', authenticateToken, async (req, res) => {
       if (existing) return res.status(409).json({ error: 'Username already exists' });
 
       const { error } = await supabase.from('admin_users').insert([{
-        id: newId, username, name, password_hash: passwordHash, role, is_active: true
+        id: newId, username, name, password_hash: passwordHash, role, is_active: true, state_id: state_id ? Number(state_id) : null
       }]);
       if (error) throw error;
     } else {
       if (store.admin_users.find(u => u.username === username)) return res.status(409).json({ error: 'Username already exists' });
-      store.admin_users.push({ id: newId, username, name, password_hash: passwordHash, role, is_active: true, created_at: new Date().toISOString() });
+      store.admin_users.push({ id: newId, username, name, password_hash: passwordHash, role, is_active: true, created_at: new Date().toISOString(), state_id: state_id ? Number(state_id) : null });
       saveStore();
     }
 
@@ -604,15 +604,25 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
     const todayStr = new Date().toISOString().split('T')[0];
     let totalBlocks = 0, reportedToday = 0, totalReports = 0;
 
+    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+
     if (useSupabase) {
-      const [{ count: tb }, { count: rr }, { count: tr }] = await Promise.all([
-        supabase.from('blocks').select('*', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('daily_reports').select('block_id', { count: 'exact', head: true }).eq('reporting_date', todayStr),
-        supabase.from('daily_reports').select('*', { count: 'exact', head: true })
-      ]);
-      totalBlocks = tb || 0;
-      reportedToday = rr || 0;
-      totalReports = tr || 0;
+      let bq = supabase.from('blocks').select(targetStateId ? 'id, districts!inner(state_id)' : 'id').eq('is_active', true);
+      if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
+      const { data: vBlocks } = await bq;
+      const vIds = (vBlocks || []).map(b => b.id);
+      
+      if (vIds.length === 0) {
+        totalBlocks = 0; reportedToday = 0; totalReports = 0;
+      } else {
+        const [{ count: rr }, { count: tr }] = await Promise.all([
+          supabase.from('daily_reports').select('block_id', { count: 'exact', head: true }).eq('reporting_date', todayStr).in('block_id', vIds),
+          supabase.from('daily_reports').select('id', { count: 'exact', head: true }).in('block_id', vIds)
+        ]);
+        totalBlocks = vIds.length;
+        reportedToday = rr || 0;
+        totalReports = tr || 0;
+      }
     } else {
       totalBlocks = store.blocks.length;
       reportedToday = new Set(store.daily_reports.filter(r => r.reporting_date === todayStr).map(r => r.block_id)).size;
@@ -635,11 +645,16 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     const targetDateStr = req.query.date || new Date().toISOString().split('T')[0];
     if (!useSupabase) return res.json({ total_blocks: 0, reporting_today: 0, total_line_list: 0, total_vaccinated: 0, overall_coverage_pct: 0, overall_linelist_pct: 0, district_chart_data: [], latest_reporting_date: null });
 
+    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+
     // 1. Fetch all active blocks with district info
-    const { data: blocks, error: bErr } = await supabase
+    let bq = supabase
       .from('blocks')
-      .select('id, district_id, districts!inner(name)')
+      .select(targetStateId ? 'id, district_id, districts!inner(name, state_id)' : 'id, district_id, districts!inner(name)')
       .eq('is_active', true);
+    if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
+    
+    const { data: blocks, error: bErr } = await bq;
     if (bErr) throw bErr;
 
     // 2. Fetch ALL block_reporting_profiles in one shot (no join issues)
@@ -783,10 +798,13 @@ app.get('/api/admin/reports', authenticateToken, async (req, res) => {
     const { date, districtId, blockId, limit = 200 } = req.query;
     if (!useSupabase) return res.json([]);
 
+    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+
     let query = supabase.from('daily_reports')
-      .select('*, blocks!inner(name, lgd_code, districts!inner(name, id))')
+      .select(targetStateId ? '*, blocks!inner(name, lgd_code, districts!inner(name, id, state_id))' : '*, blocks!inner(name, lgd_code, districts!inner(name, id))')
       .order('reporting_date', { ascending: false })
       .limit(Number(limit));
+    if (targetStateId) query = query.eq('blocks.districts.state_id', targetStateId);
 
     if (date) query = query.eq('reporting_date', date);
     if (blockId) query = query.eq('block_id', blockId);
@@ -813,10 +831,13 @@ app.get('/api/admin/blocks', authenticateToken, async (req, res) => {
     const { districtId } = req.query;
     if (!useSupabase) return res.json([]);
 
+    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+
     let query = supabase.from('blocks')
-      .select('*, districts!inner(name, lgd_code), block_reporting_profiles(base_population, initial_hpv_target)')
+      .select(targetStateId ? '*, districts!inner(name, lgd_code, state_id), block_reporting_profiles(base_population, initial_hpv_target)' : '*, districts!inner(name, lgd_code), block_reporting_profiles(base_population, initial_hpv_target)')
       .eq('is_active', true)
       .order('name');
+    if (targetStateId) query = query.eq('districts.state_id', targetStateId);
 
     if (districtId) query = query.eq('district_id', districtId);
     const { data, error } = await query;
