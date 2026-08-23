@@ -5,7 +5,7 @@ import {
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
   Building2, ClipboardList, FileSpreadsheet, Target, Bell,
-  Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Users as UsersIcon
+  Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Activity, Users as UsersIcon
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
@@ -53,7 +53,7 @@ interface ReportRow {
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity'>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
@@ -1505,6 +1505,52 @@ export const AdminDashboard: React.FC = () => {
 
 
         {/* TAB 6: AUDIT LOGS */}
+        {activeTab === 'activity' && adminUser?.role === 'SUPER_ADMIN' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-800">Visitor Activity</h2>
+                <p className="text-slate-500 mt-1">Track unique IP addresses and locations visiting the portal.</p>
+              </div>
+              <button onClick={fetchActivityData} className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 font-semibold rounded-xl hover:bg-emerald-100 transition-colors">
+                <RefreshCcw className={`w-4 h-4 ${loadingActivity ? 'animate-spin' : ''}`} /> Refresh
+              </button>
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+              {loadingActivity ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200">
+                        <th className="p-4 font-semibold text-slate-600">IP Address</th>
+                        <th className="p-4 font-semibold text-slate-600">Location</th>
+                        <th className="p-4 font-semibold text-slate-600">Last Page Visited</th>
+                        <th className="p-4 font-semibold text-slate-600">Last Visit</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {activityData.length === 0 ? (
+                        <tr><td colSpan={4} className="p-8 text-center text-slate-500">No activity recorded yet.</td></tr>
+                      ) : activityData.map((act: any) => (
+                        <tr key={act.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="p-4 text-slate-800 font-mono text-sm">{act.ip_address}</td>
+                          <td className="p-4 text-slate-600">{act.location}</td>
+                          <td className="p-4 text-blue-600 font-medium">{act.last_page_visited}</td>
+                          <td className="p-4 text-slate-500 text-sm">{new Date(act.updated_at).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {activeTab === 'audit' && (
           <div className="space-y-6 flex-1 min-h-0 flex flex-col pb-4">
             <div>

@@ -1575,6 +1575,72 @@ app.put('/api/locations/:type/:id', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+
+// ─── Activity Tracking ────────────────────────────────────────────────────────
+
+app.post('/api/track-activity', async (req, res) => {
+  try {
+    const { page } = req.body;
+    let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    if (ip.includes(',')) ip = ip.split(',')[0].trim();
+
+    if (!useSupabase) return res.json({ success: true, local: true });
+
+    // Check if IP exists
+    const { data: existing } = await supabase.from('visitor_activity').select('*').eq('ip_address', ip).single();
+
+    if (existing) {
+      await supabase.from('visitor_activity').update({
+        last_page_visited: page,
+        updated_at: new Date().toISOString()
+      }).eq('id', existing.id);
+    } else {
+      // Fetch Location
+      let location = 'Unknown';
+      try {
+        const fetch = (await import('node-fetch')).default;
+        const response = await fetch(`http://ip-api.com/json/${ip}`);
+        const geo = await response.json();
+        if (geo.status === 'success') {
+          location = `${geo.city}, ${geo.regionName}, ${geo.country}`;
+        }
+      } catch (err) {
+        console.error('GeoIP fetch failed:', err.message);
+      }
+
+      await supabase.from('visitor_activity').insert([{
+        ip_address: ip,
+        location,
+        last_page_visited: page
+      }]);
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Track activity error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/activity', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') {
+      return res.status(403).json({ error: 'Only SuperAdmin can view activity' });
+    }
+    if (!useSupabase) return res.json([]);
+
+    const { data, error } = await supabase
+      .from('visitor_activity')
+      .select('*')
+      .order('updated_at', { ascending: false });
+      
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Start ────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
