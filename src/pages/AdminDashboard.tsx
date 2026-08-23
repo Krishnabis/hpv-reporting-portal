@@ -985,24 +985,18 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 <div className="flex-1 min-h-0 overflow-hidden relative pb-1">
-                  {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
-                    <StateMap
-                      stateName={adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'India')}
-                      data={kpis.district_chart_data.map(d => ({
-                        district: d.district,
-                        coveragePct: d.coveragePct,
-                        lineListPct: d.lineListPct ?? 0,
-                        vaccinated: d.vaccinated,
-                        lineList: d.lineList ?? 0,
-                        target: d.target,
-                      }))}
-                      selectedKpi={selectedKpi === 'both' ? 'coverage' : selectedKpi}
-                    />
-                  ) : (
-                    <div className="flex-1 flex items-center justify-center text-xs text-slate-400 py-8">
-                      No data to display on map.
-                    </div>
-                  )}
+                  <StateMap
+                    stateName={adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'India')}
+                    data={(kpis?.district_chart_data || []).map(d => ({
+                      district: d.district,
+                      coveragePct: d.coveragePct,
+                      lineListPct: d.lineListPct ?? 0,
+                      vaccinated: d.vaccinated,
+                      lineList: d.lineList ?? 0,
+                      target: d.target,
+                    }))}
+                    selectedKpi={selectedKpi === 'both' ? 'coverage' : selectedKpi}
+                  />
                 </div>
 
                 {/* Map Tier Legend */}
