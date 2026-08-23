@@ -323,19 +323,19 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
             <div className="bg-white border-l-4 border-l-emerald-600 rounded-2xl p-3 border-y border-r border-slate-200 shadow-sm flex flex-col justify-center">
               <span className="text-[10px] uppercase font-bold text-slate-500 mb-1">HPV Target Population</span>
               <span className="text-2xl font-extrabold font-mono text-slate-900">{profile ? Math.round(profile.base_population * 0.01).toLocaleString('en-IN') : 0}</span>
-              <span className="text-xs font-semibold text-slate-500">Goal ({scopeName})</span>
-            </div>
-            <div className="bg-sky-50 border-l-4 border-l-sky-500 rounded-2xl p-3 border-y border-r border-sky-100 shadow-sm flex flex-col justify-center">
-              <span className="text-[10px] uppercase font-bold text-sky-700 mb-1">Eligible Girls Line Listed</span>
-              <span className="text-2xl font-extrabold font-mono text-sky-800">{maxLineListed}%</span>
-              <span className="text-xs font-semibold text-sky-600/80 mb-1">Cumulative Percentage</span>
-              <span className="text-[11px] font-bold text-sky-700">Count: {maxLineListedCount.toLocaleString('en-IN')}</span>
+              <span className="text-xs font-semibold text-slate-500">Goal ({scopeName}): &gt;90% (&gt;{profile ? Math.round(profile.base_population * 0.01 * 0.9).toLocaleString('en-IN') : 0})</span>
             </div>
             <div className="bg-emerald-50 border-l-4 border-l-emerald-500 rounded-2xl p-3 border-y border-r border-emerald-100 shadow-sm flex flex-col justify-center">
-              <span className="text-[10px] uppercase font-bold text-emerald-700 mb-1">Eligible Girls Vaccinated</span>
-              <span className="text-2xl font-extrabold font-mono text-emerald-800">{maxVaccinated}%</span>
+              <span className="text-[10px] uppercase font-bold text-emerald-700 mb-1">Eligible Girls Line Listed</span>
+              <span className="text-2xl font-extrabold font-mono text-emerald-800">{maxLineListed}%</span>
               <span className="text-xs font-semibold text-emerald-600/80 mb-1">Cumulative Percentage</span>
-              <span className="text-[11px] font-bold text-emerald-700">Count: {maxVaccinatedCount.toLocaleString('en-IN')}</span>
+              <span className="text-[11px] font-bold text-emerald-700">Count: {maxLineListedCount.toLocaleString('en-IN')}</span>
+            </div>
+            <div className="bg-pink-50 border-l-4 border-l-pink-500 rounded-2xl p-3 border-y border-r border-pink-100 shadow-sm flex flex-col justify-center">
+              <span className="text-[10px] uppercase font-bold text-pink-700 mb-1">Eligible Girls Vaccinated</span>
+              <span className="text-2xl font-extrabold font-mono text-pink-800">{maxVaccinated}%</span>
+              <span className="text-xs font-semibold text-pink-600/80 mb-1">Cumulative Percentage</span>
+              <span className="text-[11px] font-bold text-pink-700">Count: {maxVaccinatedCount.toLocaleString('en-IN')}</span>
             </div>
           </div>
 
@@ -378,7 +378,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
                       labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }} 
                     />
                     <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 600, paddingTop: '10px' }} />
-                    <ReferenceLine y={100} label={{ position: 'top', value: `Goal: ${profile ? Math.round(profile.base_population * 0.01).toLocaleString('en-IN') : 0} (100%)`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
+                    <ReferenceLine y={90} label={{ position: 'top', value: `Goal: >90% (>${profile ? Math.round(profile.base_population * 0.01 * 0.9).toLocaleString('en-IN') : 0})`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
                     <Line type="monotone" dataKey="lineListedPct" name="Eligible Girls % Line Listed" stroke="#10b981" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }} />
                     <Line type="monotone" dataKey="vaccinatedPct" name="Eligible Girls Vaccinated %" stroke="#ec4899" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }} label={(props: any) => {
                       const { x, y, value, payload } = props;
