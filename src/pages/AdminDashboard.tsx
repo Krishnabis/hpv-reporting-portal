@@ -587,12 +587,12 @@ export const AdminDashboard: React.FC = () => {
               title="HPV Vaccine Management"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === 'vaccine-management'
-                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
+                  ? 'bg-pink-50 text-pink-600 font-bold shadow-sm shadow-pink-600/10'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <Syringe className={`w-5 h-5 shrink-0 ${activeTab === 'vaccine-management' ? 'text-emerald-600' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Vaccine Management</span>
+              <Syringe className={`w-5 h-5 shrink-0 ${activeTab === 'vaccine-management' ? 'text-pink-600' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>HPV Vaccine</span>
             </button>
 
             {/* Alerts */}
