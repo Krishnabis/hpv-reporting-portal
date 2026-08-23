@@ -15,6 +15,9 @@ export const SuperAdminUpload: React.FC = () => {
     } else if (type === 'livedata') {
       headers = 'State,District,BlockOrCity,linelisted,vaccinated,Date(DD-MM-YYYY)\n';
       filename = 'LiveData_Template.csv';
+    } else if (type === 'locations') {
+      headers = 'sno,countrycode,countryname,statelgdcode,statename,districtlgdcode,regioncode,regionname,districtname,blockorcitylgdcode,blockorcityname,areatype(blockorcity),population,linelisted,vaccinated,Date(YYYY-MM-DD)\n';
+      filename = 'Locations_Template.csv';
     }
 
     const blob = new Blob([headers], { type: 'text/csv' });
@@ -82,7 +85,7 @@ export const SuperAdminUpload: React.FC = () => {
     reader.readAsText(file);
   };
 
-  const renderSection = (title: string, btnText: string, type: 'population' | 'livedata', apiEndpoint: string, colorClass: string) => {
+  const renderSection = (title: string, btnText: string, type: 'population' | 'livedata' | 'locations', apiEndpoint: string, colorClass: string) => {
     return (
       <div className={`p-4 rounded-xl border ${colorClass} bg-white flex flex-col gap-3 justify-between shadow-sm hover:shadow-md transition-all`}>
         <div>
@@ -176,6 +179,17 @@ export const SuperAdminUpload: React.FC = () => {
             {renderSection('Live Data', 'Upload Live Data', 'livedata', '/api/superadmin/upload-livedata', 'border-emerald-100')}
           </div>
         </div>
+
+        {/* Locations Data */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 lg:col-span-2">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPinIcon className="w-5 h-5 text-amber-600" />
+            <h2 className="text-base font-bold text-slate-800">Upload Locations (Master)</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {renderSection('Locations', 'Upload Locations', 'locations', '/api/superadmin/upload-locations', 'border-amber-100')}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -187,4 +201,7 @@ const UsersIcon = ({ className }: { className?: string }) => (
 );
 const ActivityIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+);
+const MapPinIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
 );

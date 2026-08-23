@@ -13,6 +13,7 @@ import { AdminTrend } from '../components/AdminTrend';
 import { SuperAdminUpload } from '../components/SuperAdminUpload';
 import { UttarakhandMap, getTier } from '../components/UttarakhandMap';
 import { AdminPopulation } from '../components/AdminPopulation';
+import { LocationMaster } from '../components/LocationMaster';
 
 interface KPIState {
   total_blocks: number;
@@ -1315,135 +1316,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 3: LOCATIONS MASTER */}
         {activeTab === 'locations' && (
-          <div className="space-y-4 flex-1 min-h-0 flex flex-col pb-4">
-            <div>
-              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                Master Location Registry
-              </h1>
-              <p className="text-xs text-slate-500 mt-1">
-                States, Districts, Blocks & Urban Bodies
-              </p>
-            </div>
-
-            {/* Add New Location Panel */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <span className="w-5 h-5 bg-emerald-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold">+</span>
-                Add New Location
-              </h2>
-
-              {/* Type selector tabs */}
-              <div className="flex gap-2 flex-wrap">
-                {(['state', 'district', 'block', 'urban'] as const).map(t => (
-                  <button key={t} onClick={() => { setAddLocType(t); setAddLocMsg(''); }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${addLocType === t ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                    {t === 'state' ? '🏛 New State' : t === 'district' ? '🗺 New District' : t === 'block' ? '🏘 New Block (Rural)' : '🏙 New Urban Body'}
-                  </button>
-                ))}
-              </div>
-
-              <form onSubmit={handleAddLocation} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
-                {/* State selector for district/block/urban */}
-                {(addLocType === 'district') && (
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State *</label>
-                    <select value={addLocStateId} onChange={e => setAddLocStateId(e.target.value)} required className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
-                      <option value="">Select state...</option>
-                      {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
-                  </div>
-                )}
-                {(addLocType === 'block' || addLocType === 'urban') && (
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">District *</label>
-                    <select value={addLocDistrictId} onChange={e => setAddLocDistrictId(e.target.value)} required className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
-                      <option value="">Select district...</option>
-                      {allDistrictsList.map(d => (
-                        <option key={d.id} value={d.id}>
-                          {d.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-                {/* Name */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                    {addLocType === 'state' ? 'State Name' : addLocType === 'district' ? 'District Name' : addLocType === 'urban' ? 'Urban Body Name' : 'Block Name'} *
-                  </label>
-                  <input type="text" value={addLocName} onChange={e => setAddLocName(e.target.value)} required placeholder="Enter name..."
-                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600" />
-                </div>
-                {/* LGD */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">LGD Code *</label>
-                  <input type="number" value={addLocLgd} onChange={e => setAddLocLgd(e.target.value)} required placeholder="LGD code..."
-                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600" />
-                </div>
-                {/* Submit */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 invisible">Action</label>
-                  <button type="submit" disabled={addLocLoading}
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-white gradient-header shadow hover:shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-60">
-                    {addLocLoading ? 'Adding...' : '+ Add Location'}
-                  </button>
-                </div>
-              </form>
-              {addLocMsg && <p className={`text-xs font-semibold ${addLocMsg.startsWith('✅') ? 'text-emerald-600' : 'text-rose-600'}`}>{addLocMsg}</p>}
-            </div>
-
-            {/* Search */}
-            <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-              <SearchIcon className="w-5 h-5 text-slate-400 ml-1" />
-              <input
-                type="text"
-                value={locationSearch}
-                onChange={e => setLocationSearch(e.target.value)}
-                placeholder="Search block, urban body, district..."
-                className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
-              />
-            </div>
-
-            {/* Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden lg:flex-1 lg:min-h-0 flex flex-col">
-              <div className="overflow-x-auto lg:overflow-auto lg:flex-1">
-                <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0">
-                    <tr>
-                      <th className="px-3 py-2">State</th>
-                      <th className="px-3 py-2">District</th>
-                      <th className="px-3 py-2">Block / Urban Body</th>
-                      <th className="px-3 py-2">Type</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {masterBlocks
-                      .filter(b => {
-                        const q = locationSearch.toLowerCase();
-                        if (!q) return true;
-                        return (
-                          b.name.toLowerCase().includes(q) ||
-                          b.district_name.toLowerCase().includes(q) ||
-                          b.state_name.toLowerCase().includes(q)
-                        );
-                      })
-                      .map(b => (
-                        <tr key={b.id} className="hover:bg-slate-50">
-                          <td className="px-3 py-2 font-sans font-medium text-slate-600 text-[11px]">{b.state_name}</td>
-                          <td className="px-3 py-2 font-sans font-bold text-slate-800">{b.district_name}</td>
-                          <td className="px-3 py-2 font-sans font-bold text-hpv-teal-dark">{b.name}</td>
-                          <td className="px-3 py-2">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${b.is_urban ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
-                              {b.is_urban ? 'Urban' : 'Rural'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          <LocationMaster />
         )}
 
         {/* TAB 4: USERS MANAGEMENT */}

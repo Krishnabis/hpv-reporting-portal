@@ -39,13 +39,22 @@ async function logAudit(userId, action, entityType, entityId) {
 // ─── Supabase helpers ─────────────────────────────────────────────────────────
 
 function flattenBlock(b) {
+  const dist = b.districts || {};
+  const reg = dist.regions || {};
+  const st = reg.states || dist.states || {}; // Fallback in case old relation is kept
+  const c = st.countries || {};
+  
   return {
     id: b.id, district_id: b.district_id, lgd_code: b.lgd_code,
-    name: b.name, code: b.code, is_active: b.is_active, is_urban: Boolean(b.is_urban),
-    district_name: b.districts?.name ?? '',
-    district_lgd_code: b.districts?.lgd_code ?? 0,
-    state_name: b.districts?.states?.name ?? 'Uttarakhand',
-    state_lgd_code: b.districts?.states?.lgd_code ?? 5
+    name: b.name, code: b.code, is_active: b.is_active, is_urban: Boolean(b.is_urban), area_type: b.area_type || (b.is_urban ? 'City' : 'Block'),
+    district_name: dist.name ?? '',
+    district_lgd_code: dist.lgd_code ?? 0,
+    region_name: reg.name ?? '',
+    region_lgd_code: reg.lgd_code ?? '',
+    state_name: st.name ?? 'Uttarakhand',
+    state_lgd_code: st.lgd_code ?? 5,
+    country_name: c.name ?? 'India',
+    country_lgd_code: c.lgd_code ?? 'IN'
   };
 }
 
@@ -110,6 +119,28 @@ app.get('/api/admin/population', async (req, res) => {
 
 // ─── Locations ────────────────────────────────────────────────────────────────
 
+app.get('/api/locations/countries', async (req, res) => {
+  try {
+    if (useSupabase) {
+      const { data, error } = await supabase.from('countries').select('*').eq('is_active', true).order('name');
+      if (error) throw error;
+      return res.json(data);
+    }
+    res.json([]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/locations/regions', async (req, res) => {
+  try {
+    if (useSupabase) {
+      const { data, error } = await supabase.from('regions').select('*').eq('is_active', true).order('name');
+      if (error) throw error;
+      return res.json(data);
+    }
+    res.json([]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/locations/states', async (req, res) => {
   try {
     if (useSupabase) {
@@ -137,7 +168,7 @@ app.get('/api/locations/blocks', async (req, res) => {
     if (useSupabase) {
       const { data, error } = await supabase
         .from('blocks')
-        .select('*, districts!inner(name, lgd_code, states!inner(name, lgd_code))')
+        .select('*, districts(name, lgd_code, regions(name, lgd_code, states(name, lgd_code, countries(name, lgd_code))))')
         .eq('is_active', true)
         .order('name');
       if (error) throw error;
@@ -1256,6 +1287,252 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
     await logAudit(req.user.id, 'UPLOAD_LIVEDATA', 'bulk', null);
     res.json({ message: 'Upload completed', successCount, errors, details });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+// ─── Super Admin CSV Uploads: Locations ──────────────────────────────────────────
+
+app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { data } = req.body;
+    if (!Array.isArray(data)) return res.status(400).json({ error: 'Expected an array of records' });
+    if (!useSupabase) return res.status(500).json({ error: 'Supabase required for this complex operation' });
+
+    let allCountries = (await supabase.from('countries').select('*')).data || [];
+    let allStates = (await supabase.from('states').select('*')).data || [];
+    let allRegions = (await supabase.from('regions').select('*')).data || [];
+    let allDistricts = (await supabase.from('districts').select('*')).data || [];
+    let allBlocks = (await supabase.from('blocks').select('*')).data || [];
+    let allProfiles = (await supabase.from('block_reporting_profiles').select('*')).data || [];
+
+    let successCount = 0;
+    let errors = [];
+    let details = [];
+
+    const today = new Date().toISOString().split('T')[0];
+
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      if (!row.countryname || !row.statename || !row.districtname || !row.blockorcityname) {
+        errors.push(`Row ${i + 1}: Missing mandatory names`);
+        continue;
+      }
+
+      // Country
+      let countryCode = String(row.countrycode || '').trim();
+      let country = allCountries.find(c => (c.code === countryCode || c.lgd_code === countryCode) && countryCode) || allCountries.find(c => c.name.toLowerCase() === row.countryname.trim().toLowerCase());
+      if (!country) {
+        const { data: nC, error: eC } = await supabase.from('countries').insert({ lgd_code: countryCode, code: countryCode, name: row.countryname.trim() }).select().single();
+        if (eC) { errors.push(`Row ${i + 1}: Error creating Country - ${eC.message}`); continue; }
+        country = nC; allCountries.push(country);
+      }
+
+      // State
+      let stateLgd = String(row.statelgdcode || '').trim();
+      let state = allStates.find(s => s.lgd_code === stateLgd && stateLgd) || allStates.find(s => s.name.toLowerCase() === row.statename.trim().toLowerCase() && s.country_id === country.id);
+      if (!state) {
+        const { data: nS, error: eS } = await supabase.from('states').insert({ country_id: country.id, lgd_code: stateLgd, code: stateLgd, name: row.statename.trim() }).select().single();
+        if (eS) { errors.push(`Row ${i + 1}: Error creating State - ${eS.message}`); continue; }
+        state = nS; allStates.push(state);
+      }
+
+      // Region
+      let regionCode = String(row.regioncode || '').trim();
+      let region = allRegions.find(r => r.lgd_code === regionCode && regionCode) || allRegions.find(r => r.name.toLowerCase() === row.regionname?.trim().toLowerCase() && r.state_id === state.id);
+      if (!region) {
+        const { data: nR, error: eR } = await supabase.from('regions').insert({ state_id: state.id, lgd_code: regionCode, code: regionCode, name: row.regionname?.trim() || 'Default Region' }).select().single();
+        if (eR) { errors.push(`Row ${i + 1}: Error creating Region - ${eR.message}`); continue; }
+        region = nR; allRegions.push(region);
+      }
+
+      // District
+      let distLgd = String(row.districtlgdcode || '').trim();
+      let district = allDistricts.find(d => d.lgd_code === distLgd && distLgd) || allDistricts.find(d => d.name.toLowerCase() === row.districtname.trim().toLowerCase() && d.region_id === region.id);
+      if (!district) {
+        const { data: nD, error: eD } = await supabase.from('districts').insert({ region_id: region.id, state_id: state.id, lgd_code: distLgd, name: row.districtname.trim() }).select().single();
+        if (eD) { errors.push(`Row ${i + 1}: Error creating District - ${eD.message}`); continue; }
+        district = nD; allDistricts.push(district);
+      }
+
+      // Block
+      let blockLgd = String(row.blockorcitylgdcode || '').trim();
+      let block = allBlocks.find(b => b.lgd_code === blockLgd && blockLgd) || allBlocks.find(b => b.name.toLowerCase() === row.blockorcityname.trim().toLowerCase() && b.district_id === district.id);
+      if (!block) {
+        const isUrban = row['areatype(blockorcity)']?.toLowerCase() === 'city';
+        const { data: nB, error: eB } = await supabase.from('blocks').insert({ district_id: district.id, lgd_code: blockLgd, name: row.blockorcityname.trim(), is_urban: isUrban, area_type: row['areatype(blockorcity)'] }).select().single();
+        if (eB) { errors.push(`Row ${i + 1}: Error creating Block - ${eB.message}`); continue; }
+        block = nB; allBlocks.push(block);
+      }
+
+      // Population / Profile
+      const popStr = row.population || row.Population;
+      const basePop = parseInt(popStr, 10);
+      let profile = allProfiles.find(p => p.block_id === block.id);
+      
+      if (!isNaN(basePop) && basePop > 0) {
+        if (!profile || !profile.base_population) {
+          const target = Math.round(basePop * 0.01);
+          if (profile) {
+            await supabase.from('block_reporting_profiles').update({ base_population: basePop, initial_hpv_target: target }).eq('id', profile.id);
+            profile.base_population = basePop;
+            details.push(`Updated population for ${block.name}`);
+          } else {
+            const profId = `prof-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+            const { data: nP } = await supabase.from('block_reporting_profiles').insert([{ id: profId, block_id: block.id, base_population: basePop, population_base_date: today, initial_hpv_target: target }]).select().single();
+            if (nP) { profile = nP; allProfiles.push(profile); details.push(`Created population for ${block.name}`); }
+          }
+        }
+      }
+
+      // Daily Reports
+      const llStr = row.linelisted || row.LineListed || row.linelist || '0';
+      const vaccStr = row.vaccinated || row.Vaccinated || '0';
+      const lineList = parseInt(llStr, 10);
+      const vaccinated = parseInt(vaccStr, 10);
+      
+      let rawDate = (row['Date(DD-MM-YYYY)'] || row['Date(YYYY-MM-DD)'] || row.Date || row.date || '').trim();
+      let reportingDate = rawDate;
+      if (rawDate) {
+        const parts = rawDate.split(/[-/]/);
+        if (parts.length === 3) {
+          if (parts[2].length === 4) reportingDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          else if (parts[0].length === 4) reportingDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+        }
+      }
+
+      if (reportingDate && (!isNaN(lineList) || !isNaN(vaccinated))) {
+        // Find existing report for this block & date
+        const { data: existingReports } = await supabase.from('daily_reports').select('*').eq('block_id', block.id).eq('reporting_date', reportingDate);
+        const existingReport = existingReports && existingReports[0];
+        
+        if (existingReport) {
+          // Only update if greater
+          const currentLL = existingReport.line_list_count;
+          const currentVac = existingReport.beneficiaries_vaccinated;
+          
+          let updateData = {};
+          if (!isNaN(lineList) && lineList > currentLL) updateData.line_list_count = lineList;
+          if (!isNaN(vaccinated) && vaccinated > currentVac) updateData.beneficiaries_vaccinated = vaccinated;
+          
+          if (Object.keys(updateData).length > 0) {
+            await supabase.from('daily_reports').update(updateData).eq('id', existingReport.id);
+            details.push(`Updated report for ${block.name} on ${reportingDate}`);
+          }
+        } else if (lineList > 0 || vaccinated > 0) {
+          // Insert new
+          const reportId = `rep-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          await supabase.from('daily_reports').insert([{ id: reportId, block_id: block.id, reporting_date: reportingDate, line_list_count: isNaN(lineList) ? 0 : lineList, beneficiaries_vaccinated: isNaN(vaccinated) ? 0 : vaccinated, submitted_by: 'Super Admin Location CSV' }]);
+          details.push(`Created report for ${block.name} on ${reportingDate}`);
+        }
+      }
+
+      successCount++;
+    }
+
+    await logAudit(req.user.id, 'UPLOAD_LOCATIONS', 'bulk', null);
+    res.json({ message: 'Location upload completed', successCount, errors, details });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+// ─── Location Master CRUD ──────────────────────────────────────────────────
+
+app.get('/api/admin/locations-master-data', authenticateToken, async (req, res) => {
+  try {
+    if (!useSupabase) return res.status(500).json({ error: 'Requires Supabase' });
+    
+    // Fetch full hierarchy
+    const { data: blocks, error: bErr } = await supabase.from('blocks').select('*, districts(name, lgd_code, regions(name, lgd_code, states(name, lgd_code, countries(name, lgd_code))))').eq('is_active', true);
+    if (bErr) throw bErr;
+    
+    // Fetch profiles
+    const { data: profiles } = await supabase.from('block_reporting_profiles').select('*');
+    
+    // Fetch reports
+    const { data: reports } = await supabase.from('daily_reports').select('*');
+    
+    // Map data
+    const result = blocks.map(b => {
+      const flat = flattenBlock(b);
+      const prof = profiles.find(p => p.block_id === b.id) || {};
+      
+      // Get all reports for this block
+      const bReports = reports.filter(r => r.block_id === b.id).sort((x, y) => new Date(y.reporting_date) - new Date(x.reporting_date));
+      const latestReport = bReports[0] || {};
+      
+      return {
+        ...flat,
+        population: prof.base_population || 0,
+        linelisted: latestReport.line_list_count || 0,
+        vaccinated: latestReport.beneficiaries_vaccinated || 0,
+        reports_count: bReports.length,
+        last_reported_date: latestReport.reporting_date || 'N/A'
+      };
+    });
+    
+    res.json(result);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/locations/:type', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { type } = req.params;
+    const tableMap = { country: 'countries', state: 'states', region: 'regions', district: 'districts', block: 'blocks' };
+    const table = tableMap[type];
+    if (!table) return res.status(400).json({ error: 'Invalid location type' });
+    
+    if (!useSupabase) return res.status(500).json({ error: 'Requires Supabase' });
+
+    const { data, error } = await supabase.from(table).insert([req.body]).select().single();
+    if (error) throw error;
+    
+    await logAudit(req.user.id, `CREATE_LOCATION_${type.toUpperCase()}`, table, data.id);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/locations/:type/:id', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { type, id } = req.params;
+    const tableMap = { country: 'countries', state: 'states', region: 'regions', district: 'districts', block: 'blocks' };
+    const table = tableMap[type];
+    if (!table) return res.status(400).json({ error: 'Invalid location type' });
+    
+    if (!useSupabase) return res.status(500).json({ error: 'Requires Supabase' });
+
+    // Separate profile and report data if editing a block's stats
+    let { base_population, initial_hpv_target, linelisted, vaccinated, reporting_date, ...locationData } = req.body;
+
+    const { data, error } = await supabase.from(table).update(locationData).eq('id', id).select().single();
+    if (error) throw error;
+    
+    if (type === 'block') {
+      if (base_population !== undefined) {
+        const { data: existingProf } = await supabase.from('block_reporting_profiles').select('*').eq('block_id', id);
+        if (existingProf && existingProf.length > 0) {
+          await supabase.from('block_reporting_profiles').update({ base_population, initial_hpv_target: initial_hpv_target || Math.round(base_population * 0.01) }).eq('id', existingProf[0].id);
+        } else {
+          const profId = `prof-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          await supabase.from('block_reporting_profiles').insert([{ id: profId, block_id: id, base_population, population_base_date: new Date().toISOString().split('T')[0], initial_hpv_target: initial_hpv_target || Math.round(base_population * 0.01) }]);
+        }
+      }
+      
+      if (reporting_date && (linelisted !== undefined || vaccinated !== undefined)) {
+        const { data: existingReps } = await supabase.from('daily_reports').select('*').eq('block_id', id).eq('reporting_date', reporting_date);
+        if (existingReps && existingReps.length > 0) {
+          let updateData = {};
+          if (linelisted !== undefined) updateData.line_list_count = linelisted;
+          if (vaccinated !== undefined) updateData.beneficiaries_vaccinated = vaccinated;
+          await supabase.from('daily_reports').update(updateData).eq('id', existingReps[0].id);
+        } else {
+          const repId = `rep-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          await supabase.from('daily_reports').insert([{ id: repId, block_id: id, reporting_date, line_list_count: linelisted || 0, beneficiaries_vaccinated: vaccinated || 0, submitted_by: 'Super Admin Location Master' }]);
+        }
+      }
+    }
+
+    await logAudit(req.user.id, `UPDATE_LOCATION_${type.toUpperCase()}`, table, id);
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
