@@ -1553,7 +1553,7 @@ export const AdminDashboard: React.FC = () => {
                 <p className="text-slate-500 mt-1">Track unique IP addresses and locations visiting the portal.</p>
               </div>
               <button onClick={fetchActivityData} className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 font-semibold rounded-xl hover:bg-emerald-100 transition-colors">
-                <RefreshCcw className={`w-4 h-4 ${loadingActivity ? 'animate-spin' : ''}`} /> Refresh
+                <RefreshCw className={`w-4 h-4 ${loadingActivity ? 'animate-spin' : ''}`} /> Refresh
               </button>
             </div>
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
