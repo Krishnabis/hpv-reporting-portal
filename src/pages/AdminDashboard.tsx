@@ -728,15 +728,6 @@ export const AdminDashboard: React.FC = () => {
           </nav>
         </div>
 
-        {/* Dashboard Switcher Button */}
-        <div className={`mx-3 mt-auto mb-2 shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`}>
-          <button 
-            onClick={() => { setMobileMenuOpen(false); navigate('/admin/vaccine-monitoring'); }}
-            className="w-full bg-pink-50 hover:bg-pink-100 text-pink-600 border border-pink-200 rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
-          >
-            Go to Vaccine Management Dashboard
-          </button>
-        </div>
 
         {/* Slogan Badge */}
         <div className={`mx-3 mb-2 flex items-center justify-between gap-2 bg-blue-50/50 px-3 py-2 rounded-xl border border-blue-100/50 shrink-0 ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
