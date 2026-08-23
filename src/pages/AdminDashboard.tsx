@@ -896,8 +896,8 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
                       <div className="h-px bg-[#fbcfe8] w-2/3 my-1.5" />
-                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
-                        of Girls Vaccinated<br/>Against HPV by Age 15
+                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
+                        of Girls Vaccinated Against HPV by Age 15
                       </p>
                     </div>
                     {/* Teal Box */}
@@ -912,8 +912,8 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
                       <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
-                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
-                        of Women Screened with a<br/>high-performance test by<br/>Ages 35 and 45
+                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
+                        of Women Screened with a high-performance test by Ages 35 and 45
                       </p>
                     </div>
                     {/* Purple Box */}
@@ -928,8 +928,8 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
                       <div className="h-px bg-[#e9d5ff] w-2/3 my-1.5" />
-                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10">
-                        of Women identified with<br/>Cervical Disease<br/>Receive Treatment
+                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
+                        of Women identified with Cervical Disease Receive Treatment
                       </p>
                     </div>
                   </div>
