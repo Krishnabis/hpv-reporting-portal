@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Menu,
@@ -8,7 +8,10 @@ import {
   LayoutDashboard,
   FileText,
   UploadCloud,
-  ArrowLeft
+  ArrowLeft,
+  Users,
+  ShieldCheck,
+  LogOut
 } from 'lucide-react';
 
 export const VaccineManagementDashboard: React.FC = () => {
@@ -16,6 +19,26 @@ export const VaccineManagementDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'report' | 'upload'>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [adminUser, setAdminUser] = useState<any>(null);
+  
+  // Token Auth Verification
+  useEffect(() => {
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+    const userStr = (localStorage.getItem('hpv_admin_user') || sessionStorage.getItem('hpv_admin_user'));
+    if (!token || !userStr) {
+      navigate('/admin/login');
+      return;
+    }
+    setAdminUser(JSON.parse(userStr));
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('hpv_admin_token');
+    localStorage.removeItem('hpv_admin_user');
+    sessionStorage.removeItem('hpv_admin_token');
+    sessionStorage.removeItem('hpv_admin_user');
+    navigate('/admin/login');
+  };
 
   return (
     <div className="h-[100dvh] w-full bg-slate-100 flex flex-col lg:flex-row font-sans overflow-hidden selection:bg-pink-100 selection:text-pink-900">
@@ -115,6 +138,44 @@ export const VaccineManagementDashboard: React.FC = () => {
               <ArrowLeft className="w-4 h-4" />
               Go to Monitoring Dashboard
             </button>
+          </div>
+
+          {/* Slogan Badge */}
+          <div className={`mx-3 mb-2 flex items-center justify-between gap-2 bg-blue-50/50 px-3 py-2 rounded-xl border border-blue-100/50 shrink-0 ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
+            <div className="text-right flex-1">
+              <span className="text-[10px] font-semibold text-slate-500 block">Together, we can build</span>
+              <span className="text-[11px] font-bold text-blue-600 block">a healthier State</span>
+            </div>
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0 border border-blue-200 shadow-sm">
+              <Users className="w-4 h-4 text-blue-600" />
+            </div>
+          </div>
+
+          {/* User Info & Logout */}
+          <div className={`mx-3 mb-2 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer group flex items-center ${sidebarCollapsed ? 'p-2 justify-center lg:mx-2 lg:mb-2 mt-auto' : 'p-4 justify-between'}`} onClick={() => { setMobileMenuOpen(false); handleLogout(); }} title="Logout">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-hpv-teal-soft flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4 text-hpv-teal-dark" />
+              </div>
+              <div className={`flex flex-col ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
+                <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-800 transition-colors line-clamp-1">{adminUser?.name || 'State HPV Administrator'}</span>
+                <span className="text-[10px] text-slate-500 font-mono">@{adminUser?.username || 'UKHPV2026'}</span>
+              </div>
+            </div>
+            <LogOut className={`w-4 h-4 text-slate-400 group-hover:text-rose-500 transition-colors shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`} />
+          </div>
+
+          {/* Footer Branding */}
+          <div className={`mx-3 mb-4 flex flex-col gap-2 ${sidebarCollapsed ? 'items-center' : ''}`}>
+            {!sidebarCollapsed && (
+              <div className="text-center font-medium text-[10px] text-slate-400 px-1 leading-snug">
+                HPV Vaccination Monitoring Portal<br/>Version: 1.0 • UK 2026
+              </div>
+            )}
+            <div className="flex items-center justify-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity cursor-pointer">
+              {!sidebarCollapsed && <span className="text-[10px] font-bold text-slate-400">Powered by:</span>}
+              <img src="/impactcode.png" alt="ImpactCode" className="h-3 object-contain" />
+            </div>
           </div>
         </div>
       </aside>
