@@ -928,8 +928,10 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.role === 'DISTRICT_ADMIN' && adminUser?.district_name && <span> - {adminUser.district_name} Admin</span>}
-                        {adminUser?.role === 'ADMIN' && <span> - State Admin</span>}
+                        {adminUser?.district_name 
+                          ? <span> - {adminUser.district_name} Admin</span>
+                          : <span> - State Admin</span>
+                        }
                       </span>
                     )}
                   </h1>
@@ -1272,7 +1274,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex flex-col gap-0.5">
                 <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
-                  Last Updated On: {new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  Last Updated On: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, ' ')}
                 </div>
                 <div className="flex items-center gap-2 group relative">
                   <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-1.5 flex-wrap">
@@ -1291,8 +1293,10 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.role === 'DISTRICT_ADMIN' && adminUser?.district_name && <span> - {adminUser.district_name} Admin</span>}
-                        {adminUser?.role === 'ADMIN' && <span> - State Admin</span>}
+                        {adminUser?.district_name 
+                          ? <span> - {adminUser.district_name} Admin</span>
+                          : <span> - State Admin</span>
+                        }
                       </span>
                     )}
                   </h1>
