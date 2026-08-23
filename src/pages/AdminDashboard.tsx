@@ -729,18 +729,18 @@ export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitorin
         </div>
 
         {/* Dashboard Switcher Button */}
-        <div className={`mx-3 mb-2 shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`}>
+        <div className={`mx-3 mt-auto mb-2 shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`}>
           {mode === 'monitoring' ? (
             <button 
               onClick={() => { setMobileMenuOpen(false); navigate('/admin/vaccine-monitoring'); }}
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
+              className="w-full bg-pink-50 hover:bg-pink-100 text-pink-600 border border-pink-200 rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
             >
               Go to Vaccine Management Dashboard
             </button>
           ) : (
             <button 
               onClick={() => { setMobileMenuOpen(false); navigate('/admin'); }}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
+              className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
             >
               Go to Monitoring Dashboard
             </button>
@@ -748,7 +748,7 @@ export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitorin
         </div>
 
         {/* Slogan Badge */}
-        <div className={`mx-3 mt-auto mb-2 flex items-center justify-between gap-2 bg-blue-50/50 px-3 py-2 rounded-xl border border-blue-100/50 shrink-0 ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
+        <div className={`mx-3 mb-2 flex items-center justify-between gap-2 bg-blue-50/50 px-3 py-2 rounded-xl border border-blue-100/50 shrink-0 ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
           <div className="text-right flex-1">
             <span className="text-[10px] font-semibold text-slate-500 block">Together, we can build</span>
             <span className="text-[11px] font-bold text-blue-600 block">a healthier {adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name : 'India') : (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'State')}</span>
