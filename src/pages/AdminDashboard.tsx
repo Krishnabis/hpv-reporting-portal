@@ -1415,7 +1415,7 @@ export const AdminDashboard: React.FC = () => {
                     <span className="text-4xl font-extrabold font-mono text-pink-600 leading-none">
                       {vaccDashboard?.utilization?.toFixed(1) || '0.0'}%
                     </span>
-                    <span className="text-[9px] text-slate-400 mt-1">Vaccinated / District Issued × 100</span>
+                    <span className="text-[9px] text-slate-400 mt-1">Total Beneficiaries Vaccinated / Total Vaccines Issued by District × 100</span>
                   </div>
                 </div>
 
@@ -1547,7 +1547,7 @@ export const AdminDashboard: React.FC = () => {
                         <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                           <span className="text-[9px] font-bold italic font-serif">i</span>
                           <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
-                            Vaccine Utilization (%) = (Vaccinated / District Issued) × 100
+                            Vaccine Utilization (%) = (Total Beneficiaries Vaccinated / Total Vaccines Issued by District) × 100
                             <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
                           </div>
                         </div>
