@@ -897,12 +897,12 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     const blockReceived = tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '3').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
     
     // For Block Vaccinated, we need the existing vaccination data
-    let reportQuery = supabase.from('daily_reports').select('block_id, beneficiaries_vaccinated, blocks(district_id, state_id)');
+    let reportQuery = supabase.from('daily_reports').select('block_id, beneficiaries_vaccinated, blocks(district_id, districts(state_id))');
     const { data: rawReports, error: rErr } = await reportQuery;
     if (rErr) throw rErr;
     
     let validReports = rawReports || [];
-    if (targetStateId) validReports = validReports.filter(r => r.blocks?.state_id == targetStateId);
+    if (targetStateId) validReports = validReports.filter(r => r.blocks?.districts?.state_id == targetStateId);
     if (userDistrictId) validReports = validReports.filter(r => r.blocks?.district_id == userDistrictId);
 
     const blockVaccinated = validReports.reduce((sum, r) => sum + (Number(r.beneficiaries_vaccinated) || 0), 0);
