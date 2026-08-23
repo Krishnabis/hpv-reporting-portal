@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, MapPin, Users, Settings as SettingsIcon,
@@ -72,6 +72,17 @@ export const AdminDashboard: React.FC = () => {
   // Report Generator Filter State
   const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [dashboardStateId, setDashboardStateId] = useState<string>('');
+  const defaultStateSet = useRef(false);
+
+  useEffect(() => {
+    if (!defaultStateSet.current && adminUser?.role === 'SUPER_ADMIN' && statesList.length > 0) {
+      const uk = statesList.find(s => s.name === 'Uttarakhand State' || s.name === 'Uttarakhand');
+      if (uk) {
+        setDashboardStateId(String(uk.id));
+        defaultStateSet.current = true;
+      }
+    }
+  }, [statesList, adminUser]);
   const [states, setStates] = useState<any[]>([]);
   const [filterLevel, setFilterLevel] = useState<'State' | 'Division' | 'District' | 'Block'>('District');
   const [filterStateId, setFilterStateId] = useState<string>('5');
