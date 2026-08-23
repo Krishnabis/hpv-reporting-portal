@@ -123,7 +123,7 @@ app.get('/api/admin/population', authenticateToken, async (req, res) => {
       });
     }
     res.json(blockData);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 // ─── Locations ────────────────────────────────────────────────────────────────
@@ -136,7 +136,7 @@ app.get('/api/locations/countries', async (req, res) => {
       return res.json(data);
     }
     res.json([]);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/locations/divisions', async (req, res) => {
@@ -147,7 +147,7 @@ app.get('/api/locations/divisions', async (req, res) => {
       return res.json(data);
     }
     res.json([]);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/locations/states', async (req, res) => {
@@ -158,7 +158,7 @@ app.get('/api/locations/states', async (req, res) => {
       return res.json(data);
     }
     res.json(store.states.sort((a, b) => a.name.localeCompare(b.name)));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/locations/districts', async (req, res) => {
@@ -169,7 +169,7 @@ app.get('/api/locations/districts', async (req, res) => {
       return res.json(data);
     }
     res.json(store.districts.sort((a, b) => a.name.localeCompare(b.name)));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/locations/blocks', async (req, res) => {
@@ -189,7 +189,7 @@ app.get('/api/locations/blocks', async (req, res) => {
       const s = store.states.find(x => x.id === d.state_id) || { name: 'Uttarakhand', lgd_code: 5 };
       return { ...b, district_name: d.name || '', district_lgd_code: d.lgd_code || 0, state_name: s.name, state_lgd_code: s.lgd_code };
     }));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 // ─── Block Auth ───────────────────────────────────────────────────────────────
@@ -404,7 +404,7 @@ app.get('/api/reports/block/:id', async (req, res) => {
       return res.json(data);
     }
     res.json(store.daily_reports.filter(r => r.block_id === Number(id)).sort((a, b) => b.reporting_date.localeCompare(a.reporting_date)));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.post('/api/reports/block/:id', async (req, res) => {
@@ -530,7 +530,7 @@ app.get('/api/admin/users', authenticateToken, async (req, res) => {
       return res.json(data.map(u => ({ ...u, state_name: u.states ? u.states.name : null, district_name: u.districts ? u.districts.name : null })));
     }
     res.json(store.admin_users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role, is_active: u.is_active, created_at: u.created_at, state_id: u.state_id, district_id: u.district_id })));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 // Create new admin user
@@ -982,7 +982,7 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
     });
 
     res.json(formatted);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
@@ -1008,7 +1008,7 @@ app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
 
     if (error) throw error;
     res.json({ success: true, transaction: data[0] });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
@@ -1091,7 +1091,7 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
     }
 
     res.json({ success: true, transaction: issueTx });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => {
@@ -1129,7 +1129,7 @@ app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => 
 
     if (error) throw error;
     res.json({ success: true, transaction: data[0] });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/vaccine/stock', authenticateToken, async (req, res) => {
@@ -1142,7 +1142,7 @@ app.get('/api/vaccine/stock', authenticateToken, async (req, res) => {
      const { data, error } = await txQuery;
      if (error) throw error;
      res.json(data);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/admin/reports', authenticateToken, async (req, res) => {
@@ -1175,7 +1175,7 @@ app.get('/api/admin/reports', authenticateToken, async (req, res) => {
 
     if (districtId) return res.json(rows.filter(r => String(r.district_id) === String(districtId)));
     res.json(rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/admin/blocks', authenticateToken, async (req, res) => {
@@ -1204,7 +1204,7 @@ app.get('/api/admin/blocks', authenticateToken, async (req, res) => {
       districts: undefined,
       block_reporting_profiles: undefined
     })));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/admin/districts', authenticateToken, async (req, res) => {
@@ -1213,7 +1213,7 @@ app.get('/api/admin/districts', authenticateToken, async (req, res) => {
     const { data, error } = await supabase.from('districts').select('*').eq('is_active', true).order('name');
     if (error) throw error;
     res.json(data);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/admin/settings', authenticateToken, async (req, res) => {
@@ -1222,7 +1222,7 @@ app.get('/api/admin/settings', authenticateToken, async (req, res) => {
     const { data, error } = await supabase.from('settings').select('*').order('key');
     if (error) throw error;
     res.json(data);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/admin/audit-logs', authenticateToken, async (req, res) => {
@@ -1231,7 +1231,7 @@ app.get('/api/admin/audit-logs', authenticateToken, async (req, res) => {
     const { data, error } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(200);
     if (error) throw error;
     res.json(data);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/admin/trend', authenticateToken, async (req, res) => {
@@ -1881,7 +1881,7 @@ app.get('/api/admin/locations-master-data', authenticateToken, async (req, res) 
     });
     
     res.json(result);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 // ─── Super Admin CSV Uploads: Vaccine CCP ──────────────────────────────────────────
@@ -1987,7 +1987,7 @@ app.post('/api/locations/:type', authenticateToken, async (req, res) => {
     
     await logAudit(req.user.id, `CREATE_LOCATION_${type.toUpperCase()}`, table, data.id);
     res.json(data);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.put('/api/locations/:type/:id', authenticateToken, async (req, res) => {
@@ -2033,7 +2033,7 @@ app.put('/api/locations/:type/:id', authenticateToken, async (req, res) => {
 
     await logAudit(req.user.id, `UPDATE_LOCATION_${type.toUpperCase()}`, table, id);
     res.json(data);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 
