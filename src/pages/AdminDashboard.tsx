@@ -594,6 +594,21 @@ export const AdminDashboard: React.FC = () => {
               </button>
             )}
 
+            {adminUser?.role === 'SUPER_ADMIN' && (
+              <button
+                onClick={() => { handleTabChange('activity'); setMobileMenuOpen(false); }}
+                title="Activity"
+                className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
+                  activeTab === 'activity'
+                    ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <Activity className={`w-5 h-5 shrink-0 ${activeTab === 'activity' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Activity</span>
+              </button>
+            )}
+
             <button
               onClick={() => { handleTabChange('settings'); setMobileMenuOpen(false); }}
               title="Settings"
