@@ -1419,7 +1419,14 @@ export const AdminDashboard: React.FC = () => {
                     <span className="text-4xl font-extrabold font-mono text-pink-600 leading-none">
                       {vaccDashboard?.utilization?.toFixed(1) || '0.0'}%
                     </span>
-                    <span className="text-[9px] text-slate-400 mt-1">Total Beneficiaries Vaccinated / Total Vaccines Issued by District × 100</span>
+                    <div className="flex items-center gap-1.5 mt-2 text-slate-400">
+                      <div className="flex flex-col items-center">
+                        <span className="text-[8px] leading-tight text-center font-medium">Total Beneficiaries Vaccinated</span>
+                        <div className="w-full h-px bg-slate-300 my-0.5"></div>
+                        <span className="text-[8px] leading-tight text-center font-medium">Total Vaccines Issued by District</span>
+                      </div>
+                      <span className="text-[10px] font-bold">× 100</span>
+                    </div>
                   </div>
                 </div>
 
@@ -1550,8 +1557,16 @@ export const AdminDashboard: React.FC = () => {
                         <span className="text-purple-900 font-semibold">Vaccine Utilization (%)</span>
                         <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                           <span className="text-[9px] font-bold italic font-serif">i</span>
-                          <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
-                            Vaccine Utilization (%) = (Total Beneficiaries Vaccinated / Total Vaccines Issued by District) × 100
+                          <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium shadow-xl">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-semibold text-slate-200">Vaccine Utilization (%) =</span>
+                              <div className="flex flex-col items-center">
+                                <span className="text-[9px]">Total Beneficiaries Vaccinated</span>
+                                <div className="w-full h-px bg-slate-500 my-1"></div>
+                                <span className="text-[9px]">Total Vaccines Issued by District</span>
+                              </div>
+                              <span className="text-[10px] font-semibold text-slate-200">× 100</span>
+                            </div>
                             <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
                           </div>
                         </div>
