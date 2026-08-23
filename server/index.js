@@ -897,7 +897,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     const blockReceived = tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '3').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
     
     // For Block Vaccinated, we need the existing vaccination data
-    let reportQuery = supabase.from('daily_reports').select('block_id, beneficiaries_vaccinated, blocks(district_id, districts(state_id))');
+    let reportQuery = supabase.from('daily_reports').select('block_id, beneficiaries_vaccinated, reporting_date, blocks(district_id, districts(state_id))').order('reporting_date', { ascending: false });
     const { data: rawReports, error: rErr } = await reportQuery;
     if (rErr) throw rErr;
     
@@ -905,7 +905,14 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     if (targetStateId) validReports = validReports.filter(r => r.blocks?.districts?.state_id == targetStateId);
     if (userDistrictId) validReports = validReports.filter(r => r.blocks?.district_id == userDistrictId);
 
-    const blockVaccinated = validReports.reduce((sum, r) => sum + (Number(r.beneficiaries_vaccinated) || 0), 0);
+    // Deduplicate to only sum the latest cumulative report per block
+    const latestReportsMap = {};
+    validReports.forEach(r => {
+      if (!latestReportsMap[r.block_id]) latestReportsMap[r.block_id] = r;
+    });
+    const deduplicatedReports = Object.values(latestReportsMap);
+
+    const blockVaccinated = deduplicatedReports.reduce((sum, r) => sum + (Number(r.beneficiaries_vaccinated) || 0), 0);
     const blockStock = blockReceived - blockVaccinated;
     const blockMonthEnd = getMonthEnd('3');
     const blockVWF = (distIssued + blockStock) > 0 ? (blockReceived / (distIssued + blockStock)) : 0; // Using distIssued as proxy for block issued (vaccination) or should it be blockVaccinated? Formula says Issued + StockBalance. Block doesn't issue, it vaccinates. We'll use Vaccinated.
@@ -915,7 +922,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
 
     // District Utilization (for map & ranking)
     const districtStats = {};
-    validReports.forEach(r => {
+    deduplicatedReports.forEach(r => {
       const dId = r.blocks?.district_id;
       if (dId) {
         if (!districtStats[dId]) districtStats[dId] = { vaccinated: 0, issued: 0 };
