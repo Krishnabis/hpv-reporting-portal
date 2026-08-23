@@ -75,6 +75,17 @@ export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitorin
   const [dashboardStateId, setDashboardStateId] = useState<string>('');
   const defaultStateSet = useRef(false);
 
+  const [statesList, setStatesList] = useState<any[]>([]);
+  const [allDistrictsList, setAllDistrictsList] = useState<any[]>([]);
+  const [divisionsList, setDivisionsList] = useState<any[]>([]);
+  // Location add form
+  const [addLocType, setAddLocType] = useState<'state' | 'district' | 'block' | 'urban'>('block');
+  const [addLocName, setAddLocName] = useState('');
+  const [addLocLgd, setAddLocLgd] = useState('');
+  const [addLocStateId, setAddLocStateId] = useState('');
+  const [addLocDistrictId, setAddLocDistrictId] = useState('');
+
+  // Move the useEffect AFTER the statesList declaration
   useEffect(() => {
     if (!defaultStateSet.current && adminUser?.role === 'SUPER_ADMIN' && statesList.length > 0) {
       const uk = statesList.find(s => s.name === 'Uttarakhand State' || s.name === 'Uttarakhand');
@@ -84,6 +95,7 @@ export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitorin
       }
     }
   }, [statesList, adminUser]);
+
   const [states, setStates] = useState<any[]>([]);
   const [filterLevel, setFilterLevel] = useState<'State' | 'Division' | 'District' | 'Block'>('District');
   const [filterStateId, setFilterStateId] = useState<string>('5');
@@ -92,7 +104,6 @@ export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitorin
   const [filterBlockId, setFilterBlockId] = useState<string>('ALL');
 
   const [districtsList, setDistrictsList] = useState<any[]>([]);
-
 
   const [reportRows, setReportRows] = useState<ReportRow[]>([]);
   const [reportSortOrder, setReportSortOrder] = useState<string>('');
@@ -104,15 +115,7 @@ export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitorin
   // Master Locations state
   const [masterBlocks, setMasterBlocks] = useState<any[]>([]);
   const [locationSearch, setLocationSearch] = useState('');
-  const [statesList, setStatesList] = useState<any[]>([]);
-  const [allDistrictsList, setAllDistrictsList] = useState<any[]>([]);
-  const [divisionsList, setDivisionsList] = useState<any[]>([]);
-  // Location add form
-  const [addLocType, setAddLocType] = useState<'state' | 'district' | 'block' | 'urban'>('block');
-  const [addLocName, setAddLocName] = useState('');
-  const [addLocLgd, setAddLocLgd] = useState('');
-  const [addLocStateId, setAddLocStateId] = useState('');
-  const [addLocDistrictId, setAddLocDistrictId] = useState('');
+
   const [addLocMsg, setAddLocMsg] = useState('');
   const [addLocLoading, setAddLocLoading] = useState(false);
 

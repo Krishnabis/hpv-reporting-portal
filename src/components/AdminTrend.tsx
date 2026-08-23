@@ -383,7 +383,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
                     <Line type="monotone" dataKey="vaccinatedPct" name="Eligible Girls Vaccinated %" stroke="#ec4899" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }} label={(props: any) => {
                       const { x, y, value, index } = props;
                       const point = chartData[index];
-                      if (!point) return null;
+                      if (!point) return <g></g>;
                       return (
                         <text x={x} y={y + 18} fill="#ec4899" fontSize={10} fontWeight="bold" textAnchor="middle">
                           {value}% ({Number(point.rawVaccinated).toLocaleString('en-IN')})

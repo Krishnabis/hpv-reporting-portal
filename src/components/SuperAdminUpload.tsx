@@ -6,7 +6,7 @@ export const SuperAdminUpload: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success', text: string, errors?: string[], successes?: string[] } | null>(null);
 
-  const handleDownloadTemplate = (type: 'population' | 'livedata') => {
+  const handleDownloadTemplate = (type: 'population' | 'livedata' | 'locations') => {
     let headers = '';
     let filename = '';
     if (type === 'population') {
