@@ -158,6 +158,23 @@ export const AdminDashboard: React.FC = () => {
       .catch(err => console.error(err));
   };
 
+  const fetchActivityData = () => {
+    setLoadingActivity(true);
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+    fetch('/api/admin/activity', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setActivityData(Array.isArray(data) ? data : []);
+        setLoadingActivity(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoadingActivity(false);
+      });
+  };
+
   const fetchKpis = () => {
     setLoadingKpis(true);
     fetch(`/api/admin/kpis?date=${filterDate}&state_id=${dashboardStateId}`, {
