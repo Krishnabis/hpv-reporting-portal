@@ -50,7 +50,7 @@ function flattenBlock(b) {
     district_name: dist.name ?? '',
     district_lgd_code: dist.lgd_code ?? 0,
     division_name: div.name ?? '',
-    division_lgd_code: div.lgd_code ?? '',
+    division_system_code: div.system_code ?? '', // Renamed from lgd_code for divisions
     state_name: st.name ?? 'Uttarakhand',
     state_lgd_code: st.lgd_code ?? 5,
     country_name: c.name ?? 'India',
@@ -168,7 +168,7 @@ app.get('/api/locations/blocks', async (req, res) => {
     if (useSupabase) {
       const { data, error } = await supabase
         .from('blocks')
-        .select('*, districts(name, lgd_code, divisions(name, lgd_code, states(name, lgd_code, countries(name, lgd_code))))')
+        .select('*, districts(name, lgd_code, divisions(name, system_code, states(name, lgd_code, countries(name, lgd_code))))')
         .eq('is_active', true)
         .order('name');
       if (error) throw error;
@@ -1359,9 +1359,9 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
 
       // Division
       let divisionCode = String(row.divisioncode || '').trim();
-      let division = allDivisions.find(r => r.lgd_code === divisionCode && divisionCode) || allDivisions.find(r => r.name.toLowerCase() === row.divisionname?.trim().toLowerCase() && r.state_id === state.id);
+      let division = allDivisions.find(r => r.system_code === divisionCode && divisionCode) || allDivisions.find(r => r.name.toLowerCase() === row.divisionname?.trim().toLowerCase() && r.state_id === state.id);
       if (!division) {
-        const { data: nR, error: eR } = await supabase.from('divisions').insert({ state_id: state.id, lgd_code: divisionCode, code: divisionCode, name: row.divisionname?.trim() || 'Default Division' }).select().single();
+        const { data: nR, error: eR } = await supabase.from('divisions').insert({ state_id: state.id, system_code: divisionCode, code: divisionCode, name: row.divisionname?.trim() || 'Default Division' }).select().single();
         if (eR) { errors.push(`Row ${i + 1}: Error creating Division - ${eR.message}`); continue; }
         division = nR; allDivisions.push(division);
       }
@@ -1462,7 +1462,7 @@ app.get('/api/admin/locations-master-data', authenticateToken, async (req, res) 
     if (!useSupabase) return res.status(500).json({ error: 'Requires Supabase' });
     
     // Fetch full hierarchy
-    const { data: blocks, error: bErr } = await supabase.from('blocks').select('*, districts(name, lgd_code, divisions(name, lgd_code, states(name, lgd_code, countries(name, lgd_code))))').eq('is_active', true);
+    const { data: blocks, error: bErr } = await supabase.from('blocks').select('*, districts(name, lgd_code, divisions(name, system_code, states(name, lgd_code, countries(name, lgd_code))))').eq('is_active', true);
     if (bErr) throw bErr;
     
     // Fetch profiles
