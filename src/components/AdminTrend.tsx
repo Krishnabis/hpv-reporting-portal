@@ -385,7 +385,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
                       const point = chartData[index];
                       if (!point) return null;
                       return (
-                        <text x={x} y={y - 12} fill="#ec4899" fontSize={10} fontWeight="bold" textAnchor="middle">
+                        <text x={x} y={y + 18} fill="#ec4899" fontSize={10} fontWeight="bold" textAnchor="middle">
                           {value}% ({Number(point.rawVaccinated).toLocaleString('en-IN')})
                         </text>
                       );
