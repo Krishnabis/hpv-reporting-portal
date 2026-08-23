@@ -1569,6 +1569,94 @@ app.get('/api/admin/locations-master-data', authenticateToken, async (req, res) 
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── Super Admin CSV Uploads: Vaccine CCP ──────────────────────────────────────────
+
+app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { data } = req.body;
+    if (!Array.isArray(data)) return res.status(400).json({ error: 'Expected an array of records' });
+    if (!useSupabase) return res.status(500).json({ error: 'Supabase required for this complex operation' });
+
+    let allStates = (await supabase.from('states').select('id, lgd_code')).data || [];
+    let allDistricts = (await supabase.from('districts').select('id, lgd_code')).data || [];
+    let allBlocks = (await supabase.from('blocks').select('id, lgd_code')).data || [];
+
+    let successCount = 0;
+    let errors = [];
+    let details = [];
+
+    const CHUNK_SIZE = 50;
+    for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+      const chunk = data.slice(i, i + CHUNK_SIZE);
+      const toInsert = [];
+
+      for (const row of chunk) {
+        const stateLgd = Number(row['State Code']);
+        const districtLgd = Number(row['District Code']);
+        const blockLgd = Number(row['Block / City Code']);
+
+        const stateId = allStates.find(s => s.lgd_code === stateLgd)?.id || null;
+        const districtId = allDistricts.find(d => d.lgd_code === districtLgd)?.id || null;
+        const blockId = allBlocks.find(b => b.lgd_code === blockLgd)?.id || null;
+
+        if (!row['Facility Name']) {
+           errors.push(`Row missing Facility Name`);
+           continue;
+        }
+
+        toInsert.push({
+          state_id: stateId,
+          district_id: districtId,
+          block_id: blockId,
+          lgd_state_code: stateLgd || null,
+          lgd_district_code: districtLgd || null,
+          lgd_block_code: blockLgd || null,
+          facility_name: row['Facility Name'],
+          sub_district_name: row['Sub District Name'] || null,
+          facility_acronym: row['Facility acronym'] || null,
+          hospital_facility_id: row['Hospital Facility ID'] || null,
+          abdm_org_facility_id: row['ABDM Org Facility ID'] || null,
+          pin_code: row['Pin Code'] || null,
+          address: row['Address'] || null,
+          latitude: parseFloat(row['Latitude']) || null,
+          longitude: parseFloat(row['Longitude']) || null,
+          altitude: parseFloat(row['Alt.']) || null,
+          contact_number: row['Contact Number'] || null,
+          health_facility_group: row['Health Facility Group'] || null,
+          health_facility_type: row['Health Facility  Type'] || null,
+          setting: row['Setting'] || null,
+          ownership: row['Ownership'] || null,
+          parent_organization: row['Parent organization'] || null,
+          department_name: row['Department Name'] || null,
+          department_type: row['Department Type'] || null,
+          service_domain: row['Service Domain'] || null,
+          service_category: row['Service Catgeory'] || null,
+          service: row['Service'] || null,
+          service_unit: row['Service Unit'] || null,
+          unit_level: String(row['UNIT Level'] || ''),
+          unit_sub_level: row['UNIT Sub Level'] || null,
+          unit_type: row['UNIT TYPE'] || null,
+          name_of_unit_incharge: row['Name of UNIT Incharge'] || null,
+          status: row['Status'] || 'Active'
+        });
+      }
+
+      if (toInsert.length > 0) {
+        const { error } = await supabase.from('vaccine_ccp').insert(toInsert);
+        if (error) {
+          errors.push(`Error inserting batch: ${error.message}`);
+        } else {
+          successCount += toInsert.length;
+          details.push(`Inserted ${toInsert.length} facilities successfully in a batch`);
+        }
+      }
+    }
+
+    res.json({ successCount, errors, details });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/locations/:type', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });

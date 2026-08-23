@@ -683,17 +683,19 @@ export const AdminDashboard: React.FC = () => {
               
               {(reportingOpen || sidebarCollapsed) && (
                 <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
-                  {/* Stock Receiving */}
-                  <button
-                    onClick={() => handleTabChange('stock-receiving')}
-                    title="Stock Receiving"
-                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-receiving' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-pink-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Receiving</span>
-                  </button>
+                  {/* Stock Receiving (Hidden for District Admins) */}
+                  {!adminUser?.district_id && (
+                    <button
+                      onClick={() => handleTabChange('stock-receiving')}
+                      title="Stock Receiving"
+                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                        activeTab === 'stock-receiving' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-pink-600' : 'text-slate-400'}`} />
+                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Receiving</span>
+                    </button>
+                  )}
 
                   {/* Stock Issuing */}
                   <button

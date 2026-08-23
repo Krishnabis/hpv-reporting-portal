@@ -6,7 +6,7 @@ export const SuperAdminUpload: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success', text: string, errors?: string[], successes?: string[] } | null>(null);
 
-  const handleDownloadTemplate = (type: 'population' | 'livedata' | 'locations') => {
+  const handleDownloadTemplate = (type: 'population' | 'livedata' | 'locations' | 'vaccine_ccp') => {
     let headers = '';
     let filename = '';
     if (type === 'population') {
@@ -18,6 +18,9 @@ export const SuperAdminUpload: React.FC = () => {
     } else if (type === 'locations') {
       headers = 'sno,countrycode,countryname,statelgdcode,statename,districtlgdcode,divisioncode,divisionname,districtname,blockorcitylgdcode,blockorcityname,areatype(blockorcity),population,linelisted,vaccinated,Date(YYYY-MM-DD)\n';
       filename = 'Locations_Template.csv';
+    } else if (type === 'vaccine_ccp') {
+      headers = 'Country Code,Country Name,State Code,State Name,Division Code,Division Name,District Code,District Name,Block / City Code,Block / City Name,Facility Name,Sub District Name,Pin Code,Address,Latitude,Longitude,Alt.,Health Facility Group,Facility acronym,Health Facility  Type,Setting,Ownership,Parent organization,Hospital Facility ID,ABDM Org Facility ID,Department Name,Department Type,Service Domain,Service Catgeory,Service,Service Unit,UNIT Level,UNIT Sub Level,UNIT TYPE,Name of UNIT Incharge,Contact Number,Status\n';
+      filename = 'Vaccine_CCP_Template.csv';
     }
 
     const blob = new Blob([headers], { type: 'text/csv' });
@@ -85,7 +88,7 @@ export const SuperAdminUpload: React.FC = () => {
     reader.readAsText(file);
   };
 
-  const renderSection = (title: string, btnText: string, type: 'population' | 'livedata' | 'locations', apiEndpoint: string, colorClass: string) => {
+  const renderSection = (title: string, btnText: string, type: 'population' | 'livedata' | 'locations' | 'vaccine_ccp', apiEndpoint: string, colorClass: string) => {
     return (
       <div className={`p-4 rounded-xl border ${colorClass} bg-white flex flex-col gap-3 justify-between shadow-sm hover:shadow-md transition-all`}>
         <div>
@@ -181,13 +184,24 @@ export const SuperAdminUpload: React.FC = () => {
         </div>
 
         {/* Locations Data */}
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 lg:col-span-2">
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <MapPinIcon className="w-5 h-5 text-amber-600" />
             <h2 className="text-base font-bold text-slate-800">Upload Locations (Master)</h2>
           </div>
           <div className="grid grid-cols-1 gap-4">
             {renderSection('Locations', 'Upload Locations', 'locations', '/api/superadmin/upload-locations', 'border-amber-100')}
+          </div>
+        </div>
+
+        {/* Vaccine CCP Facilities Data */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <HospitalIcon className="w-5 h-5 text-pink-600" />
+            <h2 className="text-base font-bold text-slate-800">Upload Health Facilities</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {renderSection('Vaccine CCP', 'Upload Facilities', 'vaccine_ccp', '/api/superadmin/upload-vaccine-ccp', 'border-pink-100')}
           </div>
         </div>
       </div>
@@ -204,4 +218,7 @@ const ActivityIcon = ({ className }: { className?: string }) => (
 );
 const MapPinIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+);
+const HospitalIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
 );
