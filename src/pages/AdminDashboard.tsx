@@ -22,6 +22,7 @@ interface KPIState {
   total_vaccinated: number;
   total_target: number;
   total_population?: number;
+  latest_reporting_date?: string;
   overall_coverage_pct: number;
   overall_linelist_pct: number;
   district_chart_data: Array<{
@@ -115,6 +116,10 @@ export const AdminDashboard: React.FC = () => {
 
   // Audit Logs state
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
+
+  // Activity Data state
+  const [activityData, setActivityData] = useState<any[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(false);
 
   // Dashboard KPI selector
   const [selectedKpi, setSelectedKpi] = useState<'coverage' | 'linelist' | 'both'>('coverage');
@@ -367,6 +372,7 @@ export const AdminDashboard: React.FC = () => {
     if (tab === 'locations') fetchMasterLocations();
     if (tab === 'users') fetchAdminUsers();
     if (tab === 'audit') fetchAuditLogs();
+    if (tab === 'activity') fetchActivityData();
   };
 
   const handleLogout = () => {
