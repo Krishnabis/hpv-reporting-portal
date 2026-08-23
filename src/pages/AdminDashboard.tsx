@@ -58,8 +58,9 @@ export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity'>('dashboard');
   
 
-  const [usersOpen, setUsersOpen] = useState(true);
-  const [settingsOpen, setSettingsOpen] = useState(true);
+  const [usersOpen, setUsersOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
@@ -404,6 +405,7 @@ export const AdminDashboard: React.FC = () => {
 
     if (tab === 'users' || tab === 'activity') setUsersOpen(true);
     if (tab === 'upload' || tab === 'settings') setSettingsOpen(true);
+    if (tab === 'reports' || tab === 'trend') setAnalyticsOpen(true);
     if (tab === 'locations') fetchMasterLocations();
     if (tab === 'users') fetchAdminUsers();
     if (tab === 'audit') fetchAuditLogs();
@@ -585,33 +587,47 @@ export const AdminDashboard: React.FC = () => {
               )}
             </button>
 
-            {/* Reports */}
-            <button
-              onClick={() => handleTabChange('reports')}
-              title="Reports"
-              className={`w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all duration-200 ${
-                activeTab === 'reports'
-                  ? 'bg-emerald-50 text-emerald-700 shadow-sm border border-emerald-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
-              }`}
-            >
-              <FileText className={`w-5 h-5 shrink-0 ${activeTab === 'reports' ? 'text-emerald-600' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Reports</span>
-            </button>
+            {/* Analytics Group */}
+            <div className="pt-2">
+              <button 
+                onClick={() => { if (!sidebarCollapsed) setAnalyticsOpen(!analyticsOpen) }}
+                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                title="Analytics"
+              >
+                <span className={sidebarCollapsed ? 'hidden' : ''}>Analytics</span>
+                {!sidebarCollapsed && (
+                  <ChevronDown className={`w-4 h-4 transition-transform ${analyticsOpen ? '' : '-rotate-90'}`} />
+                )}
+              </button>
+              
+              {(analyticsOpen || sidebarCollapsed) && (
+                <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
+                  {/* Reports */}
+                  <button
+                    onClick={() => handleTabChange('reports')}
+                    title="Reports"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'reports' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'reports' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Reports</span>
+                  </button>
 
-            {/* Trend */}
-            <button
-              onClick={() => handleTabChange('trend')}
-              title="Trend"
-              className={`w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all duration-200 ${
-                activeTab === 'trend'
-                  ? 'bg-emerald-50 text-emerald-700 shadow-sm border border-emerald-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
-              }`}
-            >
-              <TrendingUp className={`w-5 h-5 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Trend</span>
-            </button>
+                  {/* Trend */}
+                  <button
+                    onClick={() => handleTabChange('trend')}
+                    title="Trend"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'trend' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Trend</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* User Management */}
             {adminUser?.role === 'SUPER_ADMIN' && (
