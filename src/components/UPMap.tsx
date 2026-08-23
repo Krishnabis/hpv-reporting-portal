@@ -124,7 +124,7 @@ export const getTier = (value: number) => {
 
 const getDistrictColor = (district: string, data: DistrictMapData[], selectedKpi: string) => {
   const info = data.find(d => d.district.toLowerCase() === district.toLowerCase());
-  if (!info) return '#f8fafc'; // empty slate-50
+  if (!info) return '#e2e8f0'; // slate-200
 
   const kpiValue = selectedKpi === 'coverage' ? info.coveragePct : info.lineListPct;
   const tier = getTier(kpiValue);
@@ -209,7 +209,7 @@ export const UPMap: React.FC<Props> = ({ data, selectedKpi }) => {
               key={name}
               d={d}
               fill={getDistrictColor(name, data, selectedKpi)}
-              stroke="#ffffff"
+              stroke="#94a3b8"
               strokeWidth="2"
               className="transition-all duration-300 outline-none hover:brightness-110 cursor-pointer"
               onMouseMove={(e) => handleMouseMove(e, name)}
