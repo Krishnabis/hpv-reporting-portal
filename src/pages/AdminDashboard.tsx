@@ -876,7 +876,10 @@ export const AdminDashboard: React.FC = () => {
                         {statesList.map(s => <option key={s.id} value={String(s.id)}>{s.name}</option>)}
                       </select>
                     ) : (
-                      <span className="text-purple-900 ml-1">{adminUser?.state_name || 'Assigned State'}</span>
+                      <span className="text-purple-900 ml-1">
+                        {adminUser?.state_name || 'Assigned State'}
+                        {adminUser?.district_name && <span className="text-sm font-semibold text-purple-700/80 ml-2 bg-purple-100 px-2 py-0.5 rounded-full">({adminUser.district_name} Admin)</span>}
+                      </span>
                     )}
                   </h1>
                   <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0 relative">
@@ -1237,7 +1240,10 @@ export const AdminDashboard: React.FC = () => {
                         {statesList.map(s => <option key={s.id} value={String(s.id)}>{s.name}</option>)}
                       </select>
                     ) : (
-                      <span className="text-purple-900 ml-1">{adminUser?.state_name || 'Assigned State'}</span>
+                      <span className="text-purple-900 ml-1">
+                        {adminUser?.state_name || 'Assigned State'}
+                        {adminUser?.district_name && <span className="text-sm font-semibold text-purple-700/80 ml-2 bg-purple-100 px-2 py-0.5 rounded-full">({adminUser.district_name} Admin)</span>}
+                      </span>
                     )}
                   </h1>
                   <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0 relative">
