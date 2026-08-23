@@ -1270,8 +1270,11 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex flex-col min-h-full lg:h-full gap-2 lg:min-h-0 max-w-7xl mx-auto w-full pb-10 lg:pb-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex flex-col gap-0.5">
+                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                  Last updated: {new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </div>
                 <div className="flex items-center gap-2 group relative">
-                  <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-1.5">
+                  <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-1.5 flex-wrap">
                     <span className="text-[#188E94]">
                       HPV Vaccine Monitoring Dashboard:
                     </span>
@@ -1287,7 +1290,8 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.district_name && <span className="text-purple-900"> - {adminUser.district_name}</span>}
+                        {adminUser?.district_name && <span> - {adminUser.district_name}</span>}
+                        {adminUser?.role === 'DISTRICT_ADMIN' && <span> District Admin</span>}
                       </span>
                     )}
                   </h1>
