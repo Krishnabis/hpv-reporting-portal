@@ -153,6 +153,23 @@ export const AdminDashboard: React.FC = () => {
 
   const [isAuthenticating, setIsAuthenticating] = useState(true);
 
+  // HPV Vaccine Dashboard state
+  const [vaccDashboard, setVaccDashboard] = useState<any>(null);
+  const [loadingVaccDashboard, setLoadingVaccDashboard] = useState(false);
+  const [vaccFacilities, setVaccFacilities] = useState<any[]>([]);
+  const [stockDate, setStockDate] = useState(new Date().toISOString().split('T')[0]);
+  const [stockQty, setStockQty] = useState('');
+  const [issueToLevel, setIssueToLevel] = useState<number>(2);
+  const [issueFacilityId, setIssueFacilityId] = useState('');
+  const [monthEndMonth, setMonthEndMonth] = useState('');
+  const [monthEndQty, setMonthEndQty] = useState('');
+  const [stockRemarks, setStockRemarks] = useState('');
+  const [reportingPersonName, setReportingPersonName] = useState('');
+  const [reportingPersonMobile, setReportingPersonMobile] = useState('');
+  const [stockMsg, setStockMsg] = useState<{type: 'success'|'error', text: string} | null>(null);
+  const [stockLoading, setStockLoading] = useState(false);
+  const [stockHistory, setStockHistory] = useState<any[]>([]);
+
   // Token Auth Verification
   useEffect(() => {
     const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
@@ -424,9 +441,38 @@ export const AdminDashboard: React.FC = () => {
     setAddLocLoading(false);
   };
 
+  const fetchVaccineDashboard = () => {
+    setLoadingVaccDashboard(true);
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+    fetch(`/api/vaccine/dashboard?state_id=${activeStateId}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => { setVaccDashboard(data); setLoadingVaccDashboard(false); })
+      .catch(err => { console.error('Failed to fetch vaccine dashboard:', err); setLoadingVaccDashboard(false); });
+  };
+
+  const fetchVaccFacilities = (level: number) => {
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+    const params = new URLSearchParams({ unit_level: String(level) });
+    if (activeStateId) params.set('state_id', activeStateId);
+    if (adminUser?.district_id) params.set('district_id', String(adminUser.district_id));
+    fetch(`/api/vaccine/facilities?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => { setVaccFacilities(Array.isArray(data) ? data : []); })
+      .catch(err => console.error(err));
+  };
+
+  const fetchStockHistory = () => {
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+    fetch('/api/vaccine/stock', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => setStockHistory(Array.isArray(data) ? data : []))
+      .catch(err => console.error(err));
+  };
+
   const handleTabChange = (tab: any) => {
     setActiveTab(tab);
     setMobileMenuOpen(false);
+    setStockMsg(null);
 
     if (tab === 'users' || tab === 'activity') setUsersOpen(true);
     if (tab === 'upload' || tab === 'settings') setSettingsOpen(true);
@@ -435,6 +481,10 @@ export const AdminDashboard: React.FC = () => {
     if (tab === 'users') fetchAdminUsers();
     if (tab === 'audit') fetchAuditLogs();
     if (tab === 'activity') fetchActivityData();
+    if (tab === 'vaccine-management') fetchVaccineDashboard();
+    if (tab === 'stock-receiving') fetchStockHistory();
+    if (tab === 'stock-issuing') { fetchVaccFacilities(adminUser?.district_id ? 3 : 2); fetchStockHistory(); }
+    if (tab === 'month-end-balance') fetchStockHistory();
   };
 
   const handleLogout = () => {
@@ -1220,20 +1270,15 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex flex-col min-h-full lg:h-full gap-2 lg:min-h-0 max-w-7xl mx-auto w-full pb-10 lg:pb-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex flex-col gap-0.5">
-                {kpis?.latest_reporting_date && (
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                    Last Updated On: {new Date(kpis.latest_reporting_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, ' ')}
-                  </span>
-                )}
                 <div className="flex items-center gap-2 group relative">
                   <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-1.5">
                     <span className="text-[#188E94]">
-                      Monitoring Dashboard:
+                      HPV Vaccine Monitoring Dashboard:
                     </span>
                     {adminUser?.role === 'SUPER_ADMIN' ? (
                       <select 
                         value={dashboardStateId} 
-                        onChange={(e) => setDashboardStateId(e.target.value)}
+                        onChange={(e) => { setDashboardStateId(e.target.value); }}
                         className="text-purple-900 bg-transparent outline-none cursor-pointer border-b-2 border-transparent hover:border-purple-300 ml-1 pb-0.5 text-lg"
                       >
                         <option value="">All States</option>
@@ -1242,345 +1287,553 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.district_name && <span className="text-sm font-semibold text-purple-700/80 ml-2 bg-purple-100 px-2 py-0.5 rounded-full">({adminUser.district_name} Admin)</span>}
+                        {adminUser?.district_name && <span className="text-purple-900"> - {adminUser.district_name}</span>}
                       </span>
                     )}
                   </h1>
-                  <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0 relative">
-                    <span className="text-xs font-bold italic font-serif">i</span>
-                    <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-max max-w-[200px] bg-slate-800 text-white text-[10px] p-2 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 font-medium">
-                      (Track progress and performance for timely action.)
-                      <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-y-4 border-y-transparent border-r-4 border-r-slate-800" />
-                    </div>
-                  </div>
                 </div>
               </div>
-
               <div className="flex items-center gap-3">
                 <button
-                  onClick={fetchKpis}
+                  onClick={fetchVaccineDashboard}
                   className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-blue-600 hover:bg-slate-50 flex items-center gap-1.5 shadow-sm transition-colors"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" /> Refresh KPIs
+                  <RefreshCw className="w-3.5 h-3.5" /> Refresh
                 </button>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={filterDate}
-                    onChange={e => setFilterDate(e.target.value)}
-                    className="px-3 py-1.5 pl-8 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors w-[140px]"
-                  />
-                  <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
-                </div>
               </div>
             </div>
 
-            {/* KPI Cards Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                {/* Card 1: Total Population */}
-                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-blue-500 flex flex-col justify-between">
-                  <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                      <Users className="w-5 h-5 text-white" />
+            {loadingVaccDashboard && !vaccDashboard ? (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-sm font-semibold text-slate-400 animate-pulse">Loading vaccine dashboard...</div>
+              </div>
+            ) : (
+              <>
+                {/* KPI Cards Grid — 4 cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  {/* Card 1: State / Divisional Level */}
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-blue-500 flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">State / Divisional Level</span>
+                      <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{vaccDashboard?.state?.stores || 0} Stores</span>
                     </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                        TOTAL POPULATION
-                      </span>
-                      <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none mt-1">
-                        {kpis?.total_population ? kpis.total_population.toLocaleString('en-IN') : '—'}
-                      </span>
+                    <div className="flex items-stretch gap-0 mb-2">
+                      <div className="flex-1 pr-2">
+                        <span className="text-[9px] text-slate-400 block">Vaccine Received</span>
+                        <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.state?.received || 0).toLocaleString('en-IN')}</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
+                      </div>
+                      <div className="w-px bg-slate-200 self-stretch mx-1"></div>
+                      <div className="flex-1 pl-2">
+                        <span className="text-[9px] text-slate-400 block">Stock Balance</span>
+                        <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.state?.stockBalance || 0).toLocaleString('en-IN')}</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between z-10 relative">
-                    <span className="text-[9px] text-slate-400">HPV Target population (1%)</span>
-                    <span className="text-[10px] font-bold font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">{kpis?.total_target?.toLocaleString('en-IN') || '—'}</span>
-                  </div>
-                </div>
-
-                {/* Card 2: Reporting Today */}
-                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-purple-500 flex flex-col justify-between">
-                  <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                      <Building2 className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                        TOTAL REPORTING SITES
-                      </span>
-                      <div className="flex items-baseline gap-1.5 mt-1">
-                        <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none">
-                          {kpis ? kpis.total_blocks : '—'}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          Blocks/Cities
-                        </span>
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <div>
+                        <span className="text-[8px] text-slate-400 block">Month End Balance</span>
+                        <span className="text-[10px] font-bold font-mono text-blue-700">{(vaccDashboard?.state?.monthEndBalance || 0).toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[8px] text-slate-400 block">VWF</span>
+                        <span className="text-[10px] font-bold font-mono text-blue-700">{vaccDashboard?.state?.vwf?.toFixed(2) || '0.00'}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <span className="text-[9px] text-slate-400">Reporting today</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded font-mono">
-                        {kpis ? ((kpis.reporting_today / (kpis.total_blocks || 1)) * 100).toFixed(1) : '0'}%
-                      </span>
-                      <span className="text-[10px] font-bold font-mono text-slate-700">{kpis ? kpis.reporting_today : '0'}</span>
+
+                  {/* Card 2: District Level */}
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-purple-500 flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">District Level</span>
+                      <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">{vaccDashboard?.district?.stores || 0} Stores</span>
                     </div>
+                    <div className="flex items-stretch gap-0 mb-2">
+                      <div className="flex-1 pr-2">
+                        <span className="text-[9px] text-slate-400 block">Vaccine Issued</span>
+                        <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.district?.issued || 0).toLocaleString('en-IN')}</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
+                      </div>
+                      <div className="w-px bg-slate-200 self-stretch mx-1"></div>
+                      <div className="flex-1 pl-2">
+                        <span className="text-[9px] text-slate-400 block">Stock Balance</span>
+                        <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.district?.stockBalance || 0).toLocaleString('en-IN')}</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <div>
+                        <span className="text-[8px] text-slate-400 block">Month End Balance</span>
+                        <span className="text-[10px] font-bold font-mono text-purple-700">{(vaccDashboard?.district?.monthEndBalance || 0).toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[8px] text-slate-400 block">VWF</span>
+                        <span className="text-[10px] font-bold font-mono text-purple-700">{vaccDashboard?.district?.vwf?.toFixed(2) || '0.00'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Block Level */}
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-emerald-500 flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Block Level</span>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">{vaccDashboard?.block?.coldChainPoints || 0} CCPs</span>
+                    </div>
+                    <div className="flex items-stretch gap-0 mb-2">
+                      <div className="flex-1 pr-2">
+                        <span className="text-[9px] text-slate-400 block">Vaccine Received</span>
+                        <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.block?.received || 0).toLocaleString('en-IN')}</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
+                      </div>
+                      <div className="w-px bg-slate-200 self-stretch mx-1"></div>
+                      <div className="flex-1 pl-2">
+                        <span className="text-[9px] text-slate-400 block">Stock Balance</span>
+                        <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.block?.stockBalance || 0).toLocaleString('en-IN')}</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <div>
+                        <span className="text-[8px] text-slate-400 block">Month End Balance</span>
+                        <span className="text-[10px] font-bold font-mono text-emerald-700">{(vaccDashboard?.block?.monthEndBalance || 0).toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[8px] text-slate-400 block">VWF</span>
+                        <span className="text-[10px] font-bold font-mono text-emerald-700">{vaccDashboard?.block?.vwf?.toFixed(2) || '0.00'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 4: District Vaccine Utilisation % */}
+                  <div className="bg-[#fff0f5] p-3 rounded-xl border border-pink-200 shadow-sm relative overflow-hidden border-t-4 border-t-pink-500 flex flex-col items-center justify-center">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">District Vaccine Utilisation</span>
+                    <span className="text-4xl font-extrabold font-mono text-pink-600 leading-none">
+                      {vaccDashboard?.utilization?.toFixed(1) || '0.0'}%
+                    </span>
+                    <span className="text-[9px] text-slate-400 mt-1">Vaccinated / District Issued × 100</span>
                   </div>
                 </div>
 
-                {/* Card 3: Total Line List */}
-                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-emerald-500 flex flex-col justify-between">
-                  <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                      <FileSpreadsheet className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                        ELIGIBLE GIRLS LINE LISTED
-                      </span>
-                      <span className="text-2xl font-extrabold font-mono text-emerald-600 leading-none mt-1">
-                        {kpis ? kpis.overall_linelist_pct : 0}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <span className="text-[9px] text-slate-400">Count:</span>
-                    <span className="text-[10px] font-bold font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{kpis?.total_line_list?.toLocaleString('en-IN') || '—'}</span>
-                  </div>
-                </div>
+                {/* Split Layout: Ranking & Map */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-2 flex-none lg:flex-1 lg:min-h-0">
+                  {/* Left Column: District Ranking */}
+                  <div className="lg:col-span-1 flex flex-col gap-2 lg:min-h-0">
+                    <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col flex-1 lg:overflow-hidden min-h-[400px] lg:min-h-0">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                          <BarChart3 className="w-4 h-4 text-blue-500" /> District Ranking
+                        </h3>
+                        <span className="px-2 py-1 rounded-md border border-slate-200 text-[10px] font-semibold text-slate-700 bg-white">
+                          Vaccine Utilization (%)
+                        </span>
+                      </div>
 
-                {/* Card 4: Total Vaccinated */}
-                <div className="bg-[#fff0f5] p-3 rounded-xl border border-pink-200 shadow-sm relative overflow-hidden border-t-4 border-t-pink-500 flex flex-col justify-between">
-                  <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-pink-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                      <ShieldCheck className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                        ELIGIBLE GIRLS VACCINATED
-                      </span>
-                      <span className="text-2xl font-extrabold font-mono text-pink-600 leading-none mt-1">
-                        {kpis ? kpis.overall_coverage_pct : 0}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-pink-200/60 flex items-center justify-between gap-2">
-                    <span className="text-[9px] text-slate-500">Count:</span>
-                    <span className="text-[10px] font-bold font-mono text-pink-700 bg-pink-100 px-1.5 py-0.5 rounded">{kpis?.total_vaccinated?.toLocaleString('en-IN') || '—'}</span>
-                  </div>
-                </div>
-              </div>
+                      {/* Tier Legend */}
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {[{l:'Aspirational',b:'bg-red-100',t:'text-red-700',v:'<30%'},{l:'Progressing',b:'bg-yellow-100',t:'text-yellow-700',v:'30–70%'},{l:'High Performing',b:'bg-blue-100',t:'text-blue-700',v:'70–90%'},{l:'Champions',b:'bg-emerald-100',t:'text-emerald-700',v:'>90%'}].map(tier => (
+                          <span key={tier.l} className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${tier.b} ${tier.t}`}>{tier.l} {tier.v}</span>
+                        ))}
+                      </div>
 
-
-            {/* Split Layout: Ranking & Map — flex-1 fills remaining height */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-2 flex-none lg:flex-1 lg:min-h-0">
-              {/* Left Column: District Ranking + Banner */}
-              <div className="lg:col-span-1 flex flex-col gap-2 lg:min-h-0">
-                {/* District Ranking */}
-                <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col flex-1 lg:overflow-hidden min-h-[400px] lg:min-h-0">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                    <BarChart3 className="w-4 h-4 text-blue-500" /> District Ranking
-                  </h3>
-                  <select
-                    value={selectedKpi}
-                    onChange={e => setSelectedKpi(e.target.value as 'coverage' | 'linelist' | 'both')}
-                    className="px-2 py-1 rounded-md border border-slate-200 text-[10px] font-semibold text-slate-700 focus:outline-none focus:border-blue-500 bg-white cursor-pointer"
-                  >
-                    <option value="coverage">Vaccination Coverage (%)</option>
-                    <option value="linelist">Line Listed (%)</option>
-                    <option value="both">Both</option>
-                  </select>
-                </div>
-
-                {/* Tier Legend */}
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {[{l:'Aspirational',b:'bg-red-100',t:'text-red-700',v:'<30%'},{l:'Progressing',b:'bg-yellow-100',t:'text-yellow-700',v:'30–70%'},{l:'High Performing',b:'bg-blue-100',t:'text-blue-700',v:'70–90%'},{l:'Champions',b:'bg-emerald-100',t:'text-emerald-700',v:'>90%'}].map(tier => (
-                    <span key={tier.l} className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${tier.b} ${tier.t}`}>{tier.l} {tier.v}</span>
-                  ))}
-                </div>
-
-                {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
-                  <div className="flex-1 min-h-0 overflow-y-auto">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 sm:gap-y-1.5 pb-2">
-                    {[...kpis.district_chart_data]
-                       .sort((a, b) => {
-                        const pa = selectedKpi === 'linelist' ? a.lineListPct : a.coveragePct;
-                        const pb = selectedKpi === 'linelist' ? b.lineListPct : b.coveragePct;
-                        return pb - pa;
-                      })
-                      .map((d, idx) => {
-                        const covPct = d.coveragePct;
-                        const llPct = d.lineListPct ?? 0;
-                        const primaryPct = selectedKpi === 'linelist' ? llPct : covPct;
-                        const primaryVal = selectedKpi === 'linelist' ? d.lineList : d.vaccinated;
-                        const tier = getTier(primaryPct);
-                        return (
-                          <div key={d.district} className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5`}>
-                            <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
-                            <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
-                              <span className="text-[11px] font-bold text-slate-800">{d.district}</span>
-                              <span className="text-[9px] font-semibold text-slate-400">({primaryVal.toLocaleString('en-IN')}/{d.target.toLocaleString('en-IN')})</span>
-                            </div>
-                            {selectedKpi === 'both' ? (
-                              <div className="flex items-center gap-1 shrink-0">
-                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${getTier(llPct).bg} ${getTier(llPct).text}`}>
-                                  LL: {llPct}%
-                                </span>
-                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${getTier(covPct).bg} ${getTier(covPct).text}`}>
-                                  Vacc: {covPct}%
-                                </span>
-                              </div>
-                            ) : (
-                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tier.bg} ${tier.text} shrink-0`}>
-                                {primaryPct}%
-                              </span>
-                            )}
+                      {vaccDashboard?.districtUtilization && vaccDashboard.districtUtilization.length > 0 ? (
+                        <div className="flex-1 min-h-0 overflow-y-auto">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 sm:gap-y-1.5 pb-2">
+                            {vaccDashboard.districtUtilization.map((d: any, idx: number) => {
+                              const pct = d.utilizationPct;
+                              const tier = getTier(pct);
+                              return (
+                                <div key={d.district} className="flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5">
+                                  <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
+                                  <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
+                                    <span className="text-[11px] font-bold text-slate-800">{d.district}</span>
+                                    <span className="text-[9px] font-semibold text-slate-400">({d.vaccinated?.toLocaleString('en-IN')}/{d.issued?.toLocaleString('en-IN')})</span>
+                                  </div>
+                                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tier.bg} ${tier.text} shrink-0`}>
+                                    {pct}%
+                                  </span>
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                    })}
+                        </div>
+                      ) : (
+                        <div className="py-8 text-center text-[10px] text-slate-400">
+                          No district utilization data available yet. Enter stock transactions to see data.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom Banner - Global Strategy */}
+                    <div className="bg-[#fff0f5] border-2 border-[#fbcfe8] rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col sm:flex-row items-stretch relative">
+                      <div className="flex-1 p-1.5 sm:p-2.5">
+                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 h-full">
+                          <div className="flex flex-col p-2 bg-white/80 border border-[#fbcfe8] border-b-[4px] sm:border-b-[6px] border-b-[#f472b6] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
+                            <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
+                              <div className="flex items-baseline gap-0.5">
+                                <span className="text-xl sm:text-2xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
+                                <span className="text-sm sm:text-base font-black text-[#e93c7a] leading-none">%</span>
+                              </div>
+                              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-pink-50 rounded-full flex items-center justify-center border border-pink-100 shadow-sm shrink-0">
+                                <Syringe className="w-3 h-3 sm:w-4 sm:h-4 text-[#e93c7a] transform -rotate-45" />
+                              </div>
+                            </div>
+                            <div className="h-px bg-[#fbcfe8] w-2/3 my-1.5" />
+                            <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
+                              of Girls Vaccinated Against HPV by Age 15
+                            </p>
+                          </div>
+                          <div className="flex flex-col p-2 bg-white/80 border border-[#ccfbf1] border-b-[4px] sm:border-b-[6px] border-b-[#2dd4bf] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
+                            <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
+                              <div className="flex items-baseline gap-0.5">
+                                <span className="text-xl sm:text-2xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
+                                <span className="text-sm sm:text-base font-black text-[#0d9488] leading-none">%</span>
+                              </div>
+                              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-teal-50 rounded-full flex items-center justify-center border border-teal-100 shadow-sm shrink-0">
+                                <SearchIcon className="w-3 h-3 sm:w-4 sm:h-4 text-[#0d9488]" />
+                              </div>
+                            </div>
+                            <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
+                            <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
+                              of Women Screened with a high-performance test by Ages 35 and 45
+                            </p>
+                          </div>
+                          <div className="flex flex-col p-2 bg-white/80 border border-[#e9d5ff] border-b-[4px] sm:border-b-[6px] border-b-[#a855f7] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
+                            <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
+                              <div className="flex items-baseline gap-0.5">
+                                <span className="text-xl sm:text-2xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
+                                <span className="text-sm sm:text-base font-black text-[#7e22ce] leading-none">%</span>
+                              </div>
+                              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100 shadow-sm shrink-0">
+                                <HeartPulse className="w-3 h-3 sm:w-4 sm:h-4 text-[#7e22ce]" />
+                              </div>
+                            </div>
+                            <div className="h-px bg-[#e9d5ff] w-2/3 my-1.5" />
+                            <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
+                              of Women identified with Cervical Disease Receive Treatment
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-full sm:w-[140px] lg:w-[160px] p-3 sm:p-4 flex flex-col justify-center items-end text-right border-t sm:border-t-0 sm:border-l border-[#fbcfe8] bg-[#fff0f5] shrink-0 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-pink-100 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none opacity-50"></div>
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 text-[#e93c7a] drop-shadow-sm mb-2 relative z-10" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2C8.69 2 6 4.69 6 8c0 2.21 1.2 4.14 3.03 5.25L4.44 21.4c-.22.39.06.88.51.88h2.39l3.52-6.28 1.14-.65c.34.15.71.24 1.09.24.38 0 .75-.09 1.09-.24l1.14.65 3.52 6.28h2.39c.45 0 .73-.49.51-.88l-4.59-8.15C19.8 12.14 21 10.21 21 8c0-3.31-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+                        </svg>
+                        <h3 className="text-[12px] sm:text-[13px] lg:text-[14px] font-bold text-[#b81d5b] tracking-tight leading-snug relative z-10 [text-wrap:balance]">
+                          Global Strategy to Eliminate Cervical Cancer by 2030
+                        </h3>
+                      </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="py-8 text-center text-[10px] text-slate-400">
-                    No district data — blocks need population setup.
-                  </div>
-                )}
-              </div>
 
-              {/* Bottom Banner - Global Strategy */}
-              <div className="bg-[#fff0f5] border-2 border-[#fbcfe8] rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col sm:flex-row items-stretch relative">
-                {/* 3 Boxes Area */}
-                <div className="flex-1 p-1.5 sm:p-2.5">
-                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2 h-full">
-                    {/* Pink Box */}
-                    <div className="flex flex-col p-2 bg-white/80 border border-[#fbcfe8] border-b-[4px] sm:border-b-[6px] border-b-[#f472b6] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
-                      <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-xl sm:text-2xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
-                          <span className="text-sm sm:text-base font-black text-[#e93c7a] leading-none">%</span>
-                        </div>
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-pink-50 rounded-full flex items-center justify-center border border-pink-100 shadow-sm shrink-0">
-                          <Syringe className="w-3 h-3 sm:w-4 sm:h-4 text-[#e93c7a] transform -rotate-45" />
-                        </div>
-                      </div>
-                      <div className="h-px bg-[#fbcfe8] w-2/3 my-1.5" />
-                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
-                        of Girls Vaccinated Against HPV by Age 15
-                      </p>
+                  {/* Right: Uttarakhand Interactive Map */}
+                  <div className="lg:col-span-1 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                        <MapPin className="w-4 h-4 text-blue-500" /> {adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || 'State')} Overview
+                      </h3>
+                      <span className="text-xs font-semibold text-slate-500">{vaccDashboard?.district?.stores || 0} Districts</span>
                     </div>
-                    {/* Teal Box */}
-                    <div className="flex flex-col p-2 bg-white/80 border border-[#ccfbf1] border-b-[4px] sm:border-b-[6px] border-b-[#2dd4bf] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
-                      <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-xl sm:text-2xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
-                          <span className="text-sm sm:text-base font-black text-[#0d9488] leading-none">%</span>
-                        </div>
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-teal-50 rounded-full flex items-center justify-center border border-teal-100 shadow-sm shrink-0">
-                          <SearchIcon className="w-3 h-3 sm:w-4 sm:h-4 text-[#0d9488]" />
+
+                    <div className="text-[10px] text-left text-slate-500 mb-2 mt-1 flex items-center flex-wrap gap-1">
+                      <span className="font-bold bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded">Showing:</span>
+                      <div className="flex items-center gap-1 group relative">
+                        <span className="text-purple-900 font-semibold">Vaccine Utilization (%)</span>
+                        <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
+                          <span className="text-[9px] font-bold italic font-serif">i</span>
+                          <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
+                            Vaccine Utilization (%) = (Vaccinated / District Issued) × 100
+                            <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
+                          </div>
                         </div>
                       </div>
-                      <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
-                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
-                        of Women Screened with a high-performance test by Ages 35 and 45
-                      </p>
                     </div>
-                    {/* Purple Box */}
-                    <div className="flex flex-col p-2 bg-white/80 border border-[#e9d5ff] border-b-[4px] sm:border-b-[6px] border-b-[#a855f7] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
-                      <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-xl sm:text-2xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
-                          <span className="text-sm sm:text-base font-black text-[#7e22ce] leading-none">%</span>
-                        </div>
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100 shadow-sm shrink-0">
-                          <HeartPulse className="w-3 h-3 sm:w-4 sm:h-4 text-[#7e22ce]" />
-                        </div>
-                      </div>
-                      <div className="h-px bg-[#e9d5ff] w-2/3 my-1.5" />
-                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
-                        of Women identified with Cervical Disease Receive Treatment
-                      </p>
+
+                    <div className="flex-1 min-h-0 overflow-hidden relative pb-1">
+                      <StateMap
+                        stateName={adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || 'India')}
+                        data={(vaccDashboard?.districtUtilization || []).map((d: any) => ({
+                          district: d.district,
+                          coveragePct: d.utilizationPct,
+                          lineListPct: 0,
+                          vaccinated: d.vaccinated,
+                          lineList: 0,
+                          target: d.issued || 1,
+                        }))}
+                        selectedKpi={'coverage'}
+                      />
+                    </div>
+
+                    {/* Map Tier Legend */}
+                    <div className="flex flex-wrap justify-center gap-2 mt-2 pt-2 border-t border-slate-100">
+                      <span className="text-[10px] font-bold px-2 py-1 rounded bg-red-100 text-red-700">Aspirational 0-30%</span>
+                      <span className="text-[10px] font-bold px-2 py-1 rounded bg-yellow-100 text-yellow-700">Progressing 30-70%</span>
+                      <span className="text-[10px] font-bold px-2 py-1 rounded bg-blue-100 text-blue-700">High Performance 70-90%</span>
+                      <span className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-100 text-emerald-700">Champion 90%+</span>
                     </div>
                   </div>
                 </div>
-
-                {/* Right Side Strategy Text */}
-                <div className="w-full sm:w-[140px] lg:w-[160px] p-3 sm:p-4 flex flex-col justify-center items-end text-right border-t sm:border-t-0 sm:border-l border-[#fbcfe8] bg-[#fff0f5] shrink-0 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-pink-100 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none opacity-50"></div>
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 text-[#e93c7a] drop-shadow-sm mb-2 relative z-10" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C8.69 2 6 4.69 6 8c0 2.21 1.2 4.14 3.03 5.25L4.44 21.4c-.22.39.06.88.51.88h2.39l3.52-6.28 1.14-.65c.34.15.71.24 1.09.24.38 0 .75-.09 1.09-.24l1.14.65 3.52 6.28h2.39c.45 0 .73-.49.51-.88l-4.59-8.15C19.8 12.14 21 10.21 21 8c0-3.31-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
-                  </svg>
-                  <h3 className="text-[12px] sm:text-[13px] lg:text-[14px] font-bold text-[#b81d5b] tracking-tight leading-snug relative z-10 [text-wrap:balance]">
-                    Global Strategy to Eliminate Cervical Cancer by 2030
-                  </h3>
-                </div>
-              </div>
-            </div>
-
-              {/* Right: Uttarakhand Interactive Map */}
-              <div className="lg:col-span-1 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-blue-500" /> {adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'State')} Overview
-                  </h3>
-                  <span className="text-xs font-semibold text-slate-500">13 Districts</span>
-                </div>
-
-                <div className="text-[10px] text-left text-slate-500 mb-2 mt-1 flex items-center flex-wrap gap-1">
-                  <span className="font-bold bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded">Showing:</span>
-                  {selectedKpi === 'coverage' || selectedKpi === 'both' ? (
-                    <div className="flex items-center gap-1 group relative">
-                      <span className="text-purple-900 font-semibold">Vaccination Coverage (%)</span>
-                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
-                        <span className="text-[9px] font-bold italic font-serif">i</span>
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
-                          Vaccination Coverage (%) = (Vaccinated / HPV Target) x 100
-                          <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 group relative">
-                      <span className="text-purple-900 font-semibold">Line Listed (%)</span>
-                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
-                        <span className="text-[9px] font-bold italic font-serif">i</span>
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white text-[9px] px-2 py-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium whitespace-nowrap">
-                          Line Listed (%) = (Line Listed / HPV Target) x 100
-                          <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 min-h-0 overflow-hidden relative pb-1">
-                  <StateMap
-                    stateName={adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'India')}
-                    data={(kpis?.district_chart_data || []).map(d => ({
-                      district: d.district,
-                      coveragePct: d.coveragePct,
-                      lineListPct: d.lineListPct ?? 0,
-                      vaccinated: d.vaccinated,
-                      lineList: d.lineList ?? 0,
-                      target: d.target,
-                    }))}
-                    selectedKpi={selectedKpi === 'both' ? 'coverage' : selectedKpi}
-                  />
-                </div>
-
-                {/* Map Tier Legend */}
-                <div className="flex flex-wrap justify-center gap-2 mt-2 pt-2 border-t border-slate-100">
-                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-red-100 text-red-700">Aspirational 0-30%</span>
-                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-yellow-100 text-yellow-700">Progressing 30-70%</span>
-                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-blue-100 text-blue-700">High Performance 70-90%</span>
-                  <span className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-100 text-emerald-700">Champion 90%+</span>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         )}
 
+        {/* Stock Receiving Tab */}
+        {activeTab === 'stock-receiving' && (
+          <div className="max-w-2xl mx-auto w-full space-y-6 pb-10">
+            <div>
+              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Stock Receiving</h1>
+              <p className="text-slate-500 text-sm mt-1">Record HPV Vaccine receipts at State level.</p>
+            </div>
+            {stockMsg && (
+              <div className={`p-4 rounded-xl border text-sm font-semibold ${stockMsg.type === 'error' ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'}`}>
+                {stockMsg.text}
+              </div>
+            )}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Date Received</label>
+                <input type="date" value={stockDate} onChange={e => setStockDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Vaccine</label>
+                <input type="text" value="HPV Vaccine (Pre Filled)" disabled
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:outline-none cursor-not-allowed text-slate-500" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Quantity Received (Doses)</label>
+                <input type="number" min="1" value={stockQty} onChange={e => setStockQty(e.target.value)} placeholder="Enter total number of doses received"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Remarks (Optional)</label>
+                <textarea value={stockRemarks} onChange={e => setStockRemarks(e.target.value)} placeholder="Add any relevant comments, if required" rows={2}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <button
+                disabled={stockLoading || !stockQty || !stockDate}
+                onClick={async () => {
+                  setStockLoading(true); setStockMsg(null);
+                  try {
+                    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+                    const res = await fetch('/api/vaccine/stock/receive', {
+                      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ date: stockDate, quantity: Number(stockQty), notes: stockRemarks })
+                    });
+                    const json = await res.json();
+                    if (!res.ok) throw new Error(json.error || 'Failed');
+                    setStockMsg({ type: 'success', text: `Successfully received ${Number(stockQty).toLocaleString('en-IN')} doses` });
+                    setStockQty(''); setStockRemarks(''); fetchStockHistory();
+                  } catch (err: any) { setStockMsg({ type: 'error', text: err.message }); }
+                  setStockLoading(false);
+                }}
+                className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {stockLoading ? 'Submitting...' : 'Submit Stock Receipt'}
+              </button>
+            </div>
+            {/* Recent transactions */}
+            {stockHistory.filter(t => t.transaction_type === 'RECEIVED').length > 0 && (
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-700 mb-3">Recent Receipts</h3>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {stockHistory.filter(t => t.transaction_type === 'RECEIVED').slice(0, 10).map((t: any) => (
+                    <div key={t.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                      <span className="text-xs text-slate-600">{t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>
+                      <span className="text-xs font-bold text-emerald-700">{Number(t.quantity_doses).toLocaleString('en-IN')} doses</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Stock Issuing Tab */}
+        {activeTab === 'stock-issuing' && (
+          <div className="max-w-2xl mx-auto w-full space-y-6 pb-10">
+            <div>
+              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Stock Issuing</h1>
+              <p className="text-slate-500 text-sm mt-1">Issue HPV Vaccine to {adminUser?.district_id ? 'Block / Cold Chain Points' : 'facilities'}.</p>
+            </div>
+            {stockMsg && (
+              <div className={`p-4 rounded-xl border text-sm font-semibold ${stockMsg.type === 'error' ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'}`}>
+                {stockMsg.text}
+              </div>
+            )}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Date of Issue</label>
+                <input type="date" value={stockDate} onChange={e => setStockDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Vaccine</label>
+                <input type="text" value="HPV Vaccine" disabled
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:outline-none cursor-not-allowed text-slate-500" />
+              </div>
+
+              {/* Issue To level selector — State admin only */}
+              {!adminUser?.district_id && (
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Issued To Level</label>
+                  <select value={issueToLevel} onChange={e => { setIssueToLevel(Number(e.target.value)); setIssueFacilityId(''); fetchVaccFacilities(Number(e.target.value)); }}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value={2}>District</option>
+                    <option value={1}>State / Divisional</option>
+                    <option value={3}>Block</option>
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Issued To
+                </label>
+                <select value={issueFacilityId} onChange={e => setIssueFacilityId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Select the receiving facility / storage location...</option>
+                  {vaccFacilities.map((f: any) => (
+                    <option key={f.id} value={f.id}>{f.display_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Quantity Issued (Doses)</label>
+                <input type="number" min="1" value={stockQty} onChange={e => setStockQty(e.target.value)} placeholder="Enter the number of doses issued"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Remarks (Optional)</label>
+                <textarea value={stockRemarks} onChange={e => setStockRemarks(e.target.value)} placeholder="Add any relevant comments" rows={2}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+
+              <button
+                disabled={stockLoading || !stockQty || !stockDate || !issueFacilityId}
+                onClick={async () => {
+                  setStockLoading(true); setStockMsg(null);
+                  try {
+                    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+                    const destLevel = adminUser?.district_id ? 3 : issueToLevel;
+                    const res = await fetch('/api/vaccine/stock/issue', {
+                      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ date: stockDate, quantity: Number(stockQty), destination_level: destLevel, destination_facility_id: Number(issueFacilityId), notes: stockRemarks })
+                    });
+                    const json = await res.json();
+                    if (!res.ok) throw new Error(json.error || 'Failed');
+                    setStockMsg({ type: 'success', text: `Successfully issued ${Number(stockQty).toLocaleString('en-IN')} doses` });
+                    setStockQty(''); setIssueFacilityId(''); setStockRemarks(''); fetchStockHistory();
+                  } catch (err: any) { setStockMsg({ type: 'error', text: err.message }); }
+                  setStockLoading(false);
+                }}
+                className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {stockLoading ? 'Submitting...' : 'Submit Stock Issue'}
+              </button>
+            </div>
+            {/* Recent issued transactions */}
+            {stockHistory.filter(t => t.transaction_type === 'ISSUED').length > 0 && (
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-700 mb-3">Recent Issues</h3>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {stockHistory.filter(t => t.transaction_type === 'ISSUED').slice(0, 10).map((t: any) => (
+                    <div key={t.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                      <span className="text-xs text-slate-600">{t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>
+                      <span className="text-xs font-bold text-purple-700">{Number(t.quantity_doses).toLocaleString('en-IN')} doses</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Month End Balance Tab */}
+        {activeTab === 'month-end-balance' && (
+          <div className="max-w-2xl mx-auto w-full space-y-6 pb-10">
+            <div>
+              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Month End Balance</h1>
+              <p className="text-slate-500 text-sm mt-1">Record month-end HPV Vaccine stock balance.</p>
+            </div>
+            {stockMsg && (
+              <div className={`p-4 rounded-xl border text-sm font-semibold ${stockMsg.type === 'error' ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'}`}>
+                {stockMsg.text}
+              </div>
+            )}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Reporting Month</label>
+                <input type="month" value={monthEndMonth} onChange={e => setMonthEndMonth(e.target.value)}
+                  max={(() => { const d = new Date(); d.setMonth(d.getMonth() - 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; })()}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Vaccine</label>
+                <input type="text" value="HPV Vaccine (Pre Filled)" disabled
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:outline-none cursor-not-allowed text-slate-500" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">HPV Vaccine Stock Balance (Doses)</label>
+                <input type="number" min="0" value={monthEndQty} onChange={e => setMonthEndQty(e.target.value)} placeholder="Enter the actual physical balance available"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Reporting Person Name</label>
+                <input type="text" value={reportingPersonName} onChange={e => setReportingPersonName(e.target.value)} placeholder="Incharge of the Vaccine Storage Location"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Reporting Person Mobile Number</label>
+                <input type="tel" value={reportingPersonMobile} onChange={e => setReportingPersonMobile(e.target.value)} placeholder="Mobile number"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Remarks (Optional)</label>
+                <textarea value={stockRemarks} onChange={e => setStockRemarks(e.target.value)} placeholder="Any relevant comments" rows={2}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <button
+                disabled={stockLoading || !monthEndQty || !monthEndMonth || !reportingPersonName || !reportingPersonMobile}
+                onClick={async () => {
+                  setStockLoading(true); setStockMsg(null);
+                  try {
+                    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+                    const res = await fetch('/api/vaccine/stock/month-end', {
+                      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ month: monthEndMonth, quantity: Number(monthEndQty), reportingPersonName, reportingPersonMobile, notes: stockRemarks })
+                    });
+                    const json = await res.json();
+                    if (!res.ok) throw new Error(json.error || 'Failed');
+                    setStockMsg({ type: 'success', text: `Month-end balance recorded: ${Number(monthEndQty).toLocaleString('en-IN')} doses` });
+                    setMonthEndQty(''); setMonthEndMonth(''); setReportingPersonName(''); setReportingPersonMobile(''); setStockRemarks(''); fetchStockHistory();
+                  } catch (err: any) { setStockMsg({ type: 'error', text: err.message }); }
+                  setStockLoading(false);
+                }}
+                className="w-full py-2.5 rounded-xl bg-pink-600 text-white font-bold text-sm hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {stockLoading ? 'Submitting...' : 'Submit Month End Balance'}
+              </button>
+            </div>
+            {/* Recent month-end balances */}
+            {stockHistory.filter(t => t.transaction_type === 'MONTH_END_BALANCE').length > 0 && (
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-700 mb-3">Recent Month End Balances</h3>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {stockHistory.filter(t => t.transaction_type === 'MONTH_END_BALANCE').slice(0, 10).map((t: any) => (
+                    <div key={t.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                      <span className="text-xs text-slate-600">{t.balance_month ? new Date(t.balance_month).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '—'}</span>
+                      <span className="text-xs font-bold text-pink-700">{Number(t.quantity_doses).toLocaleString('en-IN')} doses</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         {/* TAB 2: REPORTS GENERATOR */}
         {activeTab === 'reports' && (
           <div className="space-y-4 flex-1 min-h-full lg:min-h-0 flex flex-col pb-4">

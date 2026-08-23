@@ -830,6 +830,316 @@ app.get('/api/public/overall-stats', async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
+// ─── HPV Vaccine Stock Monitoring Dashboard ──────────────────────────────────────────
+
+app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
+  try {
+    if (!useSupabase) return res.status(500).json({ error: 'Supabase required' });
+    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+    const userRole = req.user.role;
+    const userDistrictId = req.user.district_id; // Added manually by login handler if exists
+
+    // 1. Fetch facilities
+    let ccpQuery = supabase.from('vaccine_ccp').select('*');
+    if (targetStateId) ccpQuery = ccpQuery.eq('state_id', targetStateId);
+    if (userRole === 'DISTRICT_ADMIN' || userDistrictId) {
+       ccpQuery = ccpQuery.eq('district_id', userDistrictId);
+    }
+    const { data: facilities, error: fErr } = await ccpQuery;
+    if (fErr) throw fErr;
+
+    // Counts
+    const stateStoresCount = facilities.filter(f => String(f.unit_level) === '1').length;
+    const districtStoresCount = facilities.filter(f => String(f.unit_level) === '2').length;
+    const blockStoresCount = facilities.filter(f => String(f.unit_level) === '3').length;
+
+    // 2. Fetch stock transactions
+    let txQuery = supabase.from('vaccine_stock_transactions').select('*');
+    if (targetStateId) txQuery = txQuery.eq('state_id', targetStateId);
+    if (userRole === 'DISTRICT_ADMIN' || userDistrictId) {
+      // District admins see their own district's transactions. State level transactions might not have district_id if they are general, but they are level 1 anyway.
+      // We'll fetch all for state to do statewide calculations, then filter down if needed.
+    }
+    const { data: allTransactions, error: tErr } = await txQuery;
+    if (tErr) throw tErr;
+    
+    const tx = userDistrictId 
+      ? allTransactions.filter(t => t.district_id === userDistrictId || (t.destination_level === 2 && t.destination_facility_id && facilities.some(f => f.id === t.destination_facility_id))) 
+      : allTransactions;
+
+    // Helper to get latest month end balance
+    const getMonthEnd = (level, filterFn = () => true) => {
+      const balances = tx.filter(t => t.transaction_type === 'MONTH_END_BALANCE' && String(t.level) === String(level) && filterFn(t));
+      balances.sort((a, b) => new Date(b.balance_month).getTime() - new Date(a.balance_month).getTime());
+      return balances.length > 0 ? Number(balances[0].quantity_doses) : 0;
+    };
+
+    // State Calculations
+    const stateReceived = tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '1').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
+    const stateIssued = tx.filter(t => t.transaction_type === 'ISSUED' && String(t.level) === '1').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
+    const stateStock = stateReceived - stateIssued;
+    const stateMonthEnd = getMonthEnd('1');
+    const stateVWF = (stateIssued + stateStock) > 0 ? (stateReceived / (stateIssued + stateStock)) : 0;
+
+    // District Calculations
+    const distReceived = tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '2').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
+    const distIssued = tx.filter(t => t.transaction_type === 'ISSUED' && String(t.level) === '2').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
+    const distStock = distReceived - distIssued;
+    const distMonthEnd = getMonthEnd('2');
+    const distVWF = (distIssued + distStock) > 0 ? (distReceived / (distIssued + distStock)) : 0;
+
+    // Block Calculations
+    const blockReceived = tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '3').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
+    
+    // For Block Vaccinated, we need the existing vaccination data
+    let reportQuery = supabase.from('daily_reports').select('block_id, beneficiaries_vaccinated, blocks(district_id, state_id)');
+    const { data: rawReports, error: rErr } = await reportQuery;
+    if (rErr) throw rErr;
+    
+    let validReports = rawReports;
+    if (targetStateId) validReports = validReports.filter(r => r.blocks?.state_id == targetStateId);
+    if (userDistrictId) validReports = validReports.filter(r => r.blocks?.district_id == userDistrictId);
+
+    const blockVaccinated = validReports.reduce((sum, r) => sum + (Number(r.beneficiaries_vaccinated) || 0), 0);
+    const blockStock = blockReceived - blockVaccinated;
+    const blockMonthEnd = getMonthEnd('3');
+    const blockVWF = (distIssued + blockStock) > 0 ? (blockReceived / (distIssued + blockStock)) : 0; // Using distIssued as proxy for block issued (vaccination) or should it be blockVaccinated? Formula says Issued + StockBalance. Block doesn't issue, it vaccinates. We'll use Vaccinated.
+    const realBlockVWF = (blockVaccinated + blockStock) > 0 ? (blockReceived / (blockVaccinated + blockStock)) : 0;
+
+    const utilization = distIssued > 0 ? (blockVaccinated / distIssued) * 100 : 0;
+
+    // District Utilization (for map & ranking)
+    const districtStats = {};
+    validReports.forEach(r => {
+      const dId = r.blocks?.district_id;
+      if (dId) {
+        if (!districtStats[dId]) districtStats[dId] = { vaccinated: 0, issued: 0 };
+        districtStats[dId].vaccinated += (Number(r.beneficiaries_vaccinated) || 0);
+      }
+    });
+
+    tx.filter(t => t.transaction_type === 'ISSUED' && String(t.level) === '2').forEach(t => {
+       const dId = t.district_id;
+       if (dId) {
+         if (!districtStats[dId]) districtStats[dId] = { vaccinated: 0, issued: 0 };
+         districtStats[dId].issued += Number(t.quantity_doses);
+       }
+    });
+
+    const districtsMap = (await supabase.from('districts').select('id, name')).data || [];
+    
+    const districtUtilization = Object.keys(districtStats).map(dId => {
+      const stat = districtStats[dId];
+      const distName = districtsMap.find(d => String(d.id) === String(dId))?.name || 'Unknown';
+      const utilPct = stat.issued > 0 ? (stat.vaccinated / stat.issued) * 100 : 0;
+      return {
+        district: distName,
+        district_id: dId,
+        vaccinated: stat.vaccinated,
+        issued: stat.issued,
+        utilizationPct: parseFloat(utilPct.toFixed(1))
+      };
+    }).sort((a, b) => b.utilizationPct - a.utilizationPct);
+
+
+    res.json({
+      state: { stores: stateStoresCount, received: stateReceived, issued: stateIssued, stockBalance: stateStock, monthEndBalance: stateMonthEnd, vwf: parseFloat(stateVWF.toFixed(2)) },
+      district: { stores: districtStoresCount, received: distReceived, issued: distIssued, stockBalance: distStock, monthEndBalance: distMonthEnd, vwf: parseFloat(distVWF.toFixed(2)) },
+      block: { coldChainPoints: blockStoresCount, received: blockReceived, vaccinated: blockVaccinated, stockBalance: blockStock, monthEndBalance: blockMonthEnd, vwf: parseFloat(realBlockVWF.toFixed(2)) },
+      utilization: parseFloat(utilization.toFixed(1)),
+      districtUtilization
+    });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
+  try {
+    const { unit_level, state_id, district_id } = req.query;
+    let query = supabase.from('vaccine_ccp').select('*, states(name), districts(name), blocks(name)').eq('status', 'Active');
+    
+    if (unit_level) query = query.eq('unit_level', String(unit_level));
+    if (state_id) query = query.eq('state_id', state_id);
+    if (district_id) query = query.eq('district_id', district_id);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    
+    const formatted = data.map(f => {
+      let locationPrefix = '';
+      if (String(f.unit_level) === '1') locationPrefix = f.states?.name || '';
+      else if (String(f.unit_level) === '2') locationPrefix = f.districts?.name || '';
+      else if (String(f.unit_level) === '3') locationPrefix = (f.districts?.name ? f.districts.name + ' - ' : '') + (f.blocks?.name || '');
+      
+      return {
+        ...f,
+        display_name: locationPrefix ? `${locationPrefix} - ${f.facility_name}` : f.facility_name
+      };
+    });
+
+    res.json(formatted);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'ADMIN') return res.status(403).json({ error: 'Unauthorized' });
+    // Assuming ADMIN means State Admin if they don't have district_id.
+    // If they have district_id, they shouldn't be calling this.
+    if (req.user.district_id) return res.status(403).json({ error: 'District Admin cannot manually receive stock' });
+
+    const { date, quantity, notes } = req.body;
+    if (!date || isNaN(Number(quantity)) || Number(quantity) <= 0) return res.status(400).json({ error: 'Invalid input' });
+
+    const { data, error } = await supabase.from('vaccine_stock_transactions').insert([{
+      vaccine: 'HPV Vaccine',
+      level: 1,
+      state_id: req.user.state_id,
+      transaction_type: 'RECEIVED',
+      transaction_date: date,
+      quantity_doses: Number(quantity),
+      notes: notes || null,
+      created_by: req.user.id
+    }]).select();
+
+    if (error) throw error;
+    res.json({ success: true, transaction: data[0] });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
+  try {
+    const { date, quantity, destination_level, destination_facility_id, notes } = req.body;
+    if (!date || isNaN(Number(quantity)) || Number(quantity) <= 0 || !destination_level || !destination_facility_id) {
+       return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    const qty = Number(quantity);
+    const destLvl = Number(destination_level);
+    const isDistrictAdmin = !!req.user.district_id;
+    const currentLevel = isDistrictAdmin ? 2 : 1;
+
+    // Validate facility exists
+    const { data: destFacility, error: fErr } = await supabase.from('vaccine_ccp').select('*').eq('id', destination_facility_id).single();
+    if (fErr || !destFacility) return res.status(400).json({ error: 'Invalid destination facility' });
+
+    if (String(destFacility.unit_level) !== String(destLvl)) {
+       return res.status(400).json({ error: 'Facility unit level mismatch' });
+    }
+
+    if (isDistrictAdmin && destFacility.district_id !== req.user.district_id) {
+       return res.status(403).json({ error: 'Cannot issue to a facility outside your district' });
+    }
+
+    // Check available stock at current level
+    let txQuery = supabase.from('vaccine_stock_transactions').select('transaction_type, quantity_doses').eq('level', currentLevel);
+    if (req.user.state_id) txQuery = txQuery.eq('state_id', req.user.state_id);
+    if (isDistrictAdmin) txQuery = txQuery.eq('district_id', req.user.district_id);
+    
+    const { data: existingTx, error: txErr } = await txQuery;
+    if (txErr) throw txErr;
+
+    const received = existingTx.filter(t => t.transaction_type === 'RECEIVED').reduce((s, t) => s + Number(t.quantity_doses), 0);
+    const issued = existingTx.filter(t => t.transaction_type === 'ISSUED').reduce((s, t) => s + Number(t.quantity_doses), 0);
+    const available = received - issued;
+
+    if (qty > available) {
+      return res.status(400).json({ error: `Insufficient HPV vaccine stock available for this issue. Available: ${available}` });
+    }
+
+    // Insert ISSUE transaction
+    const { data: issueTx, error: issueErr } = await supabase.from('vaccine_stock_transactions').insert([{
+      vaccine: 'HPV Vaccine',
+      level: currentLevel,
+      state_id: req.user.state_id,
+      district_id: req.user.district_id || null,
+      transaction_type: 'ISSUED',
+      transaction_date: date,
+      quantity_doses: qty,
+      destination_level: destLvl,
+      destination_facility_id: destination_facility_id,
+      notes: notes || null,
+      created_by: req.user.id
+    }]).select().single();
+
+    if (issueErr) throw issueErr;
+
+    // Insert downstream RECEIVED transaction
+    const { error: recvErr } = await supabase.from('vaccine_stock_transactions').insert([{
+      vaccine: 'HPV Vaccine',
+      level: destLvl,
+      state_id: destFacility.state_id,
+      district_id: destFacility.district_id,
+      block_id: destFacility.block_id,
+      facility_id: destFacility.id,
+      transaction_type: 'RECEIVED',
+      transaction_date: date,
+      quantity_doses: qty,
+      source_level: currentLevel,
+      source_transaction_id: issueTx.id,
+      created_by: req.user.id
+    }]);
+
+    if (recvErr) {
+       console.error("Failed to create downstream receive record:", recvErr);
+       // We should ideally rollback, but since Supabase REST API doesn't support transactions easily, we log it.
+       return res.status(500).json({ error: 'Issue recorded, but downstream receipt failed.' });
+    }
+
+    res.json({ success: true, transaction: issueTx });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => {
+  try {
+    const { month, quantity, reportingPersonName, reportingPersonMobile, notes } = req.body;
+    if (!month || isNaN(Number(quantity)) || Number(quantity) < 0 || !reportingPersonName || !reportingPersonMobile) {
+      return res.status(400).json({ error: 'Invalid input' });
+    }
+    
+    // Check if month is valid (must be strictly before current month)
+    const selectedDate = new Date(month + '-01T00:00:00Z');
+    const currentDate = new Date();
+    currentDate.setDate(1); // First of current month
+    currentDate.setHours(0,0,0,0);
+
+    if (selectedDate >= currentDate) {
+      return res.status(400).json({ error: 'Cannot select current or future month for month end balance' });
+    }
+
+    const currentLevel = req.user.district_id ? 2 : 1;
+
+    const { data, error } = await supabase.from('vaccine_stock_transactions').insert([{
+      vaccine: 'HPV Vaccine',
+      level: currentLevel,
+      state_id: req.user.state_id,
+      district_id: req.user.district_id || null,
+      transaction_type: 'MONTH_END_BALANCE',
+      balance_month: month + '-01',
+      quantity_doses: Number(quantity),
+      reporting_person_name: reportingPersonName,
+      reporting_person_mobile: reportingPersonMobile,
+      notes: notes || null,
+      created_by: req.user.id
+    }]).select();
+
+    if (error) throw error;
+    res.json({ success: true, transaction: data[0] });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/vaccine/stock', authenticateToken, async (req, res) => {
+  try {
+     const currentLevel = req.user.district_id ? 2 : 1;
+     let txQuery = supabase.from('vaccine_stock_transactions').select('*, vaccine_ccp(facility_name)').eq('level', currentLevel).order('created_at', { ascending: false }).limit(50);
+     if (req.user.state_id) txQuery = txQuery.eq('state_id', req.user.state_id);
+     if (req.user.district_id) txQuery = txQuery.eq('district_id', req.user.district_id);
+
+     const { data, error } = await txQuery;
+     if (error) throw error;
+     res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/admin/reports', authenticateToken, async (req, res) => {
   try {
     const { date, districtId, blockId, limit = 200 } = req.query;
