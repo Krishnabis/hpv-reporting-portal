@@ -16,7 +16,7 @@ export const SuperAdminUpload: React.FC = () => {
       headers = 'State,District,BlockOrCity,linelisted,vaccinated,Date(DD-MM-YYYY)\n';
       filename = 'LiveData_Template.csv';
     } else if (type === 'locations') {
-      headers = 'sno,countrycode,countryname,statelgdcode,statename,districtlgdcode,regioncode,regionname,districtname,blockorcitylgdcode,blockorcityname,areatype(blockorcity),population,linelisted,vaccinated,Date(YYYY-MM-DD)\n';
+      headers = 'sno,countrycode,countryname,statelgdcode,statename,districtlgdcode,divisioncode,divisionname,districtname,blockorcitylgdcode,blockorcityname,areatype(blockorcity),population,linelisted,vaccinated,Date(YYYY-MM-DD)\n';
       filename = 'Locations_Template.csv';
     }
 

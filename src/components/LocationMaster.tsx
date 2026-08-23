@@ -11,12 +11,12 @@ export const LocationMaster = () => {
   // Dropdown data
   const [countries, setCountries] = useState<any[]>([]);
   const [states, setStates] = useState<any[]>([]);
-  const [regions, setRegions] = useState<any[]>([]);
+  const [divisions, setDivisions] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
   
   // Create mode
   const [isCreating, setIsCreating] = useState(false);
-  const [createType, setCreateType] = useState<'country'|'state'|'region'|'district'|'block'>('block');
+  const [createType, setCreateType] = useState<'country'|'state'|'division'|'district'|'block'>('block');
   const [createForm, setCreateForm] = useState<any>({});
   const [createMsg, setCreateMsg] = useState('');
 
@@ -27,12 +27,12 @@ export const LocationMaster = () => {
       const [cRes, sRes, rRes, dRes] = await Promise.all([
         fetch('/api/locations/countries', { headers: { Authorization: `Bearer ${token}` } }),
         fetch('/api/locations/states', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('/api/locations/regions', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/locations/divisions', { headers: { Authorization: `Bearer ${token}` } }),
         fetch('/api/locations/districts', { headers: { Authorization: `Bearer ${token}` } })
       ]);
       setCountries(await cRes.json());
       setStates(await sRes.json());
-      setRegions(await rRes.json());
+      setDivisions(await rRes.json());
       setDistricts(await dRes.json());
     } catch (e) { console.error(e); }
   };
@@ -101,8 +101,8 @@ export const LocationMaster = () => {
     try {
       let body: any = { name: createForm.name, lgd_code: createForm.lgd_code };
       if (createType === 'state') body.country_id = createForm.country_id;
-      if (createType === 'region') body.state_id = createForm.state_id;
-      if (createType === 'district') { body.region_id = createForm.region_id; body.state_id = createForm.state_id; }
+      if (createType === 'division') body.state_id = createForm.state_id;
+      if (createType === 'district') { body.division_id = createForm.division_id; body.state_id = createForm.state_id; }
       if (createType === 'block') { body.district_id = createForm.district_id; body.is_urban = createForm.is_urban; }
 
       const res = await fetch(`/api/locations/${createType}`, {
@@ -138,7 +138,7 @@ export const LocationMaster = () => {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Master Location Registry</h1>
-          <p className="text-xs text-slate-500 mt-1">Manage all regions, populations, and manual stats overrides.</p>
+          <p className="text-xs text-slate-500 mt-1">Manage all divisions, populations, and manual stats overrides.</p>
         </div>
         <button onClick={() => setIsCreating(!isCreating)} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-emerald-700">
           {isCreating ? <XIcon className="w-4 h-4"/> : <PlusIcon className="w-4 h-4"/>} 
@@ -149,7 +149,7 @@ export const LocationMaster = () => {
       {isCreating && (
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <div className="flex gap-2 flex-wrap">
-            {(['country', 'state', 'region', 'district', 'block'] as const).map(t => (
+            {(['country', 'state', 'division', 'district', 'block'] as const).map(t => (
               <button key={t} onClick={() => { setCreateType(t); setCreateMsg(''); setCreateForm({}); }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize ${createType === t ? 'bg-hpv-purple text-white' : 'bg-slate-100 text-slate-600'}`}>
                 {t}
@@ -157,7 +157,7 @@ export const LocationMaster = () => {
             ))}
           </div>
           <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            {(createType === 'state' || createType === 'region' || createType === 'district' || createType === 'block') && (
+            {(createType === 'state' || createType === 'division' || createType === 'district' || createType === 'block') && (
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-bold uppercase text-slate-500">Country</label>
                 <select required onChange={e => setCreateForm({...createForm, country_id: e.target.value})} className="p-2 border rounded-lg text-xs font-semibold bg-slate-50">
@@ -166,7 +166,7 @@ export const LocationMaster = () => {
                 </select>
               </div>
             )}
-            {(createType === 'region' || createType === 'district' || createType === 'block') && (
+            {(createType === 'division' || createType === 'district' || createType === 'block') && (
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-bold uppercase text-slate-500">State</label>
                 <select required onChange={e => setCreateForm({...createForm, state_id: e.target.value})} className="p-2 border rounded-lg text-xs font-semibold bg-slate-50">
@@ -177,10 +177,10 @@ export const LocationMaster = () => {
             )}
             {(createType === 'district' || createType === 'block') && (
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-slate-500">Region</label>
-                <select required onChange={e => setCreateForm({...createForm, region_id: e.target.value})} className="p-2 border rounded-lg text-xs font-semibold bg-slate-50">
+                <label className="text-[10px] font-bold uppercase text-slate-500">Division</label>
+                <select required onChange={e => setCreateForm({...createForm, division_id: e.target.value})} className="p-2 border rounded-lg text-xs font-semibold bg-slate-50">
                   <option value="">Select...</option>
-                  {regions.filter(r => !createForm.state_id || String(r.state_id) === String(createForm.state_id)).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  {divisions.filter(r => !createForm.state_id || String(r.state_id) === String(createForm.state_id)).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                 </select>
               </div>
             )}
@@ -189,7 +189,7 @@ export const LocationMaster = () => {
                 <label className="text-[10px] font-bold uppercase text-slate-500">District</label>
                 <select required onChange={e => setCreateForm({...createForm, district_id: e.target.value})} className="p-2 border rounded-lg text-xs font-semibold bg-slate-50">
                   <option value="">Select...</option>
-                  {districts.filter(d => (!createForm.region_id || String(d.region_id) === String(createForm.region_id)) && (!createForm.state_id || String(d.state_id) === String(createForm.state_id))).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  {districts.filter(d => (!createForm.division_id || String(d.division_id) === String(createForm.division_id)) && (!createForm.state_id || String(d.state_id) === String(createForm.state_id))).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
               </div>
             )}
@@ -249,7 +249,7 @@ export const LocationMaster = () => {
                         <div className="flex flex-col gap-0.5">
                           <span className="font-bold text-hpv-teal-dark text-sm">{isEditing ? <input className="border p-1 rounded" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} /> : loc.name}</span>
                           <span className="text-[10px] font-semibold text-slate-500">
-                            {loc.district_name} • {loc.region_name || 'No Region'} • {loc.state_name}
+                            {loc.district_name} • {loc.division_name || 'No Division'} • {loc.state_name}
                           </span>
                         </div>
                       </td>

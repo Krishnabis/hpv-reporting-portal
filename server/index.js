@@ -40,8 +40,8 @@ async function logAudit(userId, action, entityType, entityId) {
 
 function flattenBlock(b) {
   const dist = b.districts || {};
-  const reg = dist.regions || {};
-  const st = reg.states || dist.states || {}; // Fallback in case old relation is kept
+  const div = dist.divisions || {};
+  const st = div.states || dist.states || {}; // Fallback in case old relation is kept
   const c = st.countries || {};
   
   return {
@@ -49,8 +49,8 @@ function flattenBlock(b) {
     name: b.name, code: b.code, is_active: b.is_active, is_urban: Boolean(b.is_urban), area_type: b.area_type || (b.is_urban ? 'City' : 'Block'),
     district_name: dist.name ?? '',
     district_lgd_code: dist.lgd_code ?? 0,
-    region_name: reg.name ?? '',
-    region_lgd_code: reg.lgd_code ?? '',
+    division_name: div.name ?? '',
+    division_lgd_code: div.lgd_code ?? '',
     state_name: st.name ?? 'Uttarakhand',
     state_lgd_code: st.lgd_code ?? 5,
     country_name: c.name ?? 'India',
@@ -130,10 +130,10 @@ app.get('/api/locations/countries', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/locations/regions', async (req, res) => {
+app.get('/api/locations/divisions', async (req, res) => {
   try {
     if (useSupabase) {
-      const { data, error } = await supabase.from('regions').select('*').eq('is_active', true).order('name');
+      const { data, error } = await supabase.from('divisions').select('*').eq('is_active', true).order('name');
       if (error) throw error;
       return res.json(data);
     }
@@ -168,7 +168,7 @@ app.get('/api/locations/blocks', async (req, res) => {
     if (useSupabase) {
       const { data, error } = await supabase
         .from('blocks')
-        .select('*, districts(name, lgd_code, regions(name, lgd_code, states(name, lgd_code, countries(name, lgd_code))))')
+        .select('*, districts(name, lgd_code, divisions(name, lgd_code, states(name, lgd_code, countries(name, lgd_code))))')
         .eq('is_active', true)
         .order('name');
       if (error) throw error;
@@ -1298,7 +1298,7 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
 
     let allCountries = (await supabase.from('countries').select('*')).data || [];
     let allStates = (await supabase.from('states').select('*')).data || [];
-    let allRegions = (await supabase.from('regions').select('*')).data || [];
+    let allDivisions = (await supabase.from('divisions').select('*')).data || [];
     let allDistricts = (await supabase.from('districts').select('*')).data || [];
     let allBlocks = (await supabase.from('blocks').select('*')).data || [];
     let allProfiles = (await supabase.from('block_reporting_profiles').select('*')).data || [];
@@ -1334,20 +1334,20 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
         state = nS; allStates.push(state);
       }
 
-      // Region
-      let regionCode = String(row.regioncode || '').trim();
-      let region = allRegions.find(r => r.lgd_code === regionCode && regionCode) || allRegions.find(r => r.name.toLowerCase() === row.regionname?.trim().toLowerCase() && r.state_id === state.id);
-      if (!region) {
-        const { data: nR, error: eR } = await supabase.from('regions').insert({ state_id: state.id, lgd_code: regionCode, code: regionCode, name: row.regionname?.trim() || 'Default Region' }).select().single();
-        if (eR) { errors.push(`Row ${i + 1}: Error creating Region - ${eR.message}`); continue; }
-        region = nR; allRegions.push(region);
+      // Division
+      let divisionCode = String(row.divisioncode || '').trim();
+      let division = allDivisions.find(r => r.lgd_code === divisionCode && divisionCode) || allDivisions.find(r => r.name.toLowerCase() === row.divisionname?.trim().toLowerCase() && r.state_id === state.id);
+      if (!division) {
+        const { data: nR, error: eR } = await supabase.from('divisions').insert({ state_id: state.id, lgd_code: divisionCode, code: divisionCode, name: row.divisionname?.trim() || 'Default Division' }).select().single();
+        if (eR) { errors.push(`Row ${i + 1}: Error creating Division - ${eR.message}`); continue; }
+        division = nR; allDivisions.push(division);
       }
 
       // District
       let distLgd = String(row.districtlgdcode || '').trim();
-      let district = allDistricts.find(d => d.lgd_code === distLgd && distLgd) || allDistricts.find(d => d.name.toLowerCase() === row.districtname.trim().toLowerCase() && d.region_id === region.id);
+      let district = allDistricts.find(d => d.lgd_code === distLgd && distLgd) || allDistricts.find(d => d.name.toLowerCase() === row.districtname.trim().toLowerCase() && d.division_id === division.id);
       if (!district) {
-        const { data: nD, error: eD } = await supabase.from('districts').insert({ region_id: region.id, state_id: state.id, lgd_code: distLgd, name: row.districtname.trim() }).select().single();
+        const { data: nD, error: eD } = await supabase.from('districts').insert({ division_id: division.id, state_id: state.id, lgd_code: distLgd, name: row.districtname.trim() }).select().single();
         if (eD) { errors.push(`Row ${i + 1}: Error creating District - ${eD.message}`); continue; }
         district = nD; allDistricts.push(district);
       }
@@ -1439,7 +1439,7 @@ app.get('/api/admin/locations-master-data', authenticateToken, async (req, res) 
     if (!useSupabase) return res.status(500).json({ error: 'Requires Supabase' });
     
     // Fetch full hierarchy
-    const { data: blocks, error: bErr } = await supabase.from('blocks').select('*, districts(name, lgd_code, regions(name, lgd_code, states(name, lgd_code, countries(name, lgd_code))))').eq('is_active', true);
+    const { data: blocks, error: bErr } = await supabase.from('blocks').select('*, districts(name, lgd_code, divisions(name, lgd_code, states(name, lgd_code, countries(name, lgd_code))))').eq('is_active', true);
     if (bErr) throw bErr;
     
     // Fetch profiles
@@ -1475,7 +1475,7 @@ app.post('/api/locations/:type', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
     const { type } = req.params;
-    const tableMap = { country: 'countries', state: 'states', region: 'regions', district: 'districts', block: 'blocks' };
+    const tableMap = { country: 'countries', state: 'states', division: 'divisions', district: 'districts', block: 'blocks' };
     const table = tableMap[type];
     if (!table) return res.status(400).json({ error: 'Invalid location type' });
     
@@ -1493,7 +1493,7 @@ app.put('/api/locations/:type/:id', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
     const { type, id } = req.params;
-    const tableMap = { country: 'countries', state: 'states', region: 'regions', district: 'districts', block: 'blocks' };
+    const tableMap = { country: 'countries', state: 'states', division: 'divisions', district: 'districts', block: 'blocks' };
     const table = tableMap[type];
     if (!table) return res.status(400).json({ error: 'Invalid location type' });
     
