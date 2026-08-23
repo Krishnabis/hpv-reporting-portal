@@ -382,9 +382,10 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
                     <Line type="monotone" dataKey="lineListedPct" name="Eligible Girls % Line Listed" stroke="#10b981" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }} />
                     <Line type="monotone" dataKey="vaccinatedPct" name="Eligible Girls Vaccinated %" stroke="#ec4899" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }} label={(props: any) => {
                       const { x, y, value, payload } = props;
+                      if (!payload || typeof payload.rawVaccinated === 'undefined') return null;
                       return (
                         <text x={x} y={y - 12} fill="#ec4899" fontSize={10} fontWeight="bold" textAnchor="middle">
-                          {value}% ({payload.rawVaccinated.toLocaleString('en-IN')})
+                          {value}% ({Number(payload.rawVaccinated).toLocaleString('en-IN')})
                         </text>
                       );
                     }} />
