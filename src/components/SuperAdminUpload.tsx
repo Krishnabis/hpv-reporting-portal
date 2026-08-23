@@ -55,6 +55,10 @@ export const SuperAdminUpload: React.FC = () => {
           body: JSON.stringify({ data: records })
         });
 
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error('Server returned an unexpected response. The file may be too large or the server timed out. Try uploading fewer rows at a time.');
+        }
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || 'Upload failed');
         
