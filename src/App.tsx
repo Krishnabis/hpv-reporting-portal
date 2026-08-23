@@ -38,7 +38,8 @@ export const App: React.FC = () => {
           <Route path="/report" element={<BlockReporting />} />
           <Route path="/progress-trend" element={<ProgressTrend />} />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={<AdminDashboard mode="monitoring" />} />
+          <Route path="/admin/vaccine-monitoring" element={<AdminDashboard mode="vaccine-monitoring" />} />
         </Routes>
       </ImagePreloader>
     </BrowserRouter>

@@ -53,8 +53,9 @@ interface ReportRow {
   vaccination_coverage_pct: number | null;
 }
 
-export const AdminDashboard: React.FC = () => {
+export const AdminDashboard: React.FC<{ mode?: 'monitoring' | 'vaccine-monitoring' }> = ({ mode = 'monitoring' }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity'>('dashboard');
   
 
@@ -723,6 +724,26 @@ export const AdminDashboard: React.FC = () => {
             )}
           </nav>
         </div>
+
+        {/* Dashboard Switcher Button */}
+        <div className={`mx-3 mb-2 shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`}>
+          {mode === 'monitoring' ? (
+            <button 
+              onClick={() => { setMobileMenuOpen(false); navigate('/admin/vaccine-monitoring'); }}
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
+            >
+              Go to Vaccine Management Dashboard
+            </button>
+          ) : (
+            <button 
+              onClick={() => { setMobileMenuOpen(false); navigate('/admin'); }}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
+            >
+              Go to Monitoring Dashboard
+            </button>
+          )}
+        </div>
+
         {/* Slogan Badge */}
         <div className={`mx-3 mt-auto mb-2 flex items-center justify-between gap-2 bg-blue-50/50 px-3 py-2 rounded-xl border border-blue-100/50 shrink-0 ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
           <div className="text-right flex-1">
@@ -777,7 +798,9 @@ export const AdminDashboard: React.FC = () => {
                 )}
                 <div className="flex items-center gap-2 group relative">
                   <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-1.5">
-                    <span className="text-[#188E94]">Monitoring Dashboard:</span>
+                    <span className="text-[#188E94]">
+                      {mode === 'vaccine-monitoring' ? 'Vaccine Monitoring Dashboard:' : 'Monitoring Dashboard:'}
+                    </span>
                     {adminUser?.role === 'SUPER_ADMIN' ? (
                       <select 
                         value={dashboardStateId} 
@@ -821,101 +844,119 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* KPI Cards Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-              {/* Card 1: Total Population */}
-              <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-blue-500 flex flex-col justify-between">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                    <Users className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                      TOTAL POPULATION
-                    </span>
-                    <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none mt-1">
-                      {kpis?.total_population ? kpis.total_population.toLocaleString('en-IN') : '—'}
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between z-10 relative">
-                  <span className="text-[9px] text-slate-400">HPV Target population (1%)</span>
-                  <span className="text-[10px] font-bold font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">{kpis?.total_target?.toLocaleString('en-IN') || '—'}</span>
-                </div>
-              </div>
-
-              {/* Card 2: Reporting Today */}
-              <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-purple-500 flex flex-col justify-between">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                    <Building2 className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                      TOTAL REPORTING SITES
-                    </span>
-                    <div className="flex items-baseline gap-1.5 mt-1">
-                      <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none">
-                        {kpis ? kpis.total_blocks : '—'}
+            {mode === 'monitoring' ? (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                {/* Card 1: Total Population */}
+                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-blue-500 flex flex-col justify-between">
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
+                        TOTAL POPULATION
                       </span>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Blocks/Cities
+                      <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none mt-1">
+                        {kpis?.total_population ? kpis.total_population.toLocaleString('en-IN') : '—'}
                       </span>
                     </div>
                   </div>
-                </div>
-                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <span className="text-[9px] text-slate-400">Reporting today</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded font-mono">
-                      {kpis ? ((kpis.reporting_today / (kpis.total_blocks || 1)) * 100).toFixed(1) : '0'}%
-                    </span>
-                    <span className="text-[10px] font-bold font-mono text-slate-700">{kpis ? kpis.reporting_today : '0'}</span>
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between z-10 relative">
+                    <span className="text-[9px] text-slate-400">HPV Target population (1%)</span>
+                    <span className="text-[10px] font-bold font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">{kpis?.total_target?.toLocaleString('en-IN') || '—'}</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Card 3: Total Line List */}
-              <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-emerald-500 flex flex-col justify-between">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                    <FileSpreadsheet className="w-5 h-5 text-white" />
+                {/* Card 2: Reporting Today */}
+                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-purple-500 flex flex-col justify-between">
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                      <Building2 className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
+                        TOTAL REPORTING SITES
+                      </span>
+                      <div className="flex items-baseline gap-1.5 mt-1">
+                        <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none">
+                          {kpis ? kpis.total_blocks : '—'}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Blocks/Cities
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                      ELIGIBLE GIRLS LINE LISTED
-                    </span>
-                    <span className="text-2xl font-extrabold font-mono text-emerald-600 leading-none mt-1">
-                      {kpis ? kpis.overall_linelist_pct : 0}%
-                    </span>
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <span className="text-[9px] text-slate-400">Reporting today</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded font-mono">
+                        {kpis ? ((kpis.reporting_today / (kpis.total_blocks || 1)) * 100).toFixed(1) : '0'}%
+                      </span>
+                      <span className="text-[10px] font-bold font-mono text-slate-700">{kpis ? kpis.reporting_today : '0'}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <span className="text-[9px] text-slate-400">Count:</span>
-                  <span className="text-[10px] font-bold font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{kpis?.total_line_list?.toLocaleString('en-IN') || '—'}</span>
-                </div>
-              </div>
 
-              {/* Card 4: Total Vaccinated */}
-              <div className="bg-[#fff0f5] p-3 rounded-xl border border-pink-200 shadow-sm relative overflow-hidden border-t-4 border-t-pink-500 flex flex-col justify-between">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pink-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                    <ShieldCheck className="w-5 h-5 text-white" />
+                {/* Card 3: Total Line List */}
+                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-emerald-500 flex flex-col justify-between">
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                      <FileSpreadsheet className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
+                        ELIGIBLE GIRLS LINE LISTED
+                      </span>
+                      <span className="text-2xl font-extrabold font-mono text-emerald-600 leading-none mt-1">
+                        {kpis ? kpis.overall_linelist_pct : 0}%
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                      ELIGIBLE GIRLS VACCINATED
-                    </span>
-                    <span className="text-2xl font-extrabold font-mono text-pink-600 leading-none mt-1">
-                      {kpis ? kpis.overall_coverage_pct : 0}%
-                    </span>
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <span className="text-[9px] text-slate-400">Count:</span>
+                    <span className="text-[10px] font-bold font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{kpis?.total_line_list?.toLocaleString('en-IN') || '—'}</span>
                   </div>
                 </div>
-                <div className="mt-3 pt-2 border-t border-pink-200/60 flex items-center justify-between gap-2">
-                  <span className="text-[9px] text-slate-500">Count:</span>
-                  <span className="text-[10px] font-bold font-mono text-pink-700 bg-pink-100 px-1.5 py-0.5 rounded">{kpis?.total_vaccinated?.toLocaleString('en-IN') || '—'}</span>
+
+                {/* Card 4: Total Vaccinated */}
+                <div className="bg-[#fff0f5] p-3 rounded-xl border border-pink-200 shadow-sm relative overflow-hidden border-t-4 border-t-pink-500 flex flex-col justify-between">
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-pink-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                      <ShieldCheck className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
+                        ELIGIBLE GIRLS VACCINATED
+                      </span>
+                      <span className="text-2xl font-extrabold font-mono text-pink-600 leading-none mt-1">
+                        {kpis ? kpis.overall_coverage_pct : 0}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-pink-200/60 flex items-center justify-between gap-2">
+                    <span className="text-[9px] text-slate-500">Count:</span>
+                    <span className="text-[10px] font-bold font-mono text-pink-700 bg-pink-100 px-1.5 py-0.5 rounded">{kpis?.total_vaccinated?.toLocaleString('en-IN') || '—'}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[100px]">
+                    <div className="flex gap-3 items-center opacity-50">
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+                        <Activity className="w-5 h-5 text-slate-400" />
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1 gap-2">
+                        <div className="h-2.5 bg-slate-200 rounded w-full"></div>
+                        <div className="h-6 bg-slate-200 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Split Layout: Ranking & Map — flex-1 fills remaining height */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-2 flex-none lg:flex-1 lg:min-h-0">
