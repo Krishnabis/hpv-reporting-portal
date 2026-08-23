@@ -50,6 +50,9 @@ const LABELS: Record<string, [number, number, string]> = {
   'Haridwar': [200, 630, 'Haridwar'],
 };
 
+const GARHWAL = ['Chamoli', 'Dehradun', 'Haridwar', 'Pauri Garhwal', 'Rudraprayag', 'Tehri Garhwal', 'Uttarkashi'];
+const KUMAON = ['Almora', 'Bageshwar', 'Champawat', 'Nainital', 'Pithoragarh', 'Udham Singh Nagar'];
+
 export function getTier(pct: number) {
   if (pct >= 90) return {
     label: 'Champions (> 90%)', fill: '#6ee7b7', bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300'
@@ -114,6 +117,20 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
       onMouseLeave={() => { setHoveredDistrict(null); setIsDragging(false); }}
       ref={containerRef}
     >
+      {/* Legend */}
+      <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur p-3 rounded-xl shadow-sm border border-slate-200">
+        <h4 className="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">Divisions</h4>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded border-[3px] border-blue-500 bg-slate-50"></div>
+            <span className="text-xs font-semibold text-slate-600">Garhwal</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded border-[3px] border-orange-500 bg-slate-50"></div>
+            <span className="text-xs font-semibold text-slate-600">Kumaon</span>
+          </div>
+        </div>
+      </div>
       <svg
         viewBox="58 0 1192 1067"
         className={`w-full h-full max-h-[500px] drop-shadow-md ${isDragging ? '' : 'transition-transform duration-200 ease-out'}`}
@@ -129,13 +146,15 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
           const d = dataMap[name];
           const pct = d ? (kpiForMap === 'coverage' ? d.coveragePct : d.lineListPct) : 0;
           const tier = getTier(pct);
+          const isGarhwal = GARHWAL.includes(name);
+          const strokeColor = isGarhwal ? '#3b82f6' : '#f97316'; // blue-500 : orange-500
           return (
             <path
               key={name}
               d={path}
               fill={tier.fill}
-              stroke="white"
-              strokeWidth={3}
+              stroke={strokeColor}
+              strokeWidth={4}
               strokeLinejoin="round"
               filter="url(#dShadow)"
               style={{ transition: 'fill 0.3s' }}

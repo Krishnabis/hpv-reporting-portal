@@ -38,6 +38,7 @@ interface ReportRow {
   id: number;
   name: string;
   lgd_code: number;
+  division_name?: string;
   district_name?: string;
   district_lgd_code?: number;
   state_name?: string;
@@ -382,6 +383,7 @@ export const AdminDashboard: React.FC = () => {
     if (!reportRows.length) return;
     const headers = [
       'Name',
+      'Division',
       'LGD Code',
       'Level',
       'Population',

@@ -84,10 +84,12 @@ app.get('/api/admin/population', authenticateToken, async (req, res) => {
       const { data: blocks } = await supabase.from('blocks').select('*');
       const { data: districts } = await supabase.from('districts').select('*');
       const { data: states } = await supabase.from('states').select('*');
+      const { data: divisions } = await supabase.from('divisions').select('*');
       const { data: profiles } = await supabase.from('block_reporting_profiles').select('*');
       const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
       blockData = blocks.map(b => {
         const dist = districts.find(d => d.id === b.district_id) || {};
+        const div = divisions.find(d => d.id === dist.division_id) || {};
         const st = states.find(s => s.id === dist.state_id) || {};
         const prof = profiles.find(p => p.block_id === b.id) || null;
         return {
@@ -95,6 +97,7 @@ app.get('/api/admin/population', authenticateToken, async (req, res) => {
           name: b.name,
           is_urban: Boolean(b.is_urban),
           district_name: dist.name,
+          division_name: div.name || 'Unknown',
           state_name: st.name,
           state_id: st.id,
           profile: prof
@@ -113,6 +116,7 @@ app.get('/api/admin/population', authenticateToken, async (req, res) => {
           name: b.name,
           is_urban: Boolean(b.is_urban),
           district_name: dist.name,
+          division_name: div.name || 'Unknown',
           state_name: st.name,
           profile: prof
         };
@@ -661,7 +665,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     // 1. Fetch all active blocks with district info
     let bq = supabase
       .from('blocks')
-      .select(targetStateId ? 'id, district_id, districts!inner(name, state_id)' : 'id, district_id, districts!inner(name)')
+      .select(targetStateId ? 'id, district_id, districts!inner(name, state_id, divisions(name))' : 'id, district_id, districts!inner(name, divisions(name))')
       .eq('is_active', true);
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
     
@@ -983,7 +987,7 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
       .from('blocks')
       .select(`
         id, name, lgd_code, district_id,
-        districts!inner(id, name, lgd_code, state_id)
+        districts!inner(id, name, lgd_code, state_id, division_id, divisions(name))
       `)
       .eq('is_active', true)
       .order('name');
