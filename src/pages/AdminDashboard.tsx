@@ -1271,8 +1271,8 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex flex-col min-h-full lg:h-full gap-2 lg:min-h-0 max-w-7xl mx-auto w-full pb-10 lg:pb-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex flex-col gap-0.5">
-                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
-                  Last updated: {new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                  Last Updated On: {new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="flex items-center gap-2 group relative">
                   <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-1.5 flex-wrap">
