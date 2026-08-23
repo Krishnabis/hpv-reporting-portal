@@ -124,7 +124,7 @@ export const BlockLogin: React.FC = () => {
 
   const handleForgotPasscode = async () => {
     if (!selectedBlock) return;
-    if (!window.confirm(`Reset passcode to default for ${selectedBlock.label}?`)) return;
+    if (!window.confirm(`Reset passcode to default for ${selectedBlock.name}?`)) return;
     
     try {
       const res = await fetch('/api/blocks/reset-passcode', {
