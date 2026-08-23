@@ -72,8 +72,9 @@ export const AdminDashboard: React.FC = () => {
   const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [dashboardStateId, setDashboardStateId] = useState<string>('');
   const [states, setStates] = useState<any[]>([]);
-  const [filterLevel, setFilterLevel] = useState<'State' | 'District' | 'Block'>('District');
+  const [filterLevel, setFilterLevel] = useState<'State' | 'Division' | 'District' | 'Block'>('District');
   const [filterStateId, setFilterStateId] = useState<string>('5');
+  const [filterDivisionId, setFilterDivisionId] = useState<string>('ALL');
   const [filterDistrictId, setFilterDistrictId] = useState<string>('ALL');
   const [filterBlockId, setFilterBlockId] = useState<string>('ALL');
 
