@@ -845,13 +845,17 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     if (userRole === 'DISTRICT_ADMIN' || userDistrictId) {
        ccpQuery = ccpQuery.eq('district_id', userDistrictId);
     }
-    const { data: facilities, error: fErr } = await ccpQuery;
+    const { data: rawFacilities, error: fErr } = await ccpQuery;
     if (fErr) throw fErr;
-
+    const facilities = rawFacilities || [];
     // Counts
-    const stateStoresCount = facilities.filter(f => String(f.unit_level) === '1').length;
-    const districtStoresCount = facilities.filter(f => String(f.unit_level) === '2').length;
-    const blockStoresCount = facilities.filter(f => String(f.unit_level) === '3').length;
+    console.log('Total facilities fetched:', facilities?.length);
+    if (facilities && facilities.length > 0) {
+      console.log('Sample unit_levels:', facilities.slice(0, 5).map(f => f.unit_level));
+    }
+    const stateStoresCount = facilities.filter(f => String(f.unit_level).trim() === '1').length;
+    const districtStoresCount = facilities.filter(f => String(f.unit_level).trim() === '2').length;
+    const blockStoresCount = facilities.filter(f => String(f.unit_level).trim() === '3').length;
 
     // 2. Fetch stock transactions
     let txQuery = supabase.from('vaccine_stock_transactions').select('*');
@@ -860,8 +864,9 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
       // District admins see their own district's transactions. State level transactions might not have district_id if they are general, but they are level 1 anyway.
       // We'll fetch all for state to do statewide calculations, then filter down if needed.
     }
-    const { data: allTransactions, error: tErr } = await txQuery;
+    const { data: rawTransactions, error: tErr } = await txQuery;
     if (tErr) throw tErr;
+    const allTransactions = rawTransactions || [];
     
     const tx = userDistrictId 
       ? allTransactions.filter(t => t.district_id === userDistrictId || (t.destination_level === 2 && t.destination_facility_id && facilities.some(f => f.id === t.destination_facility_id))) 
