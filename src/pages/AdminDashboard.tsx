@@ -1292,6 +1292,7 @@ export const AdminDashboard: React.FC = () => {
                         {adminUser?.state_name || 'Assigned State'}
                         {adminUser?.district_name && <span> - {adminUser.district_name}</span>}
                         {adminUser?.role === 'DISTRICT_ADMIN' && <span> District Admin</span>}
+                        {adminUser?.role === 'ADMIN' && <span> - State Admin</span>}
                       </span>
                     )}
                   </h1>
