@@ -241,18 +241,21 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
             </div>
           )}
 
-          {filterLevel === 'Division' && (
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Division</label>
-              <SearchableSelect 
-                label="Division"
-                options={[{value: 'ALL', label: 'All Divisions'}, ...divisionsList.filter(d => String(d.state_id) === filterStateId).map(d => ({ value: d.id.toString(), label: d.name }))]} 
-                value={filterDivisionId} 
-                onChange={setFilterDivisionId} 
-                placeholder="Select Division..." 
-              />
-            </div>
-          )}
+          {filterLevel === 'Division' && (() => {
+            const divOptions = [{id: 'ALL', name: 'All Divisions'}, ...divisionsList.filter(d => String(d.state_id) === filterStateId).map(d => ({ id: d.id.toString(), name: d.name }))];
+            return (
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Division</label>
+                <SearchableSelect 
+                  label="Division"
+                  options={divOptions} 
+                  value={divOptions.find(o => o.id === filterDivisionId) || null} 
+                  onChange={(opt) => opt && setFilterDivisionId(opt.id.toString())} 
+                  placeholder="Select Division..." 
+                />
+              </div>
+            );
+          })()}
 
           {filterLevel === 'District' && (
             <div className="flex flex-col gap-1">
