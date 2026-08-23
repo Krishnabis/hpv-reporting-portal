@@ -177,7 +177,7 @@ export const AdminDashboard: React.FC = () => {
       fetchKpis();
       fetchReport();
     }
-  }, [filterDate]);
+  }, [filterDate, dashboardStateId]);
 
   const [allBlocksList, setAllBlocksList] = useState<any[]>([]);
 
