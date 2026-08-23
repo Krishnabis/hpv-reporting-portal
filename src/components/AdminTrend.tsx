@@ -242,7 +242,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
           )}
 
           {filterLevel === 'Division' && (() => {
-            const divOptions = [{id: 'ALL', name: 'All Divisions'}, ...divisionsList.filter(d => String(d.state_id) === filterStateId).map(d => ({ id: d.id.toString(), name: d.name }))];
+            const divOptions = [{id: 'ALL', name: 'All Divisions'}, ...divisionsList.map(d => ({ id: d.id.toString(), name: d.name }))];
             return (
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Division</label>

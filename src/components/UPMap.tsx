@@ -196,7 +196,7 @@ export const UPMap: React.FC<Props> = ({ data, selectedKpi }) => {
               key={name}
               d={d}
               fill={getDistrictColor(name, data, selectedKpi)}
-              stroke="#94a3b8"
+              stroke="#000000"
               strokeWidth="2"
               className="transition-all duration-300 outline-none hover:brightness-110 cursor-pointer"
               onMouseMove={(e) => handleMouseMove(e, name)}

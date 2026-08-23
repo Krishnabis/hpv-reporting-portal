@@ -57,7 +57,7 @@ export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity'>('dashboard');
   
-  const [analyticsOpen, setAnalyticsOpen] = useState(true);
+
   const [usersOpen, setUsersOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -231,6 +231,12 @@ export const AdminDashboard: React.FC = () => {
     return allDistrictsList.filter(d => String(d.state_id) === activeStateId);
   }, [allDistrictsList, activeStateId]);
 
+  // Filter divisions by active state
+  const filteredDivisions = useMemo(() => {
+    if (!activeStateId) return divisionsList;
+    return divisionsList.filter(d => String(d.state_id) === activeStateId);
+  }, [divisionsList, activeStateId]);
+
   // Filter blocks by active state
   const filteredBlocks = useMemo(() => {
     if (!activeStateId) return masterBlocks;
@@ -395,7 +401,7 @@ export const AdminDashboard: React.FC = () => {
   const handleTabChange = (tab: any) => {
     setActiveTab(tab);
     setMobileMenuOpen(false);
-    if (tab === 'reports' || tab === 'trend') setAnalyticsOpen(true);
+
     if (tab === 'users' || tab === 'activity') setUsersOpen(true);
     if (tab === 'upload' || tab === 'settings') setSettingsOpen(true);
     if (tab === 'locations') fetchMasterLocations();
@@ -579,44 +585,33 @@ export const AdminDashboard: React.FC = () => {
               )}
             </button>
 
-            {/* Analytics */}
-            <div className="pt-2">
-              <button 
-                onClick={() => { if (!sidebarCollapsed) setAnalyticsOpen(!analyticsOpen) }}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
-                title="Analytics"
-              >
-                <span className={sidebarCollapsed ? 'hidden' : ''}>Analytics</span>
-                {!sidebarCollapsed && (
-                  <ChevronDown className={`w-4 h-4 transition-transform ${analyticsOpen ? '' : '-rotate-90'}`} />
-                )}
-              </button>
-              
-              {(analyticsOpen || sidebarCollapsed) && (
-                <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
-                  <button
-                    onClick={() => handleTabChange('reports')}
-                    title="Reports"
-                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'reports' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'reports' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Reports</span>
-                  </button>
-                  <button
-                    onClick={() => handleTabChange('trend')}
-                    title="Trend"
-                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'trend' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Trend</span>
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Reports */}
+            <button
+              onClick={() => handleTabChange('reports')}
+              title="Reports"
+              className={`w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all duration-200 ${
+                activeTab === 'reports'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm border border-emerald-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+              }`}
+            >
+              <FileText className={`w-5 h-5 shrink-0 ${activeTab === 'reports' ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Reports</span>
+            </button>
+
+            {/* Trend */}
+            <button
+              onClick={() => handleTabChange('trend')}
+              title="Trend"
+              className={`w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all duration-200 ${
+                activeTab === 'trend'
+                  ? 'bg-emerald-50 text-emerald-700 shadow-sm border border-emerald-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+              }`}
+            >
+              <TrendingUp className={`w-5 h-5 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Trend</span>
+            </button>
 
             {/* User Management */}
             {adminUser?.role === 'SUPER_ADMIN' && (
@@ -1158,6 +1153,7 @@ export const AdminDashboard: React.FC = () => {
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold"
                   >
                     <option value="State">State</option>
+                    <option value="Division">Division</option>
                     <option value="District">District</option>
                     <option value="Block">Block</option>
                   </select>
@@ -1172,6 +1168,16 @@ export const AdminDashboard: React.FC = () => {
                       options={adminUser?.role === 'SUPER_ADMIN' ? statesList.map(s => ({ id: String(s.id), name: s.name })) : ((adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '')) ? [{ id: String(adminUser?.state_id), name: (adminUser?.state_name || statesList.find(s => String(s.id) === String(adminUser?.state_id))?.name || '') }] : [])}
                       value={dashboardStateId ? { id: dashboardStateId, name: statesList.find(s => String(s.id) === dashboardStateId)?.name || '' } : ((adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '')) ? { id: String(adminUser?.state_id), name: (adminUser?.state_name || statesList.find(s => String(s.id) === String(adminUser?.state_id))?.name || '') } : null)}
                       onChange={() => {}}
+                    />
+                  )}
+
+                  {filterLevel === 'Division' && (
+                    <SearchableSelect
+                      label="Division"
+                      placeholder="Search division..."
+                      options={filteredDivisions.map(d => ({ id: String(d.id), name: `${d.name} (State: ${statesList.find(s => s.id === d.state_id)?.name || 'Unknown'})` }))}
+                      value={filterDivisionId === 'ALL' ? null : { id: filterDivisionId, name: filteredDivisions.find(d => String(d.id) === filterDivisionId) ? `${filteredDivisions.find(d => String(d.id) === filterDivisionId)?.name} (State: ${statesList.find(s => s.id === filteredDivisions.find(d => String(d.id) === filterDivisionId)?.state_id)?.name || 'Unknown'})` : '' }}
+                      onChange={item => setFilterDivisionId(item ? String(item.id) : 'ALL')}
                     />
                   )}
 
@@ -1429,7 +1435,7 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'trend' && (
           <AdminTrend
             statesList={statesList}
-            divisionsList={divisionsList}
+            divisionsList={filteredDivisions}
             districtsList={filteredDistricts}
             blocksList={blocksList}
             filterLevel={filterLevel}

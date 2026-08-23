@@ -132,9 +132,8 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
           </filter>
         </defs>
 
-        {/* Garhwal Division — shifted slightly left/up */}
-        <g transform="translate(-14, -10)">
-          {Object.entries(PATHS).filter(([name]) => GARHWAL.includes(name)).map(([name, path]) => {
+        <g>
+          {Object.entries(PATHS).map(([name, path]) => {
             const d = dataMap[name];
             const pct = d ? (kpiForMap === 'coverage' ? d.coveragePct : d.lineListPct) : 0;
             const tier = getTier(pct);
@@ -151,63 +150,16 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
                 onMouseEnter={() => setHoveredDistrict(name)}
               />
             );
-          })}          {/* Garhwal outer division border only */}
-          {Object.entries(PATHS).filter(([name]) => GARHWAL.includes(name)).map(([name, path]) => (
-            <path
-              key={`outline-${name}`}
-              d={path}
-              fill="none"
-              stroke="pink"
-              strokeWidth={4}
-              strokeLinejoin="round"
-              pointerEvents="none"
-            />
-          ))}
+          })}
         </g>
 
-        {/* Kumaon Division — shifted slightly right/down */}
-        <g transform="translate(14, 10)">
-          {Object.entries(PATHS).filter(([name]) => KUMAON.includes(name)).map(([name, path]) => {
-            const d = dataMap[name];
-            const pct = d ? (kpiForMap === 'coverage' ? d.coveragePct : d.lineListPct) : 0;
-            const tier = getTier(pct);
-            return (
-              <path
-                key={name}
-                d={path}
-                fill={tier.fill}
-                stroke="#000000"
-                strokeWidth={1.5}
-                strokeLinejoin="round"
-                filter="url(#dShadow)"
-                style={{ transition: 'fill 0.3s' }}
-                onMouseEnter={() => setHoveredDistrict(name)}
-              />
-            );
-          })}          {/* Kumaon outer division border only */}
-          {Object.entries(PATHS).filter(([name]) => KUMAON.includes(name)).map(([name, path]) => (
-            <path
-              key={`outline-${name}`}
-              d={path}
-              fill="none"
-              stroke="#8b4513"
-              strokeWidth={4}
-              strokeLinejoin="round"
-              pointerEvents="none"
-            />
-          ))}
-        </g>
-
-        {/* Labels — offset per division to stay aligned with their group's transform */}
+        {/* Labels */}
         {Object.entries(LABELS).map(([name, [x, y, label]]) => {
           const d = dataMap[name];
           const covPct = d?.coveragePct ?? 0;
           const llPct = d?.lineListPct ?? 0;
-          const isGarhwal = GARHWAL.includes(name);
-          const dx = isGarhwal ? -14 : 14;
-          const dy = isGarhwal ? -10 : 10;
-          const lx = x + dx;
-          const ly = y + dy;
+          const lx = x;
+          const ly = y;
           
           let displayPct = '';
           if (selectedKpi === 'coverage') displayPct = `${covPct.toFixed(1)}%`;
