@@ -140,33 +140,87 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
           <filter id="dShadow" x="-5%" y="-5%" width="110%" height="110%">
             <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#00000018" />
           </filter>
+          <filter id="divShadow" x="-8%" y="-8%" width="116%" height="116%">
+            <feDropShadow dx="0" dy="3" stdDeviation="6" floodColor="#00000028" />
+          </filter>
         </defs>
 
-        {Object.entries(PATHS).map(([name, path]) => {
-          const d = dataMap[name];
-          const pct = d ? (kpiForMap === 'coverage' ? d.coveragePct : d.lineListPct) : 0;
-          const tier = getTier(pct);
-          const isGarhwal = GARHWAL.includes(name);
-          const strokeColor = isGarhwal ? '#3b82f6' : '#f97316'; // blue-500 : orange-500
-          return (
+        {/* Garhwal Division — shifted slightly left/up */}
+        <g transform="translate(-14, -10)">
+          {Object.entries(PATHS).filter(([name]) => GARHWAL.includes(name)).map(([name, path]) => {
+            const d = dataMap[name];
+            const pct = d ? (kpiForMap === 'coverage' ? d.coveragePct : d.lineListPct) : 0;
+            const tier = getTier(pct);
+            return (
+              <path
+                key={name}
+                d={path}
+                fill={tier.fill}
+                stroke={tier.fill}
+                strokeWidth={1.5}
+                strokeLinejoin="round"
+                style={{ transition: 'fill 0.3s' }}
+                onMouseEnter={() => setHoveredDistrict(name)}
+              />
+            );
+          })}
+          {/* Garhwal outer division border only */}
+          {Object.entries(PATHS).filter(([name]) => GARHWAL.includes(name)).map(([name, path]) => (
             <path
-              key={name}
+              key={`outline-${name}`}
               d={path}
-              fill={tier.fill}
-              stroke={strokeColor}
-              strokeWidth={4}
+              fill="none"
+              stroke="#2563eb"
+              strokeWidth={5}
               strokeLinejoin="round"
-              filter="url(#dShadow)"
-              style={{ transition: 'fill 0.3s' }}
-              onMouseEnter={() => setHoveredDistrict(name)}
+              pointerEvents="none"
             />
-          );
-        })}
+          ))}
+        </g>
 
+        {/* Kumaon Division — shifted slightly right/down */}
+        <g transform="translate(14, 10)">
+          {Object.entries(PATHS).filter(([name]) => KUMAON.includes(name)).map(([name, path]) => {
+            const d = dataMap[name];
+            const pct = d ? (kpiForMap === 'coverage' ? d.coveragePct : d.lineListPct) : 0;
+            const tier = getTier(pct);
+            return (
+              <path
+                key={name}
+                d={path}
+                fill={tier.fill}
+                stroke={tier.fill}
+                strokeWidth={1.5}
+                strokeLinejoin="round"
+                style={{ transition: 'fill 0.3s' }}
+                onMouseEnter={() => setHoveredDistrict(name)}
+              />
+            );
+          })}
+          {/* Kumaon outer division border only */}
+          {Object.entries(PATHS).filter(([name]) => KUMAON.includes(name)).map(([name, path]) => (
+            <path
+              key={`outline-${name}`}
+              d={path}
+              fill="none"
+              stroke="#ea580c"
+              strokeWidth={5}
+              strokeLinejoin="round"
+              pointerEvents="none"
+            />
+          ))}
+        </g>
+
+        {/* Labels — offset per division to stay aligned with their group's transform */}
         {Object.entries(LABELS).map(([name, [x, y, label]]) => {
           const d = dataMap[name];
           const covPct = d?.coveragePct ?? 0;
           const llPct = d?.lineListPct ?? 0;
+          const isGarhwal = GARHWAL.includes(name);
+          const dx = isGarhwal ? -14 : 14;
+          const dy = isGarhwal ? -10 : 10;
+          const lx = x + dx;
+          const ly = y + dy;
           
           let displayPct = '';
           if (selectedKpi === 'coverage') displayPct = `${covPct.toFixed(1)}%`;
@@ -174,8 +228,8 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
 
           const boxWidth = 145;
           const boxHeight = selectedKpi === 'both' ? 110 : 80;
-          const rectX = x - boxWidth / 2;
-          const rectY = y - 30;
+          const rectX = lx - boxWidth / 2;
+          const rectY = ly - 30;
           
           return (
             <g key={`lbl-${name}`} style={{ pointerEvents: 'none' }}>
@@ -185,21 +239,21 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
                 rx={12} fill="white" filter="url(#dShadow)" 
               />
               {/* District Name */}
-              <text x={x} y={rectY + 32} textAnchor="middle" fontSize={26} fontFamily="system-ui, sans-serif" fontWeight="700" fill="#334155">
+              <text x={lx} y={rectY + 32} textAnchor="middle" fontSize={26} fontFamily="system-ui, sans-serif" fontWeight="700" fill="#334155">
                 {label}
               </text>
               {/* Value(s) */}
               {selectedKpi === 'both' ? (
                 <>
-                  <text x={x} y={rectY + 68} textAnchor="middle" fontSize={24} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#6b21a8">
+                  <text x={lx} y={rectY + 68} textAnchor="middle" fontSize={24} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#6b21a8">
                     V: {covPct.toFixed(1)}%
                   </text>
-                  <text x={x} y={rectY + 95} textAnchor="middle" fontSize={24} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#047857">
+                  <text x={lx} y={rectY + 95} textAnchor="middle" fontSize={24} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#047857">
                     L: {llPct.toFixed(1)}%
                   </text>
                 </>
               ) : (
-                <text x={x} y={rectY + 66} textAnchor="middle" fontSize={32} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#0f172a">
+                <text x={lx} y={rectY + 66} textAnchor="middle" fontSize={32} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#0f172a">
                   {displayPct}
                 </text>
               )}
