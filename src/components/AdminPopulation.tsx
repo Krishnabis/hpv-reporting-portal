@@ -155,5 +155,6 @@ export const AdminPopulation: React.FC<{ activeStateId?: string }> = ({ activeSt
             </table>
           </div>
         </div>
+    </div>
   );
 };
