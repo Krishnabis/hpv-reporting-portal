@@ -1552,7 +1552,7 @@ export const AdminDashboard: React.FC = () => {
         )}
 
         {activeTab === 'population' && (
-          <AdminPopulation />
+          <AdminPopulation activeStateId={activeStateId} />
         )}
 
         {activeTab === 'upload' && adminUser?.role === 'SUPER_ADMIN' && (

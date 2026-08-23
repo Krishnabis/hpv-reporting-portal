@@ -15,13 +15,15 @@ interface PopulationData {
   } | null;
 }
 
-export const AdminPopulation: React.FC = () => {
+export const AdminPopulation: React.FC<{ activeStateId?: string }> = ({ activeStateId }) => {
   const [data, setData] = useState<PopulationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetchPopulationData = () => {
-    fetch('/api/admin/population')
+    const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+    const url = activeStateId ? `/api/admin/population?state_id=${activeStateId}` : '/api/admin/population';
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => res.json())
       .then(json => {
         setData(json);
@@ -35,12 +37,13 @@ export const AdminPopulation: React.FC = () => {
 
   useEffect(() => {
     fetchPopulationData();
-  }, []);
+  }, [activeStateId]);
 
   const handleUnlock = (blockId: number) => {
     if (!window.confirm('Are you sure you want to unlock population editing for this location?')) return;
     
-    fetch(`/api/blocks/${blockId}/unlock-population`, { method: 'POST' })
+    const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+    fetch(`/api/blocks/${blockId}/unlock-population`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
       .then(res => res.json())
       .then(json => {
         if (json.error) {
