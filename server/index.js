@@ -842,9 +842,6 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     // 1. Fetch facilities
     let ccpQuery = supabase.from('vaccine_ccp').select('*');
     if (targetStateId) ccpQuery = ccpQuery.eq('state_id', targetStateId);
-    if (userRole === 'DISTRICT_ADMIN' || userDistrictId) {
-       ccpQuery = ccpQuery.eq('district_id', userDistrictId);
-    }
     const { data: rawFacilities, error: fErr } = await ccpQuery;
     if (fErr) throw fErr;
     const facilities = rawFacilities || [];
@@ -860,17 +857,11 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     // 2. Fetch stock transactions
     let txQuery = supabase.from('vaccine_stock_transactions').select('*');
     if (targetStateId) txQuery = txQuery.eq('state_id', targetStateId);
-    if (userRole === 'DISTRICT_ADMIN' || userDistrictId) {
-      // District admins see their own district's transactions. State level transactions might not have district_id if they are general, but they are level 1 anyway.
-      // We'll fetch all for state to do statewide calculations, then filter down if needed.
-    }
     const { data: rawTransactions, error: tErr } = await txQuery;
     if (tErr) throw tErr;
     const allTransactions = rawTransactions || [];
     
-    const tx = userDistrictId 
-      ? allTransactions.filter(t => t.district_id === userDistrictId || (t.destination_level === 2 && t.destination_facility_id && facilities.some(f => f.id === t.destination_facility_id))) 
-      : allTransactions;
+    const tx = allTransactions;
 
     // Helper to get latest month end balance
     const getMonthEnd = (level, filterFn = () => true) => {
@@ -903,7 +894,6 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     
     let validReports = rawReports || [];
     if (targetStateId) validReports = validReports.filter(r => r.blocks?.districts?.state_id == targetStateId);
-    if (userDistrictId) validReports = validReports.filter(r => r.blocks?.district_id == userDistrictId);
 
     // Deduplicate to only sum the latest cumulative report per block
     const latestReportsMap = {};
