@@ -117,20 +117,7 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
       onMouseLeave={() => { setHoveredDistrict(null); setIsDragging(false); }}
       ref={containerRef}
     >
-      {/* Legend */}
-      <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur p-3 rounded-xl shadow-sm border border-slate-200">
-        <h4 className="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">Divisions</h4>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded border-[3px] border-blue-500 bg-slate-50"></div>
-            <span className="text-xs font-semibold text-slate-600">Garhwal</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded border-[3px] border-orange-500 bg-slate-50"></div>
-            <span className="text-xs font-semibold text-slate-600">Kumaon</span>
-          </div>
-        </div>
-      </div>
+      {/* Legend removed per user request */}
       <svg
         viewBox="58 0 1192 1067"
         className={`w-full h-full max-h-[500px] drop-shadow-md ${isDragging ? '' : 'transition-transform duration-200 ease-out'}`}
@@ -156,26 +143,15 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
                 key={name}
                 d={path}
                 fill={tier.fill}
-                stroke={tier.fill}
+                stroke="#000000"
                 strokeWidth={1.5}
                 strokeLinejoin="round"
+                filter="url(#dShadow)"
                 style={{ transition: 'fill 0.3s' }}
                 onMouseEnter={() => setHoveredDistrict(name)}
               />
             );
           })}
-          {/* Garhwal outer division border only */}
-          {Object.entries(PATHS).filter(([name]) => GARHWAL.includes(name)).map(([name, path]) => (
-            <path
-              key={`outline-${name}`}
-              d={path}
-              fill="none"
-              stroke="#2563eb"
-              strokeWidth={5}
-              strokeLinejoin="round"
-              pointerEvents="none"
-            />
-          ))}
         </g>
 
         {/* Kumaon Division — shifted slightly right/down */}
@@ -189,26 +165,15 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
                 key={name}
                 d={path}
                 fill={tier.fill}
-                stroke={tier.fill}
+                stroke="#000000"
                 strokeWidth={1.5}
                 strokeLinejoin="round"
+                filter="url(#dShadow)"
                 style={{ transition: 'fill 0.3s' }}
                 onMouseEnter={() => setHoveredDistrict(name)}
               />
             );
           })}
-          {/* Kumaon outer division border only */}
-          {Object.entries(PATHS).filter(([name]) => KUMAON.includes(name)).map(([name, path]) => (
-            <path
-              key={`outline-${name}`}
-              d={path}
-              fill="none"
-              stroke="#ea580c"
-              strokeWidth={5}
-              strokeLinejoin="round"
-              pointerEvents="none"
-            />
-          ))}
         </g>
 
         {/* Labels — offset per division to stay aligned with their group's transform */}
