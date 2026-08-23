@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Menu,
+  X,
+  ChevronLeft,
+  ChevronRight,
   LayoutDashboard,
   FileText,
-  Upload,
+  UploadCloud,
   ArrowLeft
 } from 'lucide-react';
 
@@ -15,90 +18,110 @@ export const VaccineManagementDashboard: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans selection:bg-pink-100 selection:text-pink-900">
-      {/* Mobile Menu Overlay */}
+    <div className="h-[100dvh] w-full bg-slate-100 flex flex-col lg:flex-row font-sans overflow-hidden selection:bg-pink-100 selection:text-pink-900">
+      {/* Mobile Topbar */}
+      <div className="lg:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-40">
+        <div className="bg-white rounded-[2rem] px-3 py-1 flex items-center justify-center shadow-sm shrink-0 border border-slate-200">
+          <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-10 w-auto object-contain" />
+        </div>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200"
+        >
+          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      </div>
+
+      {/* Mobile Menu Backdrop */}
       {mobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
-      <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50
-        flex flex-col bg-white border-r border-slate-200
-        transition-all duration-300 ease-in-out
-        ${sidebarCollapsed ? 'w-20' : 'w-72'}
-        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        {/* Logo Area */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 shrink-0">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain shrink-0" />
-            <div className={`flex flex-col ${sidebarCollapsed ? 'hidden' : 'flex'}`}>
-              <span className="text-sm font-black text-slate-800 tracking-tight leading-tight">Vaccine Management</span>
-              <span className="text-[10px] font-bold text-pink-600 tracking-wider">DASHBOARD</span>
+      {/* Sidebar Navigation */}
+      <aside className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200 text-slate-600 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-[100dvh] lg:shrink-0 ${
+        mobileMenuOpen ? 'translate-x-0 w-64 shadow-2xl' : '-translate-x-full w-64'
+      } ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} lg:translate-x-0`}>
+        <div className="flex flex-col h-full">
+          {/* Logo Branding */}
+          <div className={`p-4 border-b border-slate-200 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
+            <div className={`${sidebarCollapsed ? 'lg:hidden' : 'block flex-1 min-w-0 mr-2'}`}>
+              <div className="bg-white rounded-[2rem] px-3 py-1.5 flex items-center justify-center shadow-sm shrink-0 border border-slate-200">
+                <img src="/headinglogo.png" alt="HPV Kavach Logo" className="h-12 w-auto object-contain" />
+              </div>
             </div>
+            <button 
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="hidden lg:flex p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 shrink-0"
+              title="Toggle Sidebar"
+            >
+              {sidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+            </button>
           </div>
-          <button 
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors shrink-0"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        </div>
 
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto py-4 scrollbar-hide">
-          <nav className="px-3 space-y-1">
+          {/* Navigation Links */}
+          <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto scrollbar-hide">
+            {/* Dashboard */}
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'dashboard' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              title="Dashboard"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
+                activeTab === 'dashboard'
+                  ? 'bg-pink-50 text-pink-700 shadow-sm border border-pink-100 font-bold'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-pink-600'
               }`}
             >
-              <LayoutDashboard className={`w-4 h-4 shrink-0 ${activeTab === 'dashboard' ? 'text-pink-600' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Dashboard</span>
+              <LayoutDashboard className={`w-5 h-5 shrink-0 ${activeTab === 'dashboard' ? 'text-pink-600' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Dashboard</span>
             </button>
 
+            {/* Report */}
             <button
               onClick={() => setActiveTab('report')}
-              className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'report' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              title="Report"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
+                activeTab === 'report'
+                  ? 'bg-pink-50 text-pink-700 shadow-sm border border-pink-100 font-bold'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-pink-600'
               }`}
             >
-              <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'report' ? 'text-pink-600' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Report</span>
+              <FileText className={`w-5 h-5 shrink-0 ${activeTab === 'report' ? 'text-pink-600' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Report</span>
             </button>
 
+            {/* Upload CSV */}
             <button
               onClick={() => setActiveTab('upload')}
-              className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'upload' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              title="Upload CSV"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
+                activeTab === 'upload'
+                  ? 'bg-pink-50 text-pink-700 shadow-sm border border-pink-100 font-bold'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-pink-600'
               }`}
             >
-              <Upload className={`w-4 h-4 shrink-0 ${activeTab === 'upload' ? 'text-pink-600' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Upload CSV</span>
+              <UploadCloud className={`w-5 h-5 shrink-0 ${activeTab === 'upload' ? 'text-pink-600' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Upload CSV</span>
             </button>
           </nav>
-        </div>
 
-        {/* Dashboard Switcher Button */}
-        <div className={`mx-3 mb-4 shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`}>
-          <button 
-            onClick={() => { setMobileMenuOpen(false); navigate('/admin'); }}
-            className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Monitoring
-          </button>
+          {/* Dashboard Switcher Button */}
+          <div className={`mx-3 mt-auto mb-2 shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`}>
+            <button 
+              onClick={() => { setMobileMenuOpen(false); navigate('/admin'); }}
+              className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-xl py-2.5 font-bold transition-colors text-xs shadow-sm flex items-center justify-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Go to Monitoring Dashboard
+            </button>
+          </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 bg-slate-50 relative">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 sticky top-0 z-10">
+      <main className="flex-1 flex flex-col min-w-0 bg-slate-50 relative lg:rounded-tl-2xl lg:border-l lg:border-t lg:border-slate-200 overflow-hidden shadow-inner">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 shrink-0 sticky top-0 z-10 hidden lg:flex">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setMobileMenuOpen(true)}
