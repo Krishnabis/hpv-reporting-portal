@@ -30,10 +30,15 @@ function authenticateToken(req, res, next) {
   });
 }
 
-async function logAudit(userId, action, entityType, entityId) {
+async function logAudit(userId, action, entityType, entityId, req = null) {
   if (!useSupabase) return;
   const id = `audit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-  await supabase.from('audit_logs').insert([{ id, user_id: userId || 'SYSTEM', action, entity_type: entityType, entity_id: entityId ? String(entityId) : null }]);
+  const logData = { id, user_id: userId || 'SYSTEM', action, entity_type: entityType, entity_id: entityId ? String(entityId) : null };
+  if (req) {
+    logData.device_info = req.headers['user-agent'] || null;
+    logData.ip_address = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || null;
+  }
+  await supabase.from('audit_logs').insert([logData]);
 }
 
 // ─── Supabase helpers ─────────────────────────────────────────────────────────
@@ -469,16 +474,30 @@ app.post('/api/admin/login', async (req, res) => {
       }
     }
 
-    if (!user || hashPassword(password) !== user.password_hash) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user || hashPassword(password) !== user.password_hash) {
+      if (user) await logAudit(user.id, 'FAILED_LOGIN', 'admin_user', user.id, req);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     if (useSupabase) {
       await supabase.from('admin_users').update({ last_login_at: new Date().toISOString() }).eq('id', user.id);
     }
 
     const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name, state_id: user.state_id, state_name: stateName, district_id: user.district_id, district_name: districtName }, JWT_SECRET, { expiresIn: '24h' });
-    await logAudit(user.id, 'ADMIN_LOGIN', 'admin_user', user.id);
+    await logAudit(user.id, 'ADMIN_LOGIN', 'admin_user', user.id, req);
     res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role, state_id: user.state_id, state_name: stateName, district_id: user.district_id, district_name: districtName } });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+// ─── Admin Logout ─────────────────────────────────────────────────────────────
+app.post('/api/admin/logout', authenticateToken, async (req, res) => {
+  try {
+    await logAudit(req.user.id, 'LOGOUT', 'admin_user', req.user.id, req);
+    res.json({ message: 'Logged out successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Change own password
@@ -566,6 +585,31 @@ app.post('/api/admin/users', authenticateToken, async (req, res) => {
 
     await logAudit(req.user.id, 'CREATE_ADMIN', 'admin_user', newId);
     res.json({ message: 'Admin user created successfully', id: newId });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+// Toggle admin user status
+app.post('/api/admin/users/:id/toggle-status', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Only super admin can modify users' });
+    const targetUserId = req.params.id;
+    const { is_active } = req.body;
+    
+    if (useSupabase) {
+      const { error } = await supabase.from('admin_users').update({ is_active }).eq('id', targetUserId);
+      if (error) throw error;
+    } else {
+      const idx = store.admin_users.findIndex(u => u.id === targetUserId);
+      if (idx >= 0) {
+        store.admin_users[idx].is_active = is_active;
+        saveStore();
+      } else {
+        return res.status(404).json({ error: 'User not found' });
+      }
+    }
+    
+    await logAudit(req.user.id, is_active ? 'ENABLE_ADMIN' : 'DISABLE_ADMIN', 'admin_user', targetUserId);
+    res.json({ message: `User ${is_active ? 'enabled' : 'disabled'} successfully` });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 

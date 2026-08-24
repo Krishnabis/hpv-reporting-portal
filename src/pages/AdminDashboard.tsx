@@ -404,13 +404,32 @@ export const AdminDashboard: React.FC = () => {
         })
       });
       const data = await res.json();
-      if (!res.ok) { setAddAdminMsg(`❌ ${data.error}`); } else {
-        setAddAdminMsg('✅ Admin created successfully!');
-        setNewAdminName(''); setNewAdminUsername(''); setNewAdminPassword(''); setNewAdminStateId(''); setNewAdminDistrictId('');
-        fetchAdminUsers();
-      }
-    } catch { setAddAdminMsg('❌ Request failed'); }
+      if (!res.ok) throw new Error(data.error || 'Failed to add admin');
+      setAddAdminMsg('✅ Admin added successfully!');
+      setNewAdminName(''); setNewAdminUsername(''); setNewAdminPassword('');
+      fetchAdminUsers();
+    } catch (err: any) { setAddAdminMsg(`❌ ${err.message}`); }
     setAddAdminLoading(false);
+  };
+
+  const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
+    if (!window.confirm(`Are you sure you want to ${currentStatus ? 'disable' : 'enable'} this user?`)) return;
+    try {
+      const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+      const res = await fetch(`/api/admin/users/${userId}/toggle-status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ is_active: !currentStatus })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to toggle status');
+      fetchAdminUsers();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    }
   };
 
   const handleAddLocation = async (e: React.FormEvent) => {
@@ -487,7 +506,16 @@ export const AdminDashboard: React.FC = () => {
     if (tab === 'month-end-balance') fetchStockHistory();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const t = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+      if (t) {
+        await fetch('/api/admin/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${t}` }
+        });
+      }
+    } catch (e) { console.error('Logout error', e); }
     localStorage.removeItem('hpv_admin_token');
     localStorage.removeItem('hpv_admin_user');
     sessionStorage.removeItem('hpv_admin_token');
@@ -2345,9 +2373,17 @@ export const AdminDashboard: React.FC = () => {
                       <td className="px-4 py-2.5 font-semibold text-slate-500">{u.state_name || '-'}</td>
                       <td className="px-4 py-2.5 font-semibold text-slate-500">{u.district_name || '-'}</td>
                       <td className="px-4 py-2.5">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                          {u.is_active ? 'Active' : 'Inactive'}
-                        </span>
+                        <button
+                          onClick={() => handleToggleUserStatus(u.id, u.is_active)}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-colors ${
+                            u.is_active 
+                              ? 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200' 
+                              : 'bg-rose-100 text-rose-700 border-rose-200 hover:bg-rose-200'
+                          }`}
+                          title={`Click to ${u.is_active ? 'disable' : 'enable'} access`}
+                        >
+                          {u.is_active ? 'Active' : 'Disabled'}
+                        </button>
                       </td>
                       <td className="px-4 py-2.5 text-slate-400 text-[10px]">
                         {u.last_login_at ? new Date(u.last_login_at).toLocaleString('en-IN') : 'Never'}
@@ -2471,6 +2507,7 @@ export const AdminDashboard: React.FC = () => {
                       <th className="p-3">User</th>
                       <th className="p-3">Action</th>
                       <th className="p-3">Entity</th>
+                      <th className="p-3">Device Info</th>
                       <th className="p-3">IP Address</th>
                     </tr>
                   </thead>
@@ -2479,8 +2516,15 @@ export const AdminDashboard: React.FC = () => {
                       <tr key={log.id} className="hover:bg-slate-50">
                         <td className="p-3 text-slate-500">{new Date(log.created_at).toLocaleString('en-IN')}</td>
                         <td className="p-3 font-bold text-emerald-600">{log.user_id}</td>
-                        <td className="p-3 font-bold text-slate-900">{log.action}</td>
+                        <td className="p-3 font-bold text-slate-900">
+                          {log.action === 'LOGOUT' ? (
+                            <span className="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded text-[10px]">LOGOUT</span>
+                          ) : (
+                            log.action
+                          )}
+                        </td>
                         <td className="p-3 text-slate-600">{log.entity_type}</td>
+                        <td className="p-3 text-slate-400 max-w-[200px] truncate" title={log.device_info || 'Unknown'}>{log.device_info || '-'}</td>
                         <td className="p-3 text-slate-400">{log.ip_address || '127.0.0.1'}</td>
                       </tr>
                     ))}
