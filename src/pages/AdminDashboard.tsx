@@ -170,6 +170,18 @@ export const AdminDashboard: React.FC = () => {
   const [stockLoading, setStockLoading] = useState(false);
   const [stockHistory, setStockHistory] = useState<any[]>([]);
 
+  const handleAuthError = (res: Response) => {
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('hpv_admin_token');
+      localStorage.removeItem('hpv_admin_user');
+      sessionStorage.removeItem('hpv_admin_token');
+      sessionStorage.removeItem('hpv_admin_user');
+      navigate('/admin/login');
+      return true;
+    }
+    return false;
+  };
+
   // Token Auth Verification
   useEffect(() => {
     const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
@@ -190,7 +202,10 @@ export const AdminDashboard: React.FC = () => {
     fetch(`/api/admin/population?state_id=${dashboardStateId}`, {
       headers: { 'Authorization': `Bearer ${(localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'))}` }
     })
-      .then(res => res.json())
+      .then(res => {
+        if (handleAuthError(res)) return [];
+        return res.json();
+      })
       .then(data => {
         if (Array.isArray(data)) {
           setAlertCount(data.filter(item => item.profile?.unlock_requested).length);
@@ -205,7 +220,10 @@ export const AdminDashboard: React.FC = () => {
     fetch('/api/admin/activity', {
       headers: { Authorization: `Bearer ${token}` }
     })
-      .then(res => res.json())
+      .then(res => {
+        if (handleAuthError(res)) return [];
+        return res.json();
+      })
       .then(data => {
         setActivityData(Array.isArray(data) ? data : []);
         setLoadingActivity(false);
@@ -222,6 +240,7 @@ export const AdminDashboard: React.FC = () => {
       headers: { 'Authorization': `Bearer ${(localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'))}` }
     })
       .then(res => {
+        if (handleAuthError(res)) throw new Error('Auth failed');
         if (!res.ok) throw new Error('Failed to fetch KPIs');
         return res.json();
       })
@@ -308,6 +327,7 @@ export const AdminDashboard: React.FC = () => {
       headers: { 'Authorization': `Bearer ${(localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'))}` }
     })
       .then(res => {
+        if (handleAuthError(res)) throw new Error('Auth failed');
         if (!res.ok) throw new Error('Failed to fetch reports');
         return res.json();
       })
