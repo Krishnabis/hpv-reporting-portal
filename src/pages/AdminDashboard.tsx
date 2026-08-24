@@ -1227,7 +1227,7 @@ export const AdminDashboard: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-semibold text-slate-200">Vaccination Coverage (%) =</span>
                             <div className="flex flex-col items-center">
-                              <span className="text-[9px]">Vaccinated</span>
+                              <span className="text-[9px]">Beneficiaries Vaccinated</span>
                               <div className="w-full h-px bg-slate-500 my-1"></div>
                               <span className="text-[9px]">HPV Target</span>
                             </div>
@@ -1246,7 +1246,7 @@ export const AdminDashboard: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-semibold text-slate-200">Line Listed (%) =</span>
                             <div className="flex flex-col items-center">
-                              <span className="text-[9px]">Line Listed</span>
+                              <span className="text-[9px]">Beneficiaries Line Listed</span>
                               <div className="w-full h-px bg-slate-500 my-1"></div>
                               <span className="text-[9px]">HPV Target</span>
                             </div>
