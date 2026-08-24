@@ -970,20 +970,29 @@ export const AdminDashboard: React.FC = () => {
                 <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-blue-500 flex flex-col justify-between">
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                      <Users className="w-5 h-5 text-white" />
+                      <Target className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                        TOTAL POPULATION
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate flex items-center gap-1 group relative">
+                        HPV VACC. TARGET (1%)
+                        <div className="w-3 h-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0">
+                          <span className="text-[8px] font-bold italic font-serif">i</span>
+                          <div className="absolute left-1/2 bottom-full mb-1 -translate-x-1/2 w-max max-w-[200px] bg-slate-800 text-white text-[9px] p-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium normal-case tracking-normal">
+                            HPV Target Population = 1% of total population
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
+                          </div>
+                        </div>
                       </span>
                       <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none mt-1">
-                        {kpis?.total_population ? kpis.total_population.toLocaleString('en-IN') : '—'}
+                        {kpis?.total_target?.toLocaleString('en-IN') || '—'}
                       </span>
                     </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between z-10 relative">
-                    <span className="text-[9px] text-slate-400">HPV Target population (1%)</span>
-                    <span className="text-[10px] font-bold font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">{kpis?.total_target?.toLocaleString('en-IN') || '—'}</span>
+                    <span className="text-[9px] text-slate-400">Total population</span>
+                    <span className="text-[10px] font-bold font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
+                      {kpis?.total_population ? kpis.total_population.toLocaleString('en-IN') : '—'}
+                    </span>
                   </div>
                 </div>
 
