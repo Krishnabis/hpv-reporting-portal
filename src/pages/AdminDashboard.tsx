@@ -967,10 +967,10 @@ export const AdminDashboard: React.FC = () => {
             {/* KPI Cards Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 {/* Card 1: Total Population */}
-                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-blue-500 flex flex-col justify-between">
+                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative border-t-4 border-t-blue-500 flex flex-col justify-between">
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                      <Target className="w-5 h-5 text-white" />
+                      <img src="/3138297.svg" alt="Target" className="w-5 h-5 invert brightness-0" />
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate flex items-center gap-1 group relative">
