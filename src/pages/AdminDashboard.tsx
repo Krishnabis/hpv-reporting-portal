@@ -583,7 +583,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Mobile Topbar */}
       <div className="lg:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-40">
         <div className="bg-white rounded-[2rem] px-3 py-1 flex items-center justify-center shadow-sm shrink-0 border border-slate-200">
-          <img src="/loginlogo.png" alt="HPV Kavach Login Logo" className="h-10 w-auto object-contain" />
+          <img src="/headinglogo.png" alt="HPV Kavach Login Logo" className="h-10 w-auto object-contain" />
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
