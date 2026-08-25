@@ -82,8 +82,8 @@ export const UttarakhandMap: React.FC<MapProps> = ({ data, selectedKpi, selected
       const targetScale = 2.5;
       setScale(targetScale);
       setPan({
-        x: (654 / targetScale) - x,
-        y: (533.5 / targetScale) - y
+        x: 654 - (x * targetScale),
+        y: 533.5 - (y * targetScale)
       });
     } else if (selectedDistrict === null) {
       setScale(1);
@@ -136,7 +136,6 @@ export const UttarakhandMap: React.FC<MapProps> = ({ data, selectedKpi, selected
       <svg
         viewBox="58 0 1192 1067"
         className={`w-full h-full max-h-[500px] drop-shadow-md ${isDragging ? '' : 'transition-transform duration-200 ease-out'}`}
-        style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})` }}
       >
         <defs>
           <filter id="dShadow" x="-5%" y="-5%" width="110%" height="110%">
@@ -147,6 +146,7 @@ export const UttarakhandMap: React.FC<MapProps> = ({ data, selectedKpi, selected
           </filter>
         </defs>
 
+        <g style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})` }} className="transition-transform duration-200 ease-out">
         <g>
           {Object.entries(PATHS).map(([name, path]) => {
             const d = dataMap[name];
@@ -223,6 +223,7 @@ export const UttarakhandMap: React.FC<MapProps> = ({ data, selectedKpi, selected
             </g>
           );
         })}
+        </g>
       </svg>
       
       {/* Zoom Controls */}
