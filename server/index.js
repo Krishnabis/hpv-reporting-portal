@@ -731,7 +731,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     // 1. Fetch all active blocks with district info
     let bq = supabase
       .from('blocks')
-      .select(targetStateId ? 'id, district_id, districts!inner(name, state_id, divisions(name))' : 'id, district_id, districts!inner(name, divisions(name))')
+      .select(targetStateId ? 'id, name, district_id, districts!inner(name, state_id, divisions(name))' : 'id, name, district_id, districts!inner(name, divisions(name))')
       .eq('is_active', true);
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
     
@@ -806,6 +806,24 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       lineListPct: d.target > 0 ? parseFloat(((d.lineList / d.target) * 100).toFixed(1)) : 0,
     })).sort((a, b) => b.coveragePct - a.coveragePct);
 
+    const block_chart_data = (blocks || []).map((b) => {
+      const dName = b.districts?.name || 'Unknown';
+      const prof = profileMap[b.id];
+      const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
+      const rep = reportMap[b.id];
+      const ll = rep?.line_list_count || 0;
+      const vacc = rep?.beneficiaries_vaccinated || 0;
+      return {
+        block: b.name,
+        district: dName,
+        vaccinated: vacc,
+        lineList: ll,
+        target: target,
+        coveragePct: target > 0 ? parseFloat(((vacc / target) * 100).toFixed(1)) : 0,
+        lineListPct: target > 0 ? parseFloat(((ll / target) * 100).toFixed(1)) : 0,
+      };
+    }).sort((a, b) => b.coveragePct - a.coveragePct);
+
     res.json({
       total_blocks: totalBlocks,
       reporting_today: reportingToday,
@@ -816,6 +834,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       overall_coverage_pct: totalTarget > 0 ? parseFloat(((totalVaccinated / totalTarget) * 100).toFixed(1)) : 0,
       overall_linelist_pct: totalTarget > 0 ? parseFloat(((totalLineList / totalTarget) * 100).toFixed(1)) : 0,
       district_chart_data,
+      block_chart_data,
       latest_reporting_date: reports && reports.length > 0 ? reports[0].reporting_date : null
     });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }

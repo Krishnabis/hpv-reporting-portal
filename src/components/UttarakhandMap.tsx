@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Minus, Maximize } from 'lucide-react';
 
 export interface DistrictMapData {
@@ -10,10 +10,11 @@ export interface DistrictMapData {
   target: number;
 }
 
-interface Props {
+interface MapProps {
   data: DistrictMapData[];
   selectedKpi: 'coverage' | 'linelist' | 'both';
-}
+  selectedDistrict?: string | null;
+  onDistrictClick?: (name: string) => void;}
 
 // Real SVG paths from UttarakhandDistricts_numbered.svg
 // viewBox: 58 0 1192 1067
@@ -75,6 +76,20 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (selectedDistrict && LABELS[selectedDistrict]) {
+      const [x, y] = LABELS[selectedDistrict];
+      const targetScale = 2.5;
+      setScale(targetScale);
+      setPan({
+        x: (654 / targetScale) - x,
+        y: (533.5 / targetScale) - y
+      });
+    } else if (selectedDistrict === null) {
+      setScale(1);
+      setPan({ x: 0, y: 0 });
+    }
+  }, [selectedDistrict]);
 
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.25, 4));
   const handleZoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.5));
@@ -137,17 +152,24 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
             const d = dataMap[name];
             const pct = d ? (kpiForMap === 'coverage' ? d.coveragePct : d.lineListPct) : 0;
             const tier = getTier(pct);
+            const isSelected = selectedDistrict === name;
+            const isFaded = selectedDistrict && !isSelected;
             return (
               <path
                 key={name}
                 d={path}
                 fill={tier.fill}
                 stroke="#000000"
-                strokeWidth={1.5}
+                strokeWidth={isSelected ? 3 : 1.5}
                 strokeLinejoin="round"
                 filter="url(#dShadow)"
-                style={{ transition: 'fill 0.3s' }}
+                style={{ 
+                  transition: 'fill 0.3s, opacity 0.3s', 
+                  opacity: isFaded ? 0.3 : 1,
+                  cursor: 'pointer'
+                }}
                 onMouseEnter={() => setHoveredDistrict(name)}
+                onClick={() => onDistrictClick?.(name)}
               />
             );
           })}
@@ -170,8 +192,10 @@ export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
           const rectX = lx - boxWidth / 2;
           const rectY = ly - 30;
           
+          const isFaded = selectedDistrict && selectedDistrict !== name;
+          
           return (
-            <g key={`lbl-${name}`} style={{ pointerEvents: 'none' }}>
+            <g key={`lbl-${name}`} style={{ pointerEvents: 'none', transition: 'opacity 0.3s', opacity: isFaded ? 0 : 1 }}>
               {/* White rounded box for label */}
               <rect 
                 x={rectX} y={rectY} width={boxWidth} height={boxHeight} 

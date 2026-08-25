@@ -62,6 +62,7 @@ export const AdminDashboard: React.FC = () => {
   const [usersOpen, setUsersOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [reportingOpen, setReportingOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -1129,7 +1130,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col flex-1 lg:overflow-hidden min-h-[400px] lg:min-h-0">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                    <BarChart3 className="w-4 h-4 text-blue-500" /> District Ranking
+                    <BarChart3 className="w-4 h-4 text-blue-500" /> {selectedDistrict ? 'Block Ranking' : 'District Ranking'}
                   </h3>
                   <select
                     value={selectedKpi}
@@ -1149,27 +1150,48 @@ export const AdminDashboard: React.FC = () => {
                   ))}
                 </div>
 
-                {kpis?.district_chart_data && kpis.district_chart_data.length > 0 ? (
+                {selectedDistrict && (
+                  <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                    <button 
+                      onClick={() => setSelectedDistrict(null)}
+                      className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded transition-colors"
+                    >
+                      ← Back to Districts
+                    </button>
+                    <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded">
+                      {selectedDistrict}
+                    </span>
+                  </div>
+                )}
+
+                {((!selectedDistrict && kpis?.district_chart_data && kpis.district_chart_data.length > 0) || 
+                  (selectedDistrict && kpis?.block_chart_data && kpis.block_chart_data.some((b: any) => b.district === selectedDistrict))) ? (
                   <div className="flex-1 min-h-0 overflow-y-auto">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 sm:gap-y-1.5 pb-2">
-                    {[...kpis.district_chart_data]
+                    {(!selectedDistrict ? [...kpis.district_chart_data] : [...kpis.block_chart_data.filter((b: any) => b.district === selectedDistrict)])
                        .sort((a, b) => {
                         const pa = selectedKpi === 'linelist' ? a.lineListPct : a.coveragePct;
                         const pb = selectedKpi === 'linelist' ? b.lineListPct : b.coveragePct;
                         return pb - pa;
                       })
-                      .map((d, idx) => {
+                      .map((d: any, idx: number) => {
                         const covPct = d.coveragePct;
                         const llPct = d.lineListPct ?? 0;
                         const primaryPct = selectedKpi === 'linelist' ? llPct : covPct;
                         const primaryVal = selectedKpi === 'linelist' ? d.lineList : d.vaccinated;
                         const tier = getTier(primaryPct);
+                        const isBlock = !!selectedDistrict;
+                        const rowName = isBlock ? d.block : d.district;
                         return (
-                          <div key={d.district} className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5`}>
+                          <div 
+                            key={rowName} 
+                            onClick={() => !isBlock && setSelectedDistrict(d.district)}
+                            className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${!isBlock ? 'cursor-pointer hover:bg-blue-50/50' : ''}`}
+                          >
                             <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
                             <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
-                              <span className="text-[11px] font-bold text-slate-800">{d.district}</span>
-                              <span className="text-[9px] font-semibold text-slate-400">({primaryVal.toLocaleString('en-IN')}/{d.target.toLocaleString('en-IN')})</span>
+                              <span className="text-[11px] font-bold text-slate-800 truncate">{rowName}</span>
+                              <span className="text-[9px] font-semibold text-slate-400 shrink-0">({primaryVal.toLocaleString('en-IN')}/{d.target.toLocaleString('en-IN')})</span>
                             </div>
                             {selectedKpi === 'both' ? (
                               <div className="flex items-center gap-1 shrink-0">
@@ -1192,7 +1214,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 ) : (
                   <div className="py-8 text-center text-[10px] text-slate-400">
-                    No district data — blocks need population setup.
+                    {selectedDistrict ? `No block data available for ${selectedDistrict}.` : 'No district data — blocks need population setup.'}
                   </div>
                 )}
               </div>
@@ -1330,6 +1352,8 @@ export const AdminDashboard: React.FC = () => {
                       target: d.target,
                     }))}
                     selectedKpi={selectedKpi === 'both' ? 'coverage' : selectedKpi}
+                    selectedDistrict={selectedDistrict}
+                    onDistrictClick={setSelectedDistrict}
                   />
                 </div>
 
@@ -1660,6 +1684,8 @@ export const AdminDashboard: React.FC = () => {
                           target: d.issued || 1,
                         }))}
                         selectedKpi={'coverage'}
+                        selectedDistrict={selectedDistrict}
+                        onDistrictClick={setSelectedDistrict}
                       />
                     </div>
 

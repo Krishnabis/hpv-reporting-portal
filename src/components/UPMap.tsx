@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Minus, Maximize } from 'lucide-react';
 
 export interface DistrictMapData {
@@ -10,9 +10,11 @@ export interface DistrictMapData {
   target: number;
 }
 
-interface Props {
+interface MapProps {
   data: DistrictMapData[];
   selectedKpi: 'coverage' | 'linelist' | 'both';
+  selectedDistrict?: string | null;
+  onDistrictClick?: (name: string) => void;
 }
 
 // Map from ID to actual SVG path string
@@ -121,7 +123,7 @@ const getDistrictColor = (district: string, data: DistrictMapData[], selectedKpi
   return '#ef4444'; // red-500
 };
 
-export const UPMap: React.FC<Props> = ({ data, selectedKpi }) => {
+export const UPMap: React.FC<MapProps> = ({ data, selectedKpi, selectedDistrict, onDistrictClick }) => {
   const [hoveredDistrict, setHoveredDistrict] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 });
@@ -155,6 +157,27 @@ export const UPMap: React.FC<Props> = ({ data, selectedKpi }) => {
   };
 
   const handleDragEnd = () => setIsDragging(false);
+
+  useEffect(() => {
+    if (selectedDistrict && svgRef.current) {
+      // Find the path for the selected district
+      const pathEl = svgRef.current.querySelector(`path[data-name="${selectedDistrict}"]`) as SVGGraphicsElement;
+      if (pathEl && svgRef.current.viewBox) {
+        const bbox = pathEl.getBBox();
+        const cx = bbox.x + bbox.width / 2;
+        const cy = bbox.y + bbox.height / 2;
+        const vBox = svgRef.current.viewBox.baseVal;
+        const targetScale = 2.5;
+        setTransform({
+          scale: targetScale,
+          x: (vBox.width / 2) - (cx * targetScale),
+          y: (vBox.height / 2) - (cy * targetScale),
+        });
+      }
+    } else if (selectedDistrict === null) {
+      setTransform({ scale: 1, x: 0, y: 0 });
+    }
+  }, [selectedDistrict]);
 
   const zoom = (delta: number) => {
     setTransform(prev => ({
@@ -191,17 +214,24 @@ export const UPMap: React.FC<Props> = ({ data, selectedKpi }) => {
         onMouseLeave={() => { handleDragEnd(); setHoveredDistrict(null); }}
       >
         <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`} className="transition-transform duration-75">
-          {Object.entries(PATHS).map(([name, d]) => (
-            <path
-              key={name}
-              d={d}
-              fill={getDistrictColor(name, data, selectedKpi)}
-              stroke="#000000"
-              strokeWidth="2"
-              className="transition-all duration-300 outline-none hover:brightness-110 cursor-pointer"
-              onMouseMove={(e) => handleMouseMove(e, name)}
-            />
-          ))}
+          {Object.entries(PATHS).map(([name, d]) => {
+            const isSelected = selectedDistrict === name;
+            const isFaded = selectedDistrict && !isSelected;
+            return (
+              <path
+                key={name}
+                data-name={name}
+                d={d}
+                fill={getDistrictColor(name, data, selectedKpi)}
+                stroke="#000000"
+                strokeWidth={isSelected ? "4" : "2"}
+                style={{ opacity: isFaded ? 0.3 : 1 }}
+                className="transition-all duration-300 outline-none hover:brightness-110 cursor-pointer"
+                onMouseMove={(e) => handleMouseMove(e, name)}
+                onClick={() => onDistrictClick?.(name)}
+              />
+            );
+          })}
         </g>
       </svg>
 

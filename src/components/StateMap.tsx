@@ -6,17 +6,19 @@ interface Props {
   stateName: string;
   data: any[];
   selectedKpi: 'coverage' | 'linelist' | 'both';
+  selectedDistrict?: string | null;
+  onDistrictClick?: (districtName: string) => void;
 }
 
-export const StateMap: React.FC<Props> = ({ stateName, data, selectedKpi }) => {
+export const StateMap: React.FC<Props> = ({ stateName, data, selectedKpi, selectedDistrict, onDistrictClick }) => {
   const name = stateName?.toLowerCase().trim() || '';
 
   if (name === 'uttarakhand') {
-    return <UttarakhandMap data={data} selectedKpi={selectedKpi} />;
+    return <UttarakhandMap data={data} selectedKpi={selectedKpi} selectedDistrict={selectedDistrict} onDistrictClick={onDistrictClick} />;
   }
   
   if (name === 'uttar pradesh' || name === 'up') {
-    return <UPMap data={data} selectedKpi={selectedKpi} />;
+    return <UPMap data={data} selectedKpi={selectedKpi} selectedDistrict={selectedDistrict} onDistrictClick={onDistrictClick} />;
   }
 
   return (
