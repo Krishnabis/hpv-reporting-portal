@@ -991,11 +991,14 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
        }
     });
 
-    const districtsMap = (await supabase.from('districts').select('id, name')).data || [];
+    let dq = supabase.from('districts').select('id, name, state_id').eq('is_active', true);
+    if (targetStateId) dq = dq.eq('state_id', targetStateId);
+    const allDistricts = (await dq).data || [];
     
-    const districtUtilization = Object.keys(districtStats).map(dId => {
-      const stat = districtStats[dId];
-      const distName = districtsMap.find(d => String(d.id) === String(dId))?.name || 'Unknown';
+    const districtUtilization = allDistricts.map(d => {
+      const dId = d.id;
+      const stat = districtStats[dId] || { vaccinated: 0, issued: 0 };
+      const distName = d.name || 'Unknown';
       const utilPct = stat.issued > 0 ? (stat.vaccinated / stat.issued) * 100 : 0;
       return {
         district: distName,
@@ -1026,16 +1029,20 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
        }
     });
 
-    const blocksMap = (await supabase.from('blocks').select('id, name')).data || [];
+    let bq = supabase.from('blocks').select('id, name, district_id, districts!inner(name, state_id)').eq('is_active', true);
+    if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
+    const allBlocks = (await bq).data || [];
 
-    const blockUtilization = Object.keys(blockStats).map(bId => {
-      const stat = blockStats[bId];
-      const blkName = blocksMap.find(b => String(b.id) === String(bId))?.name || 'Unknown';
+    const blockUtilization = allBlocks.map(b => {
+      const bId = b.id;
+      const stat = blockStats[bId] || { vaccinated: 0, received: 0 };
+      const blkName = b.name || 'Unknown';
+      const distName = b.districts?.name || 'Unknown';
       const utilPct = stat.received > 0 ? (stat.vaccinated / stat.received) * 100 : 0;
       return {
         block: blkName,
         block_id: bId,
-        district: stat.districtName,
+        district: distName,
         vaccinated: stat.vaccinated,
         issued: stat.received,
         utilizationPct: parseFloat(utilPct.toFixed(1))
