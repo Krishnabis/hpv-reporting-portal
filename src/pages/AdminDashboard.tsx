@@ -1557,7 +1557,11 @@ export const AdminDashboard: React.FC = () => {
                               const pct = d.utilizationPct;
                               const tier = getTier(pct);
                               return (
-                                <div key={d.district} className="flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5">
+                                <div 
+                                  key={d.district} 
+                                  onClick={() => setSelectedDistrict(d.district)}
+                                  className="flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 cursor-pointer hover:bg-blue-50/50"
+                                >
                                   <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
                                   <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
                                     <span className="text-[11px] font-bold text-slate-800">{d.district}</span>
