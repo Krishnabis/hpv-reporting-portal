@@ -1533,15 +1533,29 @@ export const AdminDashboard: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-2 flex-none lg:flex-1 lg:min-h-0">
                   {/* Left Column: District Ranking */}
                   <div className="lg:col-span-1 flex flex-col gap-2 lg:min-h-0">
-                    <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col flex-1 lg:overflow-hidden min-h-[400px] lg:min-h-0">
-                      <div className="flex items-center justify-between mb-3">
+                    <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 p-2 sm:p-3 sm:pb-2">
+                      <div className="flex items-center justify-between mb-2 sm:mb-3 border-b border-slate-100 pb-2">
                         <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                          <BarChart3 className="w-4 h-4 text-blue-500" /> District Ranking
+                          <BarChart3 className="w-4 h-4 text-blue-500" /> {selectedDistrict ? 'Block Ranking' : 'District Ranking'}
                         </h3>
-                        <span className="px-2 py-1 rounded-md border border-slate-200 text-[10px] font-semibold text-slate-700 bg-white">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 bg-slate-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-200">
                           Vaccine Utilization (%)
-                        </span>
+                        </div>
                       </div>
+
+                      {selectedDistrict && (
+                        <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                          <button 
+                            onClick={() => setSelectedDistrict(null)}
+                            className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded transition-colors"
+                          >
+                            ← Back to Districts
+                          </button>
+                          <span className="text-[10px] font-bold text-slate-600">
+                            Viewing: <span className="text-blue-700">{selectedDistrict}</span>
+                          </span>
+                        </div>
+                      )}
 
                       {/* Tier Legend */}
                       <div className="flex flex-wrap gap-1 mb-2">
@@ -1550,22 +1564,25 @@ export const AdminDashboard: React.FC = () => {
                         ))}
                       </div>
 
-                      {vaccDashboard?.districtUtilization && vaccDashboard.districtUtilization.length > 0 ? (
+                      {((!selectedDistrict && vaccDashboard?.districtUtilization && vaccDashboard.districtUtilization.length > 0) || 
+                        (selectedDistrict && vaccDashboard?.blockUtilization && vaccDashboard.blockUtilization.some((b: any) => b.district === selectedDistrict))) ? (
                         <div className="flex-1 min-h-0 overflow-y-auto">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 sm:gap-y-1.5 pb-2">
-                            {vaccDashboard.districtUtilization.map((d: any, idx: number) => {
+                            {(!selectedDistrict ? [...vaccDashboard.districtUtilization] : [...vaccDashboard.blockUtilization.filter((b: any) => b.district === selectedDistrict)]).map((d: any, idx: number) => {
                               const pct = d.utilizationPct;
                               const tier = getTier(pct);
+                              const isBlock = !!selectedDistrict;
+                              const rowName = isBlock ? d.block : d.district;
                               return (
                                 <div 
-                                  key={d.district} 
-                                  onClick={() => setSelectedDistrict(d.district)}
-                                  className="flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 cursor-pointer hover:bg-blue-50/50"
+                                  key={rowName} 
+                                  onClick={() => !isBlock && setSelectedDistrict(d.district)}
+                                  className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${!isBlock ? 'cursor-pointer hover:bg-blue-50/50' : ''}`}
                                 >
                                   <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
                                   <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
-                                    <span className="text-[11px] font-bold text-slate-800">{d.district}</span>
-                                    <span className="text-[9px] font-semibold text-slate-400">({d.vaccinated?.toLocaleString('en-IN')}/{d.issued?.toLocaleString('en-IN')})</span>
+                                    <span className="text-[11px] font-bold text-slate-800 truncate">{rowName}</span>
+                                    <span className="text-[9px] font-semibold text-slate-400 shrink-0">({d.vaccinated?.toLocaleString('en-IN')}/{d.issued?.toLocaleString('en-IN')})</span>
                                   </div>
                                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tier.bg} ${tier.text} shrink-0`}>
                                     {pct}%
@@ -1577,7 +1594,7 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       ) : (
                         <div className="py-8 text-center text-[10px] text-slate-400">
-                          No district utilization data available yet. Enter stock transactions to see data.
+                          No utilization data available for this selection.
                         </div>
                       )}
                     </div>

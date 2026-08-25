@@ -1006,13 +1006,49 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
       };
     }).sort((a, b) => b.utilizationPct - a.utilizationPct);
 
+    // Block Utilization (for drill down)
+    const blockStats = {};
+    deduplicatedReports.forEach(r => {
+      const bId = r.block_id;
+      const dName = districtsMap.find(d => String(d.id) === String(r.blocks?.district_id))?.name;
+      if (bId) {
+        if (!blockStats[bId]) blockStats[bId] = { vaccinated: 0, received: 0, districtName: dName };
+        blockStats[bId].vaccinated += (Number(r.beneficiaries_vaccinated) || 0);
+      }
+    });
+
+    tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '3').forEach(t => {
+       const bId = t.block_id;
+       const dName = districtsMap.find(d => String(d.id) === String(t.district_id))?.name;
+       if (bId) {
+         if (!blockStats[bId]) blockStats[bId] = { vaccinated: 0, received: 0, districtName: dName };
+         blockStats[bId].received += Number(t.quantity_doses);
+       }
+    });
+
+    const blocksMap = (await supabase.from('blocks').select('id, name')).data || [];
+
+    const blockUtilization = Object.keys(blockStats).map(bId => {
+      const stat = blockStats[bId];
+      const blkName = blocksMap.find(b => String(b.id) === String(bId))?.name || 'Unknown';
+      const utilPct = stat.received > 0 ? (stat.vaccinated / stat.received) * 100 : 0;
+      return {
+        block: blkName,
+        block_id: bId,
+        district: stat.districtName,
+        vaccinated: stat.vaccinated,
+        issued: stat.received,
+        utilizationPct: parseFloat(utilPct.toFixed(1))
+      };
+    }).sort((a, b) => b.utilizationPct - a.utilizationPct);
 
     res.json({
       state: { stores: stateStoresCount, received: stateReceived, issued: stateIssued, stockBalance: stateStock, monthEndBalance: stateMonthEnd, vwf: parseFloat(stateVWF.toFixed(2)) },
       district: { stores: districtStoresCount, received: distReceived, issued: distIssued, stockBalance: distStock, monthEndBalance: distMonthEnd, vwf: parseFloat(distVWF.toFixed(2)) },
       block: { coldChainPoints: blockStoresCount, received: blockReceived, vaccinated: blockVaccinated, stockBalance: blockStock, monthEndBalance: blockMonthEnd, vwf: parseFloat(realBlockVWF.toFixed(2)) },
       utilization: parseFloat(utilization.toFixed(1)),
-      districtUtilization
+      districtUtilization,
+      blockUtilization
     });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
