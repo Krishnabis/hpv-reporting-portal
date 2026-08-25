@@ -1018,18 +1018,16 @@ export const AdminDashboard: React.FC = () => {
                 <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative border-t-4 border-t-blue-500 flex flex-col justify-between">
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                      <svg className="w-5 h-5 text-white fill-current" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-                      </svg>
+                      <img src="/target_icon.svg" alt="Target" className="w-6 h-6 invert brightness-0" />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-1 group relative">
+                      <div className="flex items-center gap-1">
                         <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
                           HPV VACC. TARGET (1%)
                         </span>
-                        <div className="w-3 h-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0">
-                          <span className="text-[8px] font-bold italic font-serif lowercase">i</span>
-                          <div className="absolute left-1/2 top-full mt-1.5 -translate-x-1/2 w-max max-w-[200px] bg-slate-800 text-white text-[9px] p-1.5 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[60] font-medium normal-case tracking-normal shadow-lg">
+                        <div className="w-3 h-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0 group relative">
+                          <span className="text-[8px] font-bold italic font-serif">i</span>
+                          <div className="absolute left-1/2 top-full mt-1.5 -translate-x-1/2 w-max bg-slate-800 text-white text-[9px] p-2 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-lg">
                             HPV Target Population = 1% of total population
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-b-[4px] border-b-slate-800" />
                           </div>
@@ -1284,7 +1282,7 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-purple-900 font-semibold">Vaccination Coverage (%)</span>
                       <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium shadow-xl">
+                        <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-semibold text-slate-200">Vaccination Coverage (%) =</span>
                             <div className="flex flex-col items-center">
@@ -1294,7 +1292,7 @@ export const AdminDashboard: React.FC = () => {
                             </div>
                             <span className="text-[10px] font-semibold text-slate-200">× 100</span>
                           </div>
-                          <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
                         </div>
                       </div>
                     </div>
@@ -1303,7 +1301,7 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-purple-900 font-semibold">Line Listed (%)</span>
                       <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium shadow-xl">
+                        <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-semibold text-slate-200">Line Listed (%) =</span>
                             <div className="flex flex-col items-center">
@@ -1313,7 +1311,7 @@ export const AdminDashboard: React.FC = () => {
                             </div>
                             <span className="text-[10px] font-semibold text-slate-200">× 100</span>
                           </div>
-                          <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
                         </div>
                       </div>
                     </div>
@@ -1567,7 +1565,7 @@ export const AdminDashboard: React.FC = () => {
                                 <span className="text-sm sm:text-base font-black text-[#e93c7a] leading-none">%</span>
                               </div>
                               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-pink-50 rounded-full flex items-center justify-center border border-pink-100 shadow-sm shrink-0">
-                                <Syringe className="w-3 h-3 sm:w-4 sm:h-4 text-[#e93c7a] transform -rotate-45" />
+                                <img src="/target_icon.svg" className="w-3 h-3 sm:w-4 sm:h-4" alt="Target" />
                               </div>
                             </div>
                             <div className="h-px bg-[#fbcfe8] w-2/3 my-1.5" />
@@ -1582,7 +1580,7 @@ export const AdminDashboard: React.FC = () => {
                                 <span className="text-sm sm:text-base font-black text-[#0d9488] leading-none">%</span>
                               </div>
                               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-teal-50 rounded-full flex items-center justify-center border border-teal-100 shadow-sm shrink-0">
-                                <SearchIcon className="w-3 h-3 sm:w-4 sm:h-4 text-[#0d9488]" />
+                                <img src="/target_icon.svg" className="w-3 h-3 sm:w-4 sm:h-4" alt="Target" />
                               </div>
                             </div>
                             <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
@@ -1597,7 +1595,7 @@ export const AdminDashboard: React.FC = () => {
                                 <span className="text-sm sm:text-base font-black text-[#7e22ce] leading-none">%</span>
                               </div>
                               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100 shadow-sm shrink-0">
-                                <HeartPulse className="w-3 h-3 sm:w-4 sm:h-4 text-[#7e22ce]" />
+                                <img src="/target_icon.svg" className="w-3 h-3 sm:w-4 sm:h-4" alt="Target" />
                               </div>
                             </div>
                             <div className="h-px bg-[#e9d5ff] w-2/3 my-1.5" />
@@ -1634,7 +1632,7 @@ export const AdminDashboard: React.FC = () => {
                         <span className="text-purple-900 font-semibold">Vaccine Utilization (%)</span>
                         <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                           <span className="text-[9px] font-bold italic font-serif">i</span>
-                          <div className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 font-medium shadow-xl">
+                          <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] font-semibold text-slate-200">Vaccine Utilization (%) =</span>
                               <div className="flex flex-col items-center">
@@ -1644,7 +1642,7 @@ export const AdminDashboard: React.FC = () => {
                               </div>
                               <span className="text-[10px] font-semibold text-slate-200">× 100</span>
                             </div>
-                            <div className="absolute top-1/2 -left-[4px] -translate-y-1/2 border-y-[4px] border-y-transparent border-r-[4px] border-r-slate-800" />
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
                           </div>
                         </div>
                       </div>
