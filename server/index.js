@@ -1552,6 +1552,32 @@ function buildLocationMap(blocks, districts, states) {
   return map;
 }
 
+app.get('/api/superadmin/export-table/:table', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { table } = req.params;
+    
+    let tableName = '';
+    if (table === 'population') tableName = 'block_reporting_profiles';
+    else if (table === 'livedata') tableName = 'daily_reports';
+    else if (table === 'locations') tableName = 'blocks';
+    else if (table === 'vaccine_ccp') tableName = 'health_facilities';
+    else return res.status(400).json({ error: 'Invalid table type' });
+
+    if (!useSupabase) {
+       return res.json(store[tableName] || []);
+    }
+
+    const { data, error } = await supabase.from(tableName).select('*').limit(100000);
+    if (error) throw error;
+    
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/superadmin/upload-population', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });

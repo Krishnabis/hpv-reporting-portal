@@ -32,6 +32,47 @@ export const SuperAdminUpload: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadTable = async (type: 'population' | 'livedata' | 'locations' | 'vaccine_ccp') => {
+    try {
+      const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+      const res = await fetch(`/api/superadmin/export-table/${type}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Failed to fetch table data');
+      const data = await res.json();
+      
+      if (!data || data.length === 0) {
+        alert('No data found in this table.');
+        return;
+      }
+      
+      const headers = Object.keys(data[0]);
+      const csvRows = [headers.join(',')];
+      
+      for (const row of data) {
+        const values = headers.map(header => {
+          const val = row[header];
+          const str = (val === null || val === undefined) ? '' : String(val);
+          if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        });
+        csvRows.push(values.join(','));
+      }
+      
+      const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${type}_table_export.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(err.message || 'Error exporting table');
+    }
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, apiEndpoint: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -107,6 +148,14 @@ export const SuperAdminUpload: React.FC = () => {
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
             Download Template
+          </button>
+          
+          <button 
+            onClick={() => handleDownloadTable(type)}
+            className="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            Download Table
           </button>
           
           <label className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-hpv-purple text-white text-xs font-bold cursor-pointer hover:bg-hpv-purple-dark transition-colors text-center relative overflow-hidden">
