@@ -69,7 +69,7 @@ export function getTier(pct: number) {
   };
 }
 
-export const UttarakhandMap: React.FC<Props> = ({ data, selectedKpi }) => {
+export const UttarakhandMap: React.FC<MapProps> = ({ data, selectedKpi, selectedDistrict, onDistrictClick }) => {
   const [hoveredDistrict, setHoveredDistrict] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
