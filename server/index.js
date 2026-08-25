@@ -1013,7 +1013,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     const blockStats = {};
     deduplicatedReports.forEach(r => {
       const bId = r.block_id;
-      const dName = districtsMap.find(d => String(d.id) === String(r.blocks?.district_id))?.name;
+      const dName = allDistricts.find(d => String(d.id) === String(r.blocks?.district_id))?.name;
       if (bId) {
         if (!blockStats[bId]) blockStats[bId] = { vaccinated: 0, received: 0, districtName: dName };
         blockStats[bId].vaccinated += (Number(r.beneficiaries_vaccinated) || 0);
@@ -1022,7 +1022,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
 
     tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '3').forEach(t => {
        const bId = t.block_id;
-       const dName = districtsMap.find(d => String(d.id) === String(t.district_id))?.name;
+       const dName = allDistricts.find(d => String(d.id) === String(t.district_id))?.name;
        if (bId) {
          if (!blockStats[bId]) blockStats[bId] = { vaccinated: 0, received: 0, districtName: dName };
          blockStats[bId].received += Number(t.quantity_doses);
