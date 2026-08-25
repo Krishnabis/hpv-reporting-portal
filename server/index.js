@@ -1557,11 +1557,36 @@ app.get('/api/superadmin/export-table/:table', authenticateToken, async (req, re
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
     const { table } = req.params;
     
+    if (table === 'locations') {
+      if (!useSupabase) {
+        return res.json({
+          countries: store.countries || [],
+          states: store.states || [],
+          divisions: store.divisions || [],
+          districts: store.districts || [],
+          blocks: store.blocks || []
+        });
+      }
+      const [countries, states, divisions, districts, blocks] = await Promise.all([
+        supabase.from('countries').select('*').limit(10000),
+        supabase.from('states').select('*').limit(10000),
+        supabase.from('divisions').select('*').limit(10000),
+        supabase.from('districts').select('*').limit(100000),
+        supabase.from('blocks').select('*').limit(100000)
+      ]);
+      return res.json({
+        countries: countries.data || [],
+        states: states.data || [],
+        divisions: divisions.data || [],
+        districts: districts.data || [],
+        blocks: blocks.data || []
+      });
+    }
+
     let tableName = '';
     if (table === 'population') tableName = 'block_reporting_profiles';
     else if (table === 'livedata') tableName = 'daily_reports';
-    else if (table === 'locations') tableName = 'blocks';
-    else if (table === 'vaccine_ccp') tableName = 'health_facilities';
+    else if (table === 'vaccine_ccp') tableName = 'vaccine_ccp';
     else return res.status(400).json({ error: 'Invalid table type' });
 
     if (!useSupabase) {

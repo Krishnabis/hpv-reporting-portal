@@ -41,33 +41,45 @@ export const SuperAdminUpload: React.FC = () => {
       if (!res.ok) throw new Error('Failed to fetch table data');
       const data = await res.json();
       
-      if (!data || data.length === 0) {
+      if (!data || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length === 0)) {
         alert('No data found in this table.');
         return;
       }
       
-      const headers = Object.keys(data[0]);
-      const csvRows = [headers.join(',')];
-      
-      for (const row of data) {
-        const values = headers.map(header => {
-          const val = row[header];
-          const str = (val === null || val === undefined) ? '' : String(val);
-          if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-            return `"${str.replace(/"/g, '""')}"`;
-          }
-          return str;
-        });
-        csvRows.push(values.join(','));
+      const downloadCSV = (tableData: any[], filename: string) => {
+        if (!tableData || tableData.length === 0) return;
+        const headers = Object.keys(tableData[0]);
+        const csvRows = [headers.join(',')];
+        
+        for (const row of tableData) {
+          const values = headers.map(header => {
+            const val = row[header];
+            const str = (val === null || val === undefined) ? '' : String(val);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+              return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+          });
+          csvRows.push(values.join(','));
+        }
+        
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      if (Array.isArray(data)) {
+        downloadCSV(data, `${type}_table_export.csv`);
+      } else {
+        // It's an object with multiple arrays (e.g., locations)
+        for (const key of Object.keys(data)) {
+          downloadCSV(data[key], `${key}_table_export.csv`);
+        }
       }
-      
-      const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${type}_table_export.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
     } catch (err: any) {
       alert(err.message || 'Error exporting table');
     }
