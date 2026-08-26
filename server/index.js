@@ -774,7 +774,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
 
     (blocks || []).forEach(b => {
       const dName = b.districts?.name || 'Unknown';
-      if (!districtStats[dName]) districtStats[dName] = { name: dName, vaccinated: 0, lineList: 0, target: 0 };
+      if (!districtStats[dName]) districtStats[dName] = { name: dName, vaccinated: 0, lineList: 0, target: 0, population: 0 };
 
       const prof = profileMap[b.id];
       // Target is stored directly OR calculated as 1% of base_population
@@ -784,6 +784,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       totalTarget += target;
       totalPopulation += pop;
       districtStats[dName].target += target;
+      districtStats[dName].population += pop;
 
       const rep = reportMap[b.id];
       if (rep) {
@@ -797,14 +798,17 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       }
     });
 
-    const district_chart_data = Object.values(districtStats).map((d) => ({
-      district: d.name,
-      vaccinated: d.vaccinated,
-      lineList: d.lineList,
-      target: d.target,
-      coveragePct: d.target > 0 ? parseFloat(((d.vaccinated / d.target) * 100).toFixed(1)) : 0,
-      lineListPct: d.target > 0 ? parseFloat(((d.lineList / d.target) * 100).toFixed(1)) : 0,
-    })).sort((a, b) => b.coveragePct - a.coveragePct);
+    const district_chart_data = Object.values(districtStats).map((d) => {
+      const distTarget = Math.round(d.population * 0.01);
+      return {
+        district: d.name,
+        vaccinated: d.vaccinated,
+        lineList: d.lineList,
+        target: distTarget,
+        coveragePct: distTarget > 0 ? parseFloat(((d.vaccinated / distTarget) * 100).toFixed(1)) : 0,
+        lineListPct: distTarget > 0 ? parseFloat(((d.lineList / distTarget) * 100).toFixed(1)) : 0,
+      };
+    }).sort((a, b) => b.coveragePct - a.coveragePct);
 
     const block_chart_data = (blocks || []).map((b) => {
       const dName = b.districts?.name || 'Unknown';
@@ -825,15 +829,17 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       };
     }).sort((a, b) => b.coveragePct - a.coveragePct);
 
+    const exactTotalTarget = Math.round(totalPopulation * 0.01);
+
     res.json({
       total_blocks: totalBlocks,
       reporting_today: reportingToday,
       total_line_list: totalLineList,
       total_vaccinated: totalVaccinated,
-      total_target: totalTarget,
+      total_target: exactTotalTarget,
       total_population: totalPopulation,
-      overall_coverage_pct: totalTarget > 0 ? parseFloat(((totalVaccinated / totalTarget) * 100).toFixed(1)) : 0,
-      overall_linelist_pct: totalTarget > 0 ? parseFloat(((totalLineList / totalTarget) * 100).toFixed(1)) : 0,
+      overall_coverage_pct: exactTotalTarget > 0 ? parseFloat(((totalVaccinated / exactTotalTarget) * 100).toFixed(1)) : 0,
+      overall_linelist_pct: exactTotalTarget > 0 ? parseFloat(((totalLineList / exactTotalTarget) * 100).toFixed(1)) : 0,
       district_chart_data,
       block_chart_data,
       latest_reporting_date: reports && reports.length > 0 ? reports[0].reporting_date : null
