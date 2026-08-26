@@ -731,7 +731,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     // 1. Fetch all active blocks with district info
     let bq = supabase
       .from('blocks')
-      .select(targetStateId ? 'id, name, district_id, districts!inner(name, state_id, divisions(name))' : 'id, name, district_id, districts!inner(name, divisions(name))')
+      .select(targetStateId ? 'id, name, is_urban, district_id, districts!inner(name, state_id, divisions(name))' : 'id, name, is_urban, district_id, districts!inner(name, divisions(name))')
       .eq('is_active', true);
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
     
@@ -815,6 +815,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       const vacc = rep?.beneficiaries_vaccinated || 0;
       return {
         block: b.name,
+        is_urban: b.is_urban,
         district: dName,
         vaccinated: vacc,
         lineList: ll,
@@ -1029,7 +1030,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
        }
     });
 
-    let bq = supabase.from('blocks').select('id, name, district_id, districts!inner(name, state_id)').eq('is_active', true);
+    let bq = supabase.from('blocks').select('id, name, is_urban, district_id, districts!inner(name, state_id)').eq('is_active', true);
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
     const allBlocks = (await bq).data || [];
 
@@ -1041,6 +1042,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
       const utilPct = stat.received > 0 ? (stat.vaccinated / stat.received) * 100 : 0;
       return {
         block: blkName,
+        is_urban: b.is_urban,
         block_id: bId,
         district: distName,
         vaccinated: stat.vaccinated,

@@ -1190,7 +1190,14 @@ export const AdminDashboard: React.FC = () => {
                           >
                             <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
                             <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
-                              <span className="text-[11px] font-bold text-slate-800 truncate">{rowName}</span>
+                              <span className="text-[11px] font-bold text-slate-800 truncate">
+                                {rowName}
+                                {isBlock && (
+                                  <span className="text-slate-400 font-medium ml-1">
+                                    {d.is_urban ? 'City' : 'Block'}
+                                  </span>
+                                )}
+                              </span>
                               <span className="text-[9px] font-semibold text-slate-400 shrink-0">({primaryVal.toLocaleString('en-IN')}/{d.target.toLocaleString('en-IN')})</span>
                             </div>
                             {selectedKpi === 'both' ? (
@@ -1581,7 +1588,14 @@ export const AdminDashboard: React.FC = () => {
                                 >
                                   <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
                                   <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
-                                    <span className="text-[11px] font-bold text-slate-800 truncate">{rowName}</span>
+                                    <span className="text-[11px] font-bold text-slate-800 truncate">
+                                      {rowName}
+                                      {isBlock && (
+                                        <span className="text-slate-400 font-medium ml-1">
+                                          {d.is_urban ? 'City' : 'Block'}
+                                        </span>
+                                      )}
+                                    </span>
                                     <span className="text-[9px] font-semibold text-slate-400 shrink-0">({d.vaccinated?.toLocaleString('en-IN')}/{d.issued?.toLocaleString('en-IN')})</span>
                                   </div>
                                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tier.bg} ${tier.text} shrink-0`}>
