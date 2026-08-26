@@ -1184,7 +1184,7 @@ export const AdminDashboard: React.FC = () => {
                         const rowName = isBlock ? d.block : d.district;
                         return (
                           <div 
-                            key={rowName} 
+                            key={isBlock ? d.block_id : d.district_id} 
                             onClick={() => !isBlock && setSelectedDistrict(d.district)}
                             className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${!isBlock ? 'cursor-pointer hover:bg-blue-50/50' : ''}`}
                           >
@@ -1575,7 +1575,7 @@ export const AdminDashboard: React.FC = () => {
                               const rowName = isBlock ? d.block : d.district;
                               return (
                                 <div 
-                                  key={rowName} 
+                                  key={isBlock ? d.block_id : d.district_id} 
                                   onClick={() => !isBlock && setSelectedDistrict(d.district)}
                                   className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${!isBlock ? 'cursor-pointer hover:bg-blue-50/50' : ''}`}
                                 >
