@@ -5,7 +5,7 @@ import {
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
   Building2, ClipboardList, FileSpreadsheet, Target, Bell,
-  Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Activity, Users as UsersIcon
+  Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Activity, Users as UsersIcon, Info
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
@@ -1129,8 +1129,33 @@ export const AdminDashboard: React.FC = () => {
                 {/* District Ranking */}
                 <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col flex-1 lg:overflow-hidden min-h-[400px] lg:min-h-0">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                    <BarChart3 className="w-4 h-4 text-blue-500" /> {selectedDistrict ? 'Block Ranking' : 'District Ranking'}
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
+                    <BarChart3 className="w-4 h-4 text-blue-500" />
+                    <span>{selectedDistrict ? 'Block Ranking:' : 'District Ranking:'}</span>
+                    <span className="font-extrabold">{selectedDistrict ? selectedDistrict : stateName}</span>
+                    {selectedKpi === 'coverage' && (
+                      <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none ml-0.5">
+                        ({selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.coveragePct || 0) : (kpis?.overall_coverage_pct || 0)}%)
+                      </span>
+                    )}
+                    {selectedKpi === 'linelist' && (
+                      <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[11px] leading-none ml-0.5">
+                        ({selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.lineListPct || 0) : (kpis?.overall_linelist_pct || 0)}%)
+                      </span>
+                    )}
+                    {selectedKpi === 'both' && (
+                      <>
+                        <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[11px] leading-none ml-0.5">
+                          LL: {selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.lineListPct || 0) : (kpis?.overall_linelist_pct || 0)}%
+                        </span>
+                        <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none ml-0.5">
+                          Cov: {selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.coveragePct || 0) : (kpis?.overall_coverage_pct || 0)}%
+                        </span>
+                      </>
+                    )}
+                    <div title="Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator)" className="cursor-help inline-flex items-center ml-0.5">
+                      <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                    </div>
                   </h3>
                   <select
                     value={selectedKpi}
@@ -1185,8 +1210,12 @@ export const AdminDashboard: React.FC = () => {
                         return (
                           <div 
                             key={isBlock ? d.block_id : d.district_id} 
-                            onClick={() => !isBlock && setSelectedDistrict(d.district)}
-                            className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${!isBlock ? 'cursor-pointer hover:bg-blue-50/50' : ''}`}
+                            onClick={() => {
+                              if (isBlock) return;
+                              if (adminUser?.role === 'DISTRICT_ADMIN' && d.district !== adminUser.district_name) return;
+                              setSelectedDistrict(d.district);
+                            }}
+                            className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${(!isBlock && (adminUser?.role !== 'DISTRICT_ADMIN' || d.district === adminUser.district_name)) ? 'cursor-pointer hover:bg-blue-50/50' : ''} ${(!isBlock && adminUser?.role === 'DISTRICT_ADMIN' && d.district !== adminUser.district_name) ? 'opacity-70 grayscale' : ''}`}
                           >
                             <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
                             <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
@@ -1198,7 +1227,7 @@ export const AdminDashboard: React.FC = () => {
                                   </span>
                                 )}
                               </span>
-                              <span className="text-[9px] font-semibold text-slate-400 shrink-0">({primaryVal.toLocaleString('en-IN')}/{d.target.toLocaleString('en-IN')})</span>
+                              <span className="text-[9px] font-semibold text-slate-400 shrink-0">({primaryVal.toLocaleString('en-IN')} / {d.target.toLocaleString('en-IN')})</span>
                             </div>
                             {selectedKpi === 'both' ? (
                               <div className="flex items-center gap-1 shrink-0">
@@ -1542,8 +1571,16 @@ export const AdminDashboard: React.FC = () => {
                   <div className="lg:col-span-1 flex flex-col gap-2 lg:min-h-0">
                     <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 p-2 sm:p-3 sm:pb-2">
                       <div className="flex items-center justify-between mb-2 sm:mb-3 border-b border-slate-100 pb-2">
-                        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                          <BarChart3 className="w-4 h-4 text-blue-500" /> {selectedDistrict ? 'Block Ranking' : 'District Ranking'}
+                        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
+                          <BarChart3 className="w-4 h-4 text-blue-500" />
+                          <span>{selectedDistrict ? 'Block Ranking:' : 'District Ranking:'}</span>
+                          <span className="font-extrabold">{selectedDistrict ? selectedDistrict : stateName}</span>
+                          <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none ml-0.5">
+                            ({selectedDistrict ? (vaccDashboard?.districtUtilization.find((d: any) => d.district === selectedDistrict)?.utilizationPct?.toFixed(1) || '0.0') : (vaccDashboard?.utilization?.toFixed(1) || '0.0')}%)
+                          </span>
+                          <div title="Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator)" className="cursor-help inline-flex items-center ml-0.5">
+                            <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                          </div>
                         </h3>
                         <div className="text-[10px] sm:text-xs font-semibold text-slate-500 bg-slate-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-200">
                           Vaccine Utilization (%)
@@ -1583,8 +1620,12 @@ export const AdminDashboard: React.FC = () => {
                               return (
                                 <div 
                                   key={isBlock ? d.block_id : d.district_id} 
-                                  onClick={() => !isBlock && setSelectedDistrict(d.district)}
-                                  className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${!isBlock ? 'cursor-pointer hover:bg-blue-50/50' : ''}`}
+                                  onClick={() => {
+                                    if (isBlock) return;
+                                    if (adminUser?.role === 'DISTRICT_ADMIN' && d.district !== adminUser.district_name) return;
+                                    setSelectedDistrict(d.district);
+                                  }}
+                                  className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${(!isBlock && (adminUser?.role !== 'DISTRICT_ADMIN' || d.district === adminUser.district_name)) ? 'cursor-pointer hover:bg-blue-50/50' : ''} ${(!isBlock && adminUser?.role === 'DISTRICT_ADMIN' && d.district !== adminUser.district_name) ? 'opacity-70 grayscale' : ''}`}
                                 >
                                   <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
                                   <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
@@ -1596,7 +1637,7 @@ export const AdminDashboard: React.FC = () => {
                                         </span>
                                       )}
                                     </span>
-                                    <span className="text-[9px] font-semibold text-slate-400 shrink-0">({d.vaccinated?.toLocaleString('en-IN')}/{d.issued?.toLocaleString('en-IN')})</span>
+                                    <span className="text-[9px] font-semibold text-slate-400 shrink-0">({d.vaccinated?.toLocaleString('en-IN')} / {d.issued?.toLocaleString('en-IN')})</span>
                                   </div>
                                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tier.bg} ${tier.text} shrink-0`}>
                                     {pct}%
