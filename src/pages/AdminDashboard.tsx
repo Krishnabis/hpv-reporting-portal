@@ -128,6 +128,8 @@ export const AdminDashboard: React.FC = () => {
   const [pwMsg, setPwMsg] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
 
+  const stateName = adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'India');
+
   // Users state
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
   const [newAdminName, setNewAdminName] = useState('');
@@ -1130,7 +1132,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col flex-1 lg:overflow-hidden min-h-[400px] lg:min-h-0">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
-                    <BarChart3 className="w-4 h-4 text-blue-500" />
+                    <img src="/loginlogo.png" className="w-5 h-5 object-contain" alt="Ranking" />
                     <span>{selectedDistrict ? 'Block Ranking:' : 'District Ranking:'}</span>
                     <span className="font-extrabold">{selectedDistrict ? selectedDistrict : stateName}</span>
                     {selectedKpi === 'coverage' && (
@@ -1572,7 +1574,7 @@ export const AdminDashboard: React.FC = () => {
                     <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 p-2 sm:p-3 sm:pb-2">
                       <div className="flex items-center justify-between mb-2 sm:mb-3 border-b border-slate-100 pb-2">
                         <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
-                          <BarChart3 className="w-4 h-4 text-blue-500" />
+                          <img src="/loginlogo.png" className="w-5 h-5 object-contain" alt="Ranking" />
                           <span>{selectedDistrict ? 'Block Ranking:' : 'District Ranking:'}</span>
                           <span className="font-extrabold">{selectedDistrict ? selectedDistrict : stateName}</span>
                           <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none ml-0.5">
