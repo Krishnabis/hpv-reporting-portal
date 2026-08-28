@@ -981,12 +981,16 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     let validReports = rawReports || [];
     if (targetStateId) validReports = validReports.filter(r => r.blocks?.districts?.state_id == targetStateId);
 
-    // Deduplicate to only sum the latest cumulative report per block
+    // Deduplicate to track latest and prev reports per block
     const latestReportsMap = {};
     validReports.forEach(r => {
-      if (!latestReportsMap[r.block_id]) latestReportsMap[r.block_id] = r;
+      if (!latestReportsMap[r.block_id]) {
+        latestReportsMap[r.block_id] = { latest: r, prev: null };
+      } else if (!latestReportsMap[r.block_id].prev && r.reporting_date !== latestReportsMap[r.block_id].latest.reporting_date) {
+        latestReportsMap[r.block_id].prev = r;
+      }
     });
-    const deduplicatedReports = Object.values(latestReportsMap);
+    const deduplicatedReports = Object.values(latestReportsMap).map(m => m.latest);
 
     const blockVaccinated = deduplicatedReports.reduce((sum, r) => sum + (Number(r.beneficiaries_vaccinated) || 0), 0);
     const blockStock = blockReceived - blockVaccinated;
@@ -998,18 +1002,23 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
 
     // District Utilization (for map & ranking)
     const districtStats = {};
-    deduplicatedReports.forEach(r => {
+    Object.values(latestReportsMap).forEach(m => {
+      const r = m.latest;
+      const prevR = m.prev;
       const dId = r.blocks?.district_id;
       if (dId) {
-        if (!districtStats[dId]) districtStats[dId] = { vaccinated: 0, issued: 0 };
-        districtStats[dId].vaccinated += (Number(r.beneficiaries_vaccinated) || 0);
+        if (!districtStats[dId]) districtStats[dId] = { vaccinated: 0, issued: 0, deltaVaccinated: 0 };
+        const vacc = Number(r.beneficiaries_vaccinated) || 0;
+        const prevVacc = Number(prevR?.beneficiaries_vaccinated) || 0;
+        districtStats[dId].vaccinated += vacc;
+        districtStats[dId].deltaVaccinated += (vacc - prevVacc);
       }
     });
 
     tx.filter(t => t.transaction_type === 'ISSUED' && String(t.level) === '2').forEach(t => {
        const dId = t.district_id;
        if (dId) {
-         if (!districtStats[dId]) districtStats[dId] = { vaccinated: 0, issued: 0 };
+         if (!districtStats[dId]) districtStats[dId] = { vaccinated: 0, issued: 0, deltaVaccinated: 0 };
          districtStats[dId].issued += Number(t.quantity_doses);
        }
     });
@@ -1020,7 +1029,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     
     const districtUtilization = allDistricts.map(d => {
       const dId = d.id;
-      const stat = districtStats[dId] || { vaccinated: 0, issued: 0 };
+      const stat = districtStats[dId] || { vaccinated: 0, issued: 0, deltaVaccinated: 0 };
       const distName = d.name || 'Unknown';
       const utilPct = stat.issued > 0 ? (stat.vaccinated / stat.issued) * 100 : 0;
       return {
@@ -1028,18 +1037,24 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
         district_id: dId,
         vaccinated: stat.vaccinated,
         issued: stat.issued,
+        deltaVaccinated: stat.deltaVaccinated,
         utilizationPct: parseFloat(utilPct.toFixed(1))
       };
     }).sort((a, b) => b.utilizationPct - a.utilizationPct);
 
     // Block Utilization (for drill down)
     const blockStats = {};
-    deduplicatedReports.forEach(r => {
+    Object.values(latestReportsMap).forEach(m => {
+      const r = m.latest;
+      const prevR = m.prev;
       const bId = r.block_id;
       const dName = allDistricts.find(d => String(d.id) === String(r.blocks?.district_id))?.name;
       if (bId) {
-        if (!blockStats[bId]) blockStats[bId] = { vaccinated: 0, received: 0, districtName: dName };
-        blockStats[bId].vaccinated += (Number(r.beneficiaries_vaccinated) || 0);
+        if (!blockStats[bId]) blockStats[bId] = { vaccinated: 0, received: 0, deltaVaccinated: 0, districtName: dName };
+        const vacc = Number(r.beneficiaries_vaccinated) || 0;
+        const prevVacc = Number(prevR?.beneficiaries_vaccinated) || 0;
+        blockStats[bId].vaccinated += vacc;
+        blockStats[bId].deltaVaccinated += (vacc - prevVacc);
       }
     });
 
@@ -1047,7 +1062,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
        const bId = t.block_id;
        const dName = allDistricts.find(d => String(d.id) === String(t.district_id))?.name;
        if (bId) {
-         if (!blockStats[bId]) blockStats[bId] = { vaccinated: 0, received: 0, districtName: dName };
+         if (!blockStats[bId]) blockStats[bId] = { vaccinated: 0, received: 0, deltaVaccinated: 0, districtName: dName };
          blockStats[bId].received += Number(t.quantity_doses);
        }
     });
@@ -1058,7 +1073,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
 
     const blockUtilization = allBlocks.map(b => {
       const bId = b.id;
-      const stat = blockStats[bId] || { vaccinated: 0, received: 0 };
+      const stat = blockStats[bId] || { vaccinated: 0, received: 0, deltaVaccinated: 0 };
       const blkName = b.name || 'Unknown';
       const distName = b.districts?.name || 'Unknown';
       const utilPct = stat.received > 0 ? (stat.vaccinated / stat.received) * 100 : 0;
@@ -1069,6 +1084,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
         district: distName,
         vaccinated: stat.vaccinated,
         issued: stat.received,
+        deltaVaccinated: stat.deltaVaccinated,
         utilizationPct: parseFloat(utilPct.toFixed(1))
       };
     }).sort((a, b) => b.utilizationPct - a.utilizationPct);
