@@ -1026,7 +1026,7 @@ export const AdminDashboard: React.FC = () => {
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-1">
                         <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                          HPV VACC. TARGET (1%)
+                          HPV VACC. TARGET
                         </span>
                         <div className="w-3 h-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0 group relative">
                           <span className="text-[8px] font-bold italic font-serif">i</span>
@@ -1057,7 +1057,7 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                        TOTAL REPORTING SITES
+                        REPORTING SITES
                       </span>
                       <div className="flex items-baseline gap-1.5 mt-1">
                         <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none">
@@ -1088,7 +1088,7 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                        ELIGIBLE GIRLS LINE LISTED
+                        GIRLS LINE LISTED
                       </span>
                       <span className="text-2xl font-extrabold font-mono text-emerald-600 leading-none mt-1">
                         {kpis ? kpis.overall_linelist_pct : 0}%
@@ -1109,7 +1109,7 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
-                        ELIGIBLE GIRLS VACCINATED
+                        GIRLS VACCINATED
                       </span>
                       <span className="text-2xl font-extrabold font-mono text-pink-600 leading-none mt-1">
                         {kpis ? kpis.overall_coverage_pct : 0}%
