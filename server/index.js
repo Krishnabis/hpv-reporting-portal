@@ -1962,11 +1962,43 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
       // Block
       let blockLgd = String(row.blockorcitylgdcode || '').trim();
       let block = allBlocks.find(b => b.lgd_code === blockLgd && blockLgd) || allBlocks.find(b => b.name.toLowerCase() === row.blockorcityname.trim().toLowerCase() && b.district_id === district.id);
+      
+      const isUrban = row['areatype(blockorcity)']?.toLowerCase() === 'city' || row['areatype(blockorcity)']?.toLowerCase() === 'urban';
+      const urbanType = row['Urbantype'] || row['urbantype'] || null;
+      const isHq = row['HQ(Y/N)'] === 'Y' || row['hq(y/n)'] === 'Y' || row['HQ'] === 'Y';
+      const healthBlockName = row['Healthblockname'] || row['healthblockname'] || null;
+      const hpvTarget = parseInt(row['districtthpvtarget'] || row['district_hpv_target'], 10) || null;
+
       if (!block) {
-        const isUrban = row['areatype(blockorcity)']?.toLowerCase() === 'city';
-        const { data: nB, error: eB } = await supabase.from('blocks').insert({ district_id: district.id, lgd_code: blockLgd, name: row.blockorcityname.trim(), is_urban: isUrban, area_type: row['areatype(blockorcity)'] }).select().single();
+        const { data: nB, error: eB } = await supabase.from('blocks').insert({ 
+          district_id: district.id, 
+          lgd_code: blockLgd, 
+          name: row.blockorcityname.trim(), 
+          is_urban: isUrban, 
+          area_type: row['areatype(blockorcity)'],
+          urban_type: urbanType,
+          is_hq: isHq,
+          health_block_name: healthBlockName,
+          hpv_target: hpvTarget
+        }).select().single();
         if (eB) { errors.push(`Row ${i + 1}: Error creating Block - ${eB.message}`); continue; }
         block = nB; allBlocks.push(block);
+      } else {
+        // Update existing block with new fields if they are provided
+        const updates = {};
+        let needsUpdate = false;
+        if (urbanType !== null && block.urban_type !== urbanType) { updates.urban_type = urbanType; needsUpdate = true; }
+        if (row['HQ(Y/N)'] && block.is_hq !== isHq) { updates.is_hq = isHq; needsUpdate = true; }
+        if (healthBlockName !== null && block.health_block_name !== healthBlockName) { updates.health_block_name = healthBlockName; needsUpdate = true; }
+        if (hpvTarget !== null && block.hpv_target !== hpvTarget) { updates.hpv_target = hpvTarget; needsUpdate = true; }
+        
+        if (needsUpdate) {
+          const { error: updErr } = await supabase.from('blocks').update(updates).eq('id', block.id);
+          if (!updErr) {
+            Object.assign(block, updates);
+            details.push(`Updated block info for ${block.name}`);
+          }
+        }
       }
 
       // Population / Profile
