@@ -1134,6 +1134,14 @@ export const AdminDashboard: React.FC = () => {
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                     <img src="/favicon.jpg" className="w-5 h-5 object-contain" alt="Ranking" />
                     <span>{selectedDistrict ? 'Block Ranking' : 'District Ranking'}</span>
+                    {selectedDistrict && (
+                      <button 
+                        onClick={() => setSelectedDistrict(null)}
+                        className="text-[9px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-0.5 bg-blue-50 px-1.5 py-0.5 rounded transition-colors ml-1"
+                      >
+                        ← Back
+                      </button>
+                    )}
                   </h3>
                   <select
                     value={selectedKpi}
@@ -1183,19 +1191,7 @@ export const AdminDashboard: React.FC = () => {
 
 
 
-                {selectedDistrict && (
-                  <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-                    <button 
-                      onClick={() => setSelectedDistrict(null)}
-                      className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded transition-colors"
-                    >
-                      ← Back to Districts
-                    </button>
-                    <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded">
-                      {selectedDistrict}
-                    </span>
-                  </div>
-                )}
+
 
                 {((!selectedDistrict && kpis?.district_chart_data && kpis.district_chart_data.length > 0) || 
                   (selectedDistrict && kpis?.block_chart_data && kpis.block_chart_data.some((b: any) => b.district === selectedDistrict))) ? (
@@ -1237,8 +1233,9 @@ export const AdminDashboard: React.FC = () => {
                               </span>
                               <span className="text-[9px] font-semibold text-slate-400 shrink-0">({primaryVal.toLocaleString('en-IN')} / {d.target.toLocaleString('en-IN')})</span>
                               {(selectedKpi === 'linelist' ? d.deltaLineList : d.deltaVaccinated) > 0 && (
-                                <span className="flex items-center text-emerald-500 shrink-0 ml-1" title={`+${selectedKpi === 'linelist' ? d.deltaLineList : d.deltaVaccinated} since last report`}>
-                                  <TrendingUp className="w-3 h-3" />
+                                <span className="flex items-center text-emerald-500 font-bold text-[9px] shrink-0 ml-1 bg-emerald-50 px-1 rounded" title={`+${selectedKpi === 'linelist' ? d.deltaLineList : d.deltaVaccinated} since last report`}>
+                                  <TrendingUp className="w-2.5 h-2.5" />
+                                  <span className="ml-0.5">{(selectedKpi === 'linelist' ? d.deltaLineList : d.deltaVaccinated).toLocaleString('en-IN')}</span>
                                 </span>
                               )}
                             </div>
@@ -1587,6 +1584,14 @@ export const AdminDashboard: React.FC = () => {
                         <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                           <img src="/favicon.jpg" className="w-5 h-5 object-contain" alt="Ranking" />
                           <span>{selectedDistrict ? 'Block Ranking' : 'District Ranking'}</span>
+                          {selectedDistrict && (
+                            <button 
+                              onClick={() => setSelectedDistrict(null)}
+                              className="text-[9px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-0.5 bg-blue-50 px-1.5 py-0.5 rounded transition-colors ml-1"
+                            >
+                              ← Back
+                            </button>
+                          )}
                         </h3>
                         <div className="text-[10px] sm:text-xs font-semibold text-slate-500 bg-slate-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-200">
                           Vaccine Utilization (%)
@@ -1611,19 +1616,7 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      {selectedDistrict && (
-                        <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
-                          <button 
-                            onClick={() => setSelectedDistrict(null)}
-                            className="text-[10px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded transition-colors"
-                          >
-                            ← Back to Districts
-                          </button>
-                          <span className="text-[10px] font-bold text-slate-600">
-                            Viewing: <span className="text-blue-700">{selectedDistrict}</span>
-                          </span>
-                        </div>
-                      )}
+
 
 
 
