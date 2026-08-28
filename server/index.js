@@ -759,7 +759,9 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     const reportMap = {};
     (reports || []).forEach(r => { 
       if (!reportMap[r.block_id]) {
-        reportMap[r.block_id] = r;
+        reportMap[r.block_id] = { latest: r, prev: null };
+      } else if (!reportMap[r.block_id].prev && r.reporting_date !== reportMap[r.block_id].latest.reporting_date) {
+        reportMap[r.block_id].prev = r;
       }
     });
 
@@ -774,7 +776,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
 
     (blocks || []).forEach(b => {
       const dName = b.districts?.name || 'Unknown';
-      if (!districtStats[dName]) districtStats[dName] = { name: dName, vaccinated: 0, lineList: 0, target: 0, population: 0 };
+      if (!districtStats[dName]) districtStats[dName] = { name: dName, vaccinated: 0, lineList: 0, target: 0, population: 0, deltaVaccinated: 0, deltaLineList: 0 };
 
       const prof = profileMap[b.id];
       // Target is stored directly OR calculated as 1% of base_population
@@ -786,15 +788,21 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       districtStats[dName].target += target;
       districtStats[dName].population += pop;
 
-      const rep = reportMap[b.id];
-      if (rep) {
-        if (rep.reporting_date === targetDateStr) reportingToday++;
-        const ll = rep.line_list_count || 0;
-        const vacc = rep.beneficiaries_vaccinated || 0;
+      const repData = reportMap[b.id];
+      if (repData && repData.latest) {
+        if (repData.latest.reporting_date === targetDateStr) reportingToday++;
+        const ll = repData.latest.line_list_count || 0;
+        const vacc = repData.latest.beneficiaries_vaccinated || 0;
+        
+        const prevLl = repData.prev?.line_list_count || 0;
+        const prevVacc = repData.prev?.beneficiaries_vaccinated || 0;
+
         totalLineList += ll;
         totalVaccinated += vacc;
         districtStats[dName].lineList += ll;
         districtStats[dName].vaccinated += vacc;
+        districtStats[dName].deltaLineList += (ll - prevLl);
+        districtStats[dName].deltaVaccinated += (vacc - prevVacc);
       }
     });
 
@@ -805,6 +813,8 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
         vaccinated: d.vaccinated,
         lineList: d.lineList,
         target: distTarget,
+        deltaVaccinated: d.deltaVaccinated,
+        deltaLineList: d.deltaLineList,
         coveragePct: distTarget > 0 ? parseFloat(((d.vaccinated / distTarget) * 100).toFixed(1)) : 0,
         lineListPct: distTarget > 0 ? parseFloat(((d.lineList / distTarget) * 100).toFixed(1)) : 0,
       };
@@ -814,16 +824,22 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       const dName = b.districts?.name || 'Unknown';
       const prof = profileMap[b.id];
       const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
-      const rep = reportMap[b.id];
-      const ll = rep?.line_list_count || 0;
-      const vacc = rep?.beneficiaries_vaccinated || 0;
+      const repData = reportMap[b.id];
+      const ll = repData?.latest?.line_list_count || 0;
+      const vacc = repData?.latest?.beneficiaries_vaccinated || 0;
+      const prevLl = repData?.prev?.line_list_count || 0;
+      const prevVacc = repData?.prev?.beneficiaries_vaccinated || 0;
+      
       return {
         block: b.name,
+        block_id: b.id,
         is_urban: b.is_urban,
         district: dName,
         vaccinated: vacc,
         lineList: ll,
         target: target,
+        deltaVaccinated: vacc - prevVacc,
+        deltaLineList: ll - prevLl,
         coveragePct: target > 0 ? parseFloat(((vacc / target) * 100).toFixed(1)) : 0,
         lineListPct: target > 0 ? parseFloat(((ll / target) * 100).toFixed(1)) : 0,
       };

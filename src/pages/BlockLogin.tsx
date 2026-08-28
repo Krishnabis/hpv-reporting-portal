@@ -198,12 +198,12 @@ export const BlockLogin: React.FC = () => {
 
             <div className="mt-2 flex items-center justify-center gap-2 text-xs font-bold text-hpv-purple">
               <span className="text-lg">🎯</span>
-              Cervical Cancer Elimination
+              Cervical cancer* elimination
             </div>
 
             <p className="mt-2 text-[10px] font-medium text-slate-500 flex items-center justify-center gap-1.5 bg-slate-100/50 p-1.5 rounded-lg border border-slate-200/50">
               <img src="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg" alt="India Flag" className="w-3 h-2 rounded-[2px] shadow-sm" />
-              <span>India: <strong className="text-slate-700">78,499</strong> new cases; <strong className="text-slate-700">42,392</strong> deaths <span className="text-[8px] text-slate-400">(NCRP, 2024)</span></span>
+              <span>India: <strong className="text-slate-700">*78,499</strong> new cases; <strong className="text-slate-700">42,392</strong> deaths <span className="text-[8px] text-slate-400">(NCRP, 2024)</span></span>
             </p>
           </div>
 

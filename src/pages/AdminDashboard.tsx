@@ -1130,34 +1130,10 @@ export const AdminDashboard: React.FC = () => {
               <div className="lg:col-span-1 flex flex-col gap-2 lg:min-h-0">
                 {/* District Ranking */}
                 <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col flex-1 lg:overflow-hidden min-h-[400px] lg:min-h-0">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                     <img src="/favicon.jpg" className="w-5 h-5 object-contain" alt="Ranking" />
-                    <span>{selectedDistrict ? 'Block Ranking:' : 'District Ranking:'}</span>
-                    <span className="font-extrabold">{selectedDistrict ? selectedDistrict : stateName}</span>
-                    {selectedKpi === 'coverage' && (
-                      <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none ml-0.5">
-                        ({selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.coveragePct || 0) : (kpis?.overall_coverage_pct || 0)}%)
-                      </span>
-                    )}
-                    {selectedKpi === 'linelist' && (
-                      <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[11px] leading-none ml-0.5">
-                        ({selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.lineListPct || 0) : (kpis?.overall_linelist_pct || 0)}%)
-                      </span>
-                    )}
-                    {selectedKpi === 'both' && (
-                      <>
-                        <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[11px] leading-none ml-0.5">
-                          LL: {selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.lineListPct || 0) : (kpis?.overall_linelist_pct || 0)}%
-                        </span>
-                        <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none ml-0.5">
-                          Cov: {selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.coveragePct || 0) : (kpis?.overall_coverage_pct || 0)}%
-                        </span>
-                      </>
-                    )}
-                    <div title="Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator)" className="cursor-help inline-flex items-center ml-0.5">
-                      <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
-                    </div>
+                    <span>{selectedDistrict ? 'Block Ranking' : 'District Ranking'}</span>
                   </h3>
                   <select
                     value={selectedKpi}
@@ -1169,13 +1145,43 @@ export const AdminDashboard: React.FC = () => {
                     <option value="both">Both</option>
                   </select>
                 </div>
-
-                {/* Tier Legend */}
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {[{l:'Aspirational',b:'bg-red-100',t:'text-red-700',v:'<30%'},{l:'Progressing',b:'bg-yellow-100',t:'text-yellow-700',v:'30–70%'},{l:'High Performing',b:'bg-blue-100',t:'text-blue-700',v:'70–90%'},{l:'Champions',b:'bg-emerald-100',t:'text-emerald-700',v:'>90%'}].map(tier => (
-                    <span key={tier.l} className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${tier.b} ${tier.t}`}>{tier.l} {tier.v}</span>
-                  ))}
+                <div className="flex items-center gap-1.5 mt-2 mb-3 pb-2 border-b border-slate-100">
+                  <span className="font-extrabold text-base text-slate-800">{selectedDistrict ? selectedDistrict : stateName}</span>
+                  <span className="text-xs font-semibold text-slate-500">
+                    ({(selectedDistrict 
+                        ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.[selectedKpi === 'linelist' ? 'lineList' : 'vaccinated']?.toLocaleString('en-IN') || 0)
+                        : ((selectedKpi === 'linelist' ? kpis?.total_line_list : kpis?.total_vaccinated)?.toLocaleString('en-IN') || 0))} 
+                     {' / '}
+                     {(selectedDistrict 
+                        ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.target?.toLocaleString('en-IN') || 0)
+                        : (kpis?.total_target?.toLocaleString('en-IN') || 0))})
+                  </span>
+                  {selectedKpi === 'coverage' && (
+                    <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none">
+                      ({selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.coveragePct || 0) : (kpis?.overall_coverage_pct || 0)}%)
+                    </span>
+                  )}
+                  {selectedKpi === 'linelist' && (
+                    <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[11px] leading-none">
+                      ({selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.lineListPct || 0) : (kpis?.overall_linelist_pct || 0)}%)
+                    </span>
+                  )}
+                  {selectedKpi === 'both' && (
+                    <>
+                      <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[11px] leading-none">
+                        LL: {selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.lineListPct || 0) : (kpis?.overall_linelist_pct || 0)}%
+                      </span>
+                      <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none">
+                        Cov: {selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.coveragePct || 0) : (kpis?.overall_coverage_pct || 0)}%
+                      </span>
+                    </>
+                  )}
+                  <div title="Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator). Legend: Aspirational <30%, Progressing 30-70%, High Performing 70-90%, Champions >90%" className="cursor-help inline-flex items-center">
+                    <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                  </div>
                 </div>
+
+
 
                 {selectedDistrict && (
                   <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
@@ -1223,13 +1229,18 @@ export const AdminDashboard: React.FC = () => {
                             <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
                               <span className="text-[11px] font-bold text-slate-800 truncate">
                                 {rowName}
-                                {isBlock && (
+                                {isBlock && d.is_urban && (
                                   <span className="text-slate-400 font-medium ml-1">
-                                    {d.is_urban ? 'City' : 'Block'}
+                                    Urban
                                   </span>
                                 )}
                               </span>
                               <span className="text-[9px] font-semibold text-slate-400 shrink-0">({primaryVal.toLocaleString('en-IN')} / {d.target.toLocaleString('en-IN')})</span>
+                              {(selectedKpi === 'linelist' ? d.deltaLineList : d.deltaVaccinated) > 0 && (
+                                <span className="flex items-center text-emerald-500 shrink-0 ml-1" title={`+${selectedKpi === 'linelist' ? d.deltaLineList : d.deltaVaccinated} since last report`}>
+                                  <TrendingUp className="w-3 h-3" />
+                                </span>
+                              )}
                             </div>
                             {selectedKpi === 'both' ? (
                               <div className="flex items-center gap-1 shrink-0">
@@ -1572,20 +1583,31 @@ export const AdminDashboard: React.FC = () => {
                   {/* Left Column: District Ranking */}
                   <div className="lg:col-span-1 flex flex-col gap-2 lg:min-h-0">
                     <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 p-2 sm:p-3 sm:pb-2">
-                      <div className="flex items-center justify-between mb-2 sm:mb-3 border-b border-slate-100 pb-2">
+                      <div className="flex items-center justify-between">
                         <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                           <img src="/favicon.jpg" className="w-5 h-5 object-contain" alt="Ranking" />
-                          <span>{selectedDistrict ? 'Block Ranking:' : 'District Ranking:'}</span>
-                          <span className="font-extrabold">{selectedDistrict ? selectedDistrict : stateName}</span>
-                          <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none ml-0.5">
-                            ({selectedDistrict ? (vaccDashboard?.districtUtilization.find((d: any) => d.district === selectedDistrict)?.utilizationPct?.toFixed(1) || '0.0') : (vaccDashboard?.utilization?.toFixed(1) || '0.0')}%)
-                          </span>
-                          <div title="Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator)" className="cursor-help inline-flex items-center ml-0.5">
-                            <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
-                          </div>
+                          <span>{selectedDistrict ? 'Block Ranking' : 'District Ranking'}</span>
                         </h3>
                         <div className="text-[10px] sm:text-xs font-semibold text-slate-500 bg-slate-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-200">
                           Vaccine Utilization (%)
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-2 mb-3 pb-2 border-b border-slate-100">
+                        <span className="font-extrabold text-base text-slate-800">{selectedDistrict ? selectedDistrict : stateName}</span>
+                        <span className="text-xs font-semibold text-slate-500">
+                          ({selectedDistrict 
+                            ? (vaccDashboard?.blockUtilization.filter((b: any) => b.district === selectedDistrict).reduce((acc: number, curr: any) => acc + (curr.vaccinated || 0), 0)?.toLocaleString('en-IN') || 0)
+                            : (vaccDashboard?.districtUtilization.reduce((acc: number, curr: any) => acc + (curr.vaccinated || 0), 0)?.toLocaleString('en-IN') || 0)}
+                           {' / '}
+                           {selectedDistrict 
+                            ? (vaccDashboard?.blockUtilization.filter((b: any) => b.district === selectedDistrict).reduce((acc: number, curr: any) => acc + (curr.issued || 0), 0)?.toLocaleString('en-IN') || 0)
+                            : (vaccDashboard?.districtUtilization.reduce((acc: number, curr: any) => acc + (curr.issued || 0), 0)?.toLocaleString('en-IN') || 0)})
+                        </span>
+                        <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none">
+                          ({selectedDistrict ? (vaccDashboard?.districtUtilization.find((d: any) => d.district === selectedDistrict)?.utilizationPct?.toFixed(1) || '0.0') : (vaccDashboard?.utilization?.toFixed(1) || '0.0')}%)
+                        </span>
+                        <div title="Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator). Legend: Aspirational <30%, Progressing 30-70%, High Performing 70-90%, Champions >90%" className="cursor-help inline-flex items-center">
+                          <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
                         </div>
                       </div>
 
@@ -1603,12 +1625,7 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Tier Legend */}
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {[{l:'Aspirational',b:'bg-red-100',t:'text-red-700',v:'<30%'},{l:'Progressing',b:'bg-yellow-100',t:'text-yellow-700',v:'30–70%'},{l:'High Performing',b:'bg-blue-100',t:'text-blue-700',v:'70–90%'},{l:'Champions',b:'bg-emerald-100',t:'text-emerald-700',v:'>90%'}].map(tier => (
-                          <span key={tier.l} className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${tier.b} ${tier.t}`}>{tier.l} {tier.v}</span>
-                        ))}
-                      </div>
+
 
                       {((!selectedDistrict && vaccDashboard?.districtUtilization && vaccDashboard.districtUtilization.length > 0) || 
                         (selectedDistrict && vaccDashboard?.blockUtilization && vaccDashboard.blockUtilization.some((b: any) => b.district === selectedDistrict))) ? (
@@ -1633,9 +1650,9 @@ export const AdminDashboard: React.FC = () => {
                                   <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
                                     <span className="text-[11px] font-bold text-slate-800 truncate">
                                       {rowName}
-                                      {isBlock && (
+                                      {isBlock && d.is_urban && (
                                         <span className="text-slate-400 font-medium ml-1">
-                                          {d.is_urban ? 'City' : 'Block'}
+                                          Urban
                                         </span>
                                       )}
                                     </span>
