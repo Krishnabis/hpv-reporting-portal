@@ -1963,9 +1963,11 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
       let blockLgd = String(row.blockorcitylgdcode || '').trim();
       let block = allBlocks.find(b => b.lgd_code === blockLgd && blockLgd) || allBlocks.find(b => b.name.toLowerCase() === row.blockorcityname.trim().toLowerCase() && b.district_id === district.id);
       
-      const isUrban = row['areatype(blockorcity)']?.toLowerCase() === 'city' || row['areatype(blockorcity)']?.toLowerCase() === 'urban';
+      const areaTypeVal = row['urbanorrural'] || row['areatype(blockorcity)'] || '';
+      const isUrban = areaTypeVal.toLowerCase() === 'city' || areaTypeVal.toLowerCase() === 'urban';
       const urbanType = row['Urbantype'] || row['urbantype'] || null;
       const isHq = row['HQ(Y/N)'] === 'Y' || row['hq(y/n)'] === 'Y' || row['HQ'] === 'Y';
+      const isDvs = row['DVS(Y/N)'] === 'Y' || row['dvs(y/n)'] === 'Y';
       const healthBlockName = row['Healthblockname'] || row['healthblockname'] || null;
       const hpvTarget = parseInt(row['districtthpvtarget'] || row['district_hpv_target'], 10) || null;
 
@@ -1975,9 +1977,10 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
           lgd_code: blockLgd, 
           name: row.blockorcityname.trim(), 
           is_urban: isUrban, 
-          area_type: row['areatype(blockorcity)'],
+          area_type: areaTypeVal,
           urban_type: urbanType,
           is_hq: isHq,
+          is_dvs: isDvs,
           health_block_name: healthBlockName,
           hpv_target: hpvTarget
         }).select().single();
@@ -1987,8 +1990,10 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
         // Update existing block with new fields if they are provided
         const updates = {};
         let needsUpdate = false;
+        if (areaTypeVal && block.area_type !== areaTypeVal) { updates.area_type = areaTypeVal; updates.is_urban = isUrban; needsUpdate = true; }
         if (urbanType !== null && block.urban_type !== urbanType) { updates.urban_type = urbanType; needsUpdate = true; }
         if (row['HQ(Y/N)'] && block.is_hq !== isHq) { updates.is_hq = isHq; needsUpdate = true; }
+        if (row['DVS(Y/N)'] && block.is_dvs !== isDvs) { updates.is_dvs = isDvs; needsUpdate = true; }
         if (healthBlockName !== null && block.health_block_name !== healthBlockName) { updates.health_block_name = healthBlockName; needsUpdate = true; }
         if (hpvTarget !== null && block.hpv_target !== hpvTarget) { updates.hpv_target = hpvTarget; needsUpdate = true; }
         
