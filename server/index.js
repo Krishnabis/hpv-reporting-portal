@@ -2600,7 +2600,7 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
       const toInsert = [];
 
       for (const row of chunk) {
-        if (!row['Batch No'] || !row['Quantity'] || !row['Date']) {
+        if (!row['Batch No'] || !row['Quantity'] || (!row['Date (YYYY-MM-DD)'] && !row['Date'])) {
            errors.push(`Row missing required fields`);
            continue;
         }
@@ -2608,7 +2608,7 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
         toInsert.push({
           vaccine_type: 'HPV Vaccine',
           transaction_type: 'RECEIVED',
-          transaction_date: row['Date'],
+          transaction_date: row['Date (YYYY-MM-DD)'] || row['Date'],
           qty_doses: Number(row['Quantity']) || 0,
           batch_no: row['Batch No'],
           batch_expiry_date: row['Batch Expiry'] || null,
@@ -2661,7 +2661,7 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
       const batchUpdates = [];
 
       for (const row of chunk) {
-        if (!row['Batch No'] || !row['Quantity'] || !row['Date']) {
+        if (!row['Batch No'] || !row['Quantity'] || (!row['Date (YYYY-MM-DD)'] && !row['Date'])) {
            errors.push(`Row missing required fields`);
            continue;
         }
@@ -2672,7 +2672,7 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
         toInsertIssue.push({
           vaccine_type: 'HPV Vaccine',
           transaction_type: 'ISSUED',
-          transaction_date: row['Date'],
+          transaction_date: row['Date (YYYY-MM-DD)'] || row['Date'],
           qty_doses: qty,
           batch_no: batch_no,
           manufacture_name: row['Manufacturer'] || null,
@@ -2689,7 +2689,7 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
         toInsertReceive.push({
           vaccine_type: 'HPV Vaccine',
           transaction_type: 'RECEIVED',
-          transaction_date: row['Date'],
+          transaction_date: row['Date (YYYY-MM-DD)'] || row['Date'],
           qty_doses: qty,
           batch_no: batch_no,
           manufacture_name: row['Manufacturer'] || null,

@@ -22,10 +22,10 @@ export const SuperAdminUpload: React.FC = () => {
       headers = 'Country Code,Country Name,State Code,State Name,Division Code,Division Name,District Code,District Name,Block / City Code,Block / City Name,Facility Name,Health Facility  Type,Facility acronym,Setting,ULB Code,ULB Type,Sub District Name,Pin Code,Address,Latitude,Longitude,Alt.,Health Facility Group,Ownership,Parent organization,Hospital Facility ID,ABDM Org Facility ID,Department Name,Department Type,Service Domain,Service Catgeory,Service,Service Unit,UNIT Level,UNIT Sub Level,UNIT TYPE,Name of UNIT Incharge,CCL ID,CCLBlock HQ (Yes),Contact Number,Status\n';
       filename = 'Vaccine_CCP_Template.csv';
     } else if (type === 'stock_receive') {
-      headers = 'Date,Quantity,Batch No,Batch Expiry,Manufacturer,VVM Status,Source Level,Source CCL ID,Source CCL Name,Destination Level,Destination CCL ID,Destination CCL Name,Remarks\n';
+      headers = 'Date (YYYY-MM-DD),Quantity,Batch No,Batch Expiry,Manufacturer,VVM Status,Source Level,Source CCL ID,Source CCL Name,Destination Level,Destination CCL ID,Destination CCL Name,Remarks\n';
       filename = 'Stock_Receive_Template.csv';
     } else if (type === 'stock_issue') {
-      headers = 'Date,Quantity,Batch No,Manufacturer,Source Level,Source CCL ID,Source CCL Name,Destination Level,Destination CCL ID,Destination CCL Name,Remarks\n';
+      headers = 'Date (YYYY-MM-DD),Quantity,Batch No,Manufacturer,Source Level,Source CCL ID,Source CCL Name,Destination Level,Destination CCL ID,Destination CCL Name,Remarks\n';
       filename = 'Stock_Issue_Template.csv';
     }
 
