@@ -2695,16 +2695,15 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
 
 // ─── Block Monthly Report (CCPs) ────────────────────────────────────────────────
 
-app.get('/api/vaccine/monthly-report/status', authenticateToken, async (req, res) => {
+app.get('/api/vaccine/monthly-report/status', async (req, res) => {
   try {
-    if (req.user.role !== 'BLOCK') return res.status(403).json({ error: 'Block Admin only' });
-    const { month } = req.query; // YYYY-MM
-    if (!month) return res.status(400).json({ error: 'Month is required' });
+    const { month, blockId } = req.query; // YYYY-MM
+    if (!month || !blockId) return res.status(400).json({ error: 'Month and blockId are required' });
 
     // 1. Fetch all CCPs for this block
     const { data: ccps } = await supabase.from('vaccine_ccp')
       .select('id, facility_name, ccl_manager_handler_name, ccl_manager_handler_mobile_no')
-      .eq('block_id', req.user.block_id)
+      .eq('block_id', blockId)
       .eq('unit_level', '3')
       .order('facility_name');
 
@@ -2714,7 +2713,7 @@ app.get('/api/vaccine/monthly-report/status', authenticateToken, async (req, res
     const monthStart = month + '-01';
     const { data: balances } = await supabase.from('monthly_balance')
       .select('facility_id')
-      .eq('block_id', req.user.block_id)
+      .eq('block_id', blockId)
       .eq('transaction_date', monthStart);
 
     const enteredFacilityIds = new Set((balances || []).map(b => b.facility_id));
@@ -2728,12 +2727,10 @@ app.get('/api/vaccine/monthly-report/status', authenticateToken, async (req, res
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/vaccine/monthly-report/submit', authenticateToken, async (req, res) => {
+app.post('/api/vaccine/monthly-report/submit', async (req, res) => {
   try {
-    if (req.user.role !== 'BLOCK') return res.status(403).json({ error: 'Block Admin only' });
-    
-    const { month, facility_id, facility_name, batch_no, quantity, handler_name, handler_mobile, remarks } = req.body;
-    if (!month || !facility_id || !batch_no || isNaN(Number(quantity)) || Number(quantity) < 0) {
+    const { month, facility_id, facility_name, batch_no, quantity, handler_name, handler_mobile, remarks, blockId } = req.body;
+    if (!month || !facility_id || !batch_no || isNaN(Number(quantity)) || Number(quantity) < 0 || !blockId) {
       return res.status(400).json({ error: 'Invalid input' });
     }
 
@@ -2752,6 +2749,9 @@ app.post('/api/vaccine/monthly-report/submit', authenticateToken, async (req, re
       return res.status(400).json({ error: 'Balance already submitted for this CCP and Batch for the selected month.' });
     }
 
+    // Fetch state_id and district_id from the block info
+    const { data: blockInfo } = await supabase.from('blocks').select('state_id, district_id').eq('id', blockId).maybeSingle();
+
     // Insert into monthly_balance
     const { data, error } = await supabase.from('monthly_balance').insert([{
       vaccine_type: 'HPV Vaccine',
@@ -2759,9 +2759,9 @@ app.post('/api/vaccine/monthly-report/submit', authenticateToken, async (req, re
       transaction_date: monthStart,
       qty_doses: qty,
       batch_no: batch_no,
-      state_id: req.user.state_id,
-      district_id: req.user.district_id,
-      block_id: req.user.block_id,
+      state_id: blockInfo?.state_id,
+      district_id: blockInfo?.district_id,
+      block_id: blockId,
       facility_id: facility_id,
       ccl_name: facility_name,
       ccl_manager_handler_name: handler_name,
