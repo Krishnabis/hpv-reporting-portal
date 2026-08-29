@@ -2935,35 +2935,8 @@ app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
 // TEMPORARY SCRIPT TO FIX BROKEN BATCHES
 app.get('/api/superadmin/fix-batches', async (req, res) => {
   try {
-    if (!useSupabase) return res.json({ error: 'Requires Supabase' });
-
-    // 1. Fetch all batches with missing district_id but level > 1
-    const { data: brokenBatches, error: err1 } = await supabase.from('vaccine_batches').select('*').is('district_id', null).neq('level', '1');
-    if (err1) throw err1;
-
-    // 2. Fetch all CCPs
-    const { data: allCcps } = await supabase.from('vaccine_ccp').select('id, ccl_id, state_id, district_id, block_id');
-
-    // 3. For each broken batch, try to find the corresponding stock_receive to get the destination_ccl_id
-    let fixed = 0;
-    for (const batch of brokenBatches || []) {
-       // Look for a stock_receive for this batch at this level
-       const { data: recv } = await supabase.from('stock_receive').select('destination_ccl_id').eq('batch_no', batch.batch_no).eq('destination_level', batch.level).order('created_at', { ascending: false }).limit(1);
-       if (recv && recv.length > 0 && recv[0].destination_ccl_id) {
-          const cclId = recv[0].destination_ccl_id;
-          const matchedCcp = allCcps.find(c => c.ccl_id === cclId);
-          if (matchedCcp) {
-             await supabase.from('vaccine_batches').update({
-                state_id: matchedCcp.state_id,
-                district_id: matchedCcp.district_id,
-                block_id: matchedCcp.block_id,
-                facility_id: matchedCcp.id
-             }).eq('id', batch.id);
-             fixed++;
-          }
-       }
-    }
-    res.json({ message: 'Fixed broken batches', fixedCount: fixed, totalBroken: brokenBatches?.length });
+    const { data: allBatches } = await supabase.from('vaccine_batches').select('*');
+    res.json({ allBatches });
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }
