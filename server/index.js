@@ -1885,6 +1885,8 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
 
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
+      const stateName = (row.statename || row.State || row.state || '').trim().toLowerCase();
+      const distName = (row.districtname || row.District || row.district || '').trim().toLowerCase();
       const distLgd = String(row.districtlgdcode || row.district_lgd_code || '').trim();
       const blockName = (row.blockname || row.BlockName || row.BlockOrCity || row.blockorcity || '').trim().toLowerCase();
       const blockLgd = String(row.blocklgdcode || row.block_lgd_code || row['blockorcity lgd code'] || row.blockorcity_lgd_code || '').trim();
@@ -1928,9 +1930,13 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
           if (b) blockId = b.id;
         }
       }
+      
+      if (!blockId && blockName && distName && stateName) {
+        blockId = locMap.get(`${stateName}|${distName}|${blockName}`);
+      }
 
       if (!blockId) {
-        errors.push(`Row ${i + 1}: Location not found (Block LGD: ${blockLgd} or Block Name: ${blockName} in District LGD: ${distLgd}).`);
+        errors.push(`Row ${i + 1}: Location not found (Block LGD: ${blockLgd}, or Block Name: ${blockName}).`);
         continue;
       }
 
