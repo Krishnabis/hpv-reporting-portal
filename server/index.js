@@ -2038,11 +2038,21 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
       
       const areaTypeVal = row['urbanorrural'] || row['areatype(blockorcity)'] || '';
       const isUrban = areaTypeVal.toLowerCase() === 'city' || areaTypeVal.toLowerCase() === 'urban';
-      const urbanType = row['Urbantype'] || row['urbantype'] || null;
-      const isHq = row['HQ(Y/N)'] === 'Y' || row['hq(y/n)'] === 'Y' || row['HQ'] === 'Y';
-      const isDvs = row['DVS(Y/N)'] === 'Y' || row['dvs(y/n)'] === 'Y';
-      const healthBlockName = row['Healthblockname'] || row['healthblockname'] || null;
-      const hpvTarget = parseInt(row['districtthpvtarget'] || row['district_hpv_target'], 10) || null;
+      
+      const rawUrban = row['Urbantype'] || row['urbantype'] || '';
+      const urbanType = rawUrban.trim() ? rawUrban : null;
+      
+      const rawHq = row['HQ(Y/N)'] || row['hq(y/n)'] || row['HQ'] || '';
+      const isHq = rawHq.trim().toUpperCase() === 'Y';
+      
+      const rawDvs = row['DVS(Y/N)'] || row['dvs(y/n)'] || '';
+      const isDvs = rawDvs.trim().toUpperCase() === 'Y';
+      
+      const rawHealthBlock = row['Healthblockname'] || row['healthblockname'] || '';
+      const healthBlockName = rawHealthBlock.trim() ? rawHealthBlock : null;
+      
+      const rawTarget = row['districtthpvtarget'] || row['district_hpv_target'] || '';
+      const hpvTarget = rawTarget.trim() ? parseInt(rawTarget, 10) : null;
 
       if (!block) {
         const { data: nB, error: eB } = await supabase.from('blocks').insert({ 
@@ -2065,8 +2075,8 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
         let needsUpdate = false;
         if (areaTypeVal && block.area_type !== areaTypeVal) { updates.area_type = areaTypeVal; updates.is_urban = isUrban; needsUpdate = true; }
         if (urbanType !== null && block.urban_type !== urbanType) { updates.urban_type = urbanType; needsUpdate = true; }
-        if (row['HQ(Y/N)'] && block.is_hq !== isHq) { updates.is_hq = isHq; needsUpdate = true; }
-        if (row['DVS(Y/N)'] && block.is_dvs !== isDvs) { updates.is_dvs = isDvs; needsUpdate = true; }
+        if (rawHq.trim() !== '' && block.is_hq !== isHq) { updates.is_hq = isHq; needsUpdate = true; }
+        if (rawDvs.trim() !== '' && block.is_dvs !== isDvs) { updates.is_dvs = isDvs; needsUpdate = true; }
         if (healthBlockName !== null && block.health_block_name !== healthBlockName) { updates.health_block_name = healthBlockName; needsUpdate = true; }
         if (hpvTarget !== null && block.hpv_target !== hpvTarget) { updates.hpv_target = hpvTarget; needsUpdate = true; }
         
