@@ -6,7 +6,7 @@ export const SuperAdminUpload: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success', text: string, errors?: string[], successes?: string[] } | null>(null);
 
-  const handleDownloadTemplate = (type: 'population' | 'livedata' | 'locations' | 'vaccine_ccp') => {
+  const handleDownloadTemplate = (type: 'population' | 'livedata' | 'locations' | 'vaccine_ccp' | 'stock_receive' | 'stock_issue') => {
     let headers = '';
     let filename = '';
     if (type === 'population') {
@@ -21,6 +21,12 @@ export const SuperAdminUpload: React.FC = () => {
     } else if (type === 'vaccine_ccp') {
       headers = 'Country Code,Country Name,State Code,State Name,Division Code,Division Name,District Code,District Name,Block / City Code,Block / City Name,Facility Name,Health Facility  Type,Facility acronym,Setting,ULB Code,ULB Type,Sub District Name,Pin Code,Address,Latitude,Longitude,Alt.,Health Facility Group,Ownership,Parent organization,Hospital Facility ID,ABDM Org Facility ID,Department Name,Department Type,Service Domain,Service Catgeory,Service,Service Unit,UNIT Level,UNIT Sub Level,UNIT TYPE,Name of UNIT Incharge,CCL ID,CCLBlock HQ (Yes),Contact Number,Status\n';
       filename = 'Vaccine_CCP_Template.csv';
+    } else if (type === 'stock_receive') {
+      headers = 'Date,Quantity,Batch No,Batch Expiry,Manufacturer,VVM Status,Source Level,Source CCL ID,Source CCL Name,Destination Level,Destination CCL ID,Destination CCL Name,Remarks\n';
+      filename = 'Stock_Receive_Template.csv';
+    } else if (type === 'stock_issue') {
+      headers = 'Date,Quantity,Batch No,Manufacturer,Source Level,Source CCL ID,Source CCL Name,Destination Level,Destination CCL ID,Destination CCL Name,Remarks\n';
+      filename = 'Stock_Issue_Template.csv';
     }
 
     const blob = new Blob([headers], { type: 'text/csv' });
@@ -32,7 +38,7 @@ export const SuperAdminUpload: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadTable = async (type: 'population' | 'livedata' | 'locations' | 'vaccine_ccp') => {
+  const handleDownloadTable = async (type: 'population' | 'livedata' | 'locations' | 'vaccine_ccp' | 'stock_receive' | 'stock_issue') => {
     try {
       const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
       const res = await fetch(`/api/superadmin/export-table/${type}`, {
@@ -149,7 +155,7 @@ export const SuperAdminUpload: React.FC = () => {
     reader.readAsText(file);
   };
 
-  const renderSection = (title: string, btnText: string, type: 'population' | 'livedata' | 'locations' | 'vaccine_ccp', apiEndpoint: string, colorClass: string) => {
+  const renderSection = (title: string, btnText: string, type: 'population' | 'livedata' | 'locations' | 'vaccine_ccp' | 'stock_receive' | 'stock_issue', apiEndpoint: string, colorClass: string) => {
     return (
       <div className={`p-4 rounded-xl border ${colorClass} bg-white flex flex-col gap-3 justify-between shadow-sm hover:shadow-md transition-all`}>
         <div>
@@ -271,6 +277,28 @@ export const SuperAdminUpload: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 gap-4">
             {renderSection('Vaccine CCP', 'Upload Facilities', 'vaccine_ccp', '/api/superadmin/upload-vaccine-ccp', 'border-pink-100')}
+          </div>
+        </div>
+
+        {/* Stock Receive Data */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-teal-600"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <h2 className="text-base font-bold text-slate-800">Upload Stock Receive</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {renderSection('Stock Receive', 'Upload Stock Receive', 'stock_receive', '/api/superadmin/upload-stock-receive', 'border-teal-100')}
+          </div>
+        </div>
+
+        {/* Stock Issue Data */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-purple-600"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <h2 className="text-base font-bold text-slate-800">Upload Stock Issue</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {renderSection('Stock Issue', 'Upload Stock Issue', 'stock_issue', '/api/superadmin/upload-stock-issue', 'border-purple-100')}
           </div>
         </div>
       </div>

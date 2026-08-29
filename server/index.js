@@ -7,6 +7,41 @@ import { supabase, useSupabase, store, saveStore } from './db/database.js';
 
 dotenv.config();
 
+// Helper to update batch inventory in vaccine_batches
+async function updateBatchInventory(batch_no, manufacture_name, batch_expiry_date, level, state_id, district_id, block_id, facility_id, qty_change, vaccinated_change) {
+  if (!batch_no || !level) return;
+  let query = supabase.from('vaccine_batches').select('*').eq('batch_no', batch_no).eq('level', level);
+  if (state_id) query = query.eq('state_id', state_id);
+  if (district_id) query = query.eq('district_id', district_id);
+  if (block_id) query = query.eq('block_id', block_id);
+  if (facility_id) query = query.eq('facility_id', facility_id);
+  
+  const { data: existing } = await query.limit(1);
+  if (existing && existing.length > 0) {
+    const row = existing[0];
+    const newQty = Number(row.quantity) + Number(qty_change || 0);
+    const newVaccQty = Number(row.vaccinated_qty) + Number(vaccinated_change || 0);
+    let updatePayload = { quantity: newQty, vaccinated_qty: newVaccQty, updated_at: new Date().toISOString() };
+    if (manufacture_name) updatePayload.manufacture_name = manufacture_name;
+    if (batch_expiry_date) updatePayload.batch_expiry_date = batch_expiry_date;
+    await supabase.from('vaccine_batches').update(updatePayload).eq('id', row.id);
+  } else {
+    await supabase.from('vaccine_batches').insert([{
+      batch_no,
+      manufacture_name: manufacture_name || null,
+      batch_expiry_date: batch_expiry_date || null,
+      level,
+      state_id: state_id || null,
+      district_id: district_id || null,
+      block_id: block_id || null,
+      facility_id: facility_id || null,
+      quantity: Number(qty_change || 0),
+      vaccinated_qty: Number(vaccinated_change || 0)
+    }]);
+  }
+}
+
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 const JWT_SECRET = process.env.JWT_SECRET || 'hpv-reporting-portal-secret-key-2026';
@@ -1189,8 +1224,8 @@ app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
     // If they have district_id, they shouldn't be calling this.
     if (req.user.district_id) return res.status(403).json({ error: 'District Admin cannot manually receive stock' });
 
-    const { date, quantity, notes } = req.body;
-    if (!date || isNaN(Number(quantity)) || Number(quantity) <= 0) return res.status(400).json({ error: 'Invalid input' });
+    const { date, quantity, notes, batch_no, batch_expiry_date, manufacture_name } = req.body;
+    if (!date || isNaN(Number(quantity)) || Number(quantity) <= 0 || !batch_no) return res.status(400).json({ error: 'Invalid input' });
 
     const { data, error } = await supabase.from('stock_receive').insert([{
       vaccine_type: 'HPV Vaccine',
@@ -1199,19 +1234,26 @@ app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
       qty_doses: Number(quantity),
       remarks: notes || null,
       destination_level: '1',
+      batch_no: batch_no,
+      batch_expiry_date: batch_expiry_date || null,
+      manufacture_name: manufacture_name || null,
       state_id: req.user.state_id,
       created_by: req.user.id
     }]).select();
 
     if (error) throw error;
+    
+    // Update batch inventory for state level
+    await updateBatchInventory(batch_no, manufacture_name, batch_expiry_date, '1', req.user.state_id, null, null, null, Number(quantity), 0);
+
     res.json({ success: true, transaction: data[0] });
   } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
   try {
-    const { date, quantity, destination_level, destination_facility_id, notes } = req.body;
-    if (!date || isNaN(Number(quantity)) || Number(quantity) <= 0 || !destination_level || !destination_facility_id) {
+    const { date, quantity, destination_level, destination_facility_id, notes, batch_no } = req.body;
+    if (!date || isNaN(Number(quantity)) || Number(quantity) <= 0 || !destination_level || !destination_facility_id || !batch_no) {
        return res.status(400).json({ error: 'Invalid input' });
     }
 
@@ -1232,27 +1274,15 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
        return res.status(403).json({ error: 'Cannot issue to a facility outside your district' });
     }
 
-    // Check available stock at current level by combining receive and issue
-    let recvQuery = supabase.from('stock_receive').select('qty_doses');
-    let issueQuery = supabase.from('stock_issue').select('qty_doses');
+    // Check available stock for THIS BATCH at current level
+    let batchQuery = supabase.from('vaccine_batches').select('*').eq('batch_no', batch_no).eq('level', String(currentLevel));
+    if (req.user.state_id) batchQuery = batchQuery.eq('state_id', req.user.state_id);
+    if (isDistrictAdmin) batchQuery = batchQuery.eq('district_id', req.user.district_id);
     
-    if (req.user.state_id) {
-       recvQuery = recvQuery.eq('state_id', req.user.state_id);
-       issueQuery = issueQuery.eq('state_id', req.user.state_id);
-    }
-    if (isDistrictAdmin) {
-       recvQuery = recvQuery.eq('district_id', req.user.district_id);
-       issueQuery = issueQuery.eq('district_id', req.user.district_id);
-    }
-    
-    const [ {data: recvData}, {data: issueData} ] = await Promise.all([recvQuery, issueQuery]);
+    const { data: batchData, error: bErr } = await batchQuery.maybeSingle();
 
-    const received = (recvData || []).reduce((s, t) => s + Number(t.qty_doses), 0);
-    const issued = (issueData || []).reduce((s, t) => s + Number(t.qty_doses), 0);
-    const available = received - issued;
-
-    if (qty > available) {
-      return res.status(400).json({ error: `Insufficient HPV vaccine stock available for this issue. Available: ${available}` });
+    if (bErr || !batchData || batchData.quantity < qty) {
+      return res.status(400).json({ error: `Insufficient stock for batch ${batch_no}. Available: ${batchData ? batchData.quantity : 0}` });
     }
 
     // Insert ISSUE transaction
@@ -1261,6 +1291,7 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       transaction_type: 'ISSUED',
       transaction_date: date,
       qty_doses: qty,
+      batch_no: batch_no,
       source_level: String(currentLevel),
       destination_level: String(destLvl),
       destination_ccl_name: destFacility.facility_name,
@@ -1278,6 +1309,9 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       transaction_type: 'RECEIVED',
       transaction_date: date,
       qty_doses: qty,
+      batch_no: batch_no,
+      batch_expiry_date: batchData.batch_expiry_date,
+      manufacture_name: batchData.manufacture_name,
       source_level: String(currentLevel),
       destination_level: String(destLvl),
       destination_ccl_name: destFacility.facility_name,
@@ -1292,11 +1326,19 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
        return res.status(500).json({ error: 'Issue recorded, but downstream receipt failed.' });
     }
 
-    // Update balance in blocks table if this goes to a block
+    // Update batch inventory: Deduct from source
+    await updateBatchInventory(batch_no, null, null, String(currentLevel), req.user.state_id, req.user.district_id || null, null, null, -qty, 0);
+
+    // Update batch inventory: Add to destination
+    let destBlockId = destFacility.block_id || null;
+    let destFacilityId = destFacility.id;
+    await updateBatchInventory(batch_no, batchData.manufacture_name, batchData.batch_expiry_date, String(destLvl), destFacility.state_id, destFacility.district_id, destBlockId, destFacilityId, qty, 0);
+
+    // Keep old block balance math just in case
     if (destFacility.block_id) {
-       const { data: bData } = await supabase.from('blocks').select('balance_vaccine').eq('id', destFacility.block_id).single();
-       if (bData) {
-          await supabase.from('blocks').update({ balance_vaccine: (bData.balance_vaccine || 0) + qty }).eq('id', destFacility.block_id);
+       const { data: oldBData } = await supabase.from('blocks').select('balance_vaccine').eq('id', destFacility.block_id).single();
+       if (oldBData) {
+          await supabase.from('blocks').update({ balance_vaccine: (oldBData.balance_vaccine || 0) + qty }).eq('id', destFacility.block_id);
        }
     }
 
@@ -2502,6 +2544,270 @@ app.get('/api/admin/activity', authenticateToken, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ─── Super Admin CSV Uploads: Stock Receive & Issue ─────────────────────────────────
+
+app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { data } = req.body;
+    if (!Array.isArray(data)) return res.status(400).json({ error: 'Expected an array of records' });
+    if (!useSupabase) return res.status(500).json({ error: 'Supabase required for this complex operation' });
+
+    let successCount = 0;
+    let errors = [];
+    let details = [];
+
+    const CHUNK_SIZE = 50;
+    for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+      const chunk = data.slice(i, i + CHUNK_SIZE);
+      const toInsert = [];
+
+      for (const row of chunk) {
+        if (!row['Batch No'] || !row['Quantity'] || !row['Date']) {
+           errors.push(`Row missing required fields`);
+           continue;
+        }
+
+        toInsert.push({
+          vaccine_type: 'HPV Vaccine',
+          transaction_type: 'RECEIVED',
+          transaction_date: row['Date'],
+          qty_doses: Number(row['Quantity']) || 0,
+          batch_no: row['Batch No'],
+          batch_expiry_date: row['Batch Expiry'] || null,
+          manufacture_name: row['Manufacturer'] || null,
+          vvm_status: row['VVM Status'] || null,
+          source_level: row['Source Level'] || null,
+          source_ccl_id: row['Source CCL ID'] || null,
+          source_ccl_name: row['Source CCL Name'] || null,
+          destination_level: row['Destination Level'] || '1',
+          destination_ccl_id: row['Destination CCL ID'] || null,
+          destination_ccl_name: row['Destination CCL Name'] || null,
+          remarks: row['Remarks'] || null,
+          created_by: req.user.id
+        });
+      }
+
+      if (toInsert.length > 0) {
+        const { error } = await supabase.from('stock_receive').insert(toInsert);
+        if (error) {
+          errors.push(`Error inserting batch: ${error.message}`);
+        } else {
+          for (const item of toInsert) {
+             await updateBatchInventory(item.batch_no, item.manufacture_name, item.batch_expiry_date, item.destination_level, 5, null, null, null, item.qty_doses, 0);
+          }
+          successCount += toInsert.length;
+          details.push(`Inserted ${toInsert.length} receive transactions`);
+        }
+      }
+    }
+    res.json({ successCount, errors, details });
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack }); }
+});
+
+app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { data } = req.body;
+    if (!Array.isArray(data)) return res.status(400).json({ error: 'Expected an array of records' });
+    if (!useSupabase) return res.status(500).json({ error: 'Supabase required for this complex operation' });
+
+    let successCount = 0;
+    let errors = [];
+    let details = [];
+
+    const CHUNK_SIZE = 50;
+    for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+      const chunk = data.slice(i, i + CHUNK_SIZE);
+      const toInsertIssue = [];
+      const toInsertReceive = [];
+      const batchUpdates = [];
+
+      for (const row of chunk) {
+        if (!row['Batch No'] || !row['Quantity'] || !row['Date']) {
+           errors.push(`Row missing required fields`);
+           continue;
+        }
+        
+        let qty = Number(row['Quantity']) || 0;
+        let batch_no = row['Batch No'];
+        
+        toInsertIssue.push({
+          vaccine_type: 'HPV Vaccine',
+          transaction_type: 'ISSUED',
+          transaction_date: row['Date'],
+          qty_doses: qty,
+          batch_no: batch_no,
+          manufacture_name: row['Manufacturer'] || null,
+          source_level: row['Source Level'] || '1',
+          source_ccl_id: row['Source CCL ID'] || null,
+          source_ccl_name: row['Source CCL Name'] || null,
+          destination_level: row['Destination Level'] || null,
+          destination_ccl_id: row['Destination CCL ID'] || null,
+          destination_ccl_name: row['Destination CCL Name'] || null,
+          remarks: row['Remarks'] || null,
+          created_by: req.user.id
+        });
+        
+        toInsertReceive.push({
+          vaccine_type: 'HPV Vaccine',
+          transaction_type: 'RECEIVED',
+          transaction_date: row['Date'],
+          qty_doses: qty,
+          batch_no: batch_no,
+          manufacture_name: row['Manufacturer'] || null,
+          source_level: row['Source Level'] || '1',
+          source_ccl_id: row['Source CCL ID'] || null,
+          source_ccl_name: row['Source CCL Name'] || null,
+          destination_level: row['Destination Level'] || null,
+          destination_ccl_id: row['Destination CCL ID'] || null,
+          destination_ccl_name: row['Destination CCL Name'] || null,
+          remarks: row['Remarks'] || null,
+          created_by: req.user.id
+        });
+        
+        batchUpdates.push({
+           batch_no, mfg: row['Manufacturer'], dest: row['Destination Level'], src: row['Source Level'], qty
+        });
+      }
+
+      if (toInsertIssue.length > 0) {
+        const { error: err1 } = await supabase.from('stock_issue').insert(toInsertIssue);
+        const { error: err2 } = await supabase.from('stock_receive').insert(toInsertReceive);
+        
+        if (err1 || err2) {
+          errors.push(`Error inserting batch`);
+        } else {
+          for (const item of batchUpdates) {
+             await updateBatchInventory(item.batch_no, item.mfg, null, item.src, 5, null, null, null, -item.qty, 0);
+             await updateBatchInventory(item.batch_no, item.mfg, null, item.dest, 5, null, null, null, item.qty, 0);
+          }
+          successCount += toInsertIssue.length;
+          details.push(`Inserted ${toInsertIssue.length} issue transactions`);
+        }
+      }
+    }
+    res.json({ successCount, errors, details });
+  } catch (err) { res.status(500).json({ error: err.message, stack: err.stack }); }
+});
+
+// ─── Block Monthly Report (CCPs) ────────────────────────────────────────────────
+
+app.get('/api/vaccine/monthly-report/status', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'BLOCK') return res.status(403).json({ error: 'Block Admin only' });
+    const { month } = req.query; // YYYY-MM
+    if (!month) return res.status(400).json({ error: 'Month is required' });
+
+    // 1. Fetch all CCPs for this block
+    const { data: ccps } = await supabase.from('vaccine_ccp')
+      .select('id, facility_name, ccl_manager_handler_name, ccl_manager_handler_mobile_no')
+      .eq('block_id', req.user.block_id)
+      .eq('unit_level', '3')
+      .order('facility_name');
+
+    if (!ccps || ccps.length === 0) return res.json({ ccps: [] });
+
+    // 2. Fetch monthly balances for this block and month
+    const monthStart = month + '-01';
+    const { data: balances } = await supabase.from('monthly_balance')
+      .select('facility_id')
+      .eq('block_id', req.user.block_id)
+      .eq('transaction_date', monthStart);
+
+    const enteredFacilityIds = new Set((balances || []).map(b => b.facility_id));
+
+    const result = ccps.map(ccp => ({
+       ...ccp,
+       status: enteredFacilityIds.has(ccp.id) ? 'Entered' : 'Pending'
+    }));
+
+    res.json({ ccps: result });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/vaccine/monthly-report/submit', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'BLOCK') return res.status(403).json({ error: 'Block Admin only' });
+    
+    const { month, facility_id, facility_name, batch_no, quantity, handler_name, handler_mobile, remarks } = req.body;
+    if (!month || !facility_id || !batch_no || isNaN(Number(quantity)) || Number(quantity) < 0) {
+      return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    const qty = Number(quantity);
+    const monthStart = month + '-01';
+    
+    // Check if already submitted
+    const { data: existing } = await supabase.from('monthly_balance')
+      .select('id')
+      .eq('facility_id', facility_id)
+      .eq('transaction_date', monthStart)
+      .eq('batch_no', batch_no)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      return res.status(400).json({ error: 'Balance already submitted for this CCP and Batch for the selected month.' });
+    }
+
+    // Insert into monthly_balance
+    const { data, error } = await supabase.from('monthly_balance').insert([{
+      vaccine_type: 'HPV Vaccine',
+      transaction_type: 'MONTH_END_BALANCE',
+      transaction_date: monthStart,
+      qty_doses: qty,
+      batch_no: batch_no,
+      state_id: req.user.state_id,
+      district_id: req.user.district_id,
+      block_id: req.user.block_id,
+      facility_id: facility_id,
+      ccl_name: facility_name,
+      ccl_manager_handler_name: handler_name,
+      ccl_manager_handler_mobile_no: handler_mobile,
+      remarks: remarks || null,
+      created_by: req.user.id
+    }]).select();
+
+    if (error) throw error;
+    
+    const { data: batchData } = await supabase.from('vaccine_batches')
+      .select('quantity')
+      .eq('batch_no', batch_no)
+      .eq('level', '3')
+      .eq('facility_id', facility_id)
+      .limit(1);
+      
+    const currentQty = (batchData && batchData.length > 0) ? Number(batchData[0].quantity) : 0;
+    const diff = qty - currentQty;
+    
+    await updateBatchInventory(batch_no, null, null, '3', req.user.state_id, req.user.district_id, req.user.block_id, facility_id, diff, 0);
+
+    res.json({ success: true, transaction: data[0] });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
+  try {
+    const { level, facility_id } = req.query;
+    let query = supabase.from('vaccine_batches').select('*').gt('quantity', 0);
+    
+    if (level) query = query.eq('level', level);
+    if (req.user.role === 'BLOCK' || req.user.block_id) {
+       query = query.eq('block_id', req.user.block_id);
+    } else if (req.user.district_id) {
+       query = query.eq('district_id', req.user.district_id);
+    } else if (req.user.state_id) {
+       query = query.eq('state_id', req.user.state_id);
+    }
+    
+    if (facility_id) query = query.eq('facility_id', facility_id);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    res.json(data);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
