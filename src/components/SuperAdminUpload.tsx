@@ -187,7 +187,7 @@ export const SuperAdminUpload: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 w-full max-w-7xl mx-auto h-full flex flex-col gap-6">
+    <div className="p-4 sm:p-6 w-full max-w-7xl mx-auto h-full flex flex-col gap-6 overflow-y-auto">
       <div>
         <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Super Admin CSV Upload</h1>
         <p className="text-slate-500 text-sm mt-1">Bulk upload population and live reporting data for blocks and cities.</p>
