@@ -1742,7 +1742,7 @@ app.get('/api/superadmin/export-table/:table', authenticateToken, async (req, re
 
     let query = supabase.from(tableName).select('*').limit(100000);
     if (table === 'population') {
-      query = supabase.from('block_reporting_profiles').select('*, blocks(name, districts(name, states(name)))').limit(100000);
+      query = supabase.from('block_reporting_profiles').select('*, blocks(name, lgd_code, districts(name, states(name)))').limit(100000);
     }
     
     const { data, error } = await query;
@@ -1755,6 +1755,7 @@ app.get('/api/superadmin/export-table/:table', authenticateToken, async (req, re
           state_name: row.blocks?.districts?.states?.name || '',
           district_name: row.blocks?.districts?.name || '',
           block_name: row.blocks?.name || '',
+          block_lgd_code: row.blocks?.lgd_code || '',
           block_id: row.block_id,
           base_population: row.base_population,
           population_base_date: row.population_base_date,
