@@ -2716,7 +2716,8 @@ app.get('/api/vaccine/monthly-report/status', async (req, res) => {
       ccpsQuery = ccpsQuery.eq('block_id', blockId);
     }
     
-    const { data: ccps } = await ccpsQuery;
+    const { data: ccps, error: ccpsErr } = await ccpsQuery;
+    if (ccpsErr) { console.error('CCP Query Error:', ccpsErr); return res.status(500).json({ error: ccpsErr.message }); }
 
     if (!ccps || ccps.length === 0) return res.json({ ccps: [] });
 
