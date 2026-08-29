@@ -765,6 +765,17 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       }
     });
 
+    const { data: stockTx } = await supabase
+      .from('vaccine_stock_transactions')
+      .select('block_id, quantity_doses, transaction_type')
+      .eq('level', 3);
+    const blockStockMap = {};
+    (stockTx || []).forEach(tx => {
+       if (tx.block_id && tx.transaction_type === 'RECEIVED') {
+           blockStockMap[tx.block_id] = (blockStockMap[tx.block_id] || 0) + Number(tx.quantity_doses);
+       }
+    });
+
     let totalBlocks = blocks?.length || 0;
     let totalLineList = 0;
     let totalVaccinated = 0;
@@ -776,7 +787,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
 
     (blocks || []).forEach(b => {
       const dName = b.districts?.name || 'Unknown';
-      if (!districtStats[dName]) districtStats[dName] = { name: dName, vaccinated: 0, lineList: 0, target: 0, population: 0, deltaVaccinated: 0, deltaLineList: 0 };
+      if (!districtStats[dName]) districtStats[dName] = { name: dName, vaccinated: 0, lineList: 0, target: 0, population: 0, deltaVaccinated: 0, deltaLineList: 0, hasLowStockBlock: false };
 
       const prof = profileMap[b.id];
       // Target is stored directly OR calculated as 1% of base_population
@@ -804,6 +815,15 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
         districtStats[dName].deltaLineList += (ll - prevLl);
         districtStats[dName].deltaVaccinated += (vacc - prevVacc);
       }
+      
+      // Calculate Low Stock
+      const vacc = repData?.latest?.beneficiaries_vaccinated || 0;
+      const received = blockStockMap[b.id] || 0;
+      const stockBalance = received - vacc;
+      const isLowStock = target > 0 && stockBalance < (target * 0.25);
+      if (isLowStock) {
+        districtStats[dName].hasLowStockBlock = true;
+      }
     });
 
     const district_chart_data = Object.values(districtStats).map((d) => {
@@ -815,6 +835,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
         target: distTarget,
         deltaVaccinated: d.deltaVaccinated,
         deltaLineList: d.deltaLineList,
+        hasLowStockBlock: d.hasLowStockBlock,
         coveragePct: distTarget > 0 ? parseFloat(((d.vaccinated / distTarget) * 100).toFixed(1)) : 0,
         lineListPct: distTarget > 0 ? parseFloat(((d.lineList / distTarget) * 100).toFixed(1)) : 0,
       };
@@ -830,6 +851,10 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       const prevLl = repData?.prev?.line_list_count || 0;
       const prevVacc = repData?.prev?.beneficiaries_vaccinated || 0;
       
+      const received = blockStockMap[b.id] || 0;
+      const stockBalance = received - vacc;
+      const isLowStock = target > 0 && stockBalance < (target * 0.25);
+      
       return {
         block: b.name,
         block_id: b.id,
@@ -838,6 +863,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
         vaccinated: vacc,
         lineList: ll,
         target: target,
+        isLowStock: isLowStock,
         deltaVaccinated: vacc - prevVacc,
         deltaLineList: ll - prevLl,
         coveragePct: target > 0 ? parseFloat(((vacc / target) * 100).toFixed(1)) : 0,
