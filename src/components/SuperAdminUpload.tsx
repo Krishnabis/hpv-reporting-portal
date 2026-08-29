@@ -13,7 +13,7 @@ export const SuperAdminUpload: React.FC = () => {
       headers = 'State,District,BlockOrCity,population\n';
       filename = 'Population_Template.csv';
     } else if (type === 'livedata') {
-      headers = 'State,District,BlockOrCity,district lgd code,blockorcity lgd code,linelisted,vaccinated,Date(DD-MM-YYYY)\n';
+      headers = 'districtlgdcode,blockname,blocklgdcode,linelisted,vaccinated,Date(DD-MM-YYYY)\n';
       filename = 'LiveData_Template.csv';
     } else if (type === 'locations') {
       headers = 'sno,countrycode,countryname,statelgdcode,statename,divisioncode,divisionname,districtlgdcode,districtname,blockorcitylgdcode,blockorcityname,urbanorrural,Urbantype,HQ(Y/N),DVS(Y/N),Healthblockname,population,districtthpvtarget,linelisted,vaccinated,Date(YYYY-MM-DD)\n';

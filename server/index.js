@@ -1885,10 +1885,9 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
 
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
-      const stateName = (row.State || row.state || '').trim().toLowerCase();
-      const distName = (row.District || row.district || '').trim().toLowerCase();
-      const blockName = (row.BlockOrCity || row.blockorcity || row.Block || row.block || row.City || row.city || '').trim().toLowerCase();
-      const blockLgd = String(row['blockorcity lgd code'] || row.blockorcity_lgd_code || row.block_lgd_code || '').trim();
+      const distLgd = String(row.districtlgdcode || row.district_lgd_code || '').trim();
+      const blockName = (row.blockname || row.BlockName || row.BlockOrCity || row.blockorcity || '').trim().toLowerCase();
+      const blockLgd = String(row.blocklgdcode || row.block_lgd_code || row['blockorcity lgd code'] || row.blockorcity_lgd_code || '').trim();
       
       const llStr = row.linelisted || row.LineListed || row.linelist || row.LineList || '0';
       const vaccStr = row.vaccinated || row.Vaccinated || '0';
@@ -1922,16 +1921,16 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
         if (b) blockId = b.id;
       }
       
-      if (!blockId) {
-        if (!stateName || !distName || !blockName) {
-          errors.push(`Row ${i + 1}: Missing location names or invalid LGD code.`);
-          continue;
+      if (!blockId && blockName && distLgd) {
+        const d = districts.find(d => String(d.lgd_code) === distLgd);
+        if (d) {
+          const b = blocks.find(b => b.district_id === d.id && b.name.toLowerCase() === blockName);
+          if (b) blockId = b.id;
         }
-        blockId = locMap.get(`${stateName}|${distName}|${blockName}`);
       }
 
       if (!blockId) {
-        errors.push(`Row ${i + 1}: Location not found (${stateName} > ${distName} > ${blockName} or LGD: ${blockLgd}).`);
+        errors.push(`Row ${i + 1}: Location not found (Block LGD: ${blockLgd} or Block Name: ${blockName} in District LGD: ${distLgd}).`);
         continue;
       }
 
