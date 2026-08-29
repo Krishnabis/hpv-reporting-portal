@@ -132,6 +132,7 @@ export const AdminDashboard: React.FC = () => {
 
   // Users state
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [editingUser, setEditingUser] = useState<any>(null);
   const [newAdminName, setNewAdminName] = useState('');
   const [newAdminUsername, setNewAdminUsername] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
@@ -2707,6 +2708,7 @@ export const AdminDashboard: React.FC = () => {
                     <th className="px-4 py-2">District</th>
                     <th className="px-4 py-2">Status</th>
                     <th className="px-4 py-2">Last Login</th>
+                    <th className="px-4 py-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

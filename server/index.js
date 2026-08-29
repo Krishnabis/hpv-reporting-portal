@@ -632,6 +632,52 @@ app.post('/api/admin/users', authenticateToken, async (req, res) => {
 });
 
 // Toggle admin user status
+
+app.put('/api/admin/users/:id', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { id } = req.params;
+    const { name, role, state_id, district_id } = req.body;
+    
+    if (useSupabase) {
+      const { error } = await supabase.from('admin_users').update({ 
+        name, 
+        role, 
+        state_id: state_id ? Number(state_id) : null, 
+        district_id: district_id ? Number(district_id) : null,
+        updated_at: new Date().toISOString()
+      }).eq('id', id);
+      if (error) throw error;
+      
+      logAudit(req.user.id, 'UPDATE_ADMIN_USER', 'Updated admin user details', { target_id: id, name, role });
+      res.json({ success: true });
+    } else {
+      const idx = store.admin_users.findIndex(u => u.id === id);
+      if (idx === -1) return res.status(404).json({ error: 'User not found' });
+      store.admin_users[idx] = { ...store.admin_users[idx], name, role, state_id: state_id ? Number(state_id) : null, district_id: district_id ? Number(district_id) : null };
+      res.json({ success: true });
+    }
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/admin/users/:id', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { id } = req.params;
+    
+    if (useSupabase) {
+      const { error } = await supabase.from('admin_users').delete().eq('id', id);
+      if (error) throw error;
+      
+      logAudit(req.user.id, 'DELETE_ADMIN_USER', 'Deleted admin user', { target_id: id });
+      res.json({ success: true });
+    } else {
+      store.admin_users = store.admin_users.filter(u => u.id !== id);
+      res.json({ success: true });
+    }
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/admin/users/:id/toggle-status', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Only super admin can modify users' });
@@ -2593,6 +2639,9 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
     let successCount = 0;
     let errors = [];
     let details = [];
+    
+    // Fetch all vaccine CCPs to map CCL IDs to state_id, district_id, block_id, facility_id
+    const { data: allCcps } = await supabase.from('vaccine_ccp').select('id, ccl_id, state_id, district_id, block_id');
 
     const CHUNK_SIZE = 50;
     for (let i = 0; i < data.length; i += CHUNK_SIZE) {
@@ -2631,7 +2680,12 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
           errors.push(`Error inserting batch: ${error.message}`);
         } else {
           for (const item of toInsert) {
-             await updateBatchInventory(item.batch_no, item.manufacture_name, item.batch_expiry_date, item.destination_level, 5, null, null, null, item.qty_doses, 0);
+             const destCcp = allCcps?.find(c => c.ccl_id === item.destination_ccl_id);
+             const sId = destCcp?.state_id || req.user.state_id || 5;
+             const dId = destCcp?.district_id || null;
+             const bId = destCcp?.block_id || null;
+             const fId = destCcp?.id || null;
+             await updateBatchInventory(item.batch_no, item.manufacture_name, item.batch_expiry_date, item.destination_level, sId, dId, bId, fId, item.qty_doses, 0);
           }
           successCount += toInsert.length;
           details.push(`Inserted ${toInsert.length} receive transactions`);
@@ -2652,6 +2706,8 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
     let successCount = 0;
     let errors = [];
     let details = [];
+    
+    const { data: allCcps } = await supabase.from('vaccine_ccp').select('id, ccl_id, state_id, district_id, block_id');
 
     const CHUNK_SIZE = 50;
     for (let i = 0; i < data.length; i += CHUNK_SIZE) {
@@ -2704,7 +2760,13 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
         });
         
         batchUpdates.push({
-           batch_no, mfg: row['Manufacturer'], dest: row['Destination Level'], src: row['Source Level'], qty
+           batch_no, 
+           mfg: row['Manufacturer'], 
+           dest: row['Destination Level'], 
+           src: row['Source Level'], 
+           qty,
+           source_ccl_id: row['Source CCL ID'] || null,
+           destination_ccl_id: row['Destination CCL ID'] || null
         });
       }
 
@@ -2716,8 +2778,20 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           errors.push(`Error inserting batch`);
         } else {
           for (const item of batchUpdates) {
-             await updateBatchInventory(item.batch_no, item.mfg, null, item.src, 5, null, null, null, -item.qty, 0);
-             await updateBatchInventory(item.batch_no, item.mfg, null, item.dest, 5, null, null, null, item.qty, 0);
+             const srcCcp = allCcps?.find(c => c.ccl_id === item.source_ccl_id);
+             const srcSId = srcCcp?.state_id || req.user.state_id || 5;
+             const srcDId = srcCcp?.district_id || null;
+             const srcBId = srcCcp?.block_id || null;
+             const srcFId = srcCcp?.id || null;
+             
+             const destCcp = allCcps?.find(c => c.ccl_id === item.destination_ccl_id);
+             const destSId = destCcp?.state_id || req.user.state_id || 5;
+             const destDId = destCcp?.district_id || null;
+             const destBId = destCcp?.block_id || null;
+             const destFId = destCcp?.id || null;
+             
+             await updateBatchInventory(item.batch_no, item.mfg, null, item.src, srcSId, srcDId, srcBId, srcFId, -item.qty, 0);
+             await updateBatchInventory(item.batch_no, item.mfg, null, item.dest, destSId, destDId, destBId, destFId, item.qty, 0);
           }
           successCount += toInsertIssue.length;
           details.push(`Inserted ${toInsertIssue.length} issue transactions`);
@@ -2855,6 +2929,44 @@ app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+
+// TEMPORARY SCRIPT TO FIX BROKEN BATCHES
+app.get('/api/superadmin/fix-batches', async (req, res) => {
+  try {
+    if (!useSupabase) return res.json({ error: 'Requires Supabase' });
+
+    // 1. Fetch all batches with missing district_id but level > 1
+    const { data: brokenBatches, error: err1 } = await supabase.from('vaccine_batches').select('*').is('district_id', null).neq('level', '1');
+    if (err1) throw err1;
+
+    // 2. Fetch all CCPs
+    const { data: allCcps } = await supabase.from('vaccine_ccp').select('id, ccl_id, state_id, district_id, block_id');
+
+    // 3. For each broken batch, try to find the corresponding stock_receive to get the destination_ccl_id
+    let fixed = 0;
+    for (const batch of brokenBatches || []) {
+       // Look for a stock_receive for this batch at this level
+       const { data: recv } = await supabase.from('stock_receive').select('destination_ccl_id').eq('batch_no', batch.batch_no).eq('destination_level', batch.level).order('created_at', { ascending: false }).limit(1);
+       if (recv && recv.length > 0 && recv[0].destination_ccl_id) {
+          const cclId = recv[0].destination_ccl_id;
+          const matchedCcp = allCcps.find(c => c.ccl_id === cclId);
+          if (matchedCcp) {
+             await supabase.from('vaccine_batches').update({
+                state_id: matchedCcp.state_id,
+                district_id: matchedCcp.district_id,
+                block_id: matchedCcp.block_id,
+                facility_id: matchedCcp.id
+             }).eq('id', batch.id);
+             fixed++;
+          }
+       }
+    }
+    res.json({ message: 'Fixed broken batches', fixedCount: fixed, totalBroken: brokenBatches?.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
