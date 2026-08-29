@@ -2654,6 +2654,11 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
            continue;
         }
 
+        
+        const destCcp = allCcps?.find(c => c.ccl_id === row['Destination CCL ID']);
+        const sId = destCcp?.state_id || req.user.state_id || 5;
+        const dId = destCcp?.district_id || null;
+        
         toInsert.push({
           vaccine_type: 'HPV Vaccine',
           transaction_type: 'RECEIVED',
@@ -2670,8 +2675,11 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
           destination_ccl_id: row['Destination CCL ID'] || null,
           destination_ccl_name: row['Destination CCL Name'] || null,
           remarks: row['Remarks'] || null,
-          created_by: getValidUuid(req.user.id)
+          created_by: getValidUuid(req.user.id),
+          state_id: sId,
+          district_id: dId
         });
+   
       }
 
       if (toInsert.length > 0) {
@@ -2725,6 +2733,11 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
         let qty = Number(row['Quantity']) || 0;
         let batch_no = row['Batch No'];
         
+        
+        const srcCcp = allCcps?.find(c => c.ccl_id === row['Source CCL ID']);
+        const sId = srcCcp?.state_id || req.user.state_id || 5;
+        const dId = srcCcp?.district_id || null;
+        
         toInsertIssue.push({
           vaccine_type: 'HPV Vaccine',
           transaction_type: 'ISSUED',
@@ -2739,8 +2752,16 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           destination_ccl_id: row['Destination CCL ID'] || null,
           destination_ccl_name: row['Destination CCL Name'] || null,
           remarks: row['Remarks'] || null,
-          created_by: getValidUuid(req.user.id)
+          created_by: getValidUuid(req.user.id),
+          state_id: sId,
+          district_id: dId
         });
+   
+        
+        
+        const destCcp = allCcps?.find(c => c.ccl_id === row['Destination CCL ID']);
+        const dsId = destCcp?.state_id || req.user.state_id || 5;
+        const ddId = destCcp?.district_id || null;
         
         toInsertReceive.push({
           vaccine_type: 'HPV Vaccine',
@@ -2756,8 +2777,11 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           destination_ccl_id: row['Destination CCL ID'] || null,
           destination_ccl_name: row['Destination CCL Name'] || null,
           remarks: row['Remarks'] || null,
-          created_by: getValidUuid(req.user.id)
+          created_by: getValidUuid(req.user.id),
+          state_id: dsId,
+          district_id: ddId
         });
+   
         
         batchUpdates.push({
            batch_no, 
@@ -2935,8 +2959,67 @@ app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
 // TEMPORARY SCRIPT TO FIX BROKEN BATCHES
 app.get('/api/superadmin/fix-batches', async (req, res) => {
   try {
-    const { data: allBatches } = await supabase.from('vaccine_batches').select('*');
-    res.json({ allBatches });
+    if (!useSupabase) return res.json({ error: 'Requires Supabase' });
+
+    const { data: allCcps } = await supabase.from('vaccine_ccp').select('id, ccl_id, state_id, district_id, block_id');
+
+    // FIX STOCK RECEIVE
+    const { data: rxBroken } = await supabase.from('stock_receive').select('*').is('district_id', null).neq('destination_level', '1');
+    let fixedRx = 0;
+    for (const rx of rxBroken || []) {
+       if (rx.destination_ccl_id) {
+          const ccp = allCcps.find(c => c.ccl_id === rx.destination_ccl_id);
+          if (ccp) {
+             await supabase.from('stock_receive').update({ state_id: ccp.state_id, district_id: ccp.district_id }).eq('id', rx.id);
+             fixedRx++;
+          }
+       }
+    }
+
+    // FIX STOCK ISSUE
+    const { data: txBroken } = await supabase.from('stock_issue').select('*').is('district_id', null).neq('source_level', '1');
+    let fixedTx = 0;
+    for (const tx of txBroken || []) {
+       if (tx.source_ccl_id) {
+          const ccp = allCcps.find(c => c.ccl_id === tx.source_ccl_id);
+          if (ccp) {
+             await supabase.from('stock_issue').update({ state_id: ccp.state_id, district_id: ccp.district_id }).eq('id', tx.id);
+             fixedTx++;
+          }
+       }
+    }
+
+    // Fix batches just in case
+    const { data: brokenBatches } = await supabase.from('vaccine_batches').select('*').is('district_id', null).neq('level', '1');
+    let fixedB = 0;
+    for (const batch of brokenBatches || []) {
+       const { data: recv } = await supabase.from('stock_receive').select('destination_ccl_id').eq('batch_no', batch.batch_no).eq('destination_level', batch.level).order('created_at', { ascending: false }).limit(1);
+       if (recv && recv.length > 0 && recv[0].destination_ccl_id) {
+          const matchedCcp = allCcps.find(c => c.ccl_id === recv[0].destination_ccl_id);
+          if (matchedCcp) {
+             await supabase.from('vaccine_batches').update({
+                state_id: matchedCcp.state_id, district_id: matchedCcp.district_id, block_id: matchedCcp.block_id, facility_id: matchedCcp.id
+             }).eq('id', batch.id);
+             fixedB++;
+          }
+       }
+    }
+
+    // Fix batch expiry dates where they are null but another row has the expiry
+    const { data: batches } = await supabase.from('vaccine_batches').select('batch_no, batch_expiry_date').not('batch_expiry_date', 'is', null);
+    const expiryMap = {};
+    batches?.forEach(b => expiryMap[b.batch_no] = b.batch_expiry_date);
+    
+    let fixedExpiry = 0;
+    const { data: nullBatches } = await supabase.from('vaccine_batches').select('id, batch_no').is('batch_expiry_date', null);
+    for (const nb of nullBatches || []) {
+       if (expiryMap[nb.batch_no]) {
+          await supabase.from('vaccine_batches').update({ batch_expiry_date: expiryMap[nb.batch_no] }).eq('id', nb.id);
+          fixedExpiry++;
+       }
+    }
+
+    res.json({ message: 'Fixed records', fixedRx, fixedTx, fixedBatches: fixedB, fixedExpiry });
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }
