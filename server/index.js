@@ -2034,7 +2034,18 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
 
       // Block
       let blockLgd = String(row.blockorcitylgdcode || '').trim();
-      let block = allBlocks.find(b => String(b.lgd_code) === blockLgd && blockLgd) || allBlocks.find(b => b.name.toLowerCase() === row.blockorcityname.trim().toLowerCase() && b.district_id === district.id);
+      let block = null;
+      if (blockLgd) {
+        block = allBlocks.find(b => String(b.lgd_code) === blockLgd);
+      }
+      if (!block) {
+        const nameMatch = allBlocks.find(b => b.name.toLowerCase() === row.blockorcityname.trim().toLowerCase() && b.district_id === district.id);
+        if (nameMatch) {
+          if (!nameMatch.lgd_code || !blockLgd || String(nameMatch.lgd_code) === blockLgd) {
+            block = nameMatch;
+          }
+        }
+      }
       
       const areaTypeVal = row['urbanorrural'] || row['areatype(blockorcity)'] || '';
       const isUrban = areaTypeVal.toLowerCase() === 'city' || areaTypeVal.toLowerCase() === 'urban';
@@ -2090,22 +2101,37 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
       }
 
       // Population / Profile
-      const popStr = row.population || row.Population;
-      const basePop = parseInt(popStr, 10);
+      const popStr = row.population || row.Population || '';
+      const basePop = popStr.trim() ? parseInt(popStr, 10) : NaN;
       let profile = allProfiles.find(p => p.block_id === block.id);
       
       if (!isNaN(basePop) && basePop > 0) {
-        if (!profile || !profile.base_population) {
-          const target = Math.round(basePop * 0.01);
-          if (profile) {
+        const target = Math.round(basePop * 0.01);
+        let updatedProfile = false;
+        
+        if (profile) {
+          if (profile.base_population !== basePop) {
             await supabase.from('block_reporting_profiles').update({ base_population: basePop, initial_hpv_target: target }).eq('id', profile.id);
             profile.base_population = basePop;
-            details.push(`Updated population for ${block.name}`);
-          } else {
-            const profId = `prof-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-            const { data: nP } = await supabase.from('block_reporting_profiles').insert([{ id: profId, block_id: block.id, base_population: basePop, population_base_date: today, initial_hpv_target: target }]).select().single();
-            if (nP) { profile = nP; allProfiles.push(profile); details.push(`Created population for ${block.name}`); }
+            updatedProfile = true;
           }
+        } else {
+          const profId = `prof-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          const { data: nP } = await supabase.from('block_reporting_profiles').insert([{ id: profId, block_id: block.id, base_population: basePop, population_base_date: today, initial_hpv_target: target }]).select().single();
+          if (nP) { profile = nP; allProfiles.push(profile); updatedProfile = true; }
+        }
+        
+        // Always ensure the block table is also synced with the new population
+        if (block.population !== basePop) {
+          const { error: bErr } = await supabase.from('blocks').update({ population: basePop }).eq('id', block.id);
+          if (!bErr) {
+            block.population = basePop;
+            if (!updatedProfile) details.push(`Updated block population for ${block.name}`);
+          }
+        }
+        
+        if (updatedProfile) {
+          details.push(`Updated population for ${block.name}`);
         }
       }
 
