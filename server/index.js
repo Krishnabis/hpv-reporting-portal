@@ -1740,9 +1740,32 @@ app.get('/api/superadmin/export-table/:table', authenticateToken, async (req, re
        return res.json(store[tableName] || []);
     }
 
-    const { data, error } = await supabase.from(tableName).select('*').limit(100000);
+    let query = supabase.from(tableName).select('*').limit(100000);
+    if (table === 'population') {
+      query = supabase.from('block_reporting_profiles').select('*, blocks(name, districts(name, states(name)))').limit(100000);
+    }
+    
+    const { data, error } = await query;
     if (error) throw error;
     
+    if (table === 'population') {
+      const formattedData = data.map(row => {
+        return {
+          id: row.id,
+          state_name: row.blocks?.districts?.states?.name || '',
+          district_name: row.blocks?.districts?.name || '',
+          block_name: row.blocks?.name || '',
+          block_id: row.block_id,
+          base_population: row.base_population,
+          population_base_date: row.population_base_date,
+          initial_hpv_target: row.initial_hpv_target,
+          created_at: row.created_at,
+          updated_at: row.updated_at
+        };
+      });
+      return res.json(formattedData);
+    }
+
     res.json(data);
   } catch (err) {
     console.error(err);
@@ -1805,6 +1828,11 @@ app.post('/api/superadmin/upload-population', authenticateToken, async (req, res
           errors.push(`Row ${i + 1}: DB Error for ${blockName} - ${sError.message || JSON.stringify(sError)}`);
           continue;
         }
+        
+        // Update the block table population column
+        const { error: bError } = await supabase.from('blocks').update({ population: basePop }).eq('id', blockId);
+        if (bError) console.error('Error updating block population column:', bError);
+        
       } else {
         const existingIdx = store.block_reporting_profiles.findIndex(p => p.block_id === blockId);
         if (existingIdx >= 0) {
