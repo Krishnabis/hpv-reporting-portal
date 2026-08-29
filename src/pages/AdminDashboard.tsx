@@ -1648,13 +1648,18 @@ export const AdminDashboard: React.FC = () => {
                                   <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
                                     <span className="text-[11px] font-bold text-slate-800 truncate">
                                       {rowName}
+                                      {((isBlock && d.isLowStock) || (!isBlock && d.hasLowStockBlock)) && (
+                                        <Syringe className="w-3 h-3 text-pink-500 inline-block ml-1 -mt-0.5" title="Low stock in this area" />
+                                      )}
                                       {isBlock && d.is_urban && (
                                         <span className="text-slate-400 font-medium ml-1">
                                           Urban
                                         </span>
                                       )}
                                     </span>
-                                    <span className="text-[9px] font-semibold text-slate-400 shrink-0">({d.vaccinated?.toLocaleString('en-IN')} / {d.issued?.toLocaleString('en-IN')})</span>
+                                    <span className="text-[9px] font-semibold text-slate-400 shrink-0 flex items-center gap-0.5">
+                                      (<Target className="w-2.5 h-2.5 inline-block" /> {d.issued?.toLocaleString('en-IN')})
+                                    </span>
                                     {d.deltaVaccinated > 0 && (
                                       <span className="flex items-center text-emerald-500 font-bold text-[9px] shrink-0 ml-1 bg-emerald-50 px-1 rounded" title={`+${d.deltaVaccinated} since last report`}>
                                         <TrendingUp className="w-2.5 h-2.5" />

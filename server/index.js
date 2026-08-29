@@ -1053,21 +1053,11 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     if (targetStateId) dq = dq.eq('state_id', targetStateId);
     const allDistricts = (await dq).data || [];
     
-    const districtUtilization = allDistricts.map(d => {
-      const dId = d.id;
-      const stat = districtStats[dId] || { vaccinated: 0, issued: 0, deltaVaccinated: 0 };
-      const distName = d.name || 'Unknown';
-      const utilPct = stat.issued > 0 ? (stat.vaccinated / stat.issued) * 100 : 0;
-      return {
-        district: distName,
-        district_id: dId,
-        vaccinated: stat.vaccinated,
-        issued: stat.issued,
-        deltaVaccinated: stat.deltaVaccinated,
-        utilizationPct: parseFloat(utilPct.toFixed(1))
-      };
-    }).sort((a, b) => b.utilizationPct - a.utilizationPct);
-
+    // Fetch profiles for targets
+    const { data: profs } = await supabase.from('block_reporting_profiles').select('block_id, base_population, initial_hpv_target');
+    const profMap = {};
+    (profs || []).forEach(p => { profMap[p.block_id] = p; });
+    
     // Block Utilization (for drill down)
     const blockStats = {};
     Object.values(latestReportsMap).forEach(m => {
@@ -1097,12 +1087,24 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
     const allBlocks = (await bq).data || [];
 
+    const districtLowStock = {};
+
     const blockUtilization = allBlocks.map(b => {
       const bId = b.id;
       const stat = blockStats[bId] || { vaccinated: 0, received: 0, deltaVaccinated: 0 };
       const blkName = b.name || 'Unknown';
       const distName = b.districts?.name || 'Unknown';
       const utilPct = stat.received > 0 ? (stat.vaccinated / stat.received) * 100 : 0;
+      
+      const prof = profMap[bId];
+      const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
+      const stockBalance = stat.received - stat.vaccinated;
+      const isLowStock = target > 0 && stockBalance < (target * 0.25);
+      
+      if (isLowStock) {
+        districtLowStock[b.district_id] = true;
+      }
+
       return {
         block: blkName,
         is_urban: b.is_urban,
@@ -1111,6 +1113,23 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
         vaccinated: stat.vaccinated,
         issued: stat.received,
         deltaVaccinated: stat.deltaVaccinated,
+        isLowStock: isLowStock,
+        utilizationPct: parseFloat(utilPct.toFixed(1))
+      };
+    }).sort((a, b) => b.utilizationPct - a.utilizationPct);
+    
+    const districtUtilization = allDistricts.map(d => {
+      const dId = d.id;
+      const stat = districtStats[dId] || { vaccinated: 0, issued: 0, deltaVaccinated: 0 };
+      const distName = d.name || 'Unknown';
+      const utilPct = stat.issued > 0 ? (stat.vaccinated / stat.issued) * 100 : 0;
+      return {
+        district: distName,
+        district_id: dId,
+        vaccinated: stat.vaccinated,
+        issued: stat.issued,
+        deltaVaccinated: stat.deltaVaccinated,
+        hasLowStockBlock: districtLowStock[dId] || false,
         utilizationPct: parseFloat(utilPct.toFixed(1))
       };
     }).sort((a, b) => b.utilizationPct - a.utilizationPct);
