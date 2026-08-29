@@ -488,7 +488,15 @@ export const AdminDashboard: React.FC = () => {
     const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
     fetch(`/api/vaccine/dashboard?state_id=${activeStateId}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => res.json())
-      .then(data => { setVaccDashboard(data); setLoadingVaccDashboard(false); })
+      .then(data => {
+        if (data.error) {
+          console.error('Backend returned error:', data.error);
+          setVaccDashboard(null); // Prevents crash
+        } else {
+          setVaccDashboard(data);
+        }
+        setLoadingVaccDashboard(false);
+      })
       .catch(err => { console.error('Failed to fetch vaccine dashboard:', err); setLoadingVaccDashboard(false); });
   };
 
