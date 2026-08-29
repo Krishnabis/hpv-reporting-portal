@@ -2689,9 +2689,7 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
           state_id: sId,
           district_id: dId,
           block_id: srcCcp?.block_id || null,
-          facility_id: srcCcp?.id || null,
-          block_id: destCcp?.block_id || null,
-          facility_id: destCcp?.id || null
+          facility_id: srcCcp?.id || null
         });
    
       }
@@ -2770,9 +2768,7 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           state_id: sId,
           district_id: dId,
           block_id: srcCcp?.block_id || null,
-          facility_id: srcCcp?.id || null,
-          block_id: destCcp?.block_id || null,
-          facility_id: destCcp?.id || null
+          facility_id: srcCcp?.id || null
         });
    
         
