@@ -19,7 +19,7 @@ export const SuperAdminUpload: React.FC = () => {
       headers = 'sno,countrycode,countryname,statelgdcode,statename,divisioncode,divisionname,districtlgdcode,districtname,blockorcitylgdcode,blockorcityname,urbanorrural,Urbantype,HQ(Y/N),DVS(Y/N),Healthblockname,population,districtthpvtarget,linelisted,vaccinated,Date(YYYY-MM-DD)\n';
       filename = 'Locations_Template.csv';
     } else if (type === 'vaccine_ccp') {
-      headers = 'Country Code,Country Name,State Code,State Name,Division Code,Division Name,District Code,District Name,Block / City Code,Block / City Name,Facility Name,Sub District Name,Pin Code,Address,Latitude,Longitude,Alt.,Health Facility Group,Facility acronym,Health Facility  Type,Setting,Ownership,Parent organization,Hospital Facility ID,ABDM Org Facility ID,Department Name,Department Type,Service Domain,Service Catgeory,Service,Service Unit,UNIT Level,UNIT Sub Level,UNIT TYPE,Name of UNIT Incharge,Contact Number,Status\n';
+      headers = 'Country Code,Country Name,State Code,State Name,Division Code,Division Name,District Code,District Name,Block / City Code,Block / City Name,Facility Name,Sub District Name,Pin Code,Address,Latitude,Longitude,Alt.,Health Facility Group,Facility acronym,Health Facility  Type,Setting,ULB Type,Ownership,Parent organization,Hospital Facility ID,ABDM Org Facility ID,Department Name,Department Type,Service Domain,Service Catgeory,Service,Service Unit,UNIT Level,UNIT Sub Level,UNIT TYPE,CCL ID,CCLBlock HQ (Yes),Name of UNIT Incharge,Contact Number,Status\n';
       filename = 'Vaccine_CCP_Template.csv';
     }
 

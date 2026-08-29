@@ -1865,10 +1865,10 @@ export const AdminDashboard: React.FC = () => {
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-700 mb-3">Recent Receipts</h3>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {stockHistory.filter(t => t.transaction_type === 'RECEIVED').slice(0, 10).map((t: any) => (
+                  {stockHistory.filter(t => t.transaction_type === 'RECEIVED' || t.display_type === 'RECEIVED').slice(0, 10).map((t: any) => (
                     <div key={t.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
                       <span className="text-xs text-slate-600">{t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>
-                      <span className="text-xs font-bold text-emerald-700">{Number(t.quantity_doses).toLocaleString('en-IN')} doses</span>
+                      <span className="text-xs font-bold text-emerald-700">{Number(t.quantity_doses || t.qty_doses).toLocaleString('en-IN')} doses</span>
                     </div>
                   ))}
                 </div>
@@ -1967,10 +1967,10 @@ export const AdminDashboard: React.FC = () => {
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-700 mb-3">Recent Issues</h3>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {stockHistory.filter(t => t.transaction_type === 'ISSUED').slice(0, 10).map((t: any) => (
+                  {stockHistory.filter(t => t.transaction_type === 'ISSUED' || t.display_type === 'ISSUED').slice(0, 10).map((t: any) => (
                     <div key={t.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
                       <span className="text-xs text-slate-600">{t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>
-                      <span className="text-xs font-bold text-purple-700">{Number(t.quantity_doses).toLocaleString('en-IN')} doses</span>
+                      <span className="text-xs font-bold text-purple-700">{Number(t.quantity_doses || t.qty_doses).toLocaleString('en-IN')} doses</span>
                     </div>
                   ))}
                 </div>
@@ -2050,10 +2050,10 @@ export const AdminDashboard: React.FC = () => {
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-700 mb-3">Recent Month End Balances</h3>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {stockHistory.filter(t => t.transaction_type === 'MONTH_END_BALANCE').slice(0, 10).map((t: any) => (
+                  {stockHistory.filter(t => t.transaction_type === 'MONTH_END_BALANCE' || t.display_type === 'MONTH_END_BALANCE').slice(0, 10).map((t: any) => (
                     <div key={t.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                      <span className="text-xs text-slate-600">{t.balance_month ? new Date(t.balance_month).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '—'}</span>
-                      <span className="text-xs font-bold text-pink-700">{Number(t.quantity_doses).toLocaleString('en-IN')} doses</span>
+                      <span className="text-xs text-slate-600">{(t.balance_month || t.transaction_date) ? new Date(t.balance_month || t.transaction_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '—'}</span>
+                      <span className="text-xs font-bold text-pink-700">{Number(t.quantity_doses || t.qty_doses).toLocaleString('en-IN')} doses</span>
                     </div>
                   ))}
                 </div>

@@ -1183,14 +1183,14 @@ app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
     const { date, quantity, notes } = req.body;
     if (!date || isNaN(Number(quantity)) || Number(quantity) <= 0) return res.status(400).json({ error: 'Invalid input' });
 
-    const { data, error } = await supabase.from('vaccine_stock_transactions').insert([{
-      vaccine: 'HPV Vaccine',
-      level: 1,
-      state_id: req.user.state_id,
+    const { data, error } = await supabase.from('stock_receive').insert([{
+      vaccine_type: 'HPV Vaccine',
       transaction_type: 'RECEIVED',
       transaction_date: date,
-      quantity_doses: Number(quantity),
-      notes: notes || null,
+      qty_doses: Number(quantity),
+      remarks: notes || null,
+      destination_level: '1',
+      state_id: req.user.state_id,
       created_by: req.user.id
     }]).select();
 
@@ -1223,16 +1223,23 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
        return res.status(403).json({ error: 'Cannot issue to a facility outside your district' });
     }
 
-    // Check available stock at current level
-    let txQuery = supabase.from('vaccine_stock_transactions').select('transaction_type, quantity_doses').eq('level', currentLevel);
-    if (req.user.state_id) txQuery = txQuery.eq('state_id', req.user.state_id);
-    if (isDistrictAdmin) txQuery = txQuery.eq('district_id', req.user.district_id);
+    // Check available stock at current level by combining receive and issue
+    let recvQuery = supabase.from('stock_receive').select('qty_doses');
+    let issueQuery = supabase.from('stock_issue').select('qty_doses');
     
-    const { data: existingTx, error: txErr } = await txQuery;
-    if (txErr) throw txErr;
+    if (req.user.state_id) {
+       recvQuery = recvQuery.eq('state_id', req.user.state_id);
+       issueQuery = issueQuery.eq('state_id', req.user.state_id);
+    }
+    if (isDistrictAdmin) {
+       recvQuery = recvQuery.eq('district_id', req.user.district_id);
+       issueQuery = issueQuery.eq('district_id', req.user.district_id);
+    }
+    
+    const [ {data: recvData}, {data: issueData} ] = await Promise.all([recvQuery, issueQuery]);
 
-    const received = existingTx.filter(t => t.transaction_type === 'RECEIVED').reduce((s, t) => s + Number(t.quantity_doses), 0);
-    const issued = existingTx.filter(t => t.transaction_type === 'ISSUED').reduce((s, t) => s + Number(t.quantity_doses), 0);
+    const received = (recvData || []).reduce((s, t) => s + Number(t.qty_doses), 0);
+    const issued = (issueData || []).reduce((s, t) => s + Number(t.qty_doses), 0);
     const available = received - issued;
 
     if (qty > available) {
@@ -1240,42 +1247,48 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
     }
 
     // Insert ISSUE transaction
-    const { data: issueTx, error: issueErr } = await supabase.from('vaccine_stock_transactions').insert([{
-      vaccine: 'HPV Vaccine',
-      level: currentLevel,
-      state_id: req.user.state_id,
-      district_id: req.user.district_id || null,
+    const { data: issueTx, error: issueErr } = await supabase.from('stock_issue').insert([{
+      vaccine_type: 'HPV Vaccine',
       transaction_type: 'ISSUED',
       transaction_date: date,
-      quantity_doses: qty,
-      destination_level: destLvl,
-      destination_facility_id: destination_facility_id,
-      notes: notes || null,
+      qty_doses: qty,
+      source_level: String(currentLevel),
+      destination_level: String(destLvl),
+      destination_ccl_name: destFacility.facility_name,
+      remarks: notes || null,
+      state_id: req.user.state_id,
+      district_id: req.user.district_id || null,
       created_by: req.user.id
     }]).select().single();
 
     if (issueErr) throw issueErr;
 
     // Insert downstream RECEIVED transaction
-    const { error: recvErr } = await supabase.from('vaccine_stock_transactions').insert([{
-      vaccine: 'HPV Vaccine',
-      level: destLvl,
-      state_id: destFacility.state_id,
-      district_id: destFacility.district_id,
-      block_id: destFacility.block_id,
-      facility_id: destFacility.id,
+    const { error: recvErr } = await supabase.from('stock_receive').insert([{
+      vaccine_type: 'HPV Vaccine',
       transaction_type: 'RECEIVED',
       transaction_date: date,
-      quantity_doses: qty,
-      source_level: currentLevel,
-      source_transaction_id: issueTx.id,
+      qty_doses: qty,
+      source_level: String(currentLevel),
+      destination_level: String(destLvl),
+      destination_ccl_name: destFacility.facility_name,
+      remarks: notes || null,
+      state_id: destFacility.state_id,
+      district_id: destFacility.district_id,
       created_by: req.user.id
     }]);
 
     if (recvErr) {
        console.error("Failed to create downstream receive record:", recvErr);
-       // We should ideally rollback, but since Supabase REST API doesn't support transactions easily, we log it.
        return res.status(500).json({ error: 'Issue recorded, but downstream receipt failed.' });
+    }
+
+    // Update balance in blocks table if this goes to a block
+    if (destFacility.block_id) {
+       const { data: bData } = await supabase.from('blocks').select('balance_vaccine').eq('id', destFacility.block_id).single();
+       if (bData) {
+          await supabase.from('blocks').update({ balance_vaccine: (bData.balance_vaccine || 0) + qty }).eq('id', destFacility.block_id);
+       }
     }
 
     res.json({ success: true, transaction: issueTx });
@@ -1301,17 +1314,16 @@ app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => 
 
     const currentLevel = req.user.district_id ? 2 : 1;
 
-    const { data, error } = await supabase.from('vaccine_stock_transactions').insert([{
-      vaccine: 'HPV Vaccine',
-      level: currentLevel,
+    const { data, error } = await supabase.from('monthly_balance').insert([{
+      vaccine_type: 'HPV Vaccine',
+      transaction_type: 'MONTH_END_BALANCE',
+      transaction_date: month + '-01',
+      qty_doses: Number(quantity),
+      ccl_manager_handler_name: reportingPersonName,
+      ccl_manager_handler_mobile_no: reportingPersonMobile,
+      remarks: notes || null,
       state_id: req.user.state_id,
       district_id: req.user.district_id || null,
-      transaction_type: 'MONTH_END_BALANCE',
-      balance_month: month + '-01',
-      quantity_doses: Number(quantity),
-      reporting_person_name: reportingPersonName,
-      reporting_person_mobile: reportingPersonMobile,
-      notes: notes || null,
       created_by: req.user.id
     }]).select();
 
@@ -1322,14 +1334,31 @@ app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => 
 
 app.get('/api/vaccine/stock', authenticateToken, async (req, res) => {
   try {
-     const currentLevel = req.user.district_id ? 2 : 1;
-     let txQuery = supabase.from('vaccine_stock_transactions').select('*, vaccine_ccp(facility_name)').eq('level', currentLevel).order('created_at', { ascending: false }).limit(50);
-     if (req.user.state_id) txQuery = txQuery.eq('state_id', req.user.state_id);
-     if (req.user.district_id) txQuery = txQuery.eq('district_id', req.user.district_id);
+     let recvQuery = supabase.from('stock_receive').select('*').order('created_at', { ascending: false }).limit(25);
+     let issueQuery = supabase.from('stock_issue').select('*').order('created_at', { ascending: false }).limit(25);
+     let balanceQuery = supabase.from('monthly_balance').select('*').order('created_at', { ascending: false }).limit(25);
 
-     const { data, error } = await txQuery;
-     if (error) throw error;
-     res.json(data);
+     if (req.user.state_id) {
+        recvQuery = recvQuery.eq('state_id', req.user.state_id);
+        issueQuery = issueQuery.eq('state_id', req.user.state_id);
+        balanceQuery = balanceQuery.eq('state_id', req.user.state_id);
+     }
+     if (req.user.district_id) {
+        recvQuery = recvQuery.eq('district_id', req.user.district_id);
+        issueQuery = issueQuery.eq('district_id', req.user.district_id);
+        balanceQuery = balanceQuery.eq('district_id', req.user.district_id);
+     }
+
+     const [ {data: recv}, {data: issue}, {data: bal} ] = await Promise.all([recvQuery, issueQuery, balanceQuery]);
+     
+     // Merge and sort
+     const allTx = [
+       ...(recv || []).map(t => ({...t, type: 'stock_receive', display_type: 'RECEIVED', quantity_doses: t.qty_doses})),
+       ...(issue || []).map(t => ({...t, type: 'stock_issue', display_type: 'ISSUED', quantity_doses: t.qty_doses})),
+       ...(bal || []).map(t => ({...t, type: 'monthly_balance', display_type: 'MONTH_END_BALANCE', quantity_doses: t.qty_doses}))
+     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+     res.json(allTx);
   } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
@@ -2301,6 +2330,7 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
           health_facility_group: row['Health Facility Group'] || null,
           health_facility_type: row['Health Facility  Type'] || null,
           setting: row['Setting'] || null,
+          ulb_type: row['ULB Type'] || null,
           ownership: row['Ownership'] || null,
           parent_organization: row['Parent organization'] || null,
           department_name: row['Department Name'] || null,
@@ -2312,6 +2342,8 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
           unit_level: String(row['UNIT Level'] || ''),
           unit_sub_level: row['UNIT Sub Level'] || null,
           unit_type: row['UNIT TYPE'] || null,
+          ccl_id: row['CCL ID'] || null,
+          ccl_block_hq_yes: row['CCLBlock HQ (Yes)'] || null,
           name_of_unit_incharge: row['Name of UNIT Incharge'] || null,
           status: row['Status'] || 'Active'
         });
