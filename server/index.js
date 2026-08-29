@@ -42,6 +42,14 @@ async function updateBatchInventory(batch_no, manufacture_name, batch_expiry_dat
 }
 
 
+
+// Helper to safely handle created_by for Supabase UUID columns
+function getValidUuid(id) {
+  if (!id) return null;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(id) ? id : null;
+}
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 const JWT_SECRET = process.env.JWT_SECRET || 'hpv-reporting-portal-secret-key-2026';
@@ -1238,7 +1246,7 @@ app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
       batch_expiry_date: batch_expiry_date || null,
       manufacture_name: manufacture_name || null,
       state_id: req.user.state_id,
-      created_by: req.user.id
+      created_by: getValidUuid(req.user.id)
     }]).select();
 
     if (error) throw error;
@@ -1298,7 +1306,7 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       remarks: notes || null,
       state_id: req.user.state_id,
       district_id: req.user.district_id || null,
-      created_by: req.user.id
+      created_by: getValidUuid(req.user.id)
     }]).select().single();
 
     if (issueErr) throw issueErr;
@@ -1318,7 +1326,7 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       remarks: notes || null,
       state_id: destFacility.state_id,
       district_id: destFacility.district_id,
-      created_by: req.user.id
+      created_by: getValidUuid(req.user.id)
     }]);
 
     if (recvErr) {
@@ -1375,7 +1383,7 @@ app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => 
       remarks: notes || null,
       state_id: req.user.state_id,
       district_id: req.user.district_id || null,
-      created_by: req.user.id
+      created_by: getValidUuid(req.user.id)
     }]).select();
 
     if (error) throw error;
@@ -2586,7 +2594,7 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
           destination_ccl_id: row['Destination CCL ID'] || null,
           destination_ccl_name: row['Destination CCL Name'] || null,
           remarks: row['Remarks'] || null,
-          created_by: req.user.id
+          created_by: getValidUuid(req.user.id)
         });
       }
 
@@ -2648,7 +2656,7 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           destination_ccl_id: row['Destination CCL ID'] || null,
           destination_ccl_name: row['Destination CCL Name'] || null,
           remarks: row['Remarks'] || null,
-          created_by: req.user.id
+          created_by: getValidUuid(req.user.id)
         });
         
         toInsertReceive.push({
@@ -2665,7 +2673,7 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           destination_ccl_id: row['Destination CCL ID'] || null,
           destination_ccl_name: row['Destination CCL Name'] || null,
           remarks: row['Remarks'] || null,
-          created_by: req.user.id
+          created_by: getValidUuid(req.user.id)
         });
         
         batchUpdates.push({
@@ -2779,7 +2787,7 @@ app.post('/api/vaccine/monthly-report/submit', async (req, res) => {
       ccl_manager_handler_name: handler_name,
       ccl_manager_handler_mobile_no: handler_mobile,
       remarks: remarks || null,
-      created_by: req.user.id
+      created_by: getValidUuid(req.user.id)
     }]).select();
 
     if (error) throw error;
