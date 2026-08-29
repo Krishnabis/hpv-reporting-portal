@@ -1657,9 +1657,7 @@ export const AdminDashboard: React.FC = () => {
                                         </span>
                                       )}
                                     </span>
-                                    <span className="text-[9px] font-semibold text-slate-400 shrink-0 flex items-center gap-0.5">
-                                      (<Target className="w-2.5 h-2.5 inline-block" /> {d.issued?.toLocaleString('en-IN')})
-                                    </span>
+                                    <span className="text-[9px] font-semibold text-slate-400 shrink-0">({d.vaccinated?.toLocaleString('en-IN')} / {d.issued?.toLocaleString('en-IN')})</span>
                                     {d.deltaVaccinated > 0 && (
                                       <span className="flex items-center text-emerald-500 font-bold text-[9px] shrink-0 ml-1 bg-emerald-50 px-1 rounded" title={`+${d.deltaVaccinated} since last report`}>
                                         <TrendingUp className="w-2.5 h-2.5" />
