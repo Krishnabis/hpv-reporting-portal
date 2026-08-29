@@ -1888,6 +1888,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
       const stateName = (row.State || row.state || '').trim().toLowerCase();
       const distName = (row.District || row.district || '').trim().toLowerCase();
       const blockName = (row.BlockOrCity || row.blockorcity || row.Block || row.block || row.City || row.city || '').trim().toLowerCase();
+      const blockLgd = String(row['blockorcity lgd code'] || row.blockorcity_lgd_code || row.block_lgd_code || '').trim();
       
       const llStr = row.linelisted || row.LineListed || row.linelist || row.LineList || '0';
       const vaccStr = row.vaccinated || row.Vaccinated || '0';
@@ -1910,14 +1911,27 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
       const lineList = parseInt(llStr, 10);
       const vaccinated = parseInt(vaccStr, 10);
 
-      if (!stateName || !distName || !blockName || isNaN(lineList) || isNaN(vaccinated)) {
-        errors.push(`Row ${i + 1}: Missing or invalid fields.`);
+      if (isNaN(lineList) || isNaN(vaccinated)) {
+        errors.push(`Row ${i + 1}: Invalid linelisted or vaccinated numbers.`);
         continue;
       }
 
-      const blockId = locMap.get(`${stateName}|${distName}|${blockName}`);
+      let blockId = null;
+      if (blockLgd) {
+        const b = blocks.find(b => String(b.lgd_code) === blockLgd);
+        if (b) blockId = b.id;
+      }
+      
       if (!blockId) {
-        errors.push(`Row ${i + 1}: Location not found (${stateName} > ${distName} > ${blockName}).`);
+        if (!stateName || !distName || !blockName) {
+          errors.push(`Row ${i + 1}: Missing location names or invalid LGD code.`);
+          continue;
+        }
+        blockId = locMap.get(`${stateName}|${distName}|${blockName}`);
+      }
+
+      if (!blockId) {
+        errors.push(`Row ${i + 1}: Location not found (${stateName} > ${distName} > ${blockName} or LGD: ${blockLgd}).`);
         continue;
       }
 
