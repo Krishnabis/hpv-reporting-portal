@@ -124,8 +124,8 @@ export const BlockMonthlyReport: React.FC = () => {
                         <tr key={ccp.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-4 py-3 text-sm font-bold text-slate-800">{ccp.facility_name}</td>
                           <td className="px-4 py-3 text-sm text-slate-600 hidden sm:table-cell">
-                            {ccp.ccl_manager_handler_name || 'N/A'}
-                            <div className="text-xs text-slate-500 font-mono">{ccp.ccl_manager_handler_mobile_no}</div>
+                            {ccp.name_of_unit_incharge || 'N/A'}
+                            <div className="text-xs text-slate-500 font-mono">{ccp.contact_number}</div>
                           </td>
                           <td className="px-4 py-3">
                             <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${ccp.status === 'Entered' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
@@ -199,7 +199,7 @@ export const BlockMonthlyReport: React.FC = () => {
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wide">Handler Name</label>
                   <input 
-                    type="text" id="handler_name" defaultValue={selectedCcp.ccl_manager_handler_name}
+                    type="text" id="handler_name" defaultValue={selectedCcp.name_of_unit_incharge}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-hpv-purple/50 bg-slate-50" 
                   />
                 </div>
@@ -207,7 +207,7 @@ export const BlockMonthlyReport: React.FC = () => {
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wide">Handler Mobile</label>
                   <input 
-                    type="tel" id="handler_mobile" defaultValue={selectedCcp.ccl_manager_handler_mobile_no}
+                    type="tel" id="handler_mobile" defaultValue={selectedCcp.contact_number}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-hpv-purple/50 bg-slate-50" 
                   />
                 </div>

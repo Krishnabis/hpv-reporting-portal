@@ -2706,7 +2706,7 @@ app.get('/api/vaccine/monthly-report/status', async (req, res) => {
 
     // 1. Fetch all CCPs for this block
     let ccpsQuery = supabase.from('vaccine_ccp')
-      .select('id, facility_name, ccl_manager_handler_name, ccl_manager_handler_mobile_no, block_id, lgd_block_code')
+      .select('id, facility_name, name_of_unit_incharge, contact_number, block_id, lgd_block_code')
       .eq('unit_level', '3')
       .order('facility_name');
 
