@@ -1453,6 +1453,16 @@ app.get('/api/vaccine/stock', authenticateToken, async (req, res) => {
         issueQuery = issueQuery.eq('district_id', req.user.district_id);
         balanceQuery = balanceQuery.eq('district_id', req.user.district_id);
      }
+     if (req.user.block_id) {
+        recvQuery = recvQuery.eq('block_id', req.user.block_id);
+        issueQuery = issueQuery.eq('block_id', req.user.block_id);
+        balanceQuery = balanceQuery.eq('block_id', req.user.block_id);
+     }
+     if (req.user.facility_id) {
+        recvQuery = recvQuery.eq('facility_id', req.user.facility_id);
+        issueQuery = issueQuery.eq('facility_id', req.user.facility_id);
+        balanceQuery = balanceQuery.eq('facility_id', req.user.facility_id);
+     }
 
      const [ {data: recv}, {data: issue}, {data: bal} ] = await Promise.all([recvQuery, issueQuery, balanceQuery]);
      
@@ -2677,7 +2687,11 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
           remarks: row['Remarks'] || null,
           created_by: getValidUuid(req.user.id),
           state_id: sId,
-          district_id: dId
+          district_id: dId,
+          block_id: srcCcp?.block_id || null,
+          facility_id: srcCcp?.id || null,
+          block_id: destCcp?.block_id || null,
+          facility_id: destCcp?.id || null
         });
    
       }
@@ -2754,7 +2768,11 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           remarks: row['Remarks'] || null,
           created_by: getValidUuid(req.user.id),
           state_id: sId,
-          district_id: dId
+          district_id: dId,
+          block_id: srcCcp?.block_id || null,
+          facility_id: srcCcp?.id || null,
+          block_id: destCcp?.block_id || null,
+          facility_id: destCcp?.id || null
         });
    
         
@@ -2779,7 +2797,9 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           remarks: row['Remarks'] || null,
           created_by: getValidUuid(req.user.id),
           state_id: dsId,
-          district_id: ddId
+          district_id: ddId,
+          block_id: destCcp?.block_id || null,
+          facility_id: destCcp?.id || null
         });
    
         
@@ -2961,65 +2981,29 @@ app.get('/api/superadmin/fix-batches', async (req, res) => {
   try {
     if (!useSupabase) return res.json({ error: 'Requires Supabase' });
 
-    const { data: allCcps } = await supabase.from('vaccine_ccp').select('id, ccl_id, state_id, district_id, block_id');
-
-    // FIX STOCK RECEIVE
-    const { data: rxBroken } = await supabase.from('stock_receive').select('*').is('district_id', null).neq('destination_level', '1');
-    let fixedRx = 0;
-    for (const rx of rxBroken || []) {
-       if (rx.destination_ccl_id) {
-          const ccp = allCcps.find(c => c.ccl_id === rx.destination_ccl_id);
-          if (ccp) {
-             await supabase.from('stock_receive').update({ state_id: ccp.state_id, district_id: ccp.district_id }).eq('id', rx.id);
-             fixedRx++;
-          }
-       }
-    }
-
-    // FIX STOCK ISSUE
-    const { data: txBroken } = await supabase.from('stock_issue').select('*').is('district_id', null).neq('source_level', '1');
-    let fixedTx = 0;
-    for (const tx of txBroken || []) {
-       if (tx.source_ccl_id) {
-          const ccp = allCcps.find(c => c.ccl_id === tx.source_ccl_id);
-          if (ccp) {
-             await supabase.from('stock_issue').update({ state_id: ccp.state_id, district_id: ccp.district_id }).eq('id', tx.id);
-             fixedTx++;
-          }
-       }
-    }
-
-    // Fix batches just in case
-    const { data: brokenBatches } = await supabase.from('vaccine_batches').select('*').is('district_id', null).neq('level', '1');
-    let fixedB = 0;
-    for (const batch of brokenBatches || []) {
-       const { data: recv } = await supabase.from('stock_receive').select('destination_ccl_id').eq('batch_no', batch.batch_no).eq('destination_level', batch.level).order('created_at', { ascending: false }).limit(1);
-       if (recv && recv.length > 0 && recv[0].destination_ccl_id) {
-          const matchedCcp = allCcps.find(c => c.ccl_id === recv[0].destination_ccl_id);
-          if (matchedCcp) {
-             await supabase.from('vaccine_batches').update({
-                state_id: matchedCcp.state_id, district_id: matchedCcp.district_id, block_id: matchedCcp.block_id, facility_id: matchedCcp.id
-             }).eq('id', batch.id);
-             fixedB++;
-          }
-       }
-    }
-
-    // Fix batch expiry dates where they are null but another row has the expiry
-    const { data: batches } = await supabase.from('vaccine_batches').select('batch_no, batch_expiry_date').not('batch_expiry_date', 'is', null);
-    const expiryMap = {};
-    batches?.forEach(b => expiryMap[b.batch_no] = b.batch_expiry_date);
+    // Just run the KPI logic for Nainital
+    const { data: blocks } = await supabase.from('blocks').select('id, name, is_urban, district_id, districts!inner(name, state_id, divisions(name))').eq('is_active', true);
     
-    let fixedExpiry = 0;
-    const { data: nullBatches } = await supabase.from('vaccine_batches').select('id, batch_no').is('batch_expiry_date', null);
-    for (const nb of nullBatches || []) {
-       if (expiryMap[nb.batch_no]) {
-          await supabase.from('vaccine_batches').update({ batch_expiry_date: expiryMap[nb.batch_no] }).eq('id', nb.id);
-          fixedExpiry++;
-       }
-    }
-
-    res.json({ message: 'Fixed records', fixedRx, fixedTx, fixedBatches: fixedB, fixedExpiry });
+    const { data: profiles } = await supabase.from('block_profiles').select('*').in('block_id', blocks.map(b => b.id));
+    const profileMap = {};
+    profiles?.forEach(p => profileMap[p.block_id] = p);
+    
+    const { data: reports } = await supabase.from('monthly_reports').select('*');
+    
+    let districtStats = {};
+    blocks.forEach(b => {
+      const dName = b.districts.name;
+      if (!districtStats[dName]) districtStats[dName] = { name: dName, population: 0, vaccinated: 0 };
+      const prof = profileMap[b.id];
+      districtStats[dName].population += (prof?.base_population || 0);
+      
+      const reps = reports.filter(r => r.block_id === b.id).sort((x, y) => new Date(y.reporting_date) - new Date(x.reporting_date));
+      if (reps.length > 0) {
+         districtStats[dName].vaccinated += (reps[0].beneficiaries_vaccinated || 0);
+      }
+    });
+    
+    res.json({ districtStats });
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }
