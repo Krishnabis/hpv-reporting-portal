@@ -967,13 +967,22 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     const blockStoresCount = facilities.filter(f => String(f.unit_level).trim() === '3').length;
 
     // 2. Fetch stock transactions
-    let txQuery = supabase.from('vaccine_stock_transactions').select('*');
-    if (targetStateId) txQuery = txQuery.eq('state_id', targetStateId);
-    const { data: rawTransactions, error: tErr } = await txQuery;
-    if (tErr) throw tErr;
-    const allTransactions = rawTransactions || [];
-    
-    const tx = allTransactions;
+    let recvQuery = supabase.from('stock_receive').select('*');
+    let issueQuery = supabase.from('stock_issue').select('*');
+    let balQuery = supabase.from('monthly_balance').select('*');
+
+    if (targetStateId) {
+       recvQuery = recvQuery.eq('state_id', targetStateId);
+       issueQuery = issueQuery.eq('state_id', targetStateId);
+       balQuery = balQuery.eq('state_id', targetStateId);
+    }
+    const [ {data: recv}, {data: issue}, {data: bal} ] = await Promise.all([recvQuery, issueQuery, balQuery]);
+
+    const tx = [
+      ...(recv || []).map(t => ({...t, transaction_type: 'RECEIVED', level: t.destination_level, quantity_doses: t.qty_doses})),
+      ...(issue || []).map(t => ({...t, transaction_type: 'ISSUED', level: t.source_level, quantity_doses: t.qty_doses})),
+      ...(bal || []).map(t => ({...t, transaction_type: 'MONTH_END_BALANCE', level: t.block_id ? '3' : (t.district_id ? '2' : '1'), quantity_doses: t.qty_doses, balance_month: t.transaction_date}))
+    ];
 
     // Helper to get latest month end balance
     const getMonthEnd = (level, filterFn = () => true) => {
