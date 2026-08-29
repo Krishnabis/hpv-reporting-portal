@@ -2330,6 +2330,7 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
           health_facility_group: row['Health Facility Group'] || null,
           health_facility_type: row['Health Facility  Type'] || null,
           setting: row['Setting'] || null,
+          ulb_code: row['ULB Code'] || null,
           ulb_type: row['ULB Type'] || null,
           ownership: row['Ownership'] || null,
           parent_organization: row['Parent organization'] || null,
