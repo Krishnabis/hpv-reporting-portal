@@ -86,11 +86,11 @@ app.get('/api/admin/population', authenticateToken, async (req, res) => {
   try {
     let blockData = [];
     if (useSupabase) {
-      const { data: blocks } = await supabase.from('blocks').select('*');
-      const { data: districts } = await supabase.from('districts').select('*');
-      const { data: states } = await supabase.from('states').select('*');
-      const { data: divisions } = await supabase.from('divisions').select('*');
-      const { data: profiles } = await supabase.from('block_reporting_profiles').select('*');
+      const { data: blocks } = await supabase.from('blocks').select('*').limit(100000);
+      const { data: districts } = await supabase.from('districts').select('*').limit(100000);
+      const { data: states } = await supabase.from('states').select('*').limit(10000);
+      const { data: divisions } = await supabase.from('divisions').select('*').limit(10000);
+      const { data: profiles } = await supabase.from('block_reporting_profiles').select('*').limit(100000);
       const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
       blockData = blocks.map(b => {
         const dist = districts.find(d => d.id === b.district_id) || {};
@@ -1781,10 +1781,10 @@ app.post('/api/superadmin/upload-population', authenticateToken, async (req, res
 
     let blocks = store.blocks, districts = store.districts, states = store.states, profiles = store.block_reporting_profiles;
     if (useSupabase) {
-      blocks = (await supabase.from('blocks').select('*')).data || [];
-      districts = (await supabase.from('districts').select('*')).data || [];
-      states = (await supabase.from('states').select('*')).data || [];
-      profiles = (await supabase.from('block_reporting_profiles').select('*')).data || [];
+      blocks = (await supabase.from('blocks').select('*').limit(100000)).data || [];
+      districts = (await supabase.from('districts').select('*').limit(100000)).data || [];
+      states = (await supabase.from('states').select('*').limit(10000)).data || [];
+      profiles = (await supabase.from('block_reporting_profiles').select('*').limit(100000)).data || [];
     }
 
     const locMap = buildLocationMap(blocks, districts, states);
@@ -1871,10 +1871,10 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
 
     let blocks = store.blocks, districts = store.districts, states = store.states, dailyReports = store.daily_reports;
     if (useSupabase) {
-      blocks = (await supabase.from('blocks').select('*')).data || [];
-      districts = (await supabase.from('districts').select('*')).data || [];
-      states = (await supabase.from('states').select('*')).data || [];
-      dailyReports = (await supabase.from('daily_reports').select('*')).data || [];
+      blocks = (await supabase.from('blocks').select('*').limit(100000)).data || [];
+      districts = (await supabase.from('districts').select('*').limit(100000)).data || [];
+      states = (await supabase.from('states').select('*').limit(10000)).data || [];
+      dailyReports = (await supabase.from('daily_reports').select('*').limit(100000)).data || [];
     }
 
     const locMap = buildLocationMap(blocks, districts, states);
@@ -1976,12 +1976,12 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
     if (!Array.isArray(data)) return res.status(400).json({ error: 'Expected an array of records' });
     if (!useSupabase) return res.status(500).json({ error: 'Supabase required for this complex operation' });
 
-    let allCountries = (await supabase.from('countries').select('*')).data || [];
-    let allStates = (await supabase.from('states').select('*')).data || [];
-    let allDivisions = (await supabase.from('divisions').select('*')).data || [];
-    let allDistricts = (await supabase.from('districts').select('*')).data || [];
-    let allBlocks = (await supabase.from('blocks').select('*')).data || [];
-    let allProfiles = (await supabase.from('block_reporting_profiles').select('*')).data || [];
+    let allCountries = (await supabase.from('countries').select('*').limit(10000)).data || [];
+    let allStates = (await supabase.from('states').select('*').limit(10000)).data || [];
+    let allDivisions = (await supabase.from('divisions').select('*').limit(10000)).data || [];
+    let allDistricts = (await supabase.from('districts').select('*').limit(100000)).data || [];
+    let allBlocks = (await supabase.from('blocks').select('*').limit(100000)).data || [];
+    let allProfiles = (await supabase.from('block_reporting_profiles').select('*').limit(100000)).data || [];
 
     let successCount = 0;
     let errors = [];
@@ -2160,10 +2160,10 @@ app.get('/api/admin/locations-master-data', authenticateToken, async (req, res) 
     if (bErr) throw bErr;
     
     // Fetch profiles
-    const { data: profiles } = await supabase.from('block_reporting_profiles').select('*');
+    const { data: profiles } = await supabase.from('block_reporting_profiles').select('*').limit(100000);
     
     // Fetch reports
-    const { data: reports } = await supabase.from('daily_reports').select('*');
+    const { data: reports } = await supabase.from('daily_reports').select('*').limit(100000);
     
     // Map data
     const result = blocks.map(b => {
