@@ -2741,6 +2741,12 @@ export const AdminDashboard: React.FC = () => {
                       <td className="px-4 py-2.5 text-slate-400 text-[10px]">
                         {u.last_login_at ? new Date(u.last_login_at).toLocaleString('en-IN') : 'Never'}
                       </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex gap-2">
+                          <button onClick={() => setEditingUser(u)} className="text-[10px] font-bold px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors">Edit</button>
+                          <button onClick={() => handleDeleteUser(u.id)} className="text-[10px] font-bold px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded transition-colors">Delete</button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
