@@ -2007,7 +2007,7 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
 
       // State
       let stateLgd = String(row.statelgdcode || '').trim();
-      let state = allStates.find(s => s.lgd_code === stateLgd && stateLgd) || allStates.find(s => s.name.toLowerCase() === row.statename.trim().toLowerCase() && s.country_id === country.id);
+      let state = allStates.find(s => String(s.lgd_code) === stateLgd && stateLgd) || allStates.find(s => s.name.toLowerCase() === row.statename.trim().toLowerCase() && s.country_id === country.id);
       if (!state) {
         const { data: nS, error: eS } = await supabase.from('states').insert({ country_id: country.id, lgd_code: stateLgd, code: stateLgd, name: row.statename.trim() }).select().single();
         if (eS) { errors.push(`Row ${i + 1}: Error creating State - ${eS.message}`); continue; }
@@ -2016,7 +2016,7 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
 
       // Division
       let divisionCode = String(row.divisioncode || '').trim();
-      let division = allDivisions.find(r => r.system_code === divisionCode && divisionCode) || allDivisions.find(r => r.name.toLowerCase() === row.divisionname?.trim().toLowerCase() && r.state_id === state.id);
+      let division = allDivisions.find(r => String(r.system_code) === divisionCode && divisionCode) || allDivisions.find(r => r.name.toLowerCase() === row.divisionname?.trim().toLowerCase() && r.state_id === state.id);
       if (!division) {
         const { data: nR, error: eR } = await supabase.from('divisions').insert({ state_id: state.id, system_code: divisionCode, code: divisionCode, name: row.divisionname?.trim() || 'Default Division' }).select().single();
         if (eR) { errors.push(`Row ${i + 1}: Error creating Division - ${eR.message}`); continue; }
@@ -2025,7 +2025,7 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
 
       // District
       let distLgd = String(row.districtlgdcode || '').trim();
-      let district = allDistricts.find(d => d.lgd_code === distLgd && distLgd) || allDistricts.find(d => d.name.toLowerCase() === row.districtname.trim().toLowerCase() && d.division_id === division.id);
+      let district = allDistricts.find(d => String(d.lgd_code) === distLgd && distLgd) || allDistricts.find(d => d.name.toLowerCase() === row.districtname.trim().toLowerCase() && d.division_id === division.id);
       if (!district) {
         const { data: nD, error: eD } = await supabase.from('districts').insert({ division_id: division.id, state_id: state.id, lgd_code: distLgd, name: row.districtname.trim() }).select().single();
         if (eD) { errors.push(`Row ${i + 1}: Error creating District - ${eD.message}`); continue; }
@@ -2034,7 +2034,7 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
 
       // Block
       let blockLgd = String(row.blockorcitylgdcode || '').trim();
-      let block = allBlocks.find(b => b.lgd_code === blockLgd && blockLgd) || allBlocks.find(b => b.name.toLowerCase() === row.blockorcityname.trim().toLowerCase() && b.district_id === district.id);
+      let block = allBlocks.find(b => String(b.lgd_code) === blockLgd && blockLgd) || allBlocks.find(b => b.name.toLowerCase() === row.blockorcityname.trim().toLowerCase() && b.district_id === district.id);
       
       const areaTypeVal = row['urbanorrural'] || row['areatype(blockorcity)'] || '';
       const isUrban = areaTypeVal.toLowerCase() === 'city' || areaTypeVal.toLowerCase() === 'urban';
