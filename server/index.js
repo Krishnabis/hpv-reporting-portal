@@ -2350,6 +2350,12 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
     let details = [];
 
     const CHUNK_SIZE = 50;
+    
+    // Fetch all existing identifiers to accurately prevent duplicates across chunks and within DB
+    const { data: existingRecords } = await supabase.from('vaccine_ccp').select('ccl_id, facility_name, block_id');
+    const existingCclIds = new Set((existingRecords || []).map(r => r.ccl_id).filter(Boolean));
+    const existingFacilityNames = new Set((existingRecords || []).filter(r => r.facility_name && r.block_id).map(r => `${r.block_id}-${r.facility_name}`));
+
     for (let i = 0; i < data.length; i += CHUNK_SIZE) {
       const chunk = data.slice(i, i + CHUNK_SIZE);
       const toInsert = [];
@@ -2363,10 +2369,31 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
         const districtId = allDistricts.find(d => d.lgd_code === districtLgd)?.id || null;
         const blockId = allBlocks.find(b => b.lgd_code === blockLgd)?.id || null;
 
-        if (!row['Facility Name']) {
+        const facilityName = row['Facility Name'] ? String(row['Facility Name']).trim() : null;
+        const cclId = row['CCL ID'] ? String(row['CCL ID']).trim() : null;
+
+        if (!facilityName) {
            errors.push(`Row missing Facility Name`);
            continue;
         }
+
+        // Duplicate Check
+        if (cclId) {
+          if (existingCclIds.has(cclId)) {
+            errors.push(`Skipped duplicate (CCL ID already exists): ${cclId}`);
+            continue;
+          }
+        } else if (blockId) {
+          const comboKey = `${blockId}-${facilityName}`;
+          if (existingFacilityNames.has(comboKey)) {
+            errors.push(`Skipped duplicate (Facility already exists in Block): ${facilityName}`);
+            continue;
+          }
+        }
+
+        // Mark as seen to prevent duplicates within the same CSV upload
+        if (cclId) existingCclIds.add(cclId);
+        if (blockId) existingFacilityNames.add(`${blockId}-${facilityName}`);
 
         toInsert.push({
           state_id: stateId,
@@ -2375,7 +2402,7 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
           lgd_state_code: stateLgd || null,
           lgd_district_code: districtLgd || null,
           lgd_block_code: blockLgd || null,
-          facility_name: row['Facility Name'],
+          facility_name: facilityName,
           sub_district_name: row['Sub District Name'] || null,
           facility_acronym: row['Facility acronym'] || null,
           hospital_facility_id: row['Hospital Facility ID'] || null,
@@ -2402,7 +2429,7 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
           unit_level: String(row['UNIT Level'] || ''),
           unit_sub_level: row['UNIT Sub Level'] || null,
           unit_type: row['UNIT TYPE'] || null,
-          ccl_id: row['CCL ID'] || null,
+          ccl_id: cclId || null,
           ccl_block_hq_yes: row['CCLBlock HQ (Yes)'] || null,
           name_of_unit_incharge: row['Name of UNIT Incharge'] || null,
           status: row['Status'] || 'Active'
