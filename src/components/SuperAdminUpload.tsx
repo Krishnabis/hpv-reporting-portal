@@ -96,7 +96,7 @@ export const SuperAdminUpload: React.FC = () => {
     reader.onload = async (event) => {
       try {
         const csvData = event.target?.result as string;
-        const records = parse(csvData, { columns: true, skip_empty_lines: true });
+        const records = parse(csvData, { columns: true, skip_empty_lines: true, relax_column_count: true });
 
         const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
         const res = await fetch(apiEndpoint, {
