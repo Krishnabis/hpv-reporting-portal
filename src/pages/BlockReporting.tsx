@@ -80,18 +80,7 @@ export const BlockReporting: React.FC = () => {
   const [changePasscodeError, setChangePasscodeError] = useState('');
   const [isChangingPasscode, setIsChangingPasscode] = useState(false);
 
-  // Monthly Report State
-  const [showMonthlyReportModal, setShowMonthlyReportModal] = useState(false);
-  const [reportMonth, setReportMonth] = useState('');
-  const [ccpStatusList, setCcpStatusList] = useState<any[]>([]);
-  const [selectedCcp, setSelectedCcp] = useState<any>(null);
-  const [monthlyReportBatch, setMonthlyReportBatch] = useState('');
-  const [monthlyReportQty, setMonthlyReportQty] = useState('');
-  const [monthlyReportRemarks, setMonthlyReportRemarks] = useState('');
-  const [fetchingCcpStatus, setFetchingCcpStatus] = useState(false);
-  const [availableBatches, setAvailableBatches] = useState<any[]>([]);
-  const [stockLoading, setStockLoading] = useState(false);
-  const [stockMsg, setStockMsg] = useState<{type: 'success'|'error', text: string} | null>(null);
+  
 
   const fetchBlockDetails = () => {
     if (!blockId) return;
@@ -167,30 +156,7 @@ export const BlockReporting: React.FC = () => {
     }
   };
 
-  const fetchBatches = (level?: string) => {
-    let url = '/api/vaccine/batches';
-    if (level) url += `?level=${level}`;
-    fetch(url)
-      .then(res => res.json())
-      .then(data => setAvailableBatches(Array.isArray(data) ? data : []))
-      .catch(err => console.error(err));
-  };
-
-  const fetchBlockMonthlyReport = async (month: string) => {
-    if (!month || !blockId) return;
-    setFetchingCcpStatus(true);
-    setStockMsg(null);
-    try {
-      const res = await fetch(`/api/vaccine/monthly-report/status?month=${month}&blockId=${blockId}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to fetch CCP status');
-      setCcpStatusList(data.ccps || []);
-    } catch (err: any) {
-      setStockMsg({ type: 'error', text: err.message });
-      setCcpStatusList([]);
-    }
-    setFetchingCcpStatus(false);
-  };
+  
 
   const parsedBasePop = parseInt(basePopulationInput, 10) || 0;
 
@@ -371,7 +337,7 @@ export const BlockReporting: React.FC = () => {
                 <button 
                   onClick={() => {
                     setShowSettingsDropdown(false);
-                    setShowMonthlyReportModal(true);
+                    navigate('/monthly-report?blockId=' + blockId);
                   }}
                   className="w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100"
                 >
@@ -653,192 +619,6 @@ export const BlockReporting: React.FC = () => {
           </section>
         )}
 
-
-      {showMonthlyReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl flex flex-col my-auto max-h-full">
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
-              <div>
-                <h3 className="font-extrabold text-xl text-slate-800">Monthly Report</h3>
-                <p className="text-slate-500 text-sm mt-1">Submit monthly stock balances for your CCPs</p>
-              </div>
-              <button onClick={() => setShowMonthlyReportModal(false)} className="p-2 hover:bg-slate-200 rounded-xl text-slate-500 transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="p-5 space-y-6 overflow-y-auto min-h-[400px]">
-              {!selectedCcp ? (
-                <>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <input 
-                      type="month" 
-                      value={reportMonth} 
-                      onChange={e => {
-                        setReportMonth(e.target.value);
-                        if (e.target.value) fetchBlockMonthlyReport(e.target.value);
-                      }}
-                      className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium" 
-                    />
-                    <button 
-                      onClick={() => fetchBlockMonthlyReport(reportMonth)}
-                      disabled={!reportMonth || fetchingCcpStatus}
-                      className="px-6 py-2.5 bg-pink-600 text-white rounded-xl text-sm font-bold hover:bg-pink-700 transition-colors disabled:opacity-50"
-                    >
-                      {fetchingCcpStatus ? 'Loading...' : 'Fetch Facilities'}
-                    </button>
-                  </div>
-
-                  {stockMsg && (
-                    <div className={`p-4 rounded-xl border text-sm font-semibold ${stockMsg.type === 'error' ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'}`}>
-                      {stockMsg.text}
-                    </div>
-                  )}
-
-                  {reportMonth && ccpStatusList.length > 0 && (
-                    <div className="rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className="bg-slate-50 border-b border-slate-200">
-                            <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase">Facility Name</th>
-                            <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase hidden sm:table-cell">Manager</th>
-                            <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase">Status</th>
-                            <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase text-right">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {ccpStatusList.map((ccp: any) => (
-                            <tr key={ccp.id} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="px-4 py-3 text-sm font-bold text-slate-800">{ccp.facility_name}</td>
-                              <td className="px-4 py-3 text-sm text-slate-600 hidden sm:table-cell">
-                                {ccp.ccl_manager_handler_name || 'N/A'}
-                                <div className="text-xs text-slate-500 font-mono">{ccp.ccl_manager_handler_mobile_no}</div>
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${ccp.status === 'Entered' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                  {ccp.status}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <button
-                                  onClick={() => {
-                                    setSelectedCcp(ccp);
-                                    setMonthlyReportQty('');
-                                    setMonthlyReportRemarks('');
-                                    setMonthlyReportBatch('');
-                                    fetchBatches('3'); // fetch CCP level batches
-                                  }}
-                                  className="px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                                >
-                                  Submit
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                  {reportMonth && ccpStatusList.length === 0 && !fetchingCcpStatus && (
-                    <div className="p-8 text-center text-slate-500 text-sm bg-slate-50 rounded-xl border border-slate-200 border-dashed">
-                      No CCPs found for this block.
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="max-w-md mx-auto space-y-4">
-                  <button onClick={() => setSelectedCcp(null)} className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 mb-2">
-                    &larr; Back to List
-                  </button>
-                  <h4 className="font-bold text-lg text-slate-800 border-b border-slate-100 pb-2">{selectedCcp.facility_name}</h4>
-                  
-                  <div className="bg-blue-50 p-3 rounded-xl border border-blue-100">
-                    <p className="text-xs text-blue-800 font-semibold">
-                      Month: {new Date(reportMonth + '-01').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Select Batch</label>
-                    <select 
-                      value={monthlyReportBatch} 
-                      onChange={e => setMonthlyReportBatch(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
-                    >
-                      <option value="">-- Select a Batch --</option>
-                      {availableBatches.filter((b: any) => b.facility_id === selectedCcp.id).map((b: any) => (
-                        <option key={b.id} value={b.batch_no}>{b.batch_no} (System Qty: {b.quantity})</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Physical Balance Count</label>
-                    <input 
-                      type="number" min="0" 
-                      value={monthlyReportQty} onChange={e => setMonthlyReportQty(e.target.value)} 
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50" 
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Handler Name</label>
-                    <input 
-                      type="text" id="handler_name" defaultValue={selectedCcp.ccl_manager_handler_name}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50" 
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Handler Mobile</label>
-                    <input 
-                      type="tel" id="handler_mobile" defaultValue={selectedCcp.ccl_manager_handler_mobile_no}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50" 
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Remarks</label>
-                    <textarea 
-                      value={monthlyReportRemarks} onChange={e => setMonthlyReportRemarks(e.target.value)} rows={2}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50" 
-                    />
-                  </div>
-
-                  <button 
-                    disabled={stockLoading || !monthlyReportBatch || !monthlyReportQty}
-                    onClick={async () => {
-                      setStockLoading(true); setStockMsg(null);
-                      try {
-                        const hName = (document.getElementById('handler_name') as HTMLInputElement).value;
-                        const hMobile = (document.getElementById('handler_mobile') as HTMLInputElement).value;
-                        
-                        const res = await fetch('/api/vaccine/monthly-report/submit', {
-                          method: 'POST', headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            month: reportMonth, blockId, facility_id: selectedCcp.id, facility_name: selectedCcp.facility_name,
-                            batch_no: monthlyReportBatch, quantity: Number(monthlyReportQty), handler_name: hName, handler_mobile: hMobile, remarks: monthlyReportRemarks
-                          })
-                        });
-                        const json = await res.json();
-                        if (!res.ok) throw new Error(json.error || 'Failed');
-                        
-                        setStockMsg({ type: 'success', text: `Successfully submitted balance for ${selectedCcp.facility_name}` });
-                        setSelectedCcp(null);
-                        fetchBlockMonthlyReport(reportMonth);
-                      } catch (err: any) { setStockMsg({ type: 'error', text: err.message }); }
-                      setStockLoading(false);
-                    }}
-                    className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
-                  >
-                    {stockLoading ? 'Submitting...' : 'Submit Balance'}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {showChangePasscodeModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

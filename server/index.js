@@ -2700,12 +2700,23 @@ app.get('/api/vaccine/monthly-report/status', async (req, res) => {
     const { month, blockId } = req.query; // YYYY-MM
     if (!month || !blockId) return res.status(400).json({ error: 'Month and blockId are required' });
 
+    // Fetch the block's LGD code first
+    const { data: blockInfo } = await supabase.from('blocks').select('lgd_code').eq('id', blockId).maybeSingle();
+    const lgdCode = blockInfo?.lgd_code;
+
     // 1. Fetch all CCPs for this block
-    const { data: ccps } = await supabase.from('vaccine_ccp')
-      .select('id, facility_name, ccl_manager_handler_name, ccl_manager_handler_mobile_no')
-      .eq('block_id', blockId)
+    let ccpsQuery = supabase.from('vaccine_ccp')
+      .select('id, facility_name, ccl_manager_handler_name, ccl_manager_handler_mobile_no, block_id, lgd_block_code')
       .eq('unit_level', '3')
       .order('facility_name');
+
+    if (lgdCode) {
+      ccpsQuery = ccpsQuery.or(`block_id.eq.${blockId},lgd_block_code.eq.${lgdCode}`);
+    } else {
+      ccpsQuery = ccpsQuery.eq('block_id', blockId);
+    }
+    
+    const { data: ccps } = await ccpsQuery;
 
     if (!ccps || ccps.length === 0) return res.json({ ccps: [] });
 

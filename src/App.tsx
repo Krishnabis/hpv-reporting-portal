@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { BlockLogin } from './pages/BlockLogin';
 import { BlockReporting } from './pages/BlockReporting';
+import { BlockMonthlyReport } from './pages/BlockMonthlyReport';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ProgressTrend } from './pages/ProgressTrend';
@@ -36,6 +37,7 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<BlockLogin />} />
           <Route path="/report" element={<BlockReporting />} />
+          <Route path="/monthly-report" element={<BlockMonthlyReport />} />
           <Route path="/progress-trend" element={<ProgressTrend />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />
