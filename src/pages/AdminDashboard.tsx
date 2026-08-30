@@ -688,7 +688,7 @@ export const AdminDashboard: React.FC = () => {
     if (tab === 'vaccine-management') fetchVaccineDashboard();
     if (tab === 'stock-receiving') { fetchStockHistory(); fetchBatches(); }
     if (tab === 'stock-issuing') { fetchVaccFacilities(adminUser?.district_id ? 3 : 2); fetchStockHistory(); fetchBatches(adminUser?.district_id ? '2' : '1'); }
-    if (tab === 'month-end-balance') { fetchStockHistory(); fetchBatches('3'); }
+    if (tab === 'month-end-balance') { fetchStockHistory(); fetchBatches(adminUser?.district_id ? '2' : '1'); }
     if (tab === 'monthly-report') { fetchBatches('3'); }
     if (tab === 'ccl-management') { fetchCclList(); setSettingsOpen(true); }
   };
