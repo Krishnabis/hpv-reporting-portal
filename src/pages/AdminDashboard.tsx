@@ -281,6 +281,7 @@ export const AdminDashboard: React.FC = () => {
   const [issueFacilityId, setIssueFacilityId] = useState('');
   const [monthEndMonth, setMonthEndMonth] = useState('');
   const [monthEndQty, setMonthEndQty] = useState('');
+  const [monthEndBatch, setMonthEndBatch] = useState('');
   const [stockRemarks, setStockRemarks] = useState('');
   const [reportingPersonName, setReportingPersonName] = useState('');
   const [reportingPersonMobile, setReportingPersonMobile] = useState('');
@@ -2240,8 +2241,20 @@ export const AdminDashboard: React.FC = () => {
                 <input type="text" value="HPV Vaccine (Pre Filled)" disabled
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:outline-none cursor-not-allowed text-slate-500" />
               </div>
+              
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Select Batch Number</label>
+                <select value={monthEndBatch} onChange={e => setMonthEndBatch(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                  <option value="">-- Select Batch --</option>
+                  {batches.map((b: any) => (
+                    <option key={b.id} value={b.batch_no}>{b.batch_no} (Exp: {b.batch_expiry_date ? new Date(b.batch_expiry_date).toLocaleDateString('en-GB') : 'N/A'})</option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">HPV Vaccine Stock Balance (Doses)</label>
+
                 <input type="number" min="0" value={monthEndQty} onChange={e => setMonthEndQty(e.target.value)} placeholder="Enter the actual physical balance available"
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
@@ -2261,19 +2274,19 @@ export const AdminDashboard: React.FC = () => {
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <button
-                disabled={stockLoading || !monthEndQty || !monthEndMonth || !reportingPersonName || !reportingPersonMobile}
+                disabled={stockLoading || !monthEndQty || !monthEndMonth || !reportingPersonName || !reportingPersonMobile || !monthEndBatch}
                 onClick={async () => {
                   setStockLoading(true); setStockMsg(null);
                   try {
                     const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
                     const res = await fetch('/api/vaccine/stock/month-end', {
                       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                      body: JSON.stringify({ month: monthEndMonth, quantity: Number(monthEndQty), reportingPersonName, reportingPersonMobile, notes: stockRemarks })
+                      body: JSON.stringify({ month: monthEndMonth, quantity: Number(monthEndQty), reportingPersonName, reportingPersonMobile, notes: stockRemarks, batch_no: monthEndBatch })
                     });
                     const json = await res.json();
                     if (!res.ok) throw new Error(json.error || 'Failed');
                     setStockMsg({ type: 'success', text: `Month-end balance recorded: ${Number(monthEndQty).toLocaleString('en-IN')} doses` });
-                    setMonthEndQty(''); setMonthEndMonth(''); setReportingPersonName(''); setReportingPersonMobile(''); setStockRemarks(''); fetchStockHistory();
+                    setMonthEndQty(''); setMonthEndMonth(''); setReportingPersonName(''); setReportingPersonMobile(''); setStockRemarks(''); setMonthEndBatch(''); fetchStockHistory();
                   } catch (err: any) { setStockMsg({ type: 'error', text: err.message }); }
                   setStockLoading(false);
                 }}
@@ -2290,7 +2303,7 @@ export const AdminDashboard: React.FC = () => {
                   {stockHistory.filter(t => t.transaction_type === 'MONTH_END_BALANCE' || t.display_type === 'MONTH_END_BALANCE').slice(0, 10).map((t: any) => (
                     <div key={t.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
                       <span className="text-xs text-slate-600">{(t.balance_month || t.transaction_date) ? new Date(t.balance_month || t.transaction_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '—'}</span>
-                      <span className="text-xs font-bold text-pink-700">{Number(t.quantity_doses || t.qty_doses).toLocaleString('en-IN')} doses</span>
+                      <span className="text-xs font-bold text-pink-700">{t.batch_no ? `[${t.batch_no}] ` : ''}{Number(t.quantity_doses || t.qty_doses).toLocaleString('en-IN')} doses</span>
                     </div>
                   ))}
                 </div>

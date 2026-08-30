@@ -1402,9 +1402,9 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
 
 app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => {
   try {
-    const { month, quantity, reportingPersonName, reportingPersonMobile, notes } = req.body;
-    if (!month || isNaN(Number(quantity)) || Number(quantity) < 0 || !reportingPersonName || !reportingPersonMobile) {
-      return res.status(400).json({ error: 'Invalid input' });
+    const { month, quantity, reportingPersonName, reportingPersonMobile, notes, batch_no } = req.body;
+    if (!month || isNaN(Number(quantity)) || Number(quantity) < 0 || !reportingPersonName || !reportingPersonMobile || !batch_no) {
+      return res.status(400).json({ error: 'Invalid input. Batch No is required.' });
     }
     
     // Check if month is valid (must be strictly before current month)
@@ -1418,6 +1418,20 @@ app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => 
     }
 
     const currentLevel = req.user.district_id ? 2 : 1;
+    
+    // Get current batch quantity
+    const { data: batchData } = await supabase.from('vaccine_batches').select('*')
+      .eq('batch_no', batch_no)
+      .eq('level', String(currentLevel))
+      .eq('state_id', req.user.state_id)
+      .eq(currentLevel === 2 ? 'district_id' : 'state_id', currentLevel === 2 ? req.user.district_id : req.user.state_id)
+      .single();
+      
+    if (!batchData) {
+      return res.status(400).json({ error: 'Batch not found at this level' });
+    }
+    
+    const diff = Number(quantity) - batchData.quantity;
 
     const { data, error } = await supabase.from('monthly_balance').insert([{
       vaccine_type: 'HPV Vaccine',
@@ -1427,12 +1441,19 @@ app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => 
       ccl_manager_handler_name: reportingPersonName,
       ccl_manager_handler_mobile_no: reportingPersonMobile,
       remarks: notes || null,
+      batch_no: batch_no,
       state_id: req.user.state_id,
       district_id: req.user.district_id || null,
       created_by: getValidUuid(req.user.id)
     }]).select();
 
     if (error) throw error;
+    
+    // Update batch inventory to match the physical balance submitted
+    if (diff !== 0) {
+      await updateBatchInventory(batch_no, null, null, String(currentLevel), req.user.state_id, req.user.district_id || null, null, null, diff, 0);
+    }
+    
     res.json({ success: true, transaction: data[0] });
   } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
