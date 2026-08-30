@@ -2880,6 +2880,12 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
 // ─── Block Monthly Report (CCPs) ────────────────────────────────────────────────
 
 
+
+app.get('/api/superadmin/dump-batches', async (req, res) => {
+  const { data } = await supabase.from('vaccine_batches').select('*');
+  res.json(data);
+});
+
 app.get('/api/superadmin/dump-ccp', async (req, res) => {
   const { data } = await supabase.from('vaccine_ccp').select('facility_name, unit_level').ilike('facility_name', '%Haldwani%');
   res.json(data);
