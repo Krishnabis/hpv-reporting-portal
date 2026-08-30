@@ -180,7 +180,7 @@ export const BlockMonthlyReport: React.FC = () => {
                     className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-hpv-purple/50 bg-slate-50 hover:bg-white transition-colors"
                   >
                     <option value="">-- Select a Batch --</option>
-                    {availableBatches.filter((b: any) => b.facility_id === selectedCcp.id).map((b: any) => (
+                    {availableBatches.map((b: any) => (
                       <option key={b.id} value={b.batch_no}>{b.batch_no} (System Qty: {b.quantity})</option>
                     ))}
                   </select>
