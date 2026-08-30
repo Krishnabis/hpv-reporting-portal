@@ -1766,7 +1766,7 @@ export const AdminDashboard: React.FC = () => {
                       <div className="flex flex-col items-center">
                         <span className="text-[8px] leading-tight text-center font-medium">Total Beneficiaries Vaccinated</span>
                         <div className="w-full h-px bg-slate-300 my-0.5"></div>
-                        <span className="text-[8px] leading-tight text-center font-medium">Total Vaccines Issued by District</span>
+                        <span className="text-[8px] leading-tight text-center font-medium">Total Vaccines Issued <strong className="text-purple-600 font-extrabold uppercase tracking-wide">TO</strong> District</span>
                       </div>
                       <span className="text-[10px] font-bold">× 100</span>
                     </div>
@@ -1957,7 +1957,7 @@ export const AdminDashboard: React.FC = () => {
                               <div className="flex flex-col items-center">
                                 <span className="text-[9px]">Total Beneficiaries Vaccinated</span>
                                 <div className="w-full h-px bg-slate-500 my-1"></div>
-                                <span className="text-[9px]">Total Vaccines Issued by District</span>
+                                <span className="text-[9px]">Total Vaccines Issued <strong>TO</strong> District</span>
                               </div>
                               <span className="text-[10px] font-semibold text-slate-200">× 100</span>
                             </div>

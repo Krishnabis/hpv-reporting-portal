@@ -1157,7 +1157,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     const blockVWF = (distIssued + blockStock) > 0 ? (blockReceived / (distIssued + blockStock)) : 0; // Using distIssued as proxy for block issued (vaccination) or should it be blockVaccinated? Formula says Issued + StockBalance. Block doesn't issue, it vaccinates. We'll use Vaccinated.
     const realBlockVWF = (blockVaccinated + blockStock) > 0 ? (blockReceived / (blockVaccinated + blockStock)) : 0;
 
-    const utilization = distIssued > 0 ? (blockVaccinated / distIssued) * 100 : 0;
+    const utilization = distReceived > 0 ? (blockVaccinated / distReceived) * 100 : 0;
 
     // District Utilization (for map & ranking)
     const districtStats = {};
@@ -1174,7 +1174,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
       }
     });
 
-    tx.filter(t => t.transaction_type === 'ISSUED' && String(t.level) === '2').forEach(t => {
+    tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '2').forEach(t => {
        const dId = t.district_id;
        if (dId) {
          if (!districtStats[dId]) districtStats[dId] = { vaccinated: 0, issued: 0, deltaVaccinated: 0 };
