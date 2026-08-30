@@ -128,6 +128,40 @@ export const AdminDashboard: React.FC = () => {
     } catch (err) { console.error(err); }
   };
 
+  
+  const handleExportCcl = () => {
+    if (!cclList.length) return;
+    const headers = [
+      'State Name', 'LGD State Code', 
+      'District Name', 'LGD District Code', 
+      'Block Name', 'LGD Block Code',
+      'Facility Name', 'Sub District Name', 'Facility Acronym', 'Hospital Facility ID',
+      'ABDM Org Facility ID', 'Pin Code', 'Address', 'Latitude', 'Longitude', 'Altitude',
+      'Contact Number', 'Health Facility Group', 'Health Facility Type', 'Setting',
+      'ULB Code'
+    ];
+    
+    const rows = cclList.map(c => [
+      c.states?.name || '', c.lgd_state_code || '',
+      c.districts?.name || '', c.lgd_district_code || '',
+      c.blocks?.name || '', c.lgd_block_code || '',
+      c.facility_name || '', c.sub_district_name || '', c.facility_acronym || '', c.hospital_facility_id || '',
+      c.abdm_org_facility_id || '', c.pin_code || '', c.address || '', c.latitude || '', c.longitude || '', c.altitude || '',
+      c.contact_number || '', c.health_facility_group || '', c.health_facility_type || '', c.setting || '',
+      c.ulb_code || ''
+    ]);
+    
+    const csvContent = [headers, ...rows].map(e => e.map(f => `"${String(f).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "CCL_Facilities_Export.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const fetchCclList = async () => {
     setCclLoading(true);
     try {
@@ -3124,8 +3158,14 @@ export const AdminDashboard: React.FC = () => {
                   CCL Management
                 </h1>
                 <p className="text-slate-500 text-sm mt-1">Manage and track all Level 1-3 Cold Chain Points.</p>
+              
+                <button onClick={handleExportCcl} className="ml-3 inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-sm font-bold transition-colors">
+                  <Download className="w-4 h-4" />
+                  Export CSV
+                </button>
               </div>
               <div className="relative">
+
                 <SearchIcon className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input 
                   type="text" 

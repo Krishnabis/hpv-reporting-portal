@@ -3038,7 +3038,7 @@ app.get('/api/superadmin/ccl-list', authenticateToken, async (req, res) => {
     // Fetch CCPs that are level 1, 2, or 3
     const { data: ccps, error } = await supabase
       .from('vaccine_ccp')
-      .select('*, districts(name), blocks(name)')
+      .select('*, states(name), districts(name), blocks(name)')
       .in('unit_level', ['1', '2', '3'])
       .order('unit_level', { ascending: true })
       .order('facility_name', { ascending: true });
