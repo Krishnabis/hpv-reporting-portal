@@ -4,7 +4,7 @@ import {
   LayoutDashboard, FileText, MapPin, Users, Settings as SettingsIcon,
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
-  Building2, ClipboardList, FileSpreadsheet, Target, Bell,
+  Building2, Edit2, Trash2, ClipboardList, FileSpreadsheet, Target, Bell,
   Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Activity, Users as UsersIcon, Info
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
@@ -56,7 +56,7 @@ interface ReportRow {
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'vaccine-management' | 'stock-receiving' | 'stock-issuing' | 'month-end-balance' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'vaccine-management' | 'stock-receiving' | 'stock-issuing' | 'month-end-balance' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity' | 'ccl-management'>('dashboard');
   
 
   const [usersOpen, setUsersOpen] = useState(false);
@@ -67,6 +67,67 @@ export const AdminDashboard: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
+  
+  // CCL Management state
+  const [cclList, setCclList] = useState<any[]>([]);
+  const [cclSearchTerm, setCclSearchTerm] = useState('');
+  const [cclLoading, setCclLoading] = useState(false);
+
+  const [cclEditModalOpen, setCclEditModalOpen] = useState(false);
+  const [editingCcl, setEditingCcl] = useState<any>(null);
+
+  
+  
+  const handleEditCcl = async () => {
+    if (!editingCcl) return;
+    try {
+      const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+      const res = await fetch(`/api/superadmin/ccl/${editingCcl.id}`, {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(editingCcl)
+      });
+      if (res.ok) {
+        setCclEditModalOpen(false);
+        fetchCclList();
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Failed to update');
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteCcl = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this facility? This action cannot be undone.')) return;
+    try {
+      const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+      const res = await fetch(`/api/superadmin/ccl/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchCclList();
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Failed to delete');
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const fetchCclList = async () => {
+    setCclLoading(true);
+    try {
+      const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+      const res = await fetch('/api/superadmin/ccl-list', { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      setCclList(Array.isArray(data) ? data : []);
+    } catch (err) { console.error(err); }
+    setCclLoading(false);
+  };
+
 
   // KPIs State
   const [kpis, setKpis] = useState<KPIState | null>(null);
@@ -583,6 +644,7 @@ export const AdminDashboard: React.FC = () => {
     if (tab === 'stock-issuing') { fetchVaccFacilities(adminUser?.district_id ? 3 : 2); fetchStockHistory(); fetchBatches(adminUser?.district_id ? '2' : '1'); }
     if (tab === 'month-end-balance') { fetchStockHistory(); fetchBatches('3'); }
     if (tab === 'monthly-report') { fetchBatches('3'); }
+    if (tab === 'ccl-management') { fetchCclList(); setSettingsOpen(true); }
   };
 
   const handleLogout = async () => {
@@ -957,7 +1019,18 @@ export const AdminDashboard: React.FC = () => {
                 {(settingsOpen || sidebarCollapsed) && (
                   <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
                     <button
+                      onClick={() => handleTabChange('ccl-management')}
+                      title="CCL Management"
+                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                        activeTab === 'ccl-management' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <Building2 className={`w-4 h-4 shrink-0 ${activeTab === 'ccl-management' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>CCL Management</span>
+                    </button>
+                    <button
                       onClick={() => handleTabChange('upload')}
+
                       title="Upload CSV"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
                         activeTab === 'upload' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'

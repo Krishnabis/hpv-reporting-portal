@@ -2865,7 +2865,7 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
              const destBId = destCcp?.block_id || null;
              const destFId = destCcp?.id || null;
              
-             await updateBatchInventory(item.batch_no, item.mfg, null, item.src, srcSId, srcDId, srcBId, srcFId, -item.qty, 0);
+             // await updateBatchInventory(item.batch_no, item.mfg, null, item.src, srcSId, srcDId, srcBId, srcFId, -item.qty, 0);
              await updateBatchInventory(item.batch_no, item.mfg, null, item.dest, destSId, destDId, destBId, destFId, item.qty, 0);
           }
           successCount += toInsertIssue.length;
@@ -2996,10 +2996,60 @@ app.post('/api/vaccine/monthly-report/submit', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+
+
+app.put('/api/superadmin/ccl/:id', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { id } = req.params;
+    const { facility_name, ccl_id, unit_level } = req.body;
+    
+    const { error } = await supabase.from('vaccine_ccp').update({
+       facility_name, ccl_id, unit_level: String(unit_level)
+    }).eq('id', id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/superadmin/ccl/:id', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { id } = req.params;
+    const { error } = await supabase.from('vaccine_ccp').delete().eq('id', id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/superadmin/ccl-list', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    
+    // Fetch CCPs that are level 1, 2, or 3
+    const { data: ccps, error } = await supabase
+      .from('vaccine_ccp')
+      .select('*, districts(name), blocks(name)')
+      .in('unit_level', ['1', '2', '3'])
+      .order('unit_level', { ascending: true })
+      .order('facility_name', { ascending: true });
+
+    if (error) throw error;
+    res.json(ccps || []);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
   try {
     const { level, facility_id } = req.query;
-    let query = supabase.from('vaccine_batches').select('*').gt('quantity', 0);
+    let query = supabase.from('vaccine_batches').select('*');
     
     if (level) query = query.eq('level', level);
     if (req.user.role === 'BLOCK' || req.user.block_id) {
