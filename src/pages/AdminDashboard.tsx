@@ -2247,7 +2247,7 @@ export const AdminDashboard: React.FC = () => {
                 <select value={monthEndBatch} onChange={e => setMonthEndBatch(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                   <option value="">-- Select Batch --</option>
-                  {batches.map((b: any) => (
+                  {availableBatches.map((b: any) => (
                     <option key={b.id} value={b.batch_no}>{b.batch_no} (Exp: {b.batch_expiry_date ? new Date(b.batch_expiry_date).toLocaleDateString('en-GB') : 'N/A'})</option>
                   ))}
                 </select>
