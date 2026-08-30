@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Building2, Calendar, CheckCircle2, AlertTriangle,
-  Save, Users, Clock, Lock, Activity, X, Settings, Eye, EyeOff, Bell
+  Save, Users, Clock, Lock, Activity, X, Settings, Eye, EyeOff, Bell,
+  Info, ChevronDown, BarChart2, ClipboardList, Package, MessageSquare, TrendingUp
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 
@@ -30,7 +31,7 @@ interface ProfileData {
 interface ReportData {
   id: string;
   reporting_date: string;
-  line_list_count: number;
+  sessions_held: number;
   beneficiaries_vaccinated: number;
   submitted_at: string;
 }
@@ -46,7 +47,6 @@ export const BlockReporting: React.FC = () => {
   const [todaySubmitted, setTodaySubmitted] = useState(false);
   const [lastReport, setLastReport] = useState<ReportData | null>(null);
 
-
   // One Time Form State
   const [basePopulationInput, setBasePopulationInput] = useState<string>('');
   const [savingProfile, setSavingProfile] = useState(false);
@@ -57,7 +57,7 @@ export const BlockReporting: React.FC = () => {
   const [reportingDate, setReportingDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
-  const [lineListInput, setLineListInput] = useState<string>('');
+  const [sessionsHeldInput, setSessionsHeldInput] = useState<string>('');
   const [vaccinatedInput, setVaccinatedInput] = useState<string>('');
   const [savingReport, setSavingReport] = useState(false);
   const [reportSuccessMsg, setReportSuccessMsg] = useState('');
@@ -80,7 +80,23 @@ export const BlockReporting: React.FC = () => {
   const [changePasscodeError, setChangePasscodeError] = useState('');
   const [isChangingPasscode, setIsChangingPasscode] = useState(false);
 
-  
+  // Nav Dropdown
+  const [showNavDropdown, setShowNavDropdown] = useState(false);
+  const navDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Info tooltip state
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (navDropdownRef.current && !navDropdownRef.current.contains(e.target as Node)) {
+        setShowNavDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const fetchBlockDetails = () => {
     if (!blockId) return;
@@ -119,7 +135,7 @@ export const BlockReporting: React.FC = () => {
 
     const token = localStorage.getItem(`hpv_block_token_${blockId}`) || sessionStorage.getItem(`hpv_block_token_${blockId}`);
     if (!token) {
-      navigate('/'); // Redirect to login if unauthenticated
+      navigate('/');
       return;
     }
 
@@ -155,8 +171,6 @@ export const BlockReporting: React.FC = () => {
       setIsChangingPasscode(false);
     }
   };
-
-  
 
   const parsedBasePop = parseInt(basePopulationInput, 10) || 0;
 
@@ -207,6 +221,7 @@ export const BlockReporting: React.FC = () => {
       })
       .catch(err => console.error(err));
   };
+
   const submitReportToApi = (payload: any) => {
     setSavingReport(true);
     setReportErrorMsg('');
@@ -237,36 +252,32 @@ export const BlockReporting: React.FC = () => {
 
   const handleSaveReport = (e: React.FormEvent) => {
     e.preventDefault();
-    const lineList = parseInt(lineListInput, 10);
+    const sessionsHeld = parseInt(sessionsHeldInput, 10);
     const vaccinated = parseInt(vaccinatedInput, 10);
 
-    if (isNaN(lineList) || lineList < 0) {
-      setReportErrorMsg('Please enter a valid line list count');
+    if (isNaN(sessionsHeld) || sessionsHeld < 0) {
+      setReportErrorMsg('Please enter a valid sessions held count');
       return;
     }
     if (isNaN(vaccinated) || vaccinated < 0) {
-      setReportErrorMsg('Please enter a valid beneficiaries vaccinated count');
-      return;
-    }
-    if (vaccinated > lineList) {
-      setReportErrorMsg('Beneficiaries vaccinated cannot exceed total line list count');
+      setReportErrorMsg('Please enter a valid girls vaccinated count');
       return;
     }
 
     const payload = {
       reporting_date: reportingDate,
-      line_list_count: lineList,
+      sessions_held: sessionsHeld,
       beneficiaries_vaccinated: vaccinated,
       submitted_by: 'Block Operator'
     };
 
-    if (lastReport && (lineList < lastReport.line_list_count || vaccinated < lastReport.beneficiaries_vaccinated)) {
+    if (lastReport && (sessionsHeld < lastReport.sessions_held || vaccinated < lastReport.beneficiaries_vaccinated)) {
       const d = new Date(lastReport.reporting_date);
       const parts = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).split(' ');
       const dateStr = `${parts[0]} - ${parts[1]} - ${parts[2]}`;
       
-      const currentValStr = `Line Listed: ${lineList}, Vaccinated: ${vaccinated}`;
-      const lastValStr = `Line Listed: ${lastReport.line_list_count}, Vaccinated: ${lastReport.beneficiaries_vaccinated}`;
+      const currentValStr = `Sessions Held: ${sessionsHeld}, Vaccinated: ${vaccinated}`;
+      const lastValStr = `Sessions Held: ${lastReport.sessions_held}, Vaccinated: ${lastReport.beneficiaries_vaccinated}`;
       
       const confirmMsg = `The current value (${currentValStr}) is less than the last value (${lastValStr}) submitted on (${dateStr}). Are you sure you want to save it?`;
       
@@ -305,7 +316,7 @@ export const BlockReporting: React.FC = () => {
 
   const target = profile ? Math.round(profile.base_population * 0.01) : 0;
   const lastVaccinated = lastReport?.beneficiaries_vaccinated || 0;
-  const lastLineList = lastReport?.line_list_count || 0;
+  const lastSessions = lastReport?.sessions_held || 0;
 
   let perfPercentage = 0;
   if (target > 0) {
@@ -317,58 +328,100 @@ export const BlockReporting: React.FC = () => {
   else if (perfPercentage >= 70) { catImg = 'cat3.png'; catName = 'High-Performing'; }
   else if (perfPercentage >= 30) { catImg = 'cat2.png'; catName = 'Progressing'; }
 
+  const vaccinationsPerSession = lastSessions > 0 ? (lastVaccinated / lastSessions).toFixed(1) : '—';
+
+  const navItems = [
+    { label: 'Daily Report', icon: ClipboardList, path: `/report?blockId=${blockId}`, active: true },
+    { label: 'Monthly Due List Report', icon: BarChart2, path: `/due-list-report?blockId=${blockId}`, active: false },
+    { label: 'HPV Vaccine Stock Balance Report', icon: Package, path: `/monthly-report?blockId=${blockId}`, active: false },
+    { label: 'Trends', icon: TrendingUp, path: `/progress-trend?blockId=${blockId}`, active: false },
+    { label: 'Feedback', icon: MessageSquare, path: `/feedback?blockId=${blockId}`, active: false },
+  ];
+
   return (
     <div className="h-[100dvh] w-full bg-slate-50 flex flex-col overflow-hidden">
-      {/* Header Bar — compact, no "Change Block" or "Admin Portal" once in block view */}
+      {/* Header Bar */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center justify-between relative min-h-[60px]">
           <div className="cursor-pointer flex items-center gap-3" onClick={() => navigate('/')}>
             <img src="/headinglogo.png" alt="Logo" className="h-14 object-contain hover:opacity-80 transition-opacity" />
           </div>
-          <div className="relative">
-            <button 
-              onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
-              className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
-            {showSettingsDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50">
-                <button 
-                  onClick={() => {
-                    setShowSettingsDropdown(false);
-                    navigate('/monthly-report?blockId=' + blockId);
-                  }}
-                  className="w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100"
-                >
-                  Monthly Report
-                </button>
-                <button 
-                  onClick={() => {
-                    setShowSettingsDropdown(false);
-                    setShowChangePasscodeModal(true);
-                  }}
-                  className="w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                >
-                  Change Passcode
-                </button>
-                <button 
-                  onClick={() => {
-                    localStorage.removeItem(`hpv_block_token_${blockId}`);
-                    sessionStorage.removeItem(`hpv_block_token_${blockId}`);
-                    navigate('/');
-                  }}
-                  className="w-full text-left px-4 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
+
+          {/* Right side: Nav Dropdown + Settings */}
+          <div className="flex items-center gap-2">
+            {/* Navigation Dropdown */}
+            <div className="relative" ref={navDropdownRef}>
+              <button
+                onClick={() => setShowNavDropdown(!showNavDropdown)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-hpv-purple-soft/40 hover:bg-hpv-purple-soft text-hpv-purple-dark text-xs font-bold transition-colors border border-hpv-purple/20"
+              >
+                <ClipboardList className="w-3.5 h-3.5" />
+                Daily Report
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showNavDropdown ? 'rotate-180' : ''}`} />
+              </button>
+              {showNavDropdown && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  {navItems.map((item) => (
+                    <button
+                      key={item.path}
+                      onClick={() => {
+                        setShowNavDropdown(false);
+                        navigate(item.path);
+                      }}
+                      className={`w-full text-left px-4 py-3 text-sm font-semibold flex items-center gap-3 transition-colors border-b border-slate-100 last:border-0
+                        ${item.active
+                          ? 'bg-hpv-purple-soft/50 text-hpv-purple'
+                          : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                    >
+                      <item.icon className={`w-4 h-4 shrink-0 ${item.active ? 'text-hpv-purple' : 'text-slate-400'}`} />
+                      {item.label}
+                      {item.active && (
+                        <span className="ml-auto text-[9px] bg-hpv-purple text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Current</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Settings Gear */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
+                className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+              {showSettingsDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50">
+                  <button 
+                    onClick={() => {
+                      setShowSettingsDropdown(false);
+                      setShowChangePasscodeModal(true);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    Change Passcode
+                  </button>
+                  <button 
+                    onClick={() => {
+                      localStorage.removeItem(`hpv_block_token_${blockId}`);
+                      sessionStorage.removeItem(`hpv_block_token_${blockId}`);
+                      navigate('/');
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main Container — compact single-page layout */}
+      {/* Main Container */}
       <main className="max-w-3xl mx-auto w-full px-4 py-2 space-y-2 flex-1 overflow-y-auto min-h-0">
 
         {/* Block Hero Card */}
@@ -439,7 +492,6 @@ export const BlockReporting: React.FC = () => {
                     onClick={() => {
                       setBasePopulationInput(profile.base_population.toString());
                       setEditingPopulation(false);
-                      // the UI will not hide form unless we reset is_unlocked locally or reload
                       fetchBlockDetails();
                     }}
                     className="px-4 py-3 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all shrink-0"
@@ -476,11 +528,30 @@ export const BlockReporting: React.FC = () => {
                 </p>
               </div>
               <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block" />
-              <div>
-                <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">HPV Target (1%)</p>
-                <p className="text-lg font-extrabold text-slate-900 font-mono leading-tight">
-                  {Math.round(profile.base_population * 0.01).toLocaleString('en-IN')}
-                </p>
+              <div className="flex items-center gap-1.5">
+                <div>
+                  <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">HPV Target (1%)</p>
+                  <p className="text-lg font-extrabold text-slate-900 font-mono leading-tight">
+                    {Math.round(profile.base_population * 0.01).toLocaleString('en-IN')}
+                  </p>
+                </div>
+                {/* Info icon for HPV Target */}
+                <div className="relative">
+                  <button
+                    onMouseEnter={() => setActiveTooltip('hpv-target')}
+                    onMouseLeave={() => setActiveTooltip(null)}
+                    onClick={() => setActiveTooltip(activeTooltip === 'hpv-target' ? null : 'hpv-target')}
+                    className="p-0.5 text-slate-400 hover:text-hpv-purple transition-colors"
+                  >
+                    <Info className="w-3.5 h-3.5" />
+                  </button>
+                  {activeTooltip === 'hpv-target' && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 bg-slate-800 text-white text-[10px] font-medium rounded-xl px-3 py-2 shadow-xl z-50 leading-relaxed">
+                      Annual HPV Vaccination Target: 1% of the total population.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             {profile.unlock_requested ? (
@@ -510,7 +581,9 @@ export const BlockReporting: React.FC = () => {
               <div className="flex items-center gap-2 mb-2 sm:mb-0">
                 <Users className="w-5 h-5 text-hpv-pink" />
                 <div>
-                  <p className="text-[11px] text-slate-500"><span className="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-bold">Eligible Girls</span>: Line Listed & Vaccinated (Cumulative Count)</p>
+                  <p className="text-[11px] text-slate-500">
+                    <span className="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-bold">Cumulative Count</span>: Total Sessions Held and Eligible Girls Vaccinated
+                  </p>
                 </div>
               </div>
               <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto ${todaySubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
@@ -531,29 +604,33 @@ export const BlockReporting: React.FC = () => {
                     value={reportingDate}
                     onChange={e => {
                       setReportingDate(e.target.value);
-                      setLineListInput('');
+                      setSessionsHeldInput('');
                       setVaccinatedInput('');
                     }}
                     className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
                   />
                 </div>
 
-                {/* Line List */}
+                {/* Sessions Held */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Line listed <span className="lowercase italic text-[9px] normal-case">(enter cumulative data)</span></label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                    Session Held <span className="lowercase italic text-[9px] normal-case">(enter cumulative value)</span>
+                  </label>
                   <input
                     type="number"
                     min="0"
-                    value={lineListInput}
-                    onChange={e => setLineListInput(e.target.value)}
-                    placeholder={lastReport ? lastReport.line_list_count.toString() : "—"}
+                    value={sessionsHeldInput}
+                    onChange={e => setSessionsHeldInput(e.target.value)}
+                    placeholder={lastReport ? (lastReport.sessions_held ?? 0).toString() : "—"}
                     className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
                   />
                 </div>
 
-                {/* Vaccinated */}
+                {/* Girls Vaccinated */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Vaccinated <span className="lowercase italic text-[9px] normal-case">(enter cumulative data)</span></label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                    Girls Vaccinated <span className="lowercase italic text-[9px] normal-case">(enter cumulative value)</span>
+                  </label>
                   <input
                     type="number"
                     min="0"
@@ -581,7 +658,7 @@ export const BlockReporting: React.FC = () => {
 
               <button
                 type="submit"
-                disabled={savingReport || !lineListInput || !vaccinatedInput}
+                disabled={savingReport || !sessionsHeldInput || !vaccinatedInput}
                 className="w-full py-3 rounded-xl font-bold text-sm text-white gradient-header shadow-md hover:shadow-hpv-purple/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
@@ -591,29 +668,75 @@ export const BlockReporting: React.FC = () => {
           </div>
         </section>
 
-        {/* Progress Box */}
+        {/* Cumulative Progress Box */}
         {hasPopulation && (
           <section className="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex flex-col gap-2">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <h2 className="text-sm font-bold text-slate-900">Cumulative Reporting Progress</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* Eligible Girls Line Listed */}
               <div className="bg-sky-50 border border-sky-100 rounded-xl p-3 flex flex-col justify-center items-center text-center relative overflow-hidden">
-                <span className="text-[10px] uppercase font-bold text-sky-600 mb-1 z-10">Eligible Girls Line Listed</span>
-                <span className="text-2xl font-extrabold font-mono text-sky-700 leading-tight z-10">{target > 0 ? Math.round((lastLineList / target) * 100) : 0}%</span>
-                <span className="text-[10px] font-bold text-sky-700/70 mt-1 z-10">Count ({lastLineList.toLocaleString('en-IN')})</span>
+                <div className="flex items-center gap-1 mb-1 z-10">
+                  <span className="text-[10px] uppercase font-bold text-sky-600">Eligible Girls Line Listed</span>
+                  <div className="relative">
+                    <button
+                      onMouseEnter={() => setActiveTooltip('line-listed')}
+                      onMouseLeave={() => setActiveTooltip(null)}
+                      onClick={() => setActiveTooltip(activeTooltip === 'line-listed' ? null : 'line-listed')}
+                      className="text-sky-400 hover:text-sky-600 transition-colors"
+                    >
+                      <Info className="w-3 h-3" />
+                    </button>
+                    {activeTooltip === 'line-listed' && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-800 text-white text-[10px] font-medium rounded-xl px-3 py-2 shadow-xl z-50 leading-relaxed">
+                        Eligible Girls Line-Listed: Number of eligible girls identified and registered by ASHAs through house-to-house visits, as reported in the Monthly Due List Report, expressed as a percentage of the Annual HPV Vaccination Target.
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <span className="text-2xl font-extrabold font-mono text-sky-700 leading-tight z-10">—</span>
+                <span className="text-[10px] font-bold text-sky-700/70 mt-1 z-10">From Monthly Report</span>
               </div>
+
+              {/* Eligible Girls Vaccinated */}
               <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col justify-center items-center text-center relative overflow-hidden">
-                <span className="text-[10px] uppercase font-bold text-emerald-600 mb-1 z-10">Eligible Girls Vaccinated</span>
+                <div className="flex items-center gap-1 mb-1 z-10">
+                  <span className="text-[10px] uppercase font-bold text-emerald-600">Eligible Girls Vaccinated</span>
+                  <div className="relative">
+                    <button
+                      onMouseEnter={() => setActiveTooltip('vaccinated')}
+                      onMouseLeave={() => setActiveTooltip(null)}
+                      onClick={() => setActiveTooltip(activeTooltip === 'vaccinated' ? null : 'vaccinated')}
+                      className="text-emerald-400 hover:text-emerald-600 transition-colors"
+                    >
+                      <Info className="w-3 h-3" />
+                    </button>
+                    {activeTooltip === 'vaccinated' && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-800 text-white text-[10px] font-medium rounded-xl px-3 py-2 shadow-xl z-50 leading-relaxed">
+                        HPV Vaccination Coverage: Total eligible girls vaccinated, expressed as a percentage of the Annual HPV Vaccination Target.
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <span className="text-2xl font-extrabold font-mono text-emerald-700 leading-tight z-10">{target > 0 ? Math.round((lastVaccinated / target) * 100) : 0}%</span>
                 <span className="text-[10px] font-bold text-emerald-700/70 mt-1 z-10">Count ({lastVaccinated.toLocaleString('en-IN')})</span>
               </div>
-              <div
-                onClick={() => navigate('/progress-trend?blockId=' + blockId)}
-                className="bg-hpv-purple-soft/30 hover:bg-hpv-purple-soft/70 border border-hpv-purple/20 rounded-xl p-3 flex flex-col justify-center items-center text-center cursor-pointer transition-colors"
-              >
-                <Activity className="w-6 h-6 text-hpv-purple mb-2" />
-                <span className="text-xs font-bold text-hpv-purple uppercase tracking-wider">Click to view<br />progress trends</span>
+
+              {/* Vaccinations per Session */}
+              <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
+                <span className="text-[10px] uppercase font-bold text-violet-600 mb-1">Vaccinations per Session</span>
+                <span className="text-2xl font-extrabold font-mono text-violet-700 leading-tight">{vaccinationsPerSession}</span>
+                <span className="text-[10px] font-bold text-violet-700/70 mt-1">Vaccinated / Session</span>
+              </div>
+
+              {/* Session Count */}
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
+                <span className="text-[10px] uppercase font-bold text-amber-600 mb-1">Session Count</span>
+                <span className="text-2xl font-extrabold font-mono text-amber-700 leading-tight">{lastSessions.toLocaleString('en-IN')}</span>
+                <span className="text-[10px] font-bold text-amber-700/70 mt-1">Total Sessions</span>
               </div>
             </div>
           </section>

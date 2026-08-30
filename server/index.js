@@ -458,23 +458,23 @@ app.get('/api/reports/block/:id', async (req, res) => {
 app.post('/api/reports/block/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { reporting_date, line_list_count, beneficiaries_vaccinated, submitted_by } = req.body;
+    const { reporting_date, sessions_held, beneficiaries_vaccinated, submitted_by } = req.body;
 
     if (!reporting_date) return res.status(400).json({ error: 'Reporting date required' });
-    if (line_list_count === undefined || isNaN(line_list_count)) return res.status(400).json({ error: 'Valid line list count required' });
+    if (sessions_held === undefined || isNaN(sessions_held)) return res.status(400).json({ error: 'Valid sessions held count required' });
     if (beneficiaries_vaccinated === undefined || isNaN(beneficiaries_vaccinated)) return res.status(400).json({ error: 'Valid vaccinated count required' });
 
     const reportId = `rep-${id}-${reporting_date}`;
 
     if (useSupabase) {
       const { error } = await supabase.from('daily_reports').upsert(
-        [{ id: reportId, block_id: Number(id), reporting_date, line_list_count: Number(line_list_count), beneficiaries_vaccinated: Number(beneficiaries_vaccinated), submitted_by: submitted_by || 'Block Operator' }],
+        [{ id: reportId, block_id: Number(id), reporting_date, sessions_held: Number(sessions_held), beneficiaries_vaccinated: Number(beneficiaries_vaccinated), submitted_by: submitted_by || 'Block Operator' }],
         { onConflict: 'block_id,reporting_date', ignoreDuplicates: false }
       );
       if (error) throw error;
     } else {
       const idx = store.daily_reports.findIndex(r => r.block_id === Number(id) && r.reporting_date === reporting_date);
-      const rec = { id: reportId, block_id: Number(id), reporting_date, line_list_count: Number(line_list_count), beneficiaries_vaccinated: Number(beneficiaries_vaccinated), submitted_by: submitted_by || 'Block Operator', submitted_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      const rec = { id: reportId, block_id: Number(id), reporting_date, sessions_held: Number(sessions_held), beneficiaries_vaccinated: Number(beneficiaries_vaccinated), submitted_by: submitted_by || 'Block Operator', submitted_at: new Date().toISOString(), updated_at: new Date().toISOString() };
       if (idx >= 0) store.daily_reports[idx] = rec; else store.daily_reports.push(rec);
       saveStore();
     }
@@ -3162,6 +3162,191 @@ app.get('/api/superadmin/fix-batches', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }
+});
+
+// ─── Monthly Due List Report ──────────────────────────────────────────────────
+
+// GET meta (auto-populated persistent fields) for a block
+app.get('/api/due-list/meta/:blockId', async (req, res) => {
+  try {
+    const { blockId } = req.params;
+    if (useSupabase) {
+      const { data, error } = await supabase
+        .from('monthly_due_list_meta')
+        .select('*')
+        .eq('block_id', Number(blockId))
+        .maybeSingle();
+      if (error) throw error;
+      return res.json(data || {});
+    }
+    res.json({});
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// PUT meta (save/update persistent auto-populated fields)
+app.put('/api/due-list/meta/:blockId', async (req, res) => {
+  try {
+    const { blockId } = req.params;
+    const { block_incharge_name, block_incharge_mobile, facilities_manager_name, facilities_manager_mobile, total_afs, total_ashas } = req.body;
+    if (useSupabase) {
+      const { error } = await supabase.from('monthly_due_list_meta').upsert(
+        [{ block_id: Number(blockId), block_incharge_name, block_incharge_mobile, facilities_manager_name, facilities_manager_mobile, total_afs: Number(total_afs) || 0, total_ashas: Number(total_ashas) || 0, updated_at: new Date().toISOString() }],
+        { onConflict: 'block_id', ignoreDuplicates: false }
+      );
+      if (error) throw error;
+    }
+    res.json({ message: 'Meta saved' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// GET list of submitted months for a block
+app.get('/api/due-list/list/:blockId', async (req, res) => {
+  try {
+    const { blockId } = req.params;
+    if (useSupabase) {
+      const { data, error } = await supabase
+        .from('monthly_due_list_reports')
+        .select('id, reporting_month, submitted_at, asha_reporting_pct, hpv_coverage_pct')
+        .eq('block_id', Number(blockId))
+        .order('reporting_month', { ascending: false });
+      if (error) throw error;
+      return res.json(data || []);
+    }
+    res.json([]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// GET a specific month's report
+app.get('/api/due-list/:blockId', async (req, res) => {
+  try {
+    const { blockId } = req.params;
+    const { month } = req.query;
+    if (!month) return res.status(400).json({ error: 'month query param required (YYYY-MM)' });
+    if (useSupabase) {
+      const { data, error } = await supabase
+        .from('monthly_due_list_reports')
+        .select('*')
+        .eq('block_id', Number(blockId))
+        .eq('reporting_month', month)
+        .maybeSingle();
+      if (error) throw error;
+      return res.json(data || null);
+    }
+    res.json(null);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// POST / PUT submit a monthly due list report
+app.post('/api/due-list/:blockId', async (req, res) => {
+  try {
+    const { blockId } = req.params;
+    const {
+      reporting_month,
+      // Section A
+      block_incharge_name, block_incharge_mobile,
+      facilities_manager_name, facilities_manager_mobile,
+      total_afs, total_ashas, ashas_reporting,
+      // Section B.1
+      new_girls_registered, girls_turned_14, total_eligible_girls,
+      eligible_girls_vaccinated,
+      // Section B.2
+      hesitancy_count, distance_count,
+      // Section B.3
+      girls_turning_15_next_month, girls_turning_15_yet_to_vaccinate
+    } = req.body;
+
+    if (!reporting_month) return res.status(400).json({ error: 'reporting_month required (YYYY-MM)' });
+
+    // Data freeze check: reports for a given month are frozen on the 9th of the FOLLOWING month
+    const [yr, mo] = reporting_month.split('-').map(Number);
+    const freezeDate = new Date(yr, mo, 9); // mo is already next month index (0-based +1)
+    const nowIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    
+    // Check if this is an edit of existing data (frozen after 9th of following month)
+    if (useSupabase) {
+      const { data: existing } = await supabase.from('monthly_due_list_reports').select('id, submitted_at').eq('block_id', Number(blockId)).eq('reporting_month', reporting_month).maybeSingle();
+      if (existing && nowIST >= freezeDate) {
+        return res.status(403).json({ error: 'Data for this month is frozen. Corrections after the 9th require authorization.' });
+      }
+    }
+
+    // Calculate derived fields
+    const ashaReportingPct = total_ashas > 0 ? Math.round((ashas_reporting / total_ashas) * 100 * 100) / 100 : 0;
+    const eligibleGirlsPending = Math.max(0, (total_eligible_girls || 0) - (eligible_girls_vaccinated || 0));
+    const othersCount = Math.max(0, eligibleGirlsPending - (hesitancy_count || 0) - (distance_count || 0));
+    const hpvCoveragePct = total_eligible_girls > 0 ? Math.round((eligible_girls_vaccinated / total_eligible_girls) * 100 * 100) / 100 : 0;
+    const ageOutRiskPct = girls_turning_15_next_month > 0 ? Math.round((girls_turning_15_yet_to_vaccinate / girls_turning_15_next_month) * 100 * 100) / 100 : 0;
+    const hesitancyPct = total_eligible_girls > 0 ? Math.round(((hesitancy_count || 0) / total_eligible_girls) * 100 * 100) / 100 : 0;
+
+    const reportId = `dlr-${blockId}-${reporting_month}`;
+    const payload = {
+      id: reportId, block_id: Number(blockId), reporting_month,
+      block_incharge_name, block_incharge_mobile,
+      facilities_manager_name, facilities_manager_mobile,
+      total_afs: Number(total_afs) || 0, total_ashas: Number(total_ashas) || 0,
+      ashas_reporting: Number(ashas_reporting) || 0,
+      asha_reporting_pct: ashaReportingPct,
+      new_girls_registered: Number(new_girls_registered) || 0,
+      girls_turned_14: Number(girls_turned_14) || 0,
+      total_eligible_girls: Number(total_eligible_girls) || 0,
+      eligible_girls_vaccinated: Number(eligible_girls_vaccinated) || 0,
+      eligible_girls_pending: eligibleGirlsPending,
+      hesitancy_count: Number(hesitancy_count) || 0,
+      distance_count: Number(distance_count) || 0,
+      others_count: othersCount,
+      girls_turning_15_next_month: Number(girls_turning_15_next_month) || 0,
+      girls_turning_15_yet_to_vaccinate: Number(girls_turning_15_yet_to_vaccinate) || 0,
+      hpv_coverage_pct: hpvCoveragePct,
+      age_out_risk_pct: ageOutRiskPct,
+      hesitancy_pct: hesitancyPct,
+      submitted_at: new Date().toISOString()
+    };
+
+    if (useSupabase) {
+      const { error } = await supabase.from('monthly_due_list_reports').upsert(
+        [payload], { onConflict: 'block_id,reporting_month', ignoreDuplicates: false }
+      );
+      if (error) throw error;
+      // Also update meta with latest persistent fields
+      await supabase.from('monthly_due_list_meta').upsert(
+        [{ block_id: Number(blockId), block_incharge_name, block_incharge_mobile, facilities_manager_name, facilities_manager_mobile, total_afs: Number(total_afs) || 0, total_ashas: Number(total_ashas) || 0, updated_at: new Date().toISOString() }],
+        { onConflict: 'block_id', ignoreDuplicates: false }
+      );
+    }
+
+    await logAudit('BLOCK_OPERATOR', 'SUBMIT_DUE_LIST_REPORT', 'monthly_due_list_reports', reportId);
+    res.json({ message: 'Due list report saved', id: reportId });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+// ─── Feedback ─────────────────────────────────────────────────────────────────
+
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const { block_id, reporter_name, role_designation, mobile_number, feedback_type, brief_description } = req.body;
+    if (!feedback_type || !brief_description) return res.status(400).json({ error: 'Feedback type and description required' });
+
+    // Auto-determine priority
+    let priority = 'Low';
+    if (feedback_type === 'Issue / Challenge / Bug') priority = 'High';
+    else if (feedback_type === 'Other') priority = 'Medium';
+
+    const feedbackId = `fb-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const payload = {
+      id: feedbackId,
+      block_id: block_id ? Number(block_id) : null,
+      reporter_name, role_designation, mobile_number,
+      feedback_type, brief_description, priority,
+      submitted_at: new Date().toISOString()
+    };
+
+    if (useSupabase) {
+      const { error } = await supabase.from('feedback_submissions').insert([payload]);
+      if (error) throw error;
+    }
+
+    res.json({ message: 'Feedback submitted successfully', id: feedbackId });
+  } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
