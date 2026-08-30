@@ -27,6 +27,17 @@ interface KPIState {
   overall_linelist_pct: number;
   district_chart_data: Array<{
     district: string;
+    district_id?: string;
+    vaccinated: number;
+    lineList: number;
+    target: number;
+    coveragePct: number;
+    lineListPct: number;
+  }>;
+  block_chart_data?: Array<{
+    district: string;
+    block: string;
+    block_id?: string;
     vaccinated: number;
     lineList: number;
     target: number;
