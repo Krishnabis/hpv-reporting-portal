@@ -3,8 +3,13 @@ import { UploadCloud, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lucide-
 import { parse } from 'csv-parse/browser/esm/sync';
 
 export const SuperAdminUpload: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success', text: string, errors?: string[], successes?: string[] } | null>(null);
+  
+  // Conflict Resolution State
+  const [conflicts, setConflicts] = useState<any[]>([]);
+  const [pendingUploadData, setPendingUploadData] = useState<any[] | null>(null);
+  const [pendingEndpoint, setPendingEndpoint] = useState<string | null>(null);
 
   const handleDownloadTemplate = (type: 'population' | 'livedata' | 'locations' | 'vaccine_ccp' | 'stock_receive' | 'stock_issue') => {
     let headers = '';
@@ -91,6 +96,39 @@ export const SuperAdminUpload: React.FC = () => {
     }
   };
 
+    const handleOverride = async () => {
+    if (!pendingUploadData || !pendingEndpoint) return;
+    setLoading(true);
+    setConflicts([]);
+    setMessage(null);
+    try {
+      const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+      const res = await fetch(pendingEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ data: pendingUploadData, overrideConflicts: true })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Upload failed');
+      
+      setMessage({
+        type: 'success',
+        text: `Successfully processed ${json.successCount} records (${json.details?.join(', ')}).`,
+        errors: json.errors || [],
+        successes: json.details || []
+      });
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Failed to upload CSV.' });
+    } finally {
+      setLoading(false);
+      setPendingUploadData(null);
+      setPendingEndpoint(null);
+    }
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, apiEndpoint: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -109,7 +147,7 @@ export const SuperAdminUpload: React.FC = () => {
         });
 
         const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
-        const res = await fetch(apiEndpoint, {
+                const res = await fetch(apiEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -122,6 +160,17 @@ export const SuperAdminUpload: React.FC = () => {
         if (!contentType.includes('application/json')) {
           throw new Error('Server returned an unexpected response. The file may be too large or the server timed out. Try uploading fewer rows at a time.');
         }
+        
+        if (res.status === 409) {
+          const json = await res.json();
+          setConflicts(json.conflicts || []);
+          setPendingUploadData(records);
+          setPendingEndpoint(apiEndpoint);
+          setLoading(false);
+          e.target.value = '';
+          return;
+        }
+        
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || 'Upload failed');
         

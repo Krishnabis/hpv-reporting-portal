@@ -2393,9 +2393,9 @@ app.get('/api/admin/locations-master-data', authenticateToken, async (req, res) 
 app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
-    const { data } = req.body;
+    const { data, overrideConflicts } = req.body;
     if (!Array.isArray(data)) return res.status(400).json({ error: 'Expected an array of records' });
-    if (!useSupabase) return res.status(500).json({ error: 'Supabase required for this complex operation' });
+    if (!useSupabase) return res.status(500).json({ error: 'Supabase required' });
 
     let allStates = (await supabase.from('states').select('id, lgd_code')).data || [];
     let allDistricts = (await supabase.from('districts').select('id, lgd_code')).data || [];
@@ -2404,18 +2404,22 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
     let successCount = 0;
     let errors = [];
     let details = [];
+    let conflicts = [];
 
     const CHUNK_SIZE = 50;
     
-    // Fetch all existing identifiers to accurately prevent duplicates across chunks and within DB
-    const { data: existingRecords } = await supabase.from('vaccine_ccp').select('ccl_id, facility_name, block_id');
+    const { data: existingRecords } = await supabase.from('vaccine_ccp').select('*');
     const existingCclIds = new Set((existingRecords || []).map(r => r.ccl_id).filter(Boolean));
     const existingFacilityNames = new Set((existingRecords || []).filter(r => r.facility_name && r.block_id).map(r => `${r.block_id}-${r.facility_name}`));
+    const existingMap = {};
+    (existingRecords || []).forEach(r => { if (r.ccl_id) existingMap[r.ccl_id] = r; });
+
+    let toUpdate = [];
+    let toInsert = [];
 
     for (let i = 0; i < data.length; i += CHUNK_SIZE) {
       const chunk = data.slice(i, i + CHUNK_SIZE);
-      const toInsert = [];
-
+      
       for (const row of chunk) {
         const stateLgd = Number(row['State Code']);
         const districtLgd = Number(row['District Code']);
@@ -2433,25 +2437,7 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
            continue;
         }
 
-        // Duplicate Check
-        if (cclId) {
-          if (existingCclIds.has(cclId)) {
-            errors.push(`Skipped duplicate (CCL ID already exists): ${cclId}`);
-            continue;
-          }
-        } else if (blockId) {
-          const comboKey = `${blockId}-${facilityName}`;
-          if (existingFacilityNames.has(comboKey)) {
-            errors.push(`Skipped duplicate (Facility already exists in Block): ${facilityName}`);
-            continue;
-          }
-        }
-
-        // Mark as seen to prevent duplicates within the same CSV upload
-        if (cclId) existingCclIds.add(cclId);
-        if (blockId) existingFacilityNames.add(`${blockId}-${facilityName}`);
-
-        toInsert.push({
+        const newObj = {
           state_id: stateId,
           district_id: districtId,
           block_id: blockId,
@@ -2489,19 +2475,68 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
           ccl_block_hq_yes: row['CCLBlock HQ (Yes)'] || null,
           name_of_unit_incharge: row['Name of UNIT Incharge'] || null,
           status: row['Status'] || 'Active'
-        });
-      }
+        };
 
-      if (toInsert.length > 0) {
-        const { error } = await supabase.from('vaccine_ccp').insert(toInsert);
-        if (error) {
-          errors.push(`Error inserting batch: ${error.message}`);
-        } else {
-          successCount += toInsert.length;
-          details.push(`Inserted ${toInsert.length} facilities successfully in a batch`);
+        if (cclId && existingMap[cclId]) {
+          const existing = existingMap[cclId];
+          const diffs = [];
+          
+          if (newObj.facility_name !== existing.facility_name) diffs.push({ field: 'Facility Name', old: existing.facility_name, new: newObj.facility_name });
+          if (newObj.contact_number !== existing.contact_number) diffs.push({ field: 'Contact Number', old: existing.contact_number, new: newObj.contact_number });
+          if (newObj.name_of_unit_incharge !== existing.name_of_unit_incharge) diffs.push({ field: 'Incharge Name', old: existing.name_of_unit_incharge, new: newObj.name_of_unit_incharge });
+          if (newObj.unit_level !== existing.unit_level) diffs.push({ field: 'Unit Level', old: existing.unit_level, new: newObj.unit_level });
+          if (newObj.status !== existing.status) diffs.push({ field: 'Status', old: existing.status, new: newObj.status });
+          
+          if (diffs.length > 0) {
+            if (!overrideConflicts) {
+              conflicts.push({ ccl_id: cclId, facility_name: facilityName, differences: diffs });
+            } else {
+              toUpdate.push({ id: existing.id, ...newObj });
+            }
+          } else {
+            errors.push(`Skipped exact duplicate: ${cclId}`);
+          }
+          continue;
+        } else if (blockId) {
+          const comboKey = `${blockId}-${facilityName}`;
+          if (existingFacilityNames.has(comboKey) && !overrideConflicts) {
+            errors.push(`Skipped duplicate (Facility already exists in Block): ${facilityName}`);
+            continue;
+          }
         }
+
+        if (cclId) existingCclIds.add(cclId);
+        if (blockId) existingFacilityNames.add(`${blockId}-${facilityName}`);
+        
+        toInsert.push(newObj);
       }
     }
+
+    if (conflicts.length > 0) {
+       return res.status(409).json({ error: 'Conflicts found', conflicts });
+    }
+
+    // Process Updates
+    if (toUpdate.length > 0) {
+       for (const u of toUpdate) {
+          const { id, ...updateData } = u;
+          const { error } = await supabase.from('vaccine_ccp').update(updateData).eq('id', id);
+          if (!error) successCount++;
+       }
+       details.push(`Updated ${toUpdate.length} existing records.`);
+    }
+
+    // Process Inserts in chunks
+    for (let i = 0; i < toInsert.length; i += CHUNK_SIZE) {
+       const chunkInsert = toInsert.slice(i, i + CHUNK_SIZE);
+       const { error } = await supabase.from('vaccine_ccp').insert(chunkInsert);
+       if (error) {
+          errors.push(`Error inserting batch: ${error.message}`);
+       } else {
+          successCount += chunkInsert.length;
+       }
+    }
+    if (toInsert.length > 0) details.push(`Inserted ${toInsert.length} new records.`);
 
     res.json({ successCount, errors, details });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
