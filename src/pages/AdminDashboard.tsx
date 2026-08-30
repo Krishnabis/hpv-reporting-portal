@@ -3101,6 +3101,140 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* CCL Management Tab */}
+        {activeTab === 'ccl-management' && (
+          <div className="max-w-6xl mx-auto w-full space-y-6 pb-10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <Building2 className="w-7 h-7 text-indigo-600" />
+                  CCL Management
+                </h1>
+                <p className="text-slate-500 text-sm mt-1">View all Level 1-3 Cold Chain Points across districts and blocks.</p>
+              </div>
+              <div className="relative">
+                <SearchIcon className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input 
+                  type="text" 
+                  placeholder="Search facility name or CCL ID..."
+                  value={cclSearchTerm}
+                  onChange={e => setCclSearchTerm(e.target.value)}
+                  className="pl-9 pr-4 py-2 w-full sm:w-64 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold w-16">Level</th>
+                      <th className="px-4 py-3 font-semibold">CCL ID</th>
+                      <th className="px-4 py-3 font-semibold">Facility Name</th>
+                      <th className="px-4 py-3 font-semibold">District</th>
+                      <th className="px-4 py-3 font-semibold">Block</th>
+                      <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {cclLoading ? (
+                      <tr><td colSpan={6} className="p-8 text-center text-slate-500">Loading CCPs...</td></tr>
+                    ) : cclList.filter(c => 
+                        !cclSearchTerm || 
+                        c.facility_name?.toLowerCase().includes(cclSearchTerm.toLowerCase()) || 
+                        c.ccl_id?.toLowerCase().includes(cclSearchTerm.toLowerCase())
+                      ).length === 0 ? (
+                      <tr><td colSpan={6} className="p-8 text-center text-slate-500">No facilities found.</td></tr>
+                    ) : (
+                      cclList.filter(c => 
+                        !cclSearchTerm || 
+                        c.facility_name?.toLowerCase().includes(cclSearchTerm.toLowerCase()) || 
+                        c.ccl_id?.toLowerCase().includes(cclSearchTerm.toLowerCase())
+                      ).map((c: any) => (
+                        <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
+                              c.unit_level === '1' ? 'bg-blue-100 text-blue-700' :
+                              c.unit_level === '2' ? 'bg-amber-100 text-amber-700' :
+                              'bg-emerald-100 text-emerald-700'
+                            }`}>
+                              Lvl {c.unit_level}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-mono text-slate-500 text-xs">{c.ccl_id || '-'}</td>
+                          <td className="px-4 py-3 font-semibold text-slate-800">{c.facility_name}</td>
+                          <td className="px-4 py-3 text-slate-600">{c.districts?.name || '-'}</td>
+                          <td className="px-4 py-3 text-slate-600">{c.blocks?.name || '-'}</td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button onClick={() => { setEditingCcl(c); setCclEditModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors" title="Edit">
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeleteCcl(c.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors" title="Delete">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* CCL Edit Modal */}
+            {cclEditModalOpen && editingCcl && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+                  <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <h3 className="font-bold text-lg text-slate-900">Edit Facility</h3>
+                    <button onClick={() => setCclEditModalOpen(false)} className="text-slate-400 hover:text-slate-600">×</button>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">CCL ID</label>
+                      <input 
+                        type="text" 
+                        value={editingCcl.ccl_id || ''} 
+                        onChange={e => setEditingCcl({...editingCcl, ccl_id: e.target.value})}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">Facility Name</label>
+                      <input 
+                        type="text" 
+                        value={editingCcl.facility_name || ''} 
+                        onChange={e => setEditingCcl({...editingCcl, facility_name: e.target.value})}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">Unit Level</label>
+                      <select 
+                        value={editingCcl.unit_level || '3'} 
+                        onChange={e => setEditingCcl({...editingCcl, unit_level: String(e.target.value)})}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="1">Level 1 (State/Divisional)</option>
+                        <option value="2">Level 2 (District)</option>
+                        <option value="3">Level 3 (Block/CCP)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <button onClick={() => setCclEditModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors">Cancel</button>
+                    <button onClick={handleEditCcl} className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors">Save Changes</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
       </main>
     </div>
   );
