@@ -2268,7 +2268,7 @@ export const AdminDashboard: React.FC = () => {
         {/* Block Monthly Report Tab */}
         {activeTab === 'monthly-report' && (
           <div className="max-w-4xl mx-auto w-full space-y-6 pb-10">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
               <div>
                 <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Monthly Report</h1>
                 <p className="text-slate-500 text-sm mt-1">View and submit monthly stock balances for all CCPs in your Block.</p>
@@ -3116,7 +3116,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* CCL Management Tab */}
         {activeTab === 'ccl-management' && (
-          <div className="max-w-7xl mx-auto w-full space-y-6 pb-10 px-4 sm:px-6">
+          <div className="max-w-7xl mx-auto w-full flex flex-col h-[calc(100vh-100px)] pb-6 px-4 sm:px-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
@@ -3138,7 +3138,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 shrink-0 mt-6">
               {[
                 { label: 'Total CCL', count: cclList.length, color: 'indigo' },
                 { label: 'Level 1', count: cclList.filter(c => c.unit_level === '1').length, color: 'blue' },
@@ -3153,8 +3153,8 @@ export const AdminDashboard: React.FC = () => {
               ))}
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-              <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-1 min-h-0 mt-6">
+              <div className="overflow-x-auto overflow-y-auto flex-1">
                 <table className="w-full text-left text-sm whitespace-nowrap">
                   <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
                     <tr>
@@ -3162,10 +3162,10 @@ export const AdminDashboard: React.FC = () => {
                       <th className="px-4 py-3 font-semibold">District Name</th>
                       <th className="px-4 py-3 font-semibold">Block / City Name</th>
                       <th className="px-4 py-3 font-semibold">Facility Name</th>
+                      <th className="px-4 py-3 font-semibold text-center">Mobile No.</th>
                       <th className="px-4 py-3 font-semibold text-center">Unit Level</th>
                       <th className="px-4 py-3 font-semibold text-center">Unit ID (CCL)</th>
                       <th className="px-4 py-3 font-semibold">Manager / Handler</th>
-                      <th className="px-4 py-3 font-semibold text-center">Mobile No.</th>
                       <th className="px-4 py-3 font-semibold text-center">Status</th>
                       <th className="px-4 py-3 font-semibold text-right sticky right-0 bg-slate-50 border-l border-slate-200 shadow-sm z-20">Actions</th>
                     </tr>
@@ -3190,6 +3190,7 @@ export const AdminDashboard: React.FC = () => {
                           <td className="px-4 py-3 text-slate-700">{c.districts?.name || c.district_id || '-'}</td>
                           <td className="px-4 py-3 text-slate-700">{c.blocks?.name || c.block_id || '-'}</td>
                           <td className="px-4 py-3 font-bold text-slate-900">{c.facility_name}</td>
+                          <td className="px-4 py-3 text-center text-slate-600">{c.contact_number || '-'}</td>
                           <td className="px-4 py-3 text-center">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
                               c.unit_level === '1' ? 'bg-blue-100 text-blue-700' :
@@ -3201,7 +3202,6 @@ export const AdminDashboard: React.FC = () => {
                           </td>
                           <td className="px-4 py-3 text-center font-mono text-slate-500 text-xs">{c.ccl_id || '-'}</td>
                           <td className="px-4 py-3 text-slate-600">{c.name_of_unit_incharge || '-'}</td>
-                          <td className="px-4 py-3 text-center text-slate-600">{c.contact_number || '-'}</td>
                           <td className="px-4 py-3 text-center">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                               c.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
