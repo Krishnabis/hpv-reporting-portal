@@ -1,307 +1,43 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Building2, Calendar, CheckCircle2, AlertTriangle,
-  Save, Users, Clock, Lock, Activity, X, Settings, Eye, EyeOff, Bell,
-  Info, ChevronDown, BarChart2, ClipboardList, Package, MessageSquare, TrendingUp
+  Calendar, CheckCircle2, AlertTriangle, Save, Users,
+  Lock, Activity, Bell, Info
 } from 'lucide-react';
-import { Logo } from '../components/Logo';
+import { BlockShell, useBlock } from '../components/BlockShell';
+import { useSearchParams } from 'react-router-dom';
 
-interface BlockData {
-  id: number;
-  name: string;
-  lgd_code: number;
-  district_name: string;
-  district_lgd_code: number;
-  state_name: string;
-  state_lgd_code: number;
-  is_urban?: boolean;
-}
+const BlockReportingContent: React.FC = () => {
+  const { blockId, profile, todaySubmitted, lastReport, refetch } = useBlock();
 
-interface ProfileData {
-  base_population: number;
-  population_base_date: string;
-  initial_hpv_target: number;
-  current_population: number;
-  current_hpv_target: number;
-  is_unlocked?: boolean;
-  unlock_requested?: boolean;
-}
-
-interface ReportData {
-  id: string;
-  reporting_date: string;
-  sessions_held: number;
-  beneficiaries_vaccinated: number;
-  submitted_at: string;
-}
-
-export const BlockReporting: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const blockId = searchParams.get('blockId');
-
-  const [loading, setLoading] = useState(true);
-  const [block, setBlock] = useState<BlockData | null>(null);
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [todaySubmitted, setTodaySubmitted] = useState(false);
-  const [lastReport, setLastReport] = useState<ReportData | null>(null);
-
-  // One Time Form State
-  const [basePopulationInput, setBasePopulationInput] = useState<string>('');
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
-  const [editingPopulation, setEditingPopulation] = useState(false);
-
-  // Daily Reporting Form State
-  const [reportingDate, setReportingDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
-  const [sessionsHeldInput, setSessionsHeldInput] = useState<string>('');
-  const [vaccinatedInput, setVaccinatedInput] = useState<string>('');
+  const [reportingDate, setReportingDate] = useState(new Date().toISOString().split('T')[0]);
+  const [sessionsHeldInput, setSessionsHeldInput] = useState('');
+  const [vaccinatedInput, setVaccinatedInput] = useState('');
   const [savingReport, setSavingReport] = useState(false);
   const [reportSuccessMsg, setReportSuccessMsg] = useState('');
   const [reportErrorMsg, setReportErrorMsg] = useState('');
 
-  // Decrement Alert Modal
+  // Population setup states
+  const [basePopulationInput, setBasePopulationInput] = useState(
+    profile ? String(profile.base_population) : ''
+  );
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
+
+  // Decrement alert
   const [showDecrementAlert, setShowDecrementAlert] = useState(false);
   const [decrementAlertMsg, setDecrementAlertMsg] = useState('');
-  const [pendingReportPayload, setPendingReportPayload] = useState<any>(null);
+  const [pendingPayload, setPendingPayload] = useState<any>(null);
 
-  // Settings & Passcode State
-  const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
-  const [showChangePasscodeModal, setShowChangePasscodeModal] = useState(false);
-  const [currentPasscode, setCurrentPasscode] = useState('');
-  const [newPasscode, setNewPasscode] = useState('');
-  const [confirmNewPasscode, setConfirmNewPasscode] = useState('');
-  const [showCurrentPasscode, setShowCurrentPasscode] = useState(false);
-  const [showNewPasscode, setShowNewPasscode] = useState(false);
-  const [showConfirmPasscode, setShowConfirmPasscode] = useState(false);
-  const [changePasscodeError, setChangePasscodeError] = useState('');
-  const [isChangingPasscode, setIsChangingPasscode] = useState(false);
-
-  // Nav Dropdown
-  const [showNavDropdown, setShowNavDropdown] = useState(false);
-  const navDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Info tooltip state
+  // Info tooltips
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (navDropdownRef.current && !navDropdownRef.current.contains(e.target as Node)) {
-        setShowNavDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const fetchBlockDetails = () => {
-    if (!blockId) return;
-    setLoading(true);
-
-    fetch(`/api/blocks/${blockId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          alert('Block not found');
-          navigate('/');
-          return;
-        }
-        setBlock(data.block);
-        setProfile(data.profile);
-        setTodaySubmitted(data.today_submitted);
-        setLastReport(data.last_report);
-
-        if (data.profile) {
-          setBasePopulationInput(String(data.profile.base_population));
-        }
-
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching block:', err);
-        setLoading(false);
-      });
-  };
-
-  useEffect(() => {
-    if (!blockId) {
-      navigate('/');
-      return;
-    }
-
-    const token = localStorage.getItem(`hpv_block_token_${blockId}`) || sessionStorage.getItem(`hpv_block_token_${blockId}`);
-    if (!token) {
-      navigate('/');
-      return;
-    }
-
-    fetchBlockDetails();
-  }, [blockId, navigate]);
-
-  const handleChangePasscode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPasscode !== confirmNewPasscode) {
-      setChangePasscodeError('New passcodes do not match');
-      return;
-    }
-    setIsChangingPasscode(true);
-    setChangePasscodeError('');
-    
-    try {
-      const res = await fetch('/api/blocks/change-passcode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blockId, currentPasscode, newPasscode })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to change passcode');
-      
-      alert('Passcode changed successfully!');
-      setShowChangePasscodeModal(false);
-      setCurrentPasscode('');
-      setNewPasscode('');
-      setConfirmNewPasscode('');
-    } catch (err: any) {
-      setChangePasscodeError(err.message);
-    } finally {
-      setIsChangingPasscode(false);
-    }
-  };
-
   const parsedBasePop = parseInt(basePopulationInput, 10) || 0;
-
-  const handleSaveProfile = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!parsedBasePop || parsedBasePop <= 0) {
-      alert('Please enter a valid positive block population');
-      return;
-    }
-
-    setSavingProfile(true);
-    setProfileSuccessMsg('');
-
-    fetch(`/api/blocks/${blockId}/profile`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        base_population: parsedBasePop,
-        population_base_date: new Date().toISOString().split('T')[0]
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        setSavingProfile(false);
-        if (data.error) {
-          alert(data.error);
-        } else {
-          setProfileSuccessMsg('Population saved successfully!');
-          setEditingPopulation(false);
-          fetchBlockDetails();
-          setTimeout(() => setProfileSuccessMsg(''), 3000);
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        setSavingProfile(false);
-        alert('Failed to save profile');
-      });
-  };
-
-  const handleRequestUnlock = () => {
-    fetch(`/api/blocks/${blockId}/request-unlock`, { method: 'POST' })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.error) {
-          fetchBlockDetails();
-        }
-      })
-      .catch(err => console.error(err));
-  };
-
-  const submitReportToApi = (payload: any) => {
-    setSavingReport(true);
-    setReportErrorMsg('');
-    setReportSuccessMsg('');
-
-    fetch(`/api/reports/block/${blockId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(res => res.json())
-      .then(data => {
-        setSavingReport(false);
-        if (data.error) {
-          setReportErrorMsg(data.error);
-        } else {
-          setReportSuccessMsg(`Report for ${payload.reporting_date} saved!`);
-          fetchBlockDetails();
-          setTimeout(() => setReportSuccessMsg(''), 3000);
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        setSavingReport(false);
-        setReportErrorMsg('Failed to save daily report');
-      });
-  };
-
-  const handleSaveReport = (e: React.FormEvent) => {
-    e.preventDefault();
-    const sessionsHeld = parseInt(sessionsHeldInput, 10);
-    const vaccinated = parseInt(vaccinatedInput, 10);
-
-    if (isNaN(sessionsHeld) || sessionsHeld < 0) {
-      setReportErrorMsg('Please enter a valid sessions held count');
-      return;
-    }
-    if (isNaN(vaccinated) || vaccinated < 0) {
-      setReportErrorMsg('Please enter a valid girls vaccinated count');
-      return;
-    }
-
-    const payload = {
-      reporting_date: reportingDate,
-      sessions_held: sessionsHeld,
-      beneficiaries_vaccinated: vaccinated,
-      submitted_by: 'Block Operator'
-    };
-
-    if (lastReport && (sessionsHeld < lastReport.sessions_held || vaccinated < lastReport.beneficiaries_vaccinated)) {
-      const d = new Date(lastReport.reporting_date);
-      const parts = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).split(' ');
-      const dateStr = `${parts[0]} - ${parts[1]} - ${parts[2]}`;
-      
-      const currentValStr = `Sessions Held: ${sessionsHeld}, Vaccinated: ${vaccinated}`;
-      const lastValStr = `Sessions Held: ${lastReport.sessions_held}, Vaccinated: ${lastReport.beneficiaries_vaccinated}`;
-      
-      const confirmMsg = `The current value (${currentValStr}) is less than the last value (${lastValStr}) submitted on (${dateStr}). Are you sure you want to save it?`;
-      
-      setDecrementAlertMsg(confirmMsg);
-      setPendingReportPayload(payload);
-      setShowDecrementAlert(true);
-      return;
-    }
-
-    submitReportToApi(payload);
-  };
-
-  if (loading) {
-    return (
-      <div className="h-[100dvh] w-full bg-slate-50 flex items-center justify-center p-6 overflow-hidden">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-hpv-purple border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-semibold text-slate-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!block) return null;
+  const hasPopulation = profile && profile.base_population > 0;
+  const target = profile ? Math.round(profile.base_population * 0.01) : 0;
+  const lastVaccinated = lastReport?.beneficiaries_vaccinated || 0;
+  const lastSessions = lastReport?.sessions_held || 0;
+  const vaccinationsPerSession = lastSessions > 0 ? (lastVaccinated / lastSessions).toFixed(1) : '—';
 
   const formatDateStr = (dateStr: string) => {
     if (!dateStr || dateStr === '—') return '—';
@@ -311,526 +47,269 @@ export const BlockReporting: React.FC = () => {
   };
 
   const todayStr = new Date().toISOString().split('T')[0];
-  const hasPopulation = profile && profile.base_population > 0;
-  const requirePopulationSetup = !hasPopulation;
 
-  const target = profile ? Math.round(profile.base_population * 0.01) : 0;
-  const lastVaccinated = lastReport?.beneficiaries_vaccinated || 0;
-  const lastSessions = lastReport?.sessions_held || 0;
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!parsedBasePop || parsedBasePop <= 0) { alert('Please enter a valid population'); return; }
+    setSavingProfile(true);
+    fetch(`/api/blocks/${blockId}/profile`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base_population: parsedBasePop, population_base_date: todayStr })
+    })
+      .then(r => r.json())
+      .then(data => {
+        setSavingProfile(false);
+        if (data.error) { alert(data.error); return; }
+        setProfileSuccessMsg('Population saved!');
+        refetch();
+        setTimeout(() => setProfileSuccessMsg(''), 3000);
+      })
+      .catch(() => { setSavingProfile(false); alert('Failed to save'); });
+  };
 
-  let perfPercentage = 0;
-  if (target > 0) {
-    perfPercentage = (lastVaccinated / target) * 100;
-  }
-  let catImg = 'cat1.png';
-  let catName = 'Aspirational';
-  if (perfPercentage >= 90) { catImg = 'cat4.png'; catName = 'Champions'; }
-  else if (perfPercentage >= 70) { catImg = 'cat3.png'; catName = 'High-Performing'; }
-  else if (perfPercentage >= 30) { catImg = 'cat2.png'; catName = 'Progressing'; }
+  const handleRequestUnlock = () => {
+    fetch(`/api/blocks/${blockId}/request-unlock`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => { if (!data.error) refetch(); });
+  };
 
-  const vaccinationsPerSession = lastSessions > 0 ? (lastVaccinated / lastSessions).toFixed(1) : '—';
+  const submitReportToApi = (payload: any) => {
+    setSavingReport(true); setReportErrorMsg(''); setReportSuccessMsg('');
+    fetch(`/api/reports/block/${blockId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(r => r.json())
+      .then(data => {
+        setSavingReport(false);
+        if (data.error) { setReportErrorMsg(data.error); return; }
+        setReportSuccessMsg(`Report for ${payload.reporting_date} saved!`);
+        setSessionsHeldInput(''); setVaccinatedInput('');
+        refetch();
+        setTimeout(() => setReportSuccessMsg(''), 3000);
+      })
+      .catch(() => { setSavingReport(false); setReportErrorMsg('Failed to save report'); });
+  };
 
-  const navItems = [
-    { label: 'Daily Report', icon: ClipboardList, path: `/report?blockId=${blockId}`, active: true },
-    { label: 'Monthly Due List Report', icon: BarChart2, path: `/due-list-report?blockId=${blockId}`, active: false },
-    { label: 'HPV Vaccine Stock Balance Report', icon: Package, path: `/monthly-report?blockId=${blockId}`, active: false },
-    { label: 'Trends', icon: TrendingUp, path: `/progress-trend?blockId=${blockId}`, active: false },
-    { label: 'Feedback', icon: MessageSquare, path: `/feedback?blockId=${blockId}`, active: false },
-  ];
+  const handleSaveReport = (e: React.FormEvent) => {
+    e.preventDefault();
+    const sessionsHeld = parseInt(sessionsHeldInput, 10);
+    const vaccinated = parseInt(vaccinatedInput, 10);
+    if (isNaN(sessionsHeld) || sessionsHeld < 0) { setReportErrorMsg('Enter a valid sessions count'); return; }
+    if (isNaN(vaccinated) || vaccinated < 0) { setReportErrorMsg('Enter a valid vaccinated count'); return; }
+
+    const payload = { reporting_date: reportingDate, sessions_held: sessionsHeld, beneficiaries_vaccinated: vaccinated, submitted_by: 'Block Operator' };
+
+    if (lastReport && (sessionsHeld < lastReport.sessions_held || vaccinated < lastReport.beneficiaries_vaccinated)) {
+      const dateStr = formatDateStr(lastReport.reporting_date);
+      setDecrementAlertMsg(`Current values (Sessions: ${sessionsHeld}, Vaccinated: ${vaccinated}) are less than last submitted (Sessions: ${lastReport.sessions_held}, Vaccinated: ${lastReport.beneficiaries_vaccinated}) on ${dateStr}. Save anyway?`);
+      setPendingPayload(payload);
+      setShowDecrementAlert(true);
+      return;
+    }
+    submitReportToApi(payload);
+  };
+
+  const InfoTooltip: React.FC<{ id: string; text: string }> = ({ id, text }) => (
+    <div className="relative inline-block">
+      <button
+        onMouseEnter={() => setActiveTooltip(id)}
+        onMouseLeave={() => setActiveTooltip(null)}
+        onClick={() => setActiveTooltip(activeTooltip === id ? null : id)}
+        className="text-slate-400 hover:text-hpv-purple transition-colors ml-1"
+      >
+        <Info className="w-3 h-3" />
+      </button>
+      {activeTooltip === id && (
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 bg-slate-800 text-white text-[10px] font-medium rounded-xl px-3 py-2 shadow-xl z-50 leading-relaxed">
+          {text}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+        </div>
+      )}
+    </div>
+  );
 
   return (
-    <div className="h-[100dvh] w-full bg-slate-50 flex flex-col overflow-hidden">
-      {/* Header Bar */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center justify-between relative min-h-[60px]">
-          <div className="cursor-pointer flex items-center gap-3" onClick={() => navigate('/')}>
-            <img src="/headinglogo.png" alt="Logo" className="h-14 object-contain hover:opacity-80 transition-opacity" />
-          </div>
-
-          {/* Right side: Nav Dropdown + Settings */}
-          <div className="flex items-center gap-2">
-            {/* Navigation Dropdown */}
-            <div className="relative" ref={navDropdownRef}>
-              <button
-                onClick={() => setShowNavDropdown(!showNavDropdown)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-hpv-purple-soft/40 hover:bg-hpv-purple-soft text-hpv-purple-dark text-xs font-bold transition-colors border border-hpv-purple/20"
-              >
-                <ClipboardList className="w-3.5 h-3.5" />
-                Daily Report
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showNavDropdown ? 'rotate-180' : ''}`} />
-              </button>
-              {showNavDropdown && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  {navItems.map((item) => (
-                    <button
-                      key={item.path}
-                      onClick={() => {
-                        setShowNavDropdown(false);
-                        navigate(item.path);
-                      }}
-                      className={`w-full text-left px-4 py-3 text-sm font-semibold flex items-center gap-3 transition-colors border-b border-slate-100 last:border-0
-                        ${item.active
-                          ? 'bg-hpv-purple-soft/50 text-hpv-purple'
-                          : 'text-slate-700 hover:bg-slate-50'
-                        }`}
-                    >
-                      <item.icon className={`w-4 h-4 shrink-0 ${item.active ? 'text-hpv-purple' : 'text-slate-400'}`} />
-                      {item.label}
-                      {item.active && (
-                        <span className="ml-auto text-[9px] bg-hpv-purple text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Current</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Settings Gear */}
-            <div className="relative">
-              <button 
-                onClick={() => setShowSettingsDropdown(!showSettingsDropdown)}
-                className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-              {showSettingsDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50">
-                  <button 
-                    onClick={() => {
-                      setShowSettingsDropdown(false);
-                      setShowChangePasscodeModal(true);
-                    }}
-                    className="w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    Change Passcode
-                  </button>
-                  <button 
-                    onClick={() => {
-                      localStorage.removeItem(`hpv_block_token_${blockId}`);
-                      sessionStorage.removeItem(`hpv_block_token_${blockId}`);
-                      navigate('/');
-                    }}
-                    className="w-full text-left px-4 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Container */}
-      <main className="max-w-3xl mx-auto w-full px-4 py-2 space-y-2 flex-1 overflow-y-auto min-h-0">
-
-        {/* Block Hero Card */}
-        <div className="gradient-header rounded-2xl p-3 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-            <Building2 className="w-24 h-24 text-white" />
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+    <div className="space-y-3">
+      {/* Population setup / locked chip */}
+      {!hasPopulation || (hasPopulation && profile?.is_unlocked) ? (
+        <section className="bg-white rounded-2xl p-4 border-2 border-hpv-pink/40 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Users className="w-4 h-4 text-hpv-purple" />
             <div>
-              <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">
-                HPV Vaccination Program
-              </p>
-              <h1 className="text-xl font-extrabold tracking-tight flex items-baseline gap-2">
-                <span>{block.name}</span>
-                <span className="text-sm font-medium text-slate-300">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'}</span>
-              </h1>
-              <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>
+              <h2 className="text-sm font-bold text-slate-900">One-Time Population Setup</h2>
+              <p className="text-[10px] text-slate-500">Enter total block population to calculate HPV target (1%)</p>
             </div>
-            {hasPopulation && (
-              <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0 self-start sm:self-auto">
-                <div className="bg-white/25 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 flex flex-col items-center justify-center">
-                  <span className="text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-1">Performance Category</span>
-                  <div className="flex items-center gap-2">
-                    <img src={`/${catImg}`} alt={catName} className="h-8 object-contain" />
-                    <span className="text-sm font-bold text-white tracking-wide">{catName}</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
+          <form onSubmit={handleSaveProfile} className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="number" min="1" value={basePopulationInput}
+              onChange={e => setBasePopulationInput(e.target.value)}
+              placeholder="Enter block population (e.g. 100000)"
+              className="flex-1 px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-sm text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
+            />
+            <button type="submit" disabled={savingProfile || !basePopulationInput}
+              className="px-4 py-2.5 rounded-xl font-bold text-xs text-white gradient-header hover:shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 shrink-0">
+              <Save className="w-3.5 h-3.5" />{savingProfile ? 'Saving...' : 'Save'}
+            </button>
+            {hasPopulation && profile?.is_unlocked && (
+              <button type="button" onClick={() => refetch()}
+                className="px-3 py-2.5 rounded-xl font-bold text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 shrink-0">Cancel</button>
+            )}
+          </form>
+          {parsedBasePop > 0 && (
+            <div className="mt-2 bg-hpv-teal-soft/40 border border-hpv-teal/20 rounded-xl px-3 py-2 flex items-center justify-between">
+              <span className="text-xs text-hpv-teal-dark font-semibold">Estimated HPV Target (1%)</span>
+              <span className="font-mono font-extrabold text-slate-900 text-sm">{Math.round(parsedBasePop * 0.01).toLocaleString('en-IN')}</span>
+            </div>
+          )}
+          {profileSuccessMsg && (
+            <div className="mt-2 p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />{profileSuccessMsg}
+            </div>
+          )}
+        </section>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+              <Users className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">POPULATION</p>
+              <p className="text-base font-extrabold text-slate-900 font-mono">{profile.base_population.toLocaleString('en-IN')}</p>
+            </div>
+            <div className="h-7 w-px bg-slate-200 mx-1 hidden sm:block" />
+            <div className="flex items-center gap-1">
+              <div>
+                <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">HPV Target (1%)</p>
+                <p className="text-base font-extrabold text-slate-900 font-mono">{Math.round(profile.base_population * 0.01).toLocaleString('en-IN')}</p>
+              </div>
+              <InfoTooltip id="hpv-target" text="Annual HPV Vaccination Target: 1% of the total population." />
+            </div>
+          </div>
+          {profile.unlock_requested ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 shadow-sm">Unlock Pending...</span>
+          ) : (
+            <button onClick={handleRequestUnlock}
+              className="text-xs font-bold text-slate-600 hover:text-hpv-purple bg-slate-100 hover:bg-hpv-purple-soft border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm transition-colors">
+              Request Edit Unlock
+            </button>
+          )}
         </div>
+      )}
 
-        {/* Population Setup Section */}
-        {!hasPopulation || (hasPopulation && profile?.is_unlocked) ? (
-          /* FIRST TIME or EDITING: Full setup form */
-          <section className="bg-white rounded-2xl p-3 border-2 border-hpv-pink/40 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <Users className="w-5 h-5 text-hpv-purple" />
-              <div>
-                <h2 className="text-base font-bold text-slate-900">One-Time Population Setup</h2>
-                <p className="text-[11px] text-slate-500">Enter total block population to calculate HPV target (1%)</p>
+      {/* Daily Reporting */}
+      <section className="bg-white rounded-2xl p-0 border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-hpv-purple to-hpv-pink z-10" />
+        <div className="bg-hpv-purple-soft/30 px-4 py-2 pt-3 border-b border-slate-200 flex items-center gap-2">
+          <div className="w-1 h-4 bg-hpv-purple rounded-full" />
+          <h2 className="text-xs font-bold text-hpv-purple-dark uppercase tracking-wider">Daily Reporting</h2>
+        </div>
+        <div className="p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-hpv-pink" />
+              <p className="text-[11px] text-slate-500">
+                <span className="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-bold">Cumulative Count</span>: Total Sessions Held and Eligible Girls Vaccinated
+              </p>
+            </div>
+            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto ${todaySubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+              {todaySubmitted
+                ? `✓ Submitted: ${formatDateStr(todayStr)}`
+                : lastReport ? `⚠ Last: ${formatDateStr(lastReport.reporting_date)}` : `⚠ ${formatDateStr(todayStr)} Pending`}
+            </span>
+          </div>
+          <form onSubmit={handleSaveReport} className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-hpv-pink" /> Date *
+                </label>
+                <input type="date" value={reportingDate}
+                  onChange={e => { setReportingDate(e.target.value); setSessionsHeldInput(''); setVaccinatedInput(''); }}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                  Session Held <span className="lowercase italic text-[9px] normal-case">(enter cumulative value)</span>
+                </label>
+                <input type="number" min="0" value={sessionsHeldInput}
+                  onChange={e => setSessionsHeldInput(e.target.value)}
+                  placeholder={lastReport ? String(lastReport.sessions_held ?? 0) : '—'}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-sm text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                  Girls Vaccinated <span className="lowercase italic text-[9px] normal-case">(enter cumulative value)</span>
+                </label>
+                <input type="number" min="0" value={vaccinatedInput}
+                  onChange={e => setVaccinatedInput(e.target.value)}
+                  placeholder={lastReport ? String(lastReport.beneficiaries_vaccinated) : '—'}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-sm text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
+                />
               </div>
             </div>
-
-            <form onSubmit={handleSaveProfile} className="space-y-3">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1">
-                  <input
-                    type="number"
-                    min="1"
-                    value={basePopulationInput}
-                    onChange={e => setBasePopulationInput(e.target.value)}
-                    placeholder="Enter block population (e.g. 100000)"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={savingProfile || !basePopulationInput}
-                  className="px-5 py-3 rounded-xl font-bold text-sm text-white gradient-header hover:shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 shrink-0"
-                >
-                  <Save className="w-4 h-4" />
-                  {savingProfile ? 'Saving...' : 'Save'}
-                </button>
-                {hasPopulation && profile?.is_unlocked && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBasePopulationInput(profile.base_population.toString());
-                      setEditingPopulation(false);
-                      fetchBlockDetails();
-                    }}
-                    className="px-4 py-3 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all shrink-0"
-                  >
-                    Cancel
-                  </button>
-                )}
+            {reportErrorMsg && (
+              <div className="p-2.5 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold flex items-center gap-2">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />{reportErrorMsg}
               </div>
-              {parsedBasePop > 0 && (
-                <div className="bg-hpv-teal-soft/40 border border-hpv-teal/20 rounded-xl px-4 py-2 flex items-center justify-between">
-                  <span className="text-xs text-hpv-teal-dark font-semibold">Estimated HPV Target (1%)</span>
-                  <span className="font-mono font-extrabold text-slate-900 text-base">{Math.round(parsedBasePop * 0.01).toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              {profileSuccessMsg && (
-                <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  {profileSuccessMsg}
-                </div>
-              )}
-            </form>
-          </section>
-        ) : (
-          /* ALREADY SET & LOCKED: Compact population info chip */
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                <Users className="w-4 h-4 text-slate-400" />
-              </div>
-              <div>
-                <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">POPULATION</p>
-                <p className="text-lg font-extrabold text-slate-900 font-mono leading-tight">
-                  {profile.base_population.toLocaleString('en-IN')}
-                </p>
-              </div>
-              <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block" />
-              <div className="flex items-center gap-1.5">
-                <div>
-                  <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">HPV Target (1%)</p>
-                  <p className="text-lg font-extrabold text-slate-900 font-mono leading-tight">
-                    {Math.round(profile.base_population * 0.01).toLocaleString('en-IN')}
-                  </p>
-                </div>
-                {/* Info icon for HPV Target */}
-                <div className="relative">
-                  <button
-                    onMouseEnter={() => setActiveTooltip('hpv-target')}
-                    onMouseLeave={() => setActiveTooltip(null)}
-                    onClick={() => setActiveTooltip(activeTooltip === 'hpv-target' ? null : 'hpv-target')}
-                    className="p-0.5 text-slate-400 hover:text-hpv-purple transition-colors"
-                  >
-                    <Info className="w-3.5 h-3.5" />
-                  </button>
-                  {activeTooltip === 'hpv-target' && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 bg-slate-800 text-white text-[10px] font-medium rounded-xl px-3 py-2 shadow-xl z-50 leading-relaxed">
-                      Annual HPV Vaccination Target: 1% of the total population.
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            {profile.unlock_requested ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 shadow-sm">
-                Unlock Pending...
-              </span>
-            ) : (
-              <button
-                onClick={handleRequestUnlock}
-                className="text-xs font-bold text-slate-600 hover:text-hpv-purple bg-slate-100 hover:bg-hpv-purple-soft border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm transition-colors"
-              >
-                Request Edit Unlock
-              </button>
             )}
-          </div>
-        )}
-
-        {/* Daily Reporting Section */}
-        <section className="bg-white rounded-2xl p-0 border border-slate-200 shadow-sm relative overflow-hidden mt-6">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-hpv-purple to-hpv-pink z-10" />
-          <div className="bg-hpv-purple-soft/30 px-3 py-2 pt-3 border-b border-slate-200 flex items-center gap-2">
-            <div className="w-1 h-4 bg-hpv-purple rounded-full"></div>
-            <h2 className="text-sm font-bold text-hpv-purple-dark uppercase tracking-wider">Daily Reporting</h2>
-          </div>
-          <div className="p-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-              <div className="flex items-center gap-2 mb-2 sm:mb-0">
-                <Users className="w-5 h-5 text-hpv-pink" />
-                <div>
-                  <p className="text-[11px] text-slate-500">
-                    <span className="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-bold">Cumulative Count</span>: Total Sessions Held and Eligible Girls Vaccinated
-                  </p>
-                </div>
+            {reportSuccessMsg && (
+              <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />{reportSuccessMsg}
               </div>
-              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider self-start sm:self-auto ${todaySubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                }`}>
-                {todaySubmitted
-                  ? `✓ last submitted on: ${formatDateStr(todayStr)}`
-                  : (lastReport ? `⚠ last submitted on: ${formatDateStr(lastReport.reporting_date)}` : `⚠ ${formatDateStr(todayStr)} Pending`)}
-              </span>
+            )}
+            <button type="submit" disabled={savingReport || !sessionsHeldInput || !vaccinatedInput}
+              className="w-full py-2.5 rounded-xl font-bold text-sm text-white gradient-header shadow-md hover:shadow-hpv-purple/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+              <Save className="w-4 h-4" />
+              {savingReport ? 'Submitting...' : 'Submit Daily Report'}
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* Cumulative Progress */}
+      {hasPopulation && (
+        <section className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <h2 className="text-sm font-bold text-slate-900 mb-3 border-b border-slate-100 pb-2">Cumulative Reporting Progress</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* Line Listed */}
+            <div className="bg-sky-50 border border-sky-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
+              <div className="flex items-center gap-1 mb-1">
+                <span className="text-[9px] uppercase font-bold text-sky-600 leading-tight">Eligible Girls Line Listed</span>
+                <InfoTooltip id="line-listed" text="Eligible Girls Line-Listed: Number of eligible girls identified and registered by ASHAs through house-to-house visits, as reported in the Monthly Due List Report, expressed as a percentage of the Annual HPV Vaccination Target." />
+              </div>
+              <span className="text-2xl font-extrabold font-mono text-sky-700">—</span>
+              <span className="text-[9px] font-bold text-sky-700/70 mt-0.5">From Monthly Report</span>
             </div>
-
-            <form onSubmit={handleSaveReport} className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Date */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5"><Calendar className="w-4 h-4 text-hpv-pink" /> Date *</label>
-                  <input
-                    type="date"
-                    value={reportingDate}
-                    onChange={e => {
-                      setReportingDate(e.target.value);
-                      setSessionsHeldInput('');
-                      setVaccinatedInput('');
-                    }}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
-                  />
-                </div>
-
-                {/* Sessions Held */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                    Session Held <span className="lowercase italic text-[9px] normal-case">(enter cumulative value)</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={sessionsHeldInput}
-                    onChange={e => setSessionsHeldInput(e.target.value)}
-                    placeholder={lastReport ? (lastReport.sessions_held ?? 0).toString() : "—"}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
-                  />
-                </div>
-
-                {/* Girls Vaccinated */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                    Girls Vaccinated <span className="lowercase italic text-[9px] normal-case">(enter cumulative value)</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={vaccinatedInput}
-                    onChange={e => setVaccinatedInput(e.target.value)}
-                    placeholder={lastReport ? lastReport.beneficiaries_vaccinated.toString() : "—"}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-base text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20"
-                  />
-                </div>
+            {/* Vaccinated */}
+            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
+              <div className="flex items-center gap-1 mb-1">
+                <span className="text-[9px] uppercase font-bold text-emerald-600 leading-tight">Eligible Girls Vaccinated</span>
+                <InfoTooltip id="vaccinated" text="HPV Vaccination Coverage: Total eligible girls vaccinated, expressed as a percentage of the Annual HPV Vaccination Target." />
               </div>
-
-              {/* Alerts */}
-              {reportErrorMsg && (
-                <div className="p-2.5 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                  {reportErrorMsg}
-                </div>
-              )}
-              {reportSuccessMsg && (
-                <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  {reportSuccessMsg}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={savingReport || !sessionsHeldInput || !vaccinatedInput}
-                className="w-full py-3 rounded-xl font-bold text-sm text-white gradient-header shadow-md hover:shadow-hpv-purple/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <Save className="w-4 h-4" />
-                {savingReport ? 'Submitting...' : 'Submit Daily Report'}
-              </button>
-            </form>
+              <span className="text-2xl font-extrabold font-mono text-emerald-700">{target > 0 ? Math.round((lastVaccinated / target) * 100) : 0}%</span>
+              <span className="text-[9px] font-bold text-emerald-700/70 mt-0.5">Count ({lastVaccinated.toLocaleString('en-IN')})</span>
+            </div>
+            {/* Vaccinations per Session */}
+            <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
+              <span className="text-[9px] uppercase font-bold text-violet-600 mb-1 leading-tight">Vaccinations per Session</span>
+              <span className="text-2xl font-extrabold font-mono text-violet-700">{vaccinationsPerSession}</span>
+              <span className="text-[9px] font-bold text-violet-700/70 mt-0.5">Vaccinated / Session</span>
+            </div>
+            {/* Session Count */}
+            <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
+              <span className="text-[9px] uppercase font-bold text-amber-600 mb-1 leading-tight">Session Count</span>
+              <span className="text-2xl font-extrabold font-mono text-amber-700">{lastSessions.toLocaleString('en-IN')}</span>
+              <span className="text-[9px] font-bold text-amber-700/70 mt-0.5">Total Sessions</span>
+            </div>
           </div>
         </section>
-
-        {/* Cumulative Progress Box */}
-        {hasPopulation && (
-          <section className="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex flex-col gap-2">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h2 className="text-sm font-bold text-slate-900">Cumulative Reporting Progress</h2>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {/* Eligible Girls Line Listed */}
-              <div className="bg-sky-50 border border-sky-100 rounded-xl p-3 flex flex-col justify-center items-center text-center relative overflow-hidden">
-                <div className="flex items-center gap-1 mb-1 z-10">
-                  <span className="text-[10px] uppercase font-bold text-sky-600">Eligible Girls Line Listed</span>
-                  <div className="relative">
-                    <button
-                      onMouseEnter={() => setActiveTooltip('line-listed')}
-                      onMouseLeave={() => setActiveTooltip(null)}
-                      onClick={() => setActiveTooltip(activeTooltip === 'line-listed' ? null : 'line-listed')}
-                      className="text-sky-400 hover:text-sky-600 transition-colors"
-                    >
-                      <Info className="w-3 h-3" />
-                    </button>
-                    {activeTooltip === 'line-listed' && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-800 text-white text-[10px] font-medium rounded-xl px-3 py-2 shadow-xl z-50 leading-relaxed">
-                        Eligible Girls Line-Listed: Number of eligible girls identified and registered by ASHAs through house-to-house visits, as reported in the Monthly Due List Report, expressed as a percentage of the Annual HPV Vaccination Target.
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <span className="text-2xl font-extrabold font-mono text-sky-700 leading-tight z-10">—</span>
-                <span className="text-[10px] font-bold text-sky-700/70 mt-1 z-10">From Monthly Report</span>
-              </div>
-
-              {/* Eligible Girls Vaccinated */}
-              <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col justify-center items-center text-center relative overflow-hidden">
-                <div className="flex items-center gap-1 mb-1 z-10">
-                  <span className="text-[10px] uppercase font-bold text-emerald-600">Eligible Girls Vaccinated</span>
-                  <div className="relative">
-                    <button
-                      onMouseEnter={() => setActiveTooltip('vaccinated')}
-                      onMouseLeave={() => setActiveTooltip(null)}
-                      onClick={() => setActiveTooltip(activeTooltip === 'vaccinated' ? null : 'vaccinated')}
-                      className="text-emerald-400 hover:text-emerald-600 transition-colors"
-                    >
-                      <Info className="w-3 h-3" />
-                    </button>
-                    {activeTooltip === 'vaccinated' && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-800 text-white text-[10px] font-medium rounded-xl px-3 py-2 shadow-xl z-50 leading-relaxed">
-                        HPV Vaccination Coverage: Total eligible girls vaccinated, expressed as a percentage of the Annual HPV Vaccination Target.
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <span className="text-2xl font-extrabold font-mono text-emerald-700 leading-tight z-10">{target > 0 ? Math.round((lastVaccinated / target) * 100) : 0}%</span>
-                <span className="text-[10px] font-bold text-emerald-700/70 mt-1 z-10">Count ({lastVaccinated.toLocaleString('en-IN')})</span>
-              </div>
-
-              {/* Vaccinations per Session */}
-              <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
-                <span className="text-[10px] uppercase font-bold text-violet-600 mb-1">Vaccinations per Session</span>
-                <span className="text-2xl font-extrabold font-mono text-violet-700 leading-tight">{vaccinationsPerSession}</span>
-                <span className="text-[10px] font-bold text-violet-700/70 mt-1">Vaccinated / Session</span>
-              </div>
-
-              {/* Session Count */}
-              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
-                <span className="text-[10px] uppercase font-bold text-amber-600 mb-1">Session Count</span>
-                <span className="text-2xl font-extrabold font-mono text-amber-700 leading-tight">{lastSessions.toLocaleString('en-IN')}</span>
-                <span className="text-[10px] font-bold text-amber-700/70 mt-1">Total Sessions</span>
-              </div>
-            </div>
-          </section>
-        )}
-
-
-      {showChangePasscodeModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="bg-hpv-purple py-4 px-5 flex items-center justify-between">
-              <h2 className="text-white font-bold text-lg flex items-center gap-2">
-                <Lock className="w-5 h-5" /> Change Passcode
-              </h2>
-              <button onClick={() => setShowChangePasscodeModal(false)} className="text-white/70 hover:text-white transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleChangePasscode} className="p-5 space-y-4">
-              {changePasscodeError && (
-                <div className="p-2.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 text-xs font-semibold">
-                  {changePasscodeError}
-                </div>
-              )}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Passcode</label>
-                <div className="relative">
-                  <input
-                    type={showCurrentPasscode ? 'text' : 'password'}
-                    value={currentPasscode}
-                    onChange={e => setCurrentPasscode(e.target.value)}
-                    maxLength={4}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xl text-center tracking-widest text-hpv-purple font-bold focus:bg-white focus:outline-none focus:border-hpv-purple focus:ring-2 focus:ring-hpv-purple/20 transition-all placeholder:text-slate-300"
-                    placeholder="••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrentPasscode(!showCurrentPasscode)}
-                    className="absolute right-3 top-3.5 text-slate-400 hover:text-hpv-purple transition-colors"
-                  >
-                    {showCurrentPasscode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">New 4-Digit Passcode</label>
-                <div className="relative">
-                  <input
-                    type={showNewPasscode ? 'text' : 'password'}
-                    value={newPasscode}
-                    onChange={e => setNewPasscode(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                    maxLength={4}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xl text-center tracking-widest text-emerald-600 font-bold focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-slate-300"
-                    placeholder="••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPasscode(!showNewPasscode)}
-                    className="absolute right-3 top-3.5 text-slate-400 hover:text-hpv-purple transition-colors"
-                  >
-                    {showNewPasscode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Re-enter New Passcode</label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPasscode ? 'text' : 'password'}
-                    value={confirmNewPasscode}
-                    onChange={e => setConfirmNewPasscode(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                    maxLength={4}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xl text-center tracking-widest text-emerald-600 font-bold focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-slate-300"
-                    placeholder="••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPasscode(!showConfirmPasscode)}
-                    className="absolute right-3 top-3.5 text-slate-400 hover:text-hpv-purple transition-colors"
-                  >
-                    {showConfirmPasscode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-              <button
-                type="submit"
-                disabled={isChangingPasscode || !currentPasscode || newPasscode.length !== 4 || confirmNewPasscode.length !== 4}
-                className="w-full py-3.5 mt-2 rounded-xl font-bold text-white gradient-header shadow-lg disabled:opacity-50 hover:shadow-hpv-purple/30 transition-all"
-              >
-                {isChangingPasscode ? 'Updating...' : 'Update Passcode'}
-              </button>
-            </form>
-          </div>
-        </div>
       )}
 
       {/* Decrement Alert Modal */}
@@ -838,53 +317,29 @@ export const BlockReporting: React.FC = () => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="bg-hpv-purple/10 py-3 px-4 flex items-center gap-2 border-b border-hpv-purple/20">
-              <div className="bg-rose-100 p-1.5 rounded-full shrink-0">
-                <Bell className="w-4 h-4 text-rose-600" />
-              </div>
+              <div className="bg-rose-100 p-1.5 rounded-full"><Bell className="w-4 h-4 text-rose-600" /></div>
               <h2 className="text-sm font-bold text-hpv-purple">Alert</h2>
             </div>
-            
-            <div className="p-5 text-sm text-slate-700 font-medium">
-              {decrementAlertMsg}
-            </div>
-
+            <div className="p-5 text-sm text-slate-700 font-medium">{decrementAlertMsg}</div>
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
-              <button
-                onClick={() => {
-                  setShowDecrementAlert(false);
-                  setPendingReportPayload(null);
-                }}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setShowDecrementAlert(false);
-                  if (pendingReportPayload) {
-                    submitReportToApi(pendingReportPayload);
-                    setPendingReportPayload(null);
-                  }
-                }}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-hpv-purple text-white hover:bg-hpv-purple-dark transition-colors shadow-md"
-              >
-                Yes, Save It
-              </button>
+              <button onClick={() => { setShowDecrementAlert(false); setPendingPayload(null); }}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors">Cancel</button>
+              <button onClick={() => { setShowDecrementAlert(false); if (pendingPayload) { submitReportToApi(pendingPayload); setPendingPayload(null); } }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-hpv-purple text-white hover:bg-hpv-purple-dark transition-colors shadow-md">Yes, Save It</button>
             </div>
           </div>
         </div>
       )}
-
-      </main>
-
-      <footer className="max-w-3xl mx-auto w-full text-center py-4 text-xs text-slate-400 px-4 space-y-2">
-        <div className="font-medium text-[11px] sm:text-xs">HPV Vaccination Monitoring Portal • Version: 1.0 • UK 2026</div>
-        <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
-          <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Powered by:</span>
-          <img src="/impactcode.png" alt="ImpactCode" className="h-4 object-contain" />
-        </div>
-      </footer>
-
     </div>
+  );
+};
+
+export const BlockReporting: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const blockId = searchParams.get('blockId') || '';
+  return (
+    <BlockShell currentPage="daily">
+      <BlockReportingContent />
+    </BlockShell>
   );
 };
