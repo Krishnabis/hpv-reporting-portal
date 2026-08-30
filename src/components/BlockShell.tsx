@@ -127,9 +127,25 @@ export const BlockShell: React.FC<BlockShellProps> = ({ currentPage, children })
     if (!token) { navigate('/'); return; }
   }, [blockId]);
 
+  const CACHE_KEY = `hpv_block_cache_${blockId}`;
+
+  // Seed from cache immediately so hero renders without waiting for network
+  useEffect(() => {
+    if (!blockId) return;
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { block: b, profile: p, lastReport: lr } = JSON.parse(cached);
+        setBlock(b);
+        setProfile(p);
+        setLastReport(lr);
+        setLoading(false); // show cached data right away
+      }
+    } catch { /* ignore */ }
+  }, [blockId]);
+
   const fetchBlock = useCallback(() => {
     if (!blockId) return;
-    setLoading(true);
     fetch(`/api/blocks/${blockId}`)
       .then(r => r.json())
       .then(data => {
@@ -139,6 +155,14 @@ export const BlockShell: React.FC<BlockShellProps> = ({ currentPage, children })
         setTodaySubmitted(data.today_submitted);
         setLastReport(data.last_report);
         setLoading(false);
+        // Write fresh data to cache
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({
+            block: data.block,
+            profile: data.profile,
+            lastReport: data.last_report
+          }));
+        } catch { /* ignore */ }
       })
       .catch(() => setLoading(false));
   }, [blockId]);
@@ -278,35 +302,41 @@ export const BlockShell: React.FC<BlockShellProps> = ({ currentPage, children })
         <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="max-w-5xl mx-auto px-4 py-3 space-y-3">
 
-            {/* Purple Hero Card */}
-            {loading ? (
-              <div className="gradient-header rounded-2xl p-4 h-20 animate-pulse opacity-60" />
-            ) : block ? (
-              <div className="gradient-header rounded-2xl p-4 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden">
-                <div className="absolute top-0 right-16 p-4 opacity-[0.07] pointer-events-none">
-                  <Building2 className="w-28 h-28 text-white" />
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-                  <div>
-                    <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">HPV Vaccination Program</p>
-                    <h1 className="text-xl font-extrabold tracking-tight flex items-baseline gap-2">
-                      <span>{block.name}</span>
-                      <span className="text-sm font-medium text-slate-300">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'}</span>
-                    </h1>
+            {/* Purple Hero Card — always rendered; uses cache instantly, refreshes silently */}
+            <div className={`gradient-header rounded-2xl p-4 text-white shadow-lg shadow-hpv-purple/20 relative overflow-hidden transition-opacity duration-300 ${!block ? 'opacity-60 animate-pulse' : 'opacity-100'}`}>
+              <div className="absolute top-0 right-16 p-4 opacity-[0.07] pointer-events-none">
+                <Building2 className="w-28 h-28 text-white" />
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+                <div>
+                  <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">HPV Vaccination Program</p>
+                  <h1 className="text-xl font-extrabold tracking-tight flex items-baseline gap-2">
+                    {block ? (
+                      <>
+                        <span>{block.name}</span>
+                        <span className="text-sm font-medium text-slate-300">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'}</span>
+                      </>
+                    ) : (
+                      <span className="w-40 h-5 bg-white/20 rounded-lg inline-block" />
+                    )}
+                  </h1>
+                  {block ? (
                     <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>
-                  </div>
-                  {profile && profile.base_population > 0 && (
-                    <div className="bg-white/25 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 flex flex-col items-center justify-center shrink-0 self-start sm:self-auto">
-                      <span className="text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-1">Performance Category</span>
-                      <div className="flex items-center gap-2">
-                        <img src={`/${catImg}`} alt={catName} className="h-8 object-contain" />
-                        <span className="text-sm font-bold text-white tracking-wide">{catName}</span>
-                      </div>
-                    </div>
+                  ) : (
+                    <span className="w-56 h-3 bg-white/10 rounded inline-block mt-1" />
                   )}
                 </div>
+                {profile && profile.base_population > 0 && (
+                  <div className="bg-white/25 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 flex flex-col items-center justify-center shrink-0 self-start sm:self-auto">
+                    <span className="text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-1">Performance Category</span>
+                    <div className="flex items-center gap-2">
+                      <img src={`/${catImg}`} alt={catName} className="h-8 object-contain" />
+                      <span className="text-sm font-bold text-white tracking-wide">{catName}</span>
+                    </div>
+                  </div>
+                )}
               </div>
-            ) : null}
+            </div>
 
             {/* Page content slot */}
             {children}
