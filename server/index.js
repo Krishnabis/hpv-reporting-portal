@@ -3002,11 +3002,16 @@ app.put('/api/superadmin/ccl/:id', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
     const { id } = req.params;
-    const { facility_name, ccl_id, unit_level } = req.body;
+    const allowedFields = ['state_id', 'district_id', 'block_id', 'lgd_state_code', 'lgd_district_code', 'lgd_block_code', 'facility_name', 'sub_district_name', 'facility_acronym', 'hospital_facility_id', 'abdm_org_facility_id', 'pin_code', 'address', 'latitude', 'longitude', 'altitude', 'contact_number', 'health_facility_group', 'health_facility_type', 'setting', 'ulb_code', 'ulb_type', 'ownership', 'parent_organization', 'department_name', 'department_type', 'service_domain', 'service_category', 'service', 'service_unit', 'unit_level', 'unit_sub_level', 'unit_type', 'ccl_id', 'ccl_block_hq_yes', 'name_of_unit_incharge', 'status'];
     
-    const { error } = await supabase.from('vaccine_ccp').update({
-       facility_name, ccl_id, unit_level: String(unit_level)
-    }).eq('id', id);
+    let updateData = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) {
+         updateData[key] = req.body[key];
+      }
+    }
+    
+    const { error } = await supabase.from('vaccine_ccp').update(updateData).eq('id', id);
     if (error) throw error;
     res.json({ success: true });
   } catch (err) {
