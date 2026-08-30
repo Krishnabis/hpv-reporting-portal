@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import rateLimit from 'express-rate-limit';
 import { supabase, useSupabase, store, saveStore } from './db/database.js';
 
 dotenv.config();
@@ -54,8 +55,42 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 const JWT_SECRET = process.env.JWT_SECRET || 'hpv-reporting-portal-secret-key-2026';
 
-app.use(cors());
+// 1. Restrict CORS to only allowed frontend URLs
+const allowedOrigins = [
+  'http://localhost:5173', // Local Vite development server
+  'http://localhost:3000', // Alternative local dev server
+  process.env.FRONTEND_URL // Production frontend URL from Vercel (add this to your Vercel env vars!)
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl) or if origin is in our allowed list
+    // Also allows any Vercel preview/production domain as a fallback
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json({ limit: '50mb' }));
+
+// 2. Global Rate Limiting: max 1500 requests per 15 minutes per IP
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 1500,
+  message: { error: 'Too many requests from this IP, please try again later.' }
+});
+app.use(globalLimiter);
+
+// 3. Strict Rate Limiting for Login endpoints (prevents brute-forcing passcodes)
+const loginLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 20, // Max 20 login attempts per 10 minutes per IP
+  message: { error: 'Too many login attempts. Please try again after 10 minutes.' }
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -242,7 +277,7 @@ app.get('/api/locations/blocks', async (req, res) => {
 
 // ─── Block Auth ───────────────────────────────────────────────────────────────
 
-app.post('/api/blocks/login', async (req, res) => {
+app.post('/api/blocks/login', loginLimiter, async (req, res) => {
   try {
     const { blockId, passcode } = req.body;
     let actualPasscode = '2026';
@@ -486,7 +521,7 @@ app.post('/api/reports/block/:id', async (req, res) => {
 
 // ─── Admin Auth ───────────────────────────────────────────────────────────────
 
-app.post('/api/admin/login', async (req, res) => {
+app.post('/api/admin/login', loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });

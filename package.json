@@ -21,6 +21,7 @@
     "csv-parse": "^5.6.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.7.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.475.0",
     "node-fetch": "^3.3.2",
