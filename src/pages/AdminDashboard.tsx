@@ -355,9 +355,10 @@ export const AdminDashboard: React.FC = () => {
       if (tab === 'audit') fetchAuditLogs();
       if (tab === 'activity') fetchActivityData();
       if (tab === 'vaccine-management') fetchVaccineDashboard();
+      const isLvl2 = adminUser.district_id || String(adminUser.ccl_unit_level) === '2';
       if (tab === 'stock-receiving') { fetchStockHistory(); fetchBatches(); }
-      if (tab === 'stock-issuing') { fetchVaccFacilities(adminUser.district_id ? 3 : 2); fetchStockHistory(); fetchBatches(adminUser.district_id ? '2' : '1'); }
-      if (tab === 'month-end-balance') { fetchStockHistory(); fetchBatches(adminUser.district_id ? '2' : '1'); }
+      if (tab === 'stock-issuing') { fetchVaccFacilities(isLvl2 ? 3 : 2); fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
+      if (tab === 'month-end-balance') { fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
       if (tab === 'monthly-report') { fetchBatches('3'); }
       if (tab === 'ccl-management') fetchCclList();
     }
@@ -743,9 +744,10 @@ export const AdminDashboard: React.FC = () => {
     if (tab === 'audit') fetchAuditLogs();
     if (tab === 'activity') fetchActivityData();
     if (tab === 'vaccine-management') fetchVaccineDashboard();
+    const isLvl2 = adminUser?.district_id || String(adminUser?.ccl_unit_level) === '2';
     if (tab === 'stock-receiving') { fetchStockHistory(); fetchBatches(); }
-    if (tab === 'stock-issuing') { fetchVaccFacilities(adminUser?.district_id ? 3 : 2); fetchStockHistory(); fetchBatches(adminUser?.district_id ? '2' : '1'); }
-    if (tab === 'month-end-balance') { fetchStockHistory(); fetchBatches(adminUser?.district_id ? '2' : '1'); }
+    if (tab === 'stock-issuing') { fetchVaccFacilities(isLvl2 ? 3 : 2); fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
+    if (tab === 'month-end-balance') { fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
     if (tab === 'monthly-report') { fetchBatches('3'); }
     if (tab === 'ccl-management') { fetchCclList(); setSettingsOpen(true); }
   };
@@ -1022,7 +1024,7 @@ export const AdminDashboard: React.FC = () => {
               {(reportingOpen || sidebarCollapsed) && (
                 <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
                   {/* Stock Receiving (Hidden for District Admins and Block Admins, but visible to Vaccine Manager unless level 2) */}
-                  {((!adminUser?.district_id && adminUser?.role !== 'BLOCK') || (adminUser?.role === 'VACCINE_MANAGER' && String(adminUser?.ccl_unit_level) !== '2')) && (
+                  {((['SUPER_ADMIN', 'STATE_ADMIN'].includes(adminUser?.role) || (adminUser?.role === 'ADMIN' && !adminUser?.district_id)) || (adminUser?.role === 'VACCINE_MANAGER' && String(adminUser?.ccl_unit_level) !== '2')) && (
                     <button
                       onClick={() => handleTabChange('stock-receiving')}
                       title="Stock Receiving"
@@ -2250,7 +2252,7 @@ export const AdminDashboard: React.FC = () => {
                     setStockMsg({ type: 'success', text: `Successfully issued ${Number(stockQty).toLocaleString('en-IN')} doses for batch ${issueBatchNo}` });
                     setStockQty(''); setIssueFacilityId(''); setStockRemarks(''); setIssueBatchNo(''); 
                     fetchStockHistory();
-                    fetchBatches(adminUser?.district_id ? '2' : '1');
+                    fetchBatches(adminUser?.district_id || String(adminUser?.ccl_unit_level) === '2' ? '2' : '1');
                   } catch (err: any) { setStockMsg({ type: 'error', text: err.message }); }
                   setStockLoading(false);
                 }}
