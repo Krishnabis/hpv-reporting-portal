@@ -234,7 +234,38 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
       pdf.setFontSize(10);
       pdf.setTextColor(100);
       pdf.text(`Report Date: ${fmtDate(filterDate)}`, 14, 48);
-      pdf.text(`Generated On: ${new Date().toLocaleString('en-IN')}`, 14, 53);
+      pdf.text(`Location: ${locationLabel} — ${filterLevel === 'Division' ? 'Districts' : 'Blocks'} inside ${filterLevel}`, 14, 53);
+      pdf.text(`Generated On: ${new Date().toLocaleString('en-IN')}`, 14, 58);
+
+      // Draw KPIs
+      const kpiY = 64;
+      const drawKpi = (x: number, y: number, label: string, val1: string, val2: string) => {
+        pdf.setDrawColor(226, 232, 240); // slate-200
+        pdf.setFillColor(255, 255, 255);
+        pdf.roundedRect(x, y, 36, 16, 2, 2, 'FD');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7);
+        pdf.setTextColor(100, 116, 139); // slate-500
+        pdf.text(label, x + 3, y + 5);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10);
+        pdf.setTextColor(30, 41, 59); // slate-800
+        pdf.text(val1, x + 3, y + 10);
+        if (val2) {
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(6);
+          pdf.setTextColor(148, 163, 184); // slate-400
+          pdf.text(val2, x + 3, y + 14);
+        }
+      };
+
+      drawKpi(14, kpiY, 'Total Population', fmt(kpis.totalPop), '');
+      drawKpi(52, kpiY, 'Goal', fmt(kpis.totalTarget), `${(kpis.totalPop ? (kpis.totalTarget/kpis.totalPop)*100 : 0).toFixed(1)}% of total pop`);
+      drawKpi(90, kpiY, 'HPV Vaccinations', fmt(kpis.totalVaccCumm), `${fmt(kpis.totalVaccToday)} Today`);
+      drawKpi(128, kpiY, 'Sessions Held', fmt(kpis.totalSessionsCumm), `${fmt(kpis.totalSessionsToday)} Today`);
+      drawKpi(166, kpiY, 'Vacc / Session', kpis.vaccPerSession.toFixed(2), 'cumulative avg');
+      drawKpi(204, kpiY, 'Goal Achieved', `${kpis.coveragePct.toFixed(1)}%`, '');
+      drawKpi(242, kpiY, 'Reporting Today', `${kpis.reportingToday}`, `of ${rows.length} units`);
       
       const head = [[
         `Reporting Unit (${filterLevel === 'Division' ? 'District' : 'Block'})`,
@@ -282,7 +313,7 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
       }
 
       autoTable(pdf, {
-        startY: 60,
+        startY: 85,
         head,
         body,
         theme: 'grid',
@@ -309,7 +340,7 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
             if (data.column.index === 0) pdf.setFillColor(245, 243, 255); // faint purple
           }
         },
-        margin: { top: 60 }
+        margin: { top: 20 }
       });
 
       pdf.save(`HPV_Report_${filterDate}.pdf`);
