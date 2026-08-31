@@ -590,6 +590,22 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
+app.get('/api/admin/me', authenticateToken, async (req, res) => {
+  try {
+    let user = { ...req.user };
+    if (user.role === 'VACCINE_MANAGER' && user.ccl_id && !user.district_name) {
+       const { data: ccp } = await supabase.from('vaccine_ccp').select('district_id, districts(name)').eq('ccl_id', user.ccl_id).maybeSingle();
+       if (ccp && ccp.districts) {
+         user.district_id = ccp.district_id;
+         user.district_name = ccp.districts.name;
+       }
+    }
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Admin Logout ─────────────────────────────────────────────────────────────
 app.post('/api/admin/logout', authenticateToken, async (req, res) => {
   try {
@@ -3187,11 +3203,17 @@ app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
     const { level, facility_id } = req.query;
     let query = supabase.from('vaccine_stock_transactions').select('*');
     
+    let effectiveDistrictId = req.user.district_id;
+    if (req.user.role === 'VACCINE_MANAGER' && req.user.ccl_id && !effectiveDistrictId) {
+       const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', req.user.ccl_id).maybeSingle();
+       if (mgrCcp && mgrCcp.district_id) effectiveDistrictId = mgrCcp.district_id;
+    }
+
     if (level) query = query.eq('level', level);
     if (req.user.role === 'BLOCK' || req.user.block_id) {
        query = query.eq('block_id', req.user.block_id);
-    } else if (req.user.district_id) {
-       query = query.eq('district_id', req.user.district_id);
+    } else if (effectiveDistrictId) {
+       query = query.eq('district_id', effectiveDistrictId);
     } else if (req.user.state_id) {
        query = query.eq('state_id', req.user.state_id);
     }

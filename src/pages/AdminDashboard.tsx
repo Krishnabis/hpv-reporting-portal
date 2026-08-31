@@ -335,7 +335,20 @@ export const AdminDashboard: React.FC = () => {
       navigate('/admin/login');
       return;
     }
-    setAdminUser(JSON.parse(userStr));
+    const parsedUser = JSON.parse(userStr);
+    setAdminUser(parsedUser);
+    
+    // Automatically fetch latest user details to ensure missing metadata (like district name) is populated
+    fetch('/api/admin/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setAdminUser(data.user);
+          if (localStorage.getItem('hpv_admin_user')) localStorage.setItem('hpv_admin_user', JSON.stringify(data.user));
+          if (sessionStorage.getItem('hpv_admin_user')) sessionStorage.setItem('hpv_admin_user', JSON.stringify(data.user));
+        }
+      }).catch(err => console.error(err));
+
     setIsAuthenticating(false);
     fetchKpis();
     fetchMasterLocations();
