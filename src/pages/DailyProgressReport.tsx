@@ -179,6 +179,8 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
     setLoading(false);
   };
 
+  const handleGenerate = () => generateReport();
+
   const handleSaveImage = async () => {
     if (!reportRef.current) return;
     setIsSavingImg(true);
