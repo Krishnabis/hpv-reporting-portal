@@ -217,25 +217,48 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
           logoImg.onload = resolve;
           logoImg.onerror = reject;
         });
-        pdf.addImage(logoImg, 'PNG', 14, 10, 40, 15);
+        // The original image might be wider now that it contains text.
+        pdf.addImage(logoImg, 'PNG', 14, 10, 50, 15);
       } catch (e) {
         console.warn('Could not load headinglogo.png for PDF');
       }
 
-      // PDF Header text
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('HPV KAVACH', 14, 35);
-      
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('Daily Progress Report', 14, 42);
-      
-      pdf.setFontSize(10);
+      // Top Right:
+      pdf.setFontSize(9);
       pdf.setTextColor(100);
-      pdf.text(`Report Date: ${fmtDate(filterDate)}`, 14, 48);
-      pdf.text(`Location: ${locationLabel} — ${filterLevel === 'Division' ? 'Districts' : 'Blocks'} inside ${filterLevel}`, 14, 53);
-      pdf.text(`Generated On: ${new Date().toLocaleString('en-IN')}`, 14, 58);
+      pdf.setFont('helvetica', 'normal');
+      const generatedDate = new Date().toLocaleString('en-IN', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true}).replace(/ am| pm/i, m => m.toUpperCase());
+      pdf.text(`Report Generated On: ${generatedDate}`, 282, 15, { align: 'right' });
+      pdf.text('Page 1 of 1', 282, 20, { align: 'right' });
+
+      // Title
+      pdf.setFontSize(18);
+      pdf.setTextColor(15, 23, 42); // slate-900 (very dark)
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('HPV Vaccination \u2014 Daily Progress Report', 14, 38);
+      
+      // Subtitle
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 116, 139); // slate-500
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Tracks daily & cumulative HPV vaccination progress at State, Division, District, and Block levels', 14, 43);
+      
+      // Location row (around Y=51)
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(30, 41, 59); // dark text
+      pdf.text(locationLabel, 14, 51);
+      
+      const locWidth = pdf.getTextWidth(locationLabel);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(148, 163, 184); // slate-400
+      const subLabel = ` \u2014 ${filterLevel === 'Division' ? 'Districts inside Division' : (filterLevel === 'State' ? 'Divisions inside State' : (filterLevel === 'District' ? 'Blocks inside District' : 'Overview'))}`;
+      pdf.text(subLabel, 14 + locWidth, 51);
+      
+      // Right side badge: "Progressing"
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(37, 99, 235); // blue-600
+      pdf.text('Progressing', 282, 51, { align: 'right' });
 
       // Draw KPIs
       const kpiY = 64;
