@@ -607,7 +607,7 @@ app.put('/api/admin/change-password', authenticateToken, async (req, res) => {
 app.get('/api/admin/users', authenticateToken, async (req, res) => {
   try {
     if (useSupabase) {
-      let { data, error } = await supabase.from('admin_users').select('id, username, name, role, is_active, created_at, last_login_at, state_id, states(name), district_id, districts(name), facility_id').order('created_at', { ascending: false });
+      let { data, error } = await supabase.from('admin_users').select('id, username, name, role, is_active, created_at, last_login_at, state_id, states(name), district_id, districts(name), ccl_id').order('created_at', { ascending: false });
       if (error && (error.code === '42703' || error.code === 'PGRST204' || (error.message && error.message.includes('district')))) {
         const fallback = await supabase.from('admin_users').select('id, username, name, role, is_active, created_at, last_login_at, state_id, states(name)').order('created_at', { ascending: false });
         data = fallback.data;
@@ -636,7 +636,7 @@ app.post('/api/admin/users', authenticateToken, async (req, res) => {
       if (existing) return res.status(409).json({ error: 'Username already exists' });
 
       let { error } = await supabase.from('admin_users').insert([{
-        id: newId, username, name, password_hash: passwordHash, role, is_active: true, state_id: state_id ? Number(state_id) : null, district_id: district_id ? Number(district_id) : null, facility_id: facility_id ? Number(facility_id) : null
+        id: newId, username, name, password_hash: passwordHash, role, is_active: true, state_id: state_id ? Number(state_id) : null, district_id: district_id ? Number(district_id) : null, ccl_id: ccl_id || null
       }]);
       if (error && (error.code === '42703' || error.code === 'PGRST204' || (error.message && error.message.includes('district')))) {
         const fallback = await supabase.from('admin_users').insert([{
@@ -1684,7 +1684,7 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
     let bQuery = supabase
       .from('blocks')
       .select(`
-        id, name, health_block_name, lgd_code, district_id, hpv_target,
+        id, name, health_block_name, is_urban, lgd_code, district_id, hpv_target,
         districts!inner(id, name, lgd_code, state_id, division_id, divisions(name))
       `)
       .eq('is_active', true)
@@ -1750,6 +1750,7 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
       return {
         id: b.id,
         name: b.health_block_name || b.name,
+        is_urban: b.is_urban,
         lgd_code: b.lgd_code,
         district_id: b.district_id,
         district_name: b.districts?.name,

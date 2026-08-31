@@ -246,7 +246,7 @@ export const AdminDashboard: React.FC = () => {
   const [newAdminRole, setNewAdminRole] = useState('ADMIN');
   const [newAdminStateId, setNewAdminStateId] = useState('');
   const [newAdminDistrictId, setNewAdminDistrictId] = useState('');
-  const [newAdminFacilityId, setNewAdminFacilityId] = useState('');
+  const [newAdminCclId, setNewAdminCclId] = useState('');
   const [addAdminMsg, setAddAdminMsg] = useState('');
   const [addAdminLoading, setAddAdminLoading] = useState(false);
 
@@ -2816,7 +2816,7 @@ export const AdminDashboard: React.FC = () => {
                 {(newAdminRole === 'ADMIN' || newAdminRole === 'VACCINE_MANAGER') && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State *</label>
-                    <select value={newAdminStateId} onChange={e => { setNewAdminStateId(e.target.value); setNewAdminDistrictId(''); setNewAdminFacilityId(''); }} required
+                    <select value={newAdminStateId} onChange={e => { setNewAdminStateId(e.target.value); setNewAdminDistrictId(''); setNewAdminCclId(''); }} required
                       className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
                       <option value="">Select State</option>
                       {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -2836,11 +2836,11 @@ export const AdminDashboard: React.FC = () => {
                 {newAdminRole === 'VACCINE_MANAGER' && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Facility *</label>
-                    <select value={newAdminFacilityId} onChange={e => setNewAdminFacilityId(e.target.value)} required
+                    <select value={newAdminCclId} onChange={e => setNewAdminCclId(e.target.value)} required
                       className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600 disabled:opacity-50">
                       <option value="">{newAdminStateId ? 'Select Facility' : 'Select State first'}</option>
                       {newAdminStateId && cclList.filter(c => String(c.state_id) === String(newAdminStateId) && (String(c.unit_level) === '1' || String(c.unit_level) === '2')).map(c => (
-                        <option key={c.id} value={c.id}>{c.facility_name} {c.districts?.name ? '- ' + c.districts.name : ''}</option>
+                        <option key={c.ccl_id} value={c.ccl_id}>{c.facility_name} {c.districts?.name ? '- ' + c.districts.name : ''}</option>
                       ))}
                     </select>
                   </div>
