@@ -1351,10 +1351,16 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
 
 app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
   try {
-    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'ADMIN') return res.status(403).json({ error: 'Unauthorized' });
+    const isAllowedVaccineManager = req.user.role === 'VACCINE_MANAGER' && String(req.user.ccl_unit_level) !== '2';
+
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'ADMIN' && !isAllowedVaccineManager) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
     // Assuming ADMIN means State Admin if they don't have district_id.
     // If they have district_id, they shouldn't be calling this.
-    if (req.user.district_id) return res.status(403).json({ error: 'District Admin cannot manually receive stock' });
+    if (req.user.district_id && !isAllowedVaccineManager) {
+      return res.status(403).json({ error: 'District Admin cannot manually receive stock' });
+    }
 
     const { date, quantity, notes, batch_no, batch_expiry_date, manufacture_name } = req.body;
     if (!date || isNaN(Number(quantity)) || Number(quantity) <= 0 || !batch_no) return res.status(400).json({ error: 'Invalid input' });
@@ -1365,13 +1371,15 @@ app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
       transaction_date: date,
       quantity_doses: Number(quantity),
       remarks: [notes, `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
-      level: '1',
-      destination_level: '1',
+      level: isAllowedVaccineManager ? String(req.user.ccl_unit_level || '1') : '1',
+      destination_level: isAllowedVaccineManager ? String(req.user.ccl_unit_level || '1') : '1',
       batch_no: batch_no,
       batch_expiry_date: batch_expiry_date || null,
       manufacture_name: manufacture_name || null,
       state_id: req.user.state_id,
-      created_by: getValidUuid(req.user.id)
+      created_by: getValidUuid(req.user.id),
+      destination_ccl_id: isAllowedVaccineManager ? (req.user.ccl_id || null) : null,
+      destination_ccl_name: isAllowedVaccineManager ? (req.user.ccl_facility_name || null) : null
     }]).select();
 
     if (error) throw error;
