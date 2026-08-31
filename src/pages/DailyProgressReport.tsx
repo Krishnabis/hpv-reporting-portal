@@ -75,27 +75,33 @@ const CircularProgress: React.FC<{ pct: number; size?: number }> = ({ pct, size 
 
 const KpiCard: React.FC<{
   icon: React.ReactNode; label: string; value: string;
-  subLabel?: string; subValue?: string; iconBg: string; loading?: boolean;
-}> = ({ icon, label, value, subLabel, subValue, iconBg, loading }) => (
-  <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 flex flex-col gap-1.5 min-w-0 hover:shadow-md transition-shadow">
+  subLabel?: string; subValue?: string; iconBg: string; valueColor?: string; loading?: boolean;
+}> = ({ icon, label, value, subLabel, subValue, iconBg, valueColor = 'text-slate-900', loading }) => (
+  <div className="bg-white rounded-xl px-4 py-3 shadow-sm border border-slate-100 flex items-center gap-3 min-w-0 hover:shadow-md transition-shadow">
     {loading ? (
-      <div className="animate-pulse space-y-1.5">
-        <div className="w-7 h-7 rounded-full bg-slate-200" />
-        <div className="h-5 bg-slate-200 rounded w-3/4" />
-        <div className="h-2.5 bg-slate-100 rounded w-1/2" />
+      <div className="animate-pulse flex items-center gap-3 w-full">
+        <div className="w-12 h-12 rounded-full bg-slate-200 shrink-0" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-2.5 bg-slate-200 rounded w-2/3" />
+          <div className="h-5 bg-slate-200 rounded w-3/4" />
+          <div className="h-2.5 bg-slate-100 rounded w-1/2" />
+        </div>
       </div>
     ) : (
       <>
-        <div className={`w-7 h-7 rounded-full flex items-center justify-center ${iconBg} shrink-0`}>{icon}</div>
-        <div>
-          <div className="text-lg font-extrabold text-slate-900 leading-tight">{value}</div>
-          <div className="text-[10px] font-semibold text-slate-500 mt-0.5 leading-tight">{label}</div>
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${iconBg} shrink-0`}>{icon}</div>
+        <div className="min-w-0">
+          <div className="text-[11px] font-semibold text-slate-500 leading-tight">{label}</div>
+          <div className={`text-xl font-extrabold leading-tight mt-0.5 ${valueColor}`}>{value}</div>
+          {subLabel && subValue && (
+            <div className="text-[11px] font-semibold text-emerald-600 leading-tight mt-0.5">
+              {subValue} {subLabel}
+            </div>
+          )}
+          {subLabel && !subValue && (
+            <div className="text-[11px] font-medium text-slate-400 leading-tight mt-0.5">{subLabel}</div>
+          )}
         </div>
-        {subLabel && (
-          <div className="text-[10px] font-medium text-slate-400 leading-tight">
-            <span className="font-semibold text-slate-600">{subValue}</span>{subValue ? ' ' : ''}{subLabel}
-          </div>
-        )}
       </>
     )}
   </div>
@@ -197,12 +203,22 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({ adminU
   const handleGenerate = () => generateReport(filterDate, filterLevel, filterStateId, filterDistrictId);
 
   const rankedRows = useMemo(() => {
-    const sorted = [...rows].sort((a, b) => {
+    // Ranks are ALWAYS assigned best→worst (best performer = rank 1)
+    const bestFirst = [...rows].sort((a, b) => {
       const av = (a as any)[rankBy] ?? -1;
       const bv = (b as any)[rankBy] ?? -1;
-      return sortDir === 'best' ? bv - av : av - bv;
+      return bv - av;
     });
-    return sorted.map((r, i) => ({ ...r, rank: i + 1 }));
+    const withRanks = bestFirst.map((r, i) => ({ ...r, rank: i + 1 }));
+    // sortDir only controls DISPLAY order, never rank numbers
+    if (sortDir === 'worst') {
+      return [...withRanks].sort((a, b) => {
+        const av = (a as any)[rankBy] ?? -1;
+        const bv = (b as any)[rankBy] ?? -1;
+        return av - bv;
+      });
+    }
+    return withRanks;
   }, [rows, rankBy, sortDir]);
 
   const filtered = useMemo(() => {
@@ -362,41 +378,49 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({ adminU
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-2">
-          <KpiCard loading={loading} icon={<Users className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-2">
+          <KpiCard loading={loading} icon={<Users className="w-5 h-5 text-purple-600" />} iconBg="bg-purple-50"
             label="Population (13–15 Yrs)" value={fmt(kpis.totalPop)} />
-          <KpiCard loading={loading} icon={<Target className="w-4 h-4 text-green-600" />} iconBg="bg-green-50"
-            label="HPV Goal (0.8%)" value={fmt(kpis.totalTarget)} subLabel="target girls" />
-          <KpiCard loading={loading} icon={<Syringe className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
-            label="HPV Vaccinations" value={fmt(kpis.totalVaccCumm)} subValue={fmt(kpis.totalVaccToday)} subLabel="today" />
-          <KpiCard loading={loading} icon={<Calendar className="w-4 h-4 text-orange-600" />} iconBg="bg-orange-50"
-            label="Sessions Held" value={fmt(kpis.totalSessionsCumm)} subValue={fmt(kpis.totalSessionsToday)} subLabel="today" />
-          <KpiCard loading={loading} icon={<Activity className="w-4 h-4 text-teal-600" />} iconBg="bg-teal-50"
+          <KpiCard loading={loading} icon={<Target className="w-5 h-5 text-green-600" />} iconBg="bg-green-50"
+            label="Goal (0.8%)" value={fmt(kpis.totalTarget)} valueColor="text-green-700"
+            subValue={fmt(kpis.totalVaccToday > 0 ? kpis.totalVaccToday : undefined)} subLabel={kpis.totalVaccToday > 0 ? 'Today' : undefined} />
+          <KpiCard loading={loading} icon={<Syringe className="w-5 h-5 text-blue-600" />} iconBg="bg-blue-50"
+            label="HPV Vaccinations" value={fmt(kpis.totalVaccCumm)}
+            subValue={fmt(kpis.totalVaccToday)} subLabel="Today" />
+          <KpiCard loading={loading} icon={<Calendar className="w-5 h-5 text-orange-500" />} iconBg="bg-orange-50"
+            label="Sessions Held" value={fmt(kpis.totalSessionsCumm)}
+            subValue={fmt(kpis.totalSessionsToday)} subLabel="Today" />
+          <KpiCard loading={loading} icon={<Activity className="w-5 h-5 text-teal-600" />} iconBg="bg-teal-50"
             label="Vaccinations / Session" value={fmt(kpis.vaccPerSession, 2)} subLabel="cumulative avg" />
 
-          {/* Circular Progress */}
-          <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-1 hover:shadow-md transition-shadow">
+          {/* Circular Progress — same horizontal card layout */}
+          <div className="bg-white rounded-xl px-4 py-3 shadow-sm border border-slate-100 flex items-center gap-3 hover:shadow-md transition-shadow">
             {loading ? (
-              <div className="animate-pulse flex flex-col items-center gap-1.5">
-                <div className="w-16 h-16 rounded-full bg-slate-200" />
-                <div className="h-2.5 w-16 bg-slate-200 rounded" />
+              <div className="animate-pulse flex items-center gap-3 w-full">
+                <div className="w-12 h-12 rounded-full bg-slate-200 shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-2.5 bg-slate-200 rounded w-2/3" />
+                  <div className="h-5 bg-slate-200 rounded w-3/4" />
+                </div>
               </div>
             ) : (
               <>
-                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <CircularProgress pct={kpis.coveragePct} size={72} />
-                  <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <span className="text-sm font-extrabold text-slate-900">{fmt(kpis.coveragePct, 1)}%</span>
+                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <CircularProgress pct={kpis.coveragePct} size={48} />
+                  <div style={{ position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: 9 }} className="font-extrabold text-slate-900 leading-none">{fmt(kpis.coveragePct, 0)}%</span>
                   </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-[10px] font-bold text-slate-500">Goal Achieved</div>
+                <div className="min-w-0">
+                  <div className="text-[11px] font-semibold text-slate-500 leading-tight">Goal Achieved</div>
+                  <div className={`text-xl font-extrabold leading-tight mt-0.5 ${coverageTier(kpis.coveragePct).color}`}>{fmt(kpis.coveragePct, 1)}%</div>
+                  <div className={`text-[11px] font-semibold leading-tight mt-0.5 ${coverageTier(kpis.coveragePct).color}`}>{tierInfo.label.split(' ')[0]}</div>
                 </div>
               </>
             )}
           </div>
 
-          <KpiCard loading={loading} icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} iconBg="bg-emerald-50"
+          <KpiCard loading={loading} icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />} iconBg="bg-emerald-50"
             label="Reporting Today" value={fmt(kpis.reportingToday)}
             subValue={`of ${rows.length}`} subLabel={`${filterLevel.toLowerCase()}s total`} />
         </div>
