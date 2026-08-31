@@ -885,7 +885,8 @@ export const AdminDashboard: React.FC = () => {
             </button>
 
             {/* Alerts */}
-            <button
+            {adminUser?.role !== 'VACCINE_MANAGER' && (
+              <button
               onClick={() => handleTabChange('population')}
               title="Alerts"
               className={`w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all duration-200 group relative overflow-hidden ${
@@ -907,8 +908,10 @@ export const AdminDashboard: React.FC = () => {
                 </span>
               )}
             </button>
+            )}
 
             {/* Analytics Group */}
+            {adminUser?.role !== 'VACCINE_MANAGER' && (
             <div className="pt-2">
               <button 
                 onClick={() => { if (!sidebarCollapsed) setAnalyticsOpen(!analyticsOpen) }}
@@ -961,6 +964,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               )}
             </div>
+            )}
 
             {/* Reporting Group */}
             <div className="pt-2">
@@ -977,8 +981,8 @@ export const AdminDashboard: React.FC = () => {
               
               {(reportingOpen || sidebarCollapsed) && (
                 <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
-                  {/* Stock Receiving (Hidden for District Admins and Block Admins) */}
-                  {!adminUser?.district_id && adminUser?.role !== 'BLOCK' && (
+                  {/* Stock Receiving (Hidden for District Admins and Block Admins, but visible to Vaccine Manager) */}
+                  {((!adminUser?.district_id && adminUser?.role !== 'BLOCK') || adminUser?.role === 'VACCINE_MANAGER') && (
                     <button
                       onClick={() => handleTabChange('stock-receiving')}
                       title="Stock Receiving"
@@ -1016,20 +1020,6 @@ export const AdminDashboard: React.FC = () => {
                     >
                       <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-pink-600' : 'text-slate-400'}`} />
                       <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Month End Balance</span>
-                    </button>
-                  )}
-
-                  {/* Monthly Report (For Block Admins only, or Super Admin viewing block level) */}
-                  {(adminUser?.role === 'BLOCK' || adminUser?.role === 'SUPER_ADMIN') && (
-                    <button
-                      onClick={() => handleTabChange('monthly-report')}
-                      title="Monthly Report"
-                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'monthly-report' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
-                    >
-                      <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'monthly-report' ? 'text-pink-600' : 'text-slate-400'}`} />
-                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Monthly Report</span>
                     </button>
                   )}
                 </div>

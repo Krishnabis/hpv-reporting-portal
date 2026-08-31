@@ -1298,9 +1298,13 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
     
     const formatted = data.map(f => {
       let locationPrefix = '';
-      if (String(f.unit_level) === '1') locationPrefix = f.states?.name || '';
-      else if (String(f.unit_level) === '2') locationPrefix = f.districts?.name || '';
-      else if (String(f.unit_level) === '3') locationPrefix = (f.districts?.name ? f.districts.name + ' - ' : '') + (f.blocks?.name || '');
+      if (f.facility_name?.toLowerCase().includes('divisional') || String(f.unit_level) === '2') {
+         locationPrefix = f.districts?.name || '';
+      } else if (String(f.unit_level) === '1') {
+         locationPrefix = f.states?.name || '';
+      } else if (String(f.unit_level) === '3') {
+         locationPrefix = (f.districts?.name ? f.districts.name + ' - ' : '') + (f.blocks?.name || '');
+      }
       
       return {
         ...f,
@@ -1327,7 +1331,7 @@ app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
       transaction_type: 'RECEIVED',
       transaction_date: date,
       quantity_doses: Number(quantity),
-      remarks: notes || null,
+      remarks: [notes, `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
       level: '1',
       destination_level: '1',
       batch_no: batch_no,
@@ -1386,7 +1390,7 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       destination_level: String(destLvl),
       destination_ccl_name: destFacility.facility_name,
       destination_ccl_id: destFacility.ccl_id,
-      remarks: notes || null,
+      remarks: [notes, `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
       state_id: req.user.state_id,
       district_id: req.user.district_id || null,
       created_by: getValidUuid(req.user.id)
@@ -1406,7 +1410,7 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       destination_level: String(destLvl),
       destination_ccl_name: destFacility.facility_name,
       destination_ccl_id: destFacility.ccl_id,
-      remarks: notes || null,
+      remarks: [notes, `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
       state_id: destFacility.state_id,
       district_id: destFacility.district_id,
       block_id: destFacility.block_id,
@@ -3019,7 +3023,7 @@ app.get('/api/vaccine/monthly-report/status', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/vaccine/monthly-report/submit', async (req, res) => {
+app.post('/api/vaccine/monthly-report/submit', authenticateToken, async (req, res) => {
   try {
     const { month, facility_id, facility_name, batch_no, quantity, handler_name, handler_mobile, remarks, blockId } = req.body;
     if (!month || !facility_id || !batch_no || isNaN(Number(quantity)) || Number(quantity) < 0 || !blockId) {
@@ -3058,7 +3062,7 @@ app.post('/api/vaccine/monthly-report/submit', async (req, res) => {
       ccl_name: facility_name,
       ccl_manager_handler_name: handler_name,
       ccl_manager_handler_mobile_no: handler_mobile,
-      remarks: remarks || null,
+      remarks: [remarks, `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
       created_by: getValidUuid(req.user.id)
     }]).select();
 
@@ -3075,7 +3079,7 @@ app.post('/api/vaccine/monthly-report/submit', async (req, res) => {
         quantity_doses: Math.abs(diff),
         batch_no: batch_no,
         level: '3',
-        remarks: 'Auto-adjustment from Monthly CCP Report: ' + (remarks || ''),
+        remarks: ['Auto-adjustment from Monthly CCP Report: ' + (remarks || ''), `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
         state_id: blockInfo?.state_id,
         district_id: blockInfo?.district_id,
         block_id: blockId,

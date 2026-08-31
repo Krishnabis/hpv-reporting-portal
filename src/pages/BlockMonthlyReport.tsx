@@ -30,8 +30,9 @@ const StockContent: React.FC = () => {
     if (!qty) return;
     setStockLoading(true); setStockMsg(null);
     try {
+      const token = localStorage.getItem('hpv_block_token') || sessionStorage.getItem('hpv_block_token');
       const res = await fetch('/api/vaccine/monthly-report/submit', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ month: reportMonth, blockId, facility_id: selectedCcp.id, facility_name: selectedCcp.facility_name, quantity: Number(qty), handler_name: selectedCcp.name_of_unit_incharge, handler_mobile: selectedCcp.contact_number, remarks })
       });
       const json = await res.json();
