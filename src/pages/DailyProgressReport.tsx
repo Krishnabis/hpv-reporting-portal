@@ -226,6 +226,22 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
   const divisionDistricts = useMemo(() => stateDistricts.filter(d => filterDivisionId === 'ALL' || String(d.division_id) === filterDivisionId), [stateDistricts, filterDivisionId]);
   const isAdminOrState = adminUser?.role === 'SUPER_ADMIN' || adminUser?.role === 'ADMIN' || adminUser?.role === 'STATE_ADMIN';
 
+  const canPickDivision = filterLevel === 'Division' && isAdminOrState;
+  const canPickDistrict = filterLevel === 'District' && isAdminOrState;
+
+  const locationLabel = useMemo(() => {
+    if (filterLevel === 'District' && filterDistrictId !== 'ALL') {
+      return stateDistricts.find(d => String(d.id) === filterDistrictId)?.name || 'Selected District';
+    }
+    if (filterLevel === 'Division' && filterDivisionId !== 'ALL') {
+      return divisionsList.find(d => String(d.id) === filterDivisionId)?.name || 'Selected Division';
+    }
+    if (filterStateId) return statesList.find(s => String(s.id) === filterStateId)?.name || 'Selected State';
+    return 'All Units';
+  }, [filterLevel, filterDistrictId, filterDivisionId, filterStateId, stateDistricts, divisionsList, statesList]);
+
+  const tierInfo = coverageTier(reportGenerated ? kpis.coveragePct : null);
+
   return (
     <div className="flex flex-col h-full gap-3">
       <div className="flex items-center justify-between shrink-0">
