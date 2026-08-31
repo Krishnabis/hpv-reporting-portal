@@ -578,6 +578,24 @@ export const AdminDashboard: React.FC = () => {
     setAddAdminLoading(false);
   };
 
+  const handleDeleteUser = async (userId: string) => {
+    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+    try {
+      const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete user');
+      fetchAdminUsers();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
   const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     if (!window.confirm(`Are you sure you want to ${currentStatus ? 'disable' : 'enable'} this user?`)) return;
     try {
@@ -982,8 +1000,8 @@ export const AdminDashboard: React.FC = () => {
               
               {(reportingOpen || sidebarCollapsed) && (
                 <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
-                  {/* Stock Receiving (Hidden for District Admins and Block Admins, but visible to Vaccine Manager) */}
-                  {((!adminUser?.district_id && adminUser?.role !== 'BLOCK') || adminUser?.role === 'VACCINE_MANAGER') && (
+                  {/* Stock Receiving (Hidden for District Admins and Block Admins, but visible to Vaccine Manager unless level 2) */}
+                  {((!adminUser?.district_id && adminUser?.role !== 'BLOCK') || (adminUser?.role === 'VACCINE_MANAGER' && String(adminUser?.ccl_unit_level) !== '2')) && (
                     <button
                       onClick={() => handleTabChange('stock-receiving')}
                       title="Stock Receiving"
@@ -2895,7 +2913,11 @@ export const AdminDashboard: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-4 py-2.5 font-semibold text-slate-500">{u.state_name || '-'}</td>
-                      <td className="px-4 py-2.5 font-semibold text-slate-500">{u.district_name || '-'}</td>
+                      <td className="px-4 py-2.5 font-semibold text-slate-500">
+                        {u.role === 'VACCINE_MANAGER' && u.ccl_facility_name 
+                          ? `${u.district_name || '-'} - ${u.ccl_facility_name}` 
+                          : (u.district_name || '-')}
+                      </td>
                       <td className="px-4 py-2.5">
                         <button
                           onClick={() => handleToggleUserStatus(u.id, u.is_active)}

@@ -538,6 +538,8 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
     let user;
     let stateName = null;
     let districtName = null;
+    let cclFacilityName = null;
+    let cclUnitLevel = null;
     if (useSupabase) {
       let { data, error } = await supabase.from('admin_users').select('*, states(name), districts(name)').eq('username', username).eq('is_active', true).maybeSingle();
       if (error && (error.code === '42703' || error.code === 'PGRST204' || (error.message && error.message.includes('district')))) {
@@ -549,6 +551,14 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
       user = data;
       if (user?.states) stateName = user.states.name;
       if (user?.districts) districtName = user.districts.name;
+      
+      if (user?.role === 'VACCINE_MANAGER' && user?.ccl_id) {
+        const { data: ccp } = await supabase.from('vaccine_ccp').select('facility_name, unit_level').eq('ccl_id', user.ccl_id).maybeSingle();
+        if (ccp) {
+          cclFacilityName = ccp.facility_name;
+          cclUnitLevel = ccp.unit_level;
+        }
+      }
     } else {
       user = store.admin_users.find(u => u.username === username && u.is_active);
       if (user?.state_id) {
@@ -570,9 +580,9 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
       await supabase.from('admin_users').update({ last_login_at: new Date().toISOString() }).eq('id', user.id);
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name, state_id: user.state_id, state_name: stateName, district_id: user.district_id, district_name: districtName }, JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name, state_id: user.state_id, state_name: stateName, district_id: user.district_id, district_name: districtName, ccl_id: user.ccl_id, ccl_facility_name: cclFacilityName, ccl_unit_level: cclUnitLevel }, JWT_SECRET, { expiresIn: '24h' });
     await logAudit(user.id, 'ADMIN_LOGIN', 'admin_user', user.id, req);
-    res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role, state_id: user.state_id, state_name: stateName, district_id: user.district_id, district_name: districtName } });
+    res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role, state_id: user.state_id, state_name: stateName, district_id: user.district_id, district_name: districtName, ccl_id: user.ccl_id, ccl_facility_name: cclFacilityName, ccl_unit_level: cclUnitLevel } });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
@@ -633,7 +643,30 @@ app.get('/api/admin/users', authenticateToken, async (req, res) => {
         error = fallback.error;
       }
       if (error) throw error;
-      return res.json(data.map(u => ({ ...u, state_name: u.states ? u.states.name : null, district_name: u.districts ? u.districts.name : null })));
+      
+      const cclIds = [...new Set(data.filter(u => u.role === 'VACCINE_MANAGER' && u.ccl_id).map(u => u.ccl_id))];
+      let cclMap = {};
+      if (cclIds.length > 0) {
+        const { data: ccps } = await supabase.from('vaccine_ccp').select('ccl_id, facility_name, districts(name)').in('ccl_id', cclIds);
+        if (ccps) ccps.forEach(c => cclMap[c.ccl_id] = c);
+      }
+
+      return res.json(data.map(u => {
+        let district_name = u.districts ? u.districts.name : null;
+        let ccl_facility_name = null;
+        if (u.role === 'VACCINE_MANAGER' && u.ccl_id && cclMap[u.ccl_id]) {
+          ccl_facility_name = cclMap[u.ccl_id].facility_name;
+          if (cclMap[u.ccl_id].districts && cclMap[u.ccl_id].districts.name) {
+            district_name = cclMap[u.ccl_id].districts.name;
+          }
+        }
+        return {
+          ...u,
+          state_name: u.states ? u.states.name : null,
+          district_name,
+          ccl_facility_name
+        };
+      }));
     }
     res.json(store.admin_users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role, is_active: u.is_active, created_at: u.created_at, state_id: u.state_id, district_id: u.district_id })));
   } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
