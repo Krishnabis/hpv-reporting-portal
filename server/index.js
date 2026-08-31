@@ -119,7 +119,7 @@ function flattenBlock(b) {
   
   return {
     id: b.id, district_id: b.district_id, lgd_code: b.lgd_code,
-    name: b.name, code: b.code, is_active: b.is_active, is_urban: Boolean(b.is_urban), area_type: b.area_type || (b.is_urban ? 'City' : 'Block'),
+    name: b.health_block_name || b.name, code: b.code, is_active: b.is_active, is_urban: Boolean(b.is_urban), area_type: b.area_type || (b.is_urban ? 'City' : 'Block'),
     district_name: dist.name ?? '',
     district_lgd_code: dist.lgd_code ?? 0,
     division_name: div.name ?? '',
