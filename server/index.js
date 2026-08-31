@@ -580,9 +580,9 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
       await supabase.from('admin_users').update({ last_login_at: new Date().toISOString() }).eq('id', user.id);
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name, state_id: user.state_id, state_name: stateName, district_id: user.district_id, district_name: districtName, ccl_id: user.ccl_id, ccl_facility_name: cclFacilityName, ccl_unit_level: cclUnitLevel }, JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name, state_id: user.state_id, state_name: stateName, district_id: user.district_id, district_name: districtName, ccl_id: user.ccl_id, ccl_facility_name: cclFacilityName, unit_level: cclUnitLevel }, JWT_SECRET, { expiresIn: '24h' });
     await logAudit(user.id, 'ADMIN_LOGIN', 'admin_user', user.id, req);
-    res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role, state_id: user.state_id, state_name: stateName, district_id: user.district_id, district_name: districtName, ccl_id: user.ccl_id, ccl_facility_name: cclFacilityName, ccl_unit_level: cclUnitLevel } });
+    res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role, state_id: user.state_id, state_name: stateName, district_id: user.district_id, district_name: districtName, ccl_id: user.ccl_id, ccl_facility_name: cclFacilityName, unit_level: cclUnitLevel } });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
@@ -1351,7 +1351,7 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
 
 app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
   try {
-    const isAllowedVaccineManager = req.user.role === 'VACCINE_MANAGER' && String(req.user.ccl_unit_level) !== '2';
+    const isAllowedVaccineManager = req.user.role === 'VACCINE_MANAGER' && String(req.user.unit_level) !== '2';
 
     if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'ADMIN' && !isAllowedVaccineManager) {
       return res.status(403).json({ error: 'Unauthorized' });
@@ -1371,8 +1371,8 @@ app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
       transaction_date: date,
       quantity_doses: Number(quantity),
       remarks: [notes, `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
-      level: isAllowedVaccineManager ? String(req.user.ccl_unit_level || '1') : '1',
-      destination_level: isAllowedVaccineManager ? String(req.user.ccl_unit_level || '1') : '1',
+      level: isAllowedVaccineManager ? String(req.user.unit_level || '1') : '1',
+      destination_level: isAllowedVaccineManager ? String(req.user.unit_level || '1') : '1',
       batch_no: batch_no,
       batch_expiry_date: batch_expiry_date || null,
       manufacture_name: manufacture_name || null,
