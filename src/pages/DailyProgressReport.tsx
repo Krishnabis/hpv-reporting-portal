@@ -196,9 +196,38 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
 
   const handleSaveImage = async () => {
     if (!reportRef.current) return;
-    setIsSavingImg(true);
+    setIsSavingImg(true); // Triggers paginated to show ALL rows
+
+    // Wait for React to render the full non-paginated table
+    await new Promise(resolve => setTimeout(resolve, 400));
+
     try {
-      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, backgroundColor: '#f8fafc' });
+      const container = reportRef.current;
+      
+      // Temporarily remove CSS restrictions that cause scrolling/clipping
+      const restrictors = container.querySelectorAll('.flex-1, .min-h-0, .overflow-hidden, .overflow-auto');
+      const originalStyles = new Map();
+      restrictors.forEach((el, idx) => {
+        originalStyles.set(idx, el.getAttribute('style') || '');
+        el.setAttribute('style', `${originalStyles.get(idx)}; overflow: visible !important; min-height: max-content !important; height: auto !important; flex: none !important;`);
+      });
+      const origRefStyle = container.getAttribute('style') || '';
+      container.setAttribute('style', `${origRefStyle}; overflow: visible !important; height: auto !important; min-height: max-content !important;`);
+
+      const canvas = await html2canvas(container, { 
+        scale: 2, 
+        useCORS: true, 
+        backgroundColor: '#f8fafc',
+        windowWidth: container.scrollWidth,
+        windowHeight: container.scrollHeight
+      });
+
+      // Revert styles
+      restrictors.forEach((el, idx) => {
+        el.setAttribute('style', originalStyles.get(idx));
+      });
+      container.setAttribute('style', origRefStyle);
+
       const imgData = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = imgData;
@@ -224,9 +253,10 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
 
   const totalPages = Math.ceil(filtered.length / rowsPerPage);
   const paginated = useMemo(() => {
+    if (isSavingImg) return filtered; // Render all rows if saving image
     const start = (currentPage - 1) * rowsPerPage;
     return filtered.slice(start, start + rowsPerPage);
-  }, [filtered, currentPage]);
+  }, [filtered, currentPage, isSavingImg]);
 
   const kpis = useMemo(() => {
     const totalPop = rows.reduce((s, r) => s + (r.population || 0), 0);

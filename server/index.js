@@ -845,7 +845,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     // 1. Fetch all active blocks with district info
     let bq = supabase
       .from('blocks')
-      .select(targetStateId ? 'id, name, is_urban, district_id, districts!inner(name, state_id, divisions(name))' : 'id, name, is_urban, district_id, districts!inner(name, divisions(name))')
+      .select(targetStateId ? 'id, name, health_block_name, is_urban, district_id, districts!inner(name, state_id, divisions(name))' : 'id, name, health_block_name, is_urban, district_id, districts!inner(name, divisions(name))')
       .eq('is_active', true);
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
     
@@ -970,7 +970,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       const isLowStock = target > 0 && stockBalance < (target * 0.25);
       
       return {
-        block: b.name,
+        block: b.health_block_name || b.name,
         block_id: b.id,
         is_urban: b.is_urban,
         district: dName,
@@ -1203,7 +1203,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
        }
     });
 
-    let bq = supabase.from('blocks').select('id, name, is_urban, district_id, districts!inner(name, state_id)').eq('is_active', true);
+    let bq = supabase.from('blocks').select('id, name, health_block_name, is_urban, district_id, districts!inner(name, state_id)').eq('is_active', true);
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
     const allBlocks = (await bq).data || [];
 
@@ -1212,7 +1212,7 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     const blockUtilization = allBlocks.map(b => {
       const bId = b.id;
       const stat = blockStats[bId] || { vaccinated: 0, received: 0, deltaVaccinated: 0 };
-      const blkName = b.name || 'Unknown';
+      const blkName = b.health_block_name || b.name || 'Unknown';
       const distName = b.districts?.name || 'Unknown';
       const utilPct = stat.received > 0 ? (stat.vaccinated / stat.received) * 100 : 0;
       
