@@ -553,10 +553,15 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
       if (user?.districts) districtName = user.districts.name;
       
       if (user?.role === 'VACCINE_MANAGER' && user?.ccl_id) {
-        const { data: ccp } = await supabase.from('vaccine_ccp').select('facility_name, unit_level').eq('ccl_id', user.ccl_id).maybeSingle();
+        const { data: ccp } = await supabase.from('vaccine_ccp').select('facility_name, unit_level, district_id').eq('ccl_id', user.ccl_id).maybeSingle();
         if (ccp) {
           cclFacilityName = ccp.facility_name;
           cclUnitLevel = ccp.unit_level;
+          if (!user.district_id && ccp.district_id) {
+            user.district_id = ccp.district_id;
+            const { data: dData } = await supabase.from('districts').select('name').eq('id', ccp.district_id).maybeSingle();
+            if (dData) districtName = dData.name;
+          }
         }
       }
     } else {
@@ -1326,6 +1331,11 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
     if (state_id) query = query.eq('state_id', state_id);
     if (district_id) query = query.eq('district_id', district_id);
 
+    // Enforce district lock if user is restricted
+    if (req.user.district_id) {
+       query = query.eq('district_id', req.user.district_id);
+    }
+
     const { data, error } = await query;
     if (error) throw error;
     
@@ -1341,7 +1351,7 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
       
       return {
         ...f,
-        display_name: locationPrefix ? `${locationPrefix} - ${f.facility_name}` : f.facility_name
+        display_name: (locationPrefix ? `${locationPrefix} - ${f.facility_name}` : f.facility_name) + (f.ccl_block_hq_yes === 'Y' ? ' - HQ' : '')
       };
     });
 

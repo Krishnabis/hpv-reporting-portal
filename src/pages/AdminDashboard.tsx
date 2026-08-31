@@ -1233,7 +1233,11 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
+                        {adminUser?.role === 'VACCINE_MANAGER' ? (
+                          String(adminUser.unit_level) === '2'
+                            ? <span> - {adminUser.district_name || 'District'} District Vaccine Store</span>
+                            : <span> - {adminUser.ccl_facility_name || 'State/Divisional Vaccine Store'}</span>
+                        ) : adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
                           ? <span> - {adminUser.district_name || 'District'} Admin</span>
                           : <span> - State Admin</span>
                         }
@@ -1697,7 +1701,11 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
+                        {adminUser?.role === 'VACCINE_MANAGER' ? (
+                          String(adminUser.unit_level) === '2'
+                            ? <span> - {adminUser.district_name || 'District'} District Vaccine Store</span>
+                            : <span> - {adminUser.ccl_facility_name || 'State/Divisional Vaccine Store'}</span>
+                        ) : adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
                           ? <span> - {adminUser.district_name || 'District'} Admin</span>
                           : <span> - State Admin</span>
                         }
