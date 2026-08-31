@@ -340,7 +340,7 @@ app.post('/api/blocks/reset-passcode', async (req, res) => {
 app.get('/api/blocks/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    let block, profile, todayReport, lastReport;
+    let block, profile, todayReport, lastReport, latestMonthlyReport;
 
     if (useSupabase) {
       const { data: blockData, error: bErr } = await supabase
@@ -375,6 +375,15 @@ app.get('/api/blocks/:id', async (req, res) => {
         .limit(1)
         .maybeSingle();
       lastReport = lastData || null;
+
+      const { data: monthlyData } = await supabase
+        .from('monthly_due_list_reports')
+        .select('*')
+        .eq('block_id', id)
+        .order('reporting_month', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      latestMonthlyReport = monthlyData || null;
     } else {
       // JSON fallback
       const b = store.blocks.find(x => x.id === Number(id));
@@ -387,6 +396,9 @@ app.get('/api/blocks/:id', async (req, res) => {
       todayReport = store.daily_reports.find(r => r.block_id === Number(id) && r.reporting_date === todayStr) || null;
       const reps = store.daily_reports.filter(r => r.block_id === Number(id)).sort((a, b) => b.reporting_date.localeCompare(a.reporting_date));
       lastReport = reps[0] || null;
+      
+      const mReps = (store.monthly_due_list_reports || []).filter(r => r.block_id === Number(id)).sort((a, b) => b.reporting_month.localeCompare(a.reporting_month));
+      latestMonthlyReport = mReps[0] || null;
     }
 
     const hpvTarget = profile ? Math.round(profile.base_population * 0.01) : 0;
@@ -396,7 +408,8 @@ app.get('/api/blocks/:id', async (req, res) => {
       profile: profile ? { ...profile, current_population: profile.base_population, current_hpv_target: hpvTarget } : null,
       today_submitted: Boolean(todayReport),
       today_report: todayReport || null,
-      last_report: lastReport || null
+      last_report: lastReport || null,
+      latest_monthly_report: latestMonthlyReport || null
     });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
@@ -492,14 +505,20 @@ app.post('/api/reports/block/:id', async (req, res) => {
     const reportId = `rep-${id}-${reporting_date}`;
 
     if (useSupabase) {
+      const { data: lastRep } = await supabase.from('daily_reports').select('line_list_count').eq('block_id', Number(id)).order('reporting_date', { ascending: false }).limit(1).maybeSingle();
+      const prevLineList = lastRep ? lastRep.line_list_count : 0;
+
       const { error } = await supabase.from('daily_reports').upsert(
-        [{ id: reportId, block_id: Number(id), reporting_date, sessions_held: Number(sessions_held), beneficiaries_vaccinated: Number(beneficiaries_vaccinated), submitted_by: submitted_by || 'Block Operator' }],
+        [{ id: reportId, block_id: Number(id), reporting_date, sessions_held: Number(sessions_held), beneficiaries_vaccinated: Number(beneficiaries_vaccinated), line_list_count: prevLineList, submitted_by: submitted_by || 'Block Operator' }],
         { onConflict: 'block_id,reporting_date', ignoreDuplicates: false }
       );
       if (error) throw error;
     } else {
       const idx = store.daily_reports.findIndex(r => r.block_id === Number(id) && r.reporting_date === reporting_date);
-      const rec = { id: reportId, block_id: Number(id), reporting_date, sessions_held: Number(sessions_held), beneficiaries_vaccinated: Number(beneficiaries_vaccinated), submitted_by: submitted_by || 'Block Operator', submitted_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      const reps = store.daily_reports.filter(r => r.block_id === Number(id)).sort((a, b) => b.reporting_date.localeCompare(a.reporting_date));
+      const prevLineList = reps.length > 0 ? reps[0].line_list_count : 0;
+
+      const rec = { id: reportId, block_id: Number(id), reporting_date, sessions_held: Number(sessions_held), beneficiaries_vaccinated: Number(beneficiaries_vaccinated), line_list_count: prevLineList, submitted_by: submitted_by || 'Block Operator', submitted_at: new Date().toISOString(), updated_at: new Date().toISOString() };
       if (idx >= 0) store.daily_reports[idx] = rec; else store.daily_reports.push(rec);
       saveStore();
     }

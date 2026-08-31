@@ -8,7 +8,7 @@ import { BlockShell, useBlock } from '../components/BlockShell';
 import { useSearchParams } from 'react-router-dom';
 
 const BlockReportingContent: React.FC = () => {
-  const { blockId, profile, todaySubmitted, lastReport, refetch } = useBlock();
+  const { blockId, profile, todaySubmitted, lastReport, latestMonthlyReport, refetch } = useBlock();
 
   const [reportingDate, setReportingDate] = useState(new Date().toISOString().split('T')[0]);
   const [sessionsHeldInput, setSessionsHeldInput] = useState('');
@@ -37,6 +37,7 @@ const BlockReportingContent: React.FC = () => {
   const target = profile ? Math.round(profile.base_population * 0.01) : 0;
   const lastVaccinated = lastReport?.beneficiaries_vaccinated || 0;
   const lastSessions = lastReport?.sessions_held || 0;
+  const lineListedCount = latestMonthlyReport?.total_eligible_girls ?? (lastReport as any)?.line_list_count ?? 0;
   const vaccinationsPerSession = lastSessions > 0 ? (lastVaccinated / lastSessions).toFixed(1) : '—';
 
   const formatDateStr = (dateStr: string) => {
@@ -284,8 +285,8 @@ const BlockReportingContent: React.FC = () => {
                 <span className="text-[9px] uppercase font-bold text-sky-600 leading-tight">Eligible Girls Line Listed</span>
                 <InfoTooltip id="line-listed" text="Eligible Girls Line-Listed: Number of eligible girls identified and registered by ASHAs through house-to-house visits, as reported in the Monthly Due List Report, expressed as a percentage of the Annual HPV Vaccination Target." />
               </div>
-              <span className="text-2xl font-extrabold font-mono text-sky-700">—</span>
-              <span className="text-[9px] font-bold text-sky-700/70 mt-0.5">From Monthly Report</span>
+              <span className="text-2xl font-extrabold font-mono text-sky-700">{target > 0 ? Math.round((lineListedCount / target) * 100) : 0}%</span>
+              <span className="text-[9px] font-bold text-sky-700/70 mt-0.5">Count ({lineListedCount.toLocaleString('en-IN')}) {latestMonthlyReport ? 'From Monthly' : 'From Daily'}</span>
             </div>
             {/* Vaccinated */}
             <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">

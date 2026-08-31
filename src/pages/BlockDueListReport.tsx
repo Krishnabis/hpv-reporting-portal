@@ -48,7 +48,7 @@ const Field: React.FC<{ label: string; value: string; onChange: (v: string) => v
 };
 
 const DueListContent: React.FC = () => {
-  const { blockId } = useBlock();
+  const { blockId, lastReport } = useBlock();
   const [pastReports, setPastReports] = useState<PastReport[]>([]);
   const [viewingReport, setViewingReport] = useState<FullReport | null>(null);
   const [loadingPast, setLoadingPast] = useState(false);
@@ -139,6 +139,14 @@ const DueListContent: React.FC = () => {
 
   const handleSubmit = async () => {
     setSubmitting(true); setSubmitError(''); setSubmitSuccess('');
+    
+    const totalDailyVaccinated = lastReport?.beneficiaries_vaccinated || 0;
+    if (Number(totalEligibleGirls) < totalDailyVaccinated) {
+      setSubmitError(`Line Listed Eligible Girls (${Number(totalEligibleGirls)}) cannot be less than Total Vaccinated Girls in daily reports (${totalDailyVaccinated}).`);
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/due-list/${blockId}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

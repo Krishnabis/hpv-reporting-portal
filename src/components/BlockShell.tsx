@@ -54,6 +54,7 @@ export interface BlockContextValue {
   profile: ProfileData | null;
   todaySubmitted: boolean;
   lastReport: ReportData | null;
+  latestMonthlyReport: any | null;
   loading: boolean;
   refetch: () => void;
 }
@@ -66,6 +67,7 @@ export const BlockContext = createContext<BlockContextValue>({
   profile: null,
   todaySubmitted: false,
   lastReport: null,
+  latestMonthlyReport: null,
   loading: true,
   refetch: () => {}
 });
@@ -101,6 +103,7 @@ export const BlockShell: React.FC<BlockShellProps> = ({ currentPage, children })
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [todaySubmitted, setTodaySubmitted] = useState(false);
   const [lastReport, setLastReport] = useState<ReportData | null>(null);
+  const [latestMonthlyReport, setLatestMonthlyReport] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   // UI state
@@ -135,10 +138,11 @@ export const BlockShell: React.FC<BlockShellProps> = ({ currentPage, children })
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
-        const { block: b, profile: p, lastReport: lr } = JSON.parse(cached);
+        const { block: b, profile: p, lastReport: lr, latestMonthlyReport: lmr } = JSON.parse(cached);
         setBlock(b);
         setProfile(p);
         setLastReport(lr);
+        if (lmr !== undefined) setLatestMonthlyReport(lmr);
         setLoading(false); // show cached data right away
       }
     } catch { /* ignore */ }
@@ -154,13 +158,15 @@ export const BlockShell: React.FC<BlockShellProps> = ({ currentPage, children })
         setProfile(data.profile);
         setTodaySubmitted(data.today_submitted);
         setLastReport(data.last_report);
+        setLatestMonthlyReport(data.latest_monthly_report);
         setLoading(false);
         // Write fresh data to cache
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify({
             block: data.block,
             profile: data.profile,
-            lastReport: data.last_report
+            lastReport: data.last_report,
+            latestMonthlyReport: data.latest_monthly_report
           }));
         } catch { /* ignore */ }
       })
@@ -219,6 +225,7 @@ export const BlockShell: React.FC<BlockShellProps> = ({ currentPage, children })
     profile,
     todaySubmitted,
     lastReport,
+    latestMonthlyReport,
     loading,
     refetch: fetchBlock
   };

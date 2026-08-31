@@ -247,6 +247,21 @@ export const AdminDashboard: React.FC = () => {
   const [newAdminStateId, setNewAdminStateId] = useState('');
   const [newAdminDistrictId, setNewAdminDistrictId] = useState('');
   const [newAdminCclId, setNewAdminCclId] = useState('');
+  const [managerFacilities, setManagerFacilities] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (newAdminRole === 'VACCINE_MANAGER' && newAdminStateId) {
+      const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+      Promise.all([
+        fetch(`/api/vaccine/facilities?unit_level=1`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+        fetch(`/api/vaccine/facilities?unit_level=2`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
+      ]).then(([l1, l2]) => {
+        setManagerFacilities([...(Array.isArray(l1) ? l1 : []), ...(Array.isArray(l2) ? l2 : [])]);
+      }).catch(err => console.error(err));
+    } else {
+      setManagerFacilities([]);
+    }
+  }, [newAdminRole, newAdminStateId]);
   const [addAdminMsg, setAddAdminMsg] = useState('');
   const [addAdminLoading, setAddAdminLoading] = useState(false);
 
@@ -2838,9 +2853,9 @@ export const AdminDashboard: React.FC = () => {
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Facility *</label>
                     <select value={newAdminCclId} onChange={e => setNewAdminCclId(e.target.value)} required
                       className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600 disabled:opacity-50">
-                      <option value="">{newAdminStateId ? 'Select Facility' : 'Select State first'}</option>
-                      {newAdminStateId && cclList.filter(c => String(c.state_id) === String(newAdminStateId) && (String(c.unit_level) === '1' || String(c.unit_level) === '2')).map(c => (
-                        <option key={c.ccl_id} value={c.ccl_id}>{c.facility_name} {c.districts?.name ? '- ' + c.districts.name : ''}</option>
+                      <option value="">Select Facility</option>
+                      {managerFacilities.filter(c => !c.state_id || String(c.state_id) === String(newAdminStateId)).map(c => (
+                        <option key={c.ccl_id || c.id} value={c.ccl_id || c.id}>{c.display_name || c.facility_name || c.ccl_name || c.ccl_id || 'Unnamed Facility'}</option>
                       ))}
                     </select>
                   </div>
