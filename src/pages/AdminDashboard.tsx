@@ -929,6 +929,16 @@ export const AdminDashboard: React.FC = () => {
                     <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Trend</span>
                   </button>
+
+                  {/* Daily Progress Report */}
+                  <a
+                    href="/admin/daily-report"
+                    title="Daily Progress Report"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all text-slate-600 hover:bg-slate-100 hover:text-slate-900`}
+                  >
+                    <BarChart3 className="w-4 h-4 shrink-0 text-slate-400" />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Daily Progress</span>
+                  </a>
                 </div>
               )}
             </div>
