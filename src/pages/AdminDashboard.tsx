@@ -68,7 +68,7 @@ interface ReportRow {
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'vaccine-management' | 'stock-receiving' | 'stock-issuing' | 'month-end-balance' | 'monthly-report' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity' | 'ccl-management'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'vaccine-management' | 'stock-receiving' | 'stock-issuing' | 'month-end-balance' | 'monthly-report' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity' | 'ccl-management'>((sessionStorage.getItem('hpv_admin_active_tab') as any) || 'dashboard');
   
 
   const [usersOpen, setUsersOpen] = useState(false);
@@ -342,6 +342,26 @@ export const AdminDashboard: React.FC = () => {
     fetchReport();
     fetchAlertCount();
   }, [navigate]);
+
+  // Load active tab data on initial load
+  useEffect(() => {
+    if (adminUser) {
+      const tab = activeTab;
+      if (tab === 'users' || tab === 'activity') setUsersOpen(true);
+      if (tab === 'upload' || tab === 'settings' || tab === 'ccl-management') setSettingsOpen(true);
+      if (tab === 'reports' || tab === 'trend') setAnalyticsOpen(true);
+      if (tab === 'locations') fetchMasterLocations();
+      if (tab === 'users') fetchAdminUsers();
+      if (tab === 'audit') fetchAuditLogs();
+      if (tab === 'activity') fetchActivityData();
+      if (tab === 'vaccine-management') fetchVaccineDashboard();
+      if (tab === 'stock-receiving') { fetchStockHistory(); fetchBatches(); }
+      if (tab === 'stock-issuing') { fetchVaccFacilities(adminUser.district_id ? 3 : 2); fetchStockHistory(); fetchBatches(adminUser.district_id ? '2' : '1'); }
+      if (tab === 'month-end-balance') { fetchStockHistory(); fetchBatches(adminUser.district_id ? '2' : '1'); }
+      if (tab === 'monthly-report') { fetchBatches('3'); }
+      if (tab === 'ccl-management') fetchCclList();
+    }
+  }, [adminUser]);
 
   const fetchAlertCount = () => {
     fetch(`/api/admin/population?state_id=${dashboardStateId}`, {
@@ -711,6 +731,7 @@ export const AdminDashboard: React.FC = () => {
 
   const handleTabChange = (tab: any) => {
     setActiveTab(tab);
+    sessionStorage.setItem('hpv_admin_active_tab', tab);
     setMobileMenuOpen(false);
     setStockMsg(null);
 
