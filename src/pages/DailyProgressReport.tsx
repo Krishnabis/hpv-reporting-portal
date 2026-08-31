@@ -4,8 +4,8 @@ import {
   ChevronLeft, ChevronRight, Activity, Target, Users,
   Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart
 } from 'lucide-react';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Logo } from '../components/Logo';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -205,59 +205,113 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
   const handleGenerate = () => generateReport();
 
   const handleSavePDF = async () => {
-    if (!reportRef.current) return;
-    setIsSavingImg(true); // Triggers paginated to show ALL rows and the PDF header
-
-    // Wait for React to render the full non-paginated table and header
-    await new Promise(resolve => setTimeout(resolve, 400));
-
+    setIsSavingImg(true);
     try {
-      const container = reportRef.current;
-      
-      // Temporarily remove CSS restrictions that cause scrolling/clipping
-      const restrictors = container.querySelectorAll('.flex-1, .min-h-0, .overflow-hidden, .overflow-auto');
-      const originalStyles = new Map();
-      restrictors.forEach((el, idx) => {
-        originalStyles.set(idx, el.getAttribute('style') || '');
-        el.setAttribute('style', `${originalStyles.get(idx)}; overflow: visible !important; min-height: max-content !important; height: auto !important; flex: none !important;`);
-      });
-      const origRefStyle = container.getAttribute('style') || '';
-      container.setAttribute('style', `${origRefStyle}; overflow: visible !important; height: auto !important; min-height: max-content !important; padding: 20px !important;`);
-
-      const canvas = await html2canvas(container, { 
-        scale: 2, 
-        useCORS: true, 
-        backgroundColor: '#ffffff',
-        windowWidth: container.scrollWidth,
-        windowHeight: container.scrollHeight
-      });
-
-      // Revert styles
-      restrictors.forEach((el, idx) => {
-        el.setAttribute('style', originalStyles.get(idx));
-      });
-      container.setAttribute('style', origRefStyle);
-
-      const imgData = canvas.toDataURL('image/png');
-      
       const pdf = new jsPDF('l', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      const pageHeight = pdf.internal.pageSize.getHeight();
       
-      let heightLeft = pdfHeight;
-      let position = 0;
-      
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-      
-      while (heightLeft > 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
+      // Attempt to load and add logo
+      try {
+        const logoImg = new Image();
+        logoImg.src = '/headinglogo.png';
+        await new Promise((resolve, reject) => {
+          logoImg.onload = resolve;
+          logoImg.onerror = reject;
+        });
+        pdf.addImage(logoImg, 'PNG', 14, 10, 40, 15);
+      } catch (e) {
+        console.warn('Could not load headinglogo.png for PDF');
       }
+
+      // PDF Header text
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('HPV KAVACH', 14, 35);
       
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Daily Progress Report', 14, 42);
+      
+      pdf.setFontSize(10);
+      pdf.setTextColor(100);
+      pdf.text(`Report Date: ${fmtDate(filterDate)}`, 14, 48);
+      pdf.text(`Generated On: ${new Date().toLocaleString('en-IN')}`, 14, 53);
+      
+      const head = [[
+        `Reporting Unit (${filterLevel === 'Division' ? 'District' : 'Block'})`,
+        'Last Reported',
+        'Population',
+        'HPV Goal',
+        'Sess. Today',
+        'Vacc. Today',
+        'Sess. Cumul.',
+        'Vacc. Cumul.',
+        'Vacc/Sess',
+        'Goal %',
+        'Rank'
+      ]];
+
+      const body = filtered.map(row => [
+        row.name + (row.is_urban ? ' (Urban)' : ''),
+        row.has_report ? fmtDate(row.last_reporting_date) : '—',
+        fmt(row.population),
+        fmt(row.hpv_target),
+        row.sessions_held_today !== null ? fmt(row.sessions_held_today) : '—',
+        row.vaccinated_today !== null ? fmt(row.vaccinated_today) : '—',
+        row.sessions_held_cumulative !== null ? fmt(row.sessions_held_cumulative) : '—',
+        row.beneficiaries_vaccinated !== null ? fmt(row.beneficiaries_vaccinated) : '—',
+        row.vaccinations_per_session !== null ? fmt(row.vaccinations_per_session, 2) : '—',
+        row.vaccination_coverage_pct != null ? `${fmt(row.vaccination_coverage_pct, 1)}%` : '—',
+        (row as any).rank ?? '-'
+      ]);
+
+      // Add totals row
+      if (filtered.length > 0) {
+        body.push([
+          `TOTAL (${filtered.length})`,
+          '—',
+          fmt(kpis.totalPop),
+          fmt(kpis.totalTarget),
+          fmt(kpis.totalSessionsToday),
+          fmt(kpis.totalVaccToday),
+          fmt(kpis.totalSessionsCumm),
+          fmt(kpis.totalVaccCumm),
+          '—',
+          kpis.totalTarget > 0 ? `${fmt((kpis.totalVaccCumm / kpis.totalTarget) * 100, 1)}%` : '—',
+          '—'
+        ]);
+      }
+
+      autoTable(pdf, {
+        startY: 60,
+        head,
+        body,
+        theme: 'grid',
+        headStyles: { fillColor: [44, 24, 76], textColor: 255, fontSize: 8, fontStyle: 'bold', halign: 'center' },
+        bodyStyles: { fontSize: 8, textColor: 50 },
+        alternateRowStyles: { fillColor: [250, 250, 250] },
+        columnStyles: {
+          0: { fontStyle: 'bold', textColor: [30, 41, 59] }, // Name
+          1: { halign: 'center' },
+          2: { halign: 'right' },
+          3: { halign: 'right', textColor: [16, 185, 129] }, // Goal
+          4: { halign: 'right', textColor: [234, 88, 12] }, // Sess Today
+          5: { halign: 'right', textColor: [37, 99, 235] }, // Vacc Today
+          6: { halign: 'right', textColor: [234, 88, 12] }, // Sess Cumul
+          7: { halign: 'right', textColor: [37, 99, 235] }, // Vacc Cumul
+          8: { halign: 'right', textColor: [15, 118, 110] }, // Vacc/Sess
+          9: { halign: 'center', fontStyle: 'bold' }, // Coverage
+          10: { halign: 'center', fontStyle: 'bold' } // Rank
+        },
+        willDrawCell: (data) => {
+          if (data.row.index === body.length - 1 && filtered.length > 0) {
+            // Make the totals row bold
+            pdf.setFont('helvetica', 'bold');
+            if (data.column.index === 0) pdf.setFillColor(245, 243, 255); // faint purple
+          }
+        },
+        margin: { top: 60 }
+      });
+
       pdf.save(`HPV_Report_${filterDate}.pdf`);
     } catch (err) { console.error('Failed to save PDF', err); }
     setIsSavingImg(false);
