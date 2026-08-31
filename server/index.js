@@ -1749,11 +1749,14 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
     const profileMap = {};
     (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
 
-    // Cumulative: latest report per block up to date
+    // Cumulative: latest and previous reports per block
     const reportsMap = {};
+    const prevReportsMap = {};
     (reports || []).forEach(r => { 
       if (!reportsMap[r.block_id]) {
         reportsMap[r.block_id] = r; 
+      } else if (!prevReportsMap[r.block_id]) {
+        prevReportsMap[r.block_id] = r;
       }
     });
 
@@ -1764,12 +1767,16 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
     // Map to block-level data
     const blockData = blocks.map(b => {
       const rep = reportsMap[b.id];
+      const prevRep = prevReportsMap[b.id];
       const todayRep = todayMap[b.id];
       const prof = profileMap[b.id];
       const pop = prof?.base_population || 0;
       // hpv_target from blocks table directly; fallback to profile initial_hpv_target or 1% pop
       const target = b.hpv_target || prof?.initial_hpv_target || (pop > 0 ? Math.round(pop * 0.01) : 0);
       
+      const sessToday = todayRep ? (todayRep.sessions_held - (prevRep ? prevRep.sessions_held : 0)) : 0;
+      const vaccToday = todayRep ? (todayRep.beneficiaries_vaccinated - (prevRep ? prevRep.beneficiaries_vaccinated : 0)) : 0;
+
       return {
         id: b.id,
         name: b.health_block_name || b.name,
@@ -1784,8 +1791,8 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
         line_list_received: rep ? (rep.line_list_count || 0) : 0,
         beneficiaries_vaccinated: rep ? (rep.beneficiaries_vaccinated || 0) : 0,
         sessions_held_cumulative: rep ? (rep.sessions_held || 0) : 0,
-        sessions_held_today: todayRep ? (todayRep.sessions_held || 0) : 0,
-        vaccinated_today: todayRep ? (todayRep.beneficiaries_vaccinated || 0) : 0,
+        sessions_held_today: sessToday > 0 ? sessToday : 0,
+        vaccinated_today: vaccToday > 0 ? vaccToday : 0,
         has_report: !!rep,
         has_today_report: !!todayRep
       };
@@ -1891,8 +1898,14 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
         if (b.has_report) {
           stateObj.line_list_received += b.line_list_received;
           stateObj.beneficiaries_vaccinated += b.beneficiaries_vaccinated;
+          stateObj.sessions_held_cumulative += b.sessions_held_cumulative;
           stateObj.has_report = true;
           stateObj.last_reporting_date = reportDate;
+        }
+        if (b.has_today_report) {
+          stateObj.sessions_held_today += b.sessions_held_today;
+          stateObj.vaccinated_today += b.vaccinated_today;
+          stateObj.has_today_report = true;
         }
       });
       finalRows = [stateObj];
@@ -1913,6 +1926,9 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
           : null,
         vaccination_coverage_pct: r.has_report && tgt > 0
           ? parseFloat(((r.beneficiaries_vaccinated / tgt) * 100).toFixed(1))
+          : null,
+        vaccinations_per_session: r.has_report && r.sessions_held_cumulative > 0
+          ? parseFloat((r.beneficiaries_vaccinated / r.sessions_held_cumulative).toFixed(2))
           : null
       };
     });
