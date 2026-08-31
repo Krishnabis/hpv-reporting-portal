@@ -355,7 +355,7 @@ export const AdminDashboard: React.FC = () => {
       if (tab === 'audit') fetchAuditLogs();
       if (tab === 'activity') fetchActivityData();
       if (tab === 'vaccine-management') fetchVaccineDashboard();
-      const isLvl2 = adminUser.district_id || String(adminUser.unit_level) === '2';
+      const isLvl2 = adminUser.district_id || String(adminUser.ccl_unit_level) === '2';
       if (tab === 'stock-receiving') { fetchStockHistory(); fetchBatches(); }
       if (tab === 'stock-issuing') { fetchVaccFacilities(isLvl2 ? 3 : 2); fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
       if (tab === 'month-end-balance') { fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
@@ -744,7 +744,7 @@ export const AdminDashboard: React.FC = () => {
     if (tab === 'audit') fetchAuditLogs();
     if (tab === 'activity') fetchActivityData();
     if (tab === 'vaccine-management') fetchVaccineDashboard();
-    const isLvl2 = adminUser?.district_id || String(adminUser?.unit_level) === '2';
+    const isLvl2 = adminUser?.district_id || String(adminUser?.ccl_unit_level) === '2';
     if (tab === 'stock-receiving') { fetchStockHistory(); fetchBatches(); }
     if (tab === 'stock-issuing') { fetchVaccFacilities(isLvl2 ? 3 : 2); fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
     if (tab === 'month-end-balance') { fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
@@ -1024,7 +1024,7 @@ export const AdminDashboard: React.FC = () => {
               {(reportingOpen || sidebarCollapsed) && (
                 <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
                   {/* Stock Receiving (Hidden for District Admins and Block Admins, but visible to Vaccine Manager unless level 2) */}
-                  {((['SUPER_ADMIN', 'STATE_ADMIN'].includes(adminUser?.role) || (adminUser?.role === 'ADMIN' && !adminUser?.district_id)) || (adminUser?.role === 'VACCINE_MANAGER' && String(adminUser?.unit_level) !== '2')) && (
+                  {((['SUPER_ADMIN', 'STATE_ADMIN'].includes(adminUser?.role) || (adminUser?.role === 'ADMIN' && !adminUser?.district_id)) || (adminUser?.role === 'VACCINE_MANAGER' && String(adminUser?.ccl_unit_level) !== '2')) && (
                     <button
                       onClick={() => handleTabChange('stock-receiving')}
                       title="Stock Receiving"
@@ -1233,11 +1233,7 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.role === 'VACCINE_MANAGER' ? (
-                          String(adminUser.unit_level) === '2'
-                            ? <span> - {adminUser.district_name || 'District'} District Vaccine Store</span>
-                            : <span> - {adminUser.ccl_facility_name || 'State/Divisional Vaccine Store'}</span>
-                        ) : adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
+                        {adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
                           ? <span> - {adminUser.district_name || 'District'} Admin</span>
                           : <span> - State Admin</span>
                         }
@@ -1701,11 +1697,7 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.role === 'VACCINE_MANAGER' ? (
-                          String(adminUser.unit_level) === '2'
-                            ? <span> - {adminUser.district_name || 'District'} District Vaccine Store</span>
-                            : <span> - {adminUser.ccl_facility_name || 'State/Divisional Vaccine Store'}</span>
-                        ) : adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
+                        {adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
                           ? <span> - {adminUser.district_name || 'District'} Admin</span>
                           : <span> - State Admin</span>
                         }
@@ -2260,7 +2252,7 @@ export const AdminDashboard: React.FC = () => {
                     setStockMsg({ type: 'success', text: `Successfully issued ${Number(stockQty).toLocaleString('en-IN')} doses for batch ${issueBatchNo}` });
                     setStockQty(''); setIssueFacilityId(''); setStockRemarks(''); setIssueBatchNo(''); 
                     fetchStockHistory();
-                    fetchBatches(adminUser?.district_id || String(adminUser?.unit_level) === '2' ? '2' : '1');
+                    fetchBatches(adminUser?.district_id || String(adminUser?.ccl_unit_level) === '2' ? '2' : '1');
                   } catch (err: any) { setStockMsg({ type: 'error', text: err.message }); }
                   setStockLoading(false);
                 }}
