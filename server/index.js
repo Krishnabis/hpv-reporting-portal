@@ -2853,7 +2853,6 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
            continue;
         }
 
-        
         const destCcp = allCcps?.find(c => c.ccl_id === row['Destination CCL ID']);
         const sId = destCcp?.state_id || req.user.state_id || 5;
         const dId = destCcp?.district_id || null;
@@ -2862,43 +2861,31 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
           vaccine_type: 'HPV Vaccine',
           transaction_type: 'RECEIVED',
           transaction_date: row['Date (YYYY-MM-DD)'] || row['Date'],
-          qty_doses: Number(row['Quantity']) || 0,
+          quantity_doses: Number(row['Quantity']) || 0,
           batch_no: row['Batch No'],
           batch_expiry_date: row['Batch Expiry'] || null,
           manufacture_name: row['Manufacturer'] || null,
-          vvm_status: row['VVM Status'] || null,
+          level: row['Destination Level'] || '1',
+          destination_level: row['Destination Level'] || '1',
           source_level: row['Source Level'] || null,
           source_ccl_id: row['Source CCL ID'] || null,
           source_ccl_name: row['Source CCL Name'] || null,
-          destination_level: row['Destination Level'] || '1',
           destination_ccl_id: row['Destination CCL ID'] || null,
           destination_ccl_name: row['Destination CCL Name'] || null,
           remarks: row['Remarks'] || null,
           created_by: getValidUuid(req.user.id),
           state_id: sId,
-          district_id: dId,
-          block_id: srcCcp?.block_id || null,
-          facility_id: srcCcp?.id || null
+          district_id: dId
         });
-   
       }
 
       if (toInsert.length > 0) {
-        // Map fields for vaccine_stock_transactions
-        const txToInsert = toInsert.map(item => ({
-            ...item,
-            quantity_doses: item.qty_doses,
-            level: item.destination_level
-        }));
-        // Remove qty_doses to match schema if it doesn't exist
-        txToInsert.forEach(t => delete t.qty_doses);
-        
-        const { error } = await supabase.from('vaccine_stock_transactions').insert(txToInsert);
+        const { error } = await supabase.from('vaccine_stock_transactions').insert(toInsert);
         if (error) {
           errors.push(`Error inserting batch: ${error.message}`);
         } else {
-          successCount += txToInsert.length;
-          details.push(`Inserted ${txToInsert.length} receive transactions`);
+          successCount += toInsert.length;
+          details.push(`Inserted ${toInsert.length} receive transactions`);
         }
       }
     }
@@ -2924,7 +2911,6 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
       const chunk = data.slice(i, i + CHUNK_SIZE);
       const toInsertIssue = [];
       const toInsertReceive = [];
-      const batchUpdates = [];
 
       for (const row of chunk) {
         if (!row['Batch No'] || !row['Quantity'] || (!row['Date (YYYY-MM-DD)'] && !row['Date'])) {
@@ -2935,7 +2921,6 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
         let qty = Number(row['Quantity']) || 0;
         let batch_no = row['Batch No'];
         
-        
         const srcCcp = allCcps?.find(c => c.ccl_id === row['Source CCL ID']);
         const sId = srcCcp?.state_id || req.user.state_id || 5;
         const dId = srcCcp?.district_id || null;
@@ -2944,9 +2929,10 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           vaccine_type: 'HPV Vaccine',
           transaction_type: 'ISSUED',
           transaction_date: row['Date (YYYY-MM-DD)'] || row['Date'],
-          qty_doses: qty,
+          quantity_doses: qty,
           batch_no: batch_no,
           manufacture_name: row['Manufacturer'] || null,
+          level: row['Source Level'] || '1',
           source_level: row['Source Level'] || '1',
           source_ccl_id: row['Source CCL ID'] || null,
           source_ccl_name: row['Source CCL Name'] || null,
@@ -2956,12 +2942,8 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           remarks: row['Remarks'] || null,
           created_by: getValidUuid(req.user.id),
           state_id: sId,
-          district_id: dId,
-          block_id: srcCcp?.block_id || null,
-          facility_id: srcCcp?.id || null
+          district_id: dId
         });
-   
-        
         
         const destCcp = allCcps?.find(c => c.ccl_id === row['Destination CCL ID']);
         const dsId = destCcp?.state_id || req.user.state_id || 5;
@@ -2971,9 +2953,10 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           vaccine_type: 'HPV Vaccine',
           transaction_type: 'RECEIVED',
           transaction_date: row['Date (YYYY-MM-DD)'] || row['Date'],
-          qty_doses: qty,
+          quantity_doses: qty,
           batch_no: batch_no,
           manufacture_name: row['Manufacturer'] || null,
+          level: row['Destination Level'] || null,
           source_level: row['Source Level'] || '1',
           source_ccl_id: row['Source CCL ID'] || null,
           source_ccl_name: row['Source CCL Name'] || null,
@@ -2983,35 +2966,16 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           remarks: row['Remarks'] || null,
           created_by: getValidUuid(req.user.id),
           state_id: dsId,
-          district_id: ddId,
-          block_id: destCcp?.block_id || null,
-          facility_id: destCcp?.id || null
-        });
-   
-        
-        batchUpdates.push({
-           batch_no, 
-           mfg: row['Manufacturer'], 
-           dest: row['Destination Level'], 
-           src: row['Source Level'], 
-           qty,
-           source_ccl_id: row['Source CCL ID'] || null,
-           destination_ccl_id: row['Destination CCL ID'] || null
+          district_id: ddId
         });
       }
 
       if (toInsertIssue.length > 0) {
-        const issueTxToInsert = toInsertIssue.map(item => ({...item, quantity_doses: item.qty_doses, level: item.source_level}));
-        const receiveTxToInsert = toInsertReceive.map(item => ({...item, quantity_doses: item.qty_doses, level: item.destination_level}));
-        
-        issueTxToInsert.forEach(t => delete t.qty_doses);
-        receiveTxToInsert.forEach(t => delete t.qty_doses);
-        
-        const { error: err1 } = await supabase.from('vaccine_stock_transactions').insert(issueTxToInsert);
-        const { error: err2 } = await supabase.from('vaccine_stock_transactions').insert(receiveTxToInsert);
+        const { error: err1 } = await supabase.from('vaccine_stock_transactions').insert(toInsertIssue);
+        const { error: err2 } = await supabase.from('vaccine_stock_transactions').insert(toInsertReceive);
         
         if (err1 || err2) {
-          errors.push(`Error inserting batch`);
+          errors.push(`Error inserting batch: ${err1?.message || err2?.message}`);
         } else {
           successCount += toInsertIssue.length;
           details.push(`Inserted ${toInsertIssue.length} issue transactions`);
