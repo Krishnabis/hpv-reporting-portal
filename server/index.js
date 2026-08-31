@@ -37,8 +37,8 @@ async function getBatchInventory(batch_no, level, state_id, district_id, facilit
 // Helper to safely handle created_by for Supabase UUID columns
 function getValidUuid(id) {
   if (!id) return null;
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(id) ? id : null;
+  // Since admin_users.id is actually a VARCHAR (e.g. 'admin-1234'), we just return it as a string
+  return String(id);
 }
 
 const app = express();
