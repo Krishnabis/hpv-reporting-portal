@@ -246,6 +246,7 @@ export const AdminDashboard: React.FC = () => {
   const [newAdminRole, setNewAdminRole] = useState('ADMIN');
   const [newAdminStateId, setNewAdminStateId] = useState('');
   const [newAdminDistrictId, setNewAdminDistrictId] = useState('');
+  const [newAdminFacilityId, setNewAdminFacilityId] = useState('');
   const [addAdminMsg, setAddAdminMsg] = useState('');
   const [addAdminLoading, setAddAdminLoading] = useState(false);
 
@@ -2808,13 +2809,14 @@ export const AdminDashboard: React.FC = () => {
                   <select value={newAdminRole} onChange={e => setNewAdminRole(e.target.value)}
                     className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
                     <option value="ADMIN">State Admin</option>
+                    <option value="VACCINE_MANAGER">Vaccine Manager</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
                 </div>
-                {newAdminRole === 'ADMIN' && (
+                {(newAdminRole === 'ADMIN' || newAdminRole === 'VACCINE_MANAGER') && (
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State *</label>
-                    <select value={newAdminStateId} onChange={e => { setNewAdminStateId(e.target.value); setNewAdminDistrictId(''); }} required
+                    <select value={newAdminStateId} onChange={e => { setNewAdminStateId(e.target.value); setNewAdminDistrictId(''); setNewAdminFacilityId(''); }} required
                       className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
                       <option value="">Select State</option>
                       {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -2828,6 +2830,18 @@ export const AdminDashboard: React.FC = () => {
                       className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600 disabled:opacity-50">
                       <option value="">{newAdminStateId ? 'State-level only' : 'Select State first'}</option>
                       {newAdminStateId && districtsList.filter(d => String(d.state_id) === String(newAdminStateId)).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                {newAdminRole === 'VACCINE_MANAGER' && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Facility *</label>
+                    <select value={newAdminFacilityId} onChange={e => setNewAdminFacilityId(e.target.value)} required
+                      className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600 disabled:opacity-50">
+                      <option value="">{newAdminStateId ? 'Select Facility' : 'Select State first'}</option>
+                      {newAdminStateId && cclList.filter(c => String(c.state_id) === String(newAdminStateId) && (String(c.unit_level) === '1' || String(c.unit_level) === '2')).map(c => (
+                        <option key={c.id} value={c.id}>{c.facility_name} {c.districts?.name ? '- ' + c.districts.name : ''}</option>
+                      ))}
                     </select>
                   </div>
                 )}

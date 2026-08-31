@@ -426,10 +426,10 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           <KpiCard loading={loading} icon={<Users className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
-            label="Population (13–15 Yrs)" value={fmt(kpis.totalPop)} valueColor="text-purple-700" />
+            label="Total Population" value={fmt(kpis.totalPop)} valueColor="text-purple-700" />
           <KpiCard loading={loading} icon={<Target className="w-4 h-4 text-green-600" />} iconBg="bg-green-50"
-            label="Goal (0.8%)" value={fmt(kpis.totalTarget)} valueColor="text-green-700"
-            subValue={fmt(kpis.totalVaccToday)} subLabel="Today" />
+            label="Goal" value={fmt(kpis.totalTarget)} valueColor="text-green-700"
+            subLabel="0.8% of total population" />
           <KpiCard loading={loading} icon={<Syringe className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
             label="HPV Vaccinations" value={fmt(kpis.totalVaccCumm)}
             subValue={fmt(kpis.totalVaccToday)} subLabel="Today" />
