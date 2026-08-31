@@ -78,29 +78,29 @@ const KpiCard: React.FC<{
   icon: React.ReactNode; label: string; value: string;
   subLabel?: string; subValue?: string; iconBg: string; valueColor?: string; loading?: boolean;
 }> = ({ icon, label, value, subLabel, subValue, iconBg, valueColor = 'text-slate-900', loading }) => (
-  <div className="bg-white rounded-xl px-4 py-3 shadow-sm border border-slate-200 flex items-center gap-3 hover:shadow-md transition-shadow">
+  <div className="bg-white rounded-xl px-2.5 py-2 shadow-sm border border-slate-200 flex items-center gap-2 hover:shadow-md transition-shadow">
     {loading ? (
-      <div className="animate-pulse flex items-center gap-3 w-full">
-        <div className="w-12 h-12 rounded-full bg-slate-200 shrink-0" />
-        <div className="flex flex-col gap-2 w-full">
-          <div className="h-2.5 bg-slate-200 rounded w-1/2" />
-          <div className="h-5 bg-slate-200 rounded w-3/4" />
+      <div className="animate-pulse flex items-center gap-2 w-full">
+        <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0" />
+        <div className="flex flex-col gap-1 w-full">
+          <div className="h-2 bg-slate-200 rounded w-1/2" />
+          <div className="h-3 bg-slate-200 rounded w-3/4" />
         </div>
       </div>
     ) : (
       <>
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${iconBg} shrink-0 [&>svg]:w-6 [&>svg]:h-6`}>
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${iconBg} shrink-0 [&>svg]:w-4 [&>svg]:h-4`}>
           {icon}
         </div>
         <div className="flex flex-col flex-1 min-w-0">
-          <div className="text-xs font-semibold text-slate-600 truncate">{label}</div>
-          <div className={`text-lg sm:text-xl font-extrabold leading-tight mt-0.5 ${valueColor} truncate`}>{value}</div>
+          <div className="text-[9px] font-semibold text-slate-600 truncate leading-tight">{label}</div>
+          <div className={`text-[13px] font-extrabold leading-none mt-0.5 ${valueColor} truncate`}>{value}</div>
           {(subValue || subLabel) && (
             <>
-              <div className="w-full h-px bg-slate-100 my-1.5" />
-              <div className="text-[11px] font-semibold leading-none truncate">
+              <div className="w-full h-px bg-slate-100 my-1" />
+              <div className="text-[8px] font-bold leading-none truncate">
                 {subValue && <span className="text-emerald-600">{subValue}</span>}
-                {subValue && subLabel && <span className="text-slate-500 ml-1">{subLabel}</span>}
+                {subValue && subLabel && <span className="text-slate-500 ml-0.5">{subLabel}</span>}
                 {!subValue && subLabel && <span className="text-slate-400">{subLabel}</span>}
               </div>
             </>
@@ -424,7 +424,7 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-1.5">
           <KpiCard loading={loading} icon={<Users className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
             label="Total Population" value={fmt(kpis.totalPop)} valueColor="text-purple-700" />
           <KpiCard loading={loading} icon={<Target className="w-4 h-4 text-green-600" />} iconBg="bg-green-50"
