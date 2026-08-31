@@ -553,10 +553,14 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
       if (user?.districts) districtName = user.districts.name;
       
       if (user?.role === 'VACCINE_MANAGER' && user?.ccl_id) {
-        const { data: ccp } = await supabase.from('vaccine_ccp').select('facility_name, unit_level').eq('ccl_id', user.ccl_id).maybeSingle();
+        const { data: ccp } = await supabase.from('vaccine_ccp').select('facility_name, unit_level, district_id, districts(name)').eq('ccl_id', user.ccl_id).maybeSingle();
         if (ccp) {
           cclFacilityName = ccp.facility_name;
           cclUnitLevel = ccp.unit_level;
+          if (ccp.district_id) {
+            user.district_id = ccp.district_id;
+            if (ccp.districts) districtName = ccp.districts.name;
+          }
         }
       }
     } else {
@@ -1326,6 +1330,16 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
     if (state_id) query = query.eq('state_id', state_id);
     if (district_id) query = query.eq('district_id', district_id);
 
+    let effectiveDistrictId = req.user.district_id;
+    if (req.user.role === 'VACCINE_MANAGER' && req.user.ccl_id && !effectiveDistrictId) {
+       const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', req.user.ccl_id).maybeSingle();
+       if (mgrCcp && mgrCcp.district_id) effectiveDistrictId = mgrCcp.district_id;
+    }
+
+    if (effectiveDistrictId) {
+       query = query.eq('district_id', effectiveDistrictId);
+    }
+
     const { data, error } = await query;
     if (error) throw error;
     
@@ -1341,7 +1355,7 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
       
       return {
         ...f,
-        display_name: locationPrefix ? `${locationPrefix} - ${f.facility_name}` : f.facility_name
+        display_name: (locationPrefix ? `${locationPrefix} - ${f.facility_name}` : f.facility_name) + (f.ccl_block_hq_yes === 'Y' ? ' - HQ' : '')
       };
     });
 
