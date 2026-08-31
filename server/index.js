@@ -3244,6 +3244,24 @@ app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
       }
     }
     
+    // Fetch global metadata for these batches if missing
+    const batchNos = Object.keys(batchMap);
+    if (batchNos.length > 0) {
+      const { data: globalBatches } = await supabase.from('vaccine_stock_transactions')
+        .select('batch_no, batch_expiry_date, manufacture_name')
+        .in('batch_no', batchNos)
+        .not('batch_expiry_date', 'is', null);
+        
+      if (globalBatches) {
+        for (const gb of globalBatches) {
+          if (batchMap[gb.batch_no]) {
+            if (gb.batch_expiry_date) batchMap[gb.batch_no].batch_expiry_date = gb.batch_expiry_date;
+            if (gb.manufacture_name) batchMap[gb.batch_no].manufacture_name = gb.manufacture_name;
+          }
+        }
+      }
+    }
+    
     const batches = Object.values(batchMap).filter(b => b.quantity > 0);
     res.json(batches);
   } catch (err) { res.status(500).json({ error: err.message }); }
