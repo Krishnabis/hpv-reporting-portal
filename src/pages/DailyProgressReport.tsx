@@ -501,7 +501,7 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
           <div className="flex items-center gap-2">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-xs font-bold text-slate-700">
-              {filtered.length} {filterLevel}{filtered.length !== 1 ? 's' : ''}
+              {filtered.length} {filterLevel === 'Division' ? 'District' : 'Block'}{filtered.length !== 1 ? 's' : ''}
             </span>
             {reportGenerated && !loading && (
               <span className="text-[10px] text-slate-400">• {rows.filter(r => r.has_today_report).length} reported today</span>
@@ -520,7 +520,7 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
           <table className="w-full" style={{ fontSize: '11px' }}>
             <thead className="sticky top-0 z-10">
               <tr className="gradient-header text-white">
-                <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide whitespace-nowrap sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Reporting Unit</th>
+                <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide whitespace-nowrap sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Reporting Unit ({filterLevel === 'Division' ? 'District' : 'Block'})</th>
                 <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Last Reported</th>
                 <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Population</th>
                 <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">HPV Goal</th>
@@ -555,7 +555,10 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
                 const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
                 return (
                   <tr key={row.id} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
-                    <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>{row.name}</td>
+                    <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>
+                      {row.name}
+                      {row.is_urban && <span className="ml-1.5 text-[8px] font-bold text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded uppercase tracking-wider">Urban</span>}
+                    </td>
                     <td className="px-2 py-1.5 text-center">
                       {row.has_report
                         ? <span className="font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">{fmtDate(row.last_reporting_date)}</span>
