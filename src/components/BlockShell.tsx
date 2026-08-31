@@ -307,31 +307,31 @@ export const BlockShell: React.FC<BlockShellProps> = ({ currentPage, children })
               <div className="absolute top-0 right-16 p-4 opacity-[0.07] pointer-events-none">
                 <Building2 className="w-28 h-28 text-white" />
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-                <div>
-                  <p className="text-hpv-teal-light text-[10px] font-bold uppercase tracking-widest mb-0.5">HPV Vaccination Program</p>
-                  <h1 className="text-xl font-extrabold tracking-tight flex items-baseline gap-2">
+              <div className="flex flex-row items-center justify-between gap-2 relative z-10">
+                <div className="flex-1 min-w-0">
+                  <p className="text-hpv-teal-light text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-0.5 truncate">HPV Vaccination Program</p>
+                  <h1 className="text-lg sm:text-xl font-extrabold tracking-tight flex items-baseline gap-1.5 truncate">
                     {block ? (
                       <>
-                        <span>{block.name}</span>
-                        <span className="text-sm font-medium text-slate-300">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'}</span>
+                        <span className="truncate">{block.name}</span>
+                        <span className="text-[10px] sm:text-sm font-medium text-slate-300 shrink-0">{block.is_urban ? 'City (Urban)' : 'Block (Rural)'}</span>
                       </>
                     ) : (
                       <span className="w-40 h-5 bg-white/20 rounded-lg inline-block" />
                     )}
                   </h1>
                   {block ? (
-                    <p className="text-slate-300 text-xs mt-0.5">{block.district_name} District · {block.state_name}</p>
+                    <p className="text-slate-300 text-[10px] sm:text-xs mt-0.5 truncate">{block.district_name} District · {block.state_name}</p>
                   ) : (
                     <span className="w-56 h-3 bg-white/10 rounded inline-block mt-1" />
                   )}
                 </div>
                 {profile && profile.base_population > 0 && (
-                  <div className="bg-white/25 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 flex flex-col items-center justify-center shrink-0 self-start sm:self-auto">
-                    <span className="text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-1">Performance Category</span>
-                    <div className="flex items-center gap-2">
-                      <img src={`/${catImg}`} alt={catName} className="h-8 object-contain" />
-                      <span className="text-sm font-bold text-white tracking-wide">{catName}</span>
+                  <div className="bg-white/25 backdrop-blur-md border border-white/20 rounded-lg px-2 py-1.5 sm:px-4 sm:py-2 flex flex-col items-center justify-center shrink-0">
+                    <span className="text-[7px] sm:text-[8px] uppercase tracking-widest text-slate-300 font-semibold block mb-0.5 sm:mb-1">Perf. Category</span>
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <img src={`/${catImg}`} alt={catName} className="h-5 sm:h-8 object-contain" />
+                      <span className="text-[11px] sm:text-sm font-bold text-white tracking-wide">{catName}</span>
                     </div>
                   </div>
                 )}
