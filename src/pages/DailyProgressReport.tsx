@@ -127,6 +127,9 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
 
   const [sortDir, setSortDir] = useState<SortDir>('best');
   const [rankBy, setRankBy] = useState<RankBy>('vaccination_coverage_pct');
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 15;
 
   useEffect(() => {
     Promise.all([
@@ -199,6 +202,18 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
     const bestFirst = [...rows].sort((a, b) => ((a as any)[rankBy] ?? -1) - ((b as any)[rankBy] ?? -1)).reverse();
     return sortDir === 'best' ? bestFirst : [...bestFirst].reverse();
   }, [rows, rankBy, sortDir]);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return rankedRows;
+    const q = search.toLowerCase();
+    return rankedRows.filter(r => r.name.toLowerCase().includes(q));
+  }, [rankedRows, search]);
+
+  const totalPages = Math.ceil(filtered.length / rowsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return filtered.slice(start, start + rowsPerPage);
+  }, [filtered, currentPage]);
 
   const kpis = useMemo(() => {
     const totalPop = rows.reduce((s, r) => s + (r.population || 0), 0);
