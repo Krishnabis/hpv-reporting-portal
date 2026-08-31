@@ -2413,7 +2413,9 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB: DAILY PROGRESS REPORT */}
         {activeTab === 'daily-progress' && (
-          <DailyProgressReport adminUser={adminUser} />
+          <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
+            <DailyProgressReport adminUser={adminUser} />
+          </div>
         )}
 
         {/* TAB 2: REPORTS GENERATOR */}
