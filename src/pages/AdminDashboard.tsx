@@ -1233,10 +1233,16 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
-                          ? <span> - {adminUser.district_name || 'District'} Admin</span>
-                          : <span> - State Admin</span>
-                        }
+                        {adminUser?.role === 'VACCINE_MANAGER' ? (
+                          <span>
+                            {adminUser.district_name ? ` - ${adminUser.district_name}` : ''}
+                            {adminUser.ccl_facility_name ? ` - ${adminUser.ccl_facility_name}` : ''}
+                          </span>
+                        ) : adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name ? (
+                          <span> - {adminUser.district_name || 'District'} Admin</span>
+                        ) : (
+                          <span> - State Admin</span>
+                        )}
                       </span>
                     )}
                   </h1>
@@ -1697,10 +1703,16 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       <span className="text-purple-900 ml-1">
                         {adminUser?.state_name || 'Assigned State'}
-                        {adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name 
-                          ? <span> - {adminUser.district_name || 'District'} Admin</span>
-                          : <span> - State Admin</span>
-                        }
+                        {adminUser?.role === 'VACCINE_MANAGER' ? (
+                          <span>
+                            {adminUser.district_name ? ` - ${adminUser.district_name}` : ''}
+                            {adminUser.ccl_facility_name ? ` - ${adminUser.ccl_facility_name}` : ''}
+                          </span>
+                        ) : adminUser?.role === 'DISTRICT_ADMIN' || adminUser?.district_name ? (
+                          <span> - {adminUser.district_name || 'District'} Admin</span>
+                        ) : (
+                          <span> - State Admin</span>
+                        )}
                       </span>
                     )}
                   </h1>
