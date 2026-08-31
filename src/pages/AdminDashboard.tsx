@@ -2151,20 +2151,7 @@ export const AdminDashboard: React.FC = () => {
                 {stockLoading ? 'Submitting...' : 'Submit Stock Receipt'}
               </button>
             </div>
-            {/* Recent transactions */}
-            {stockHistory.filter(t => t.transaction_type === 'RECEIVED').length > 0 && (
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                <h3 className="text-sm font-bold text-slate-700 mb-3">Recent Receipts</h3>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {stockHistory.filter(t => t.transaction_type === 'RECEIVED' || t.display_type === 'RECEIVED').slice(0, 10).map((t: any) => (
-                    <div key={t.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                      <span className="text-xs text-slate-600">{t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>
-                      <span className="text-xs font-bold text-emerald-700">{Number(t.quantity_doses || t.qty_doses).toLocaleString('en-IN')} doses</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
           </div>
         )}
 
@@ -2273,20 +2260,7 @@ export const AdminDashboard: React.FC = () => {
                 {stockLoading ? 'Submitting...' : 'Submit Stock Issue'}
               </button>
             </div>
-            {/* Recent issued transactions */}
-            {stockHistory.filter(t => t.transaction_type === 'ISSUED').length > 0 && (
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                <h3 className="text-sm font-bold text-slate-700 mb-3">Recent Issues</h3>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {stockHistory.filter(t => t.transaction_type === 'ISSUED' || t.display_type === 'ISSUED').slice(0, 10).map((t: any) => (
-                    <div key={t.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                      <span className="text-xs text-slate-600">{t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>
-                      <span className="text-xs font-bold text-purple-700">{Number(t.quantity_doses || t.qty_doses).toLocaleString('en-IN')} doses</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
           </div>
         )}
 
@@ -2321,7 +2295,7 @@ export const AdminDashboard: React.FC = () => {
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                   <option value="">-- Select Batch --</option>
                   {availableBatches.map((b: any) => (
-                    <option key={b.id} value={b.batch_no}>{b.batch_no} (Exp: {b.batch_expiry_date ? new Date(b.batch_expiry_date).toLocaleDateString('en-GB') : 'N/A'})</option>
+                    <option key={b.id} value={b.batch_no}>{b.batch_no} (Estimated Balance = {b.quantity}, Exp: {b.batch_expiry_date ? new Date(b.batch_expiry_date).toLocaleDateString('en-GB') : 'N/A'})</option>
                   ))}
                 </select>
               </div>
