@@ -1684,7 +1684,7 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
     let bQuery = supabase
       .from('blocks')
       .select(`
-        id, name, lgd_code, district_id, hpv_target,
+        id, name, health_block_name, lgd_code, district_id, hpv_target,
         districts!inner(id, name, lgd_code, state_id, division_id, divisions(name))
       `)
       .eq('is_active', true)
@@ -1749,7 +1749,7 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
       
       return {
         id: b.id,
-        name: b.name,
+        name: b.health_block_name || b.name,
         lgd_code: b.lgd_code,
         district_id: b.district_id,
         district_name: b.districts?.name,
