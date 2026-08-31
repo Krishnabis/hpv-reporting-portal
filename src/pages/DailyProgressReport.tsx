@@ -103,6 +103,16 @@ const KpiCard: React.FC<{
   </div>
 );
 
+// ─── Skeleton Row ─────────────────────────────────────────────────────────────
+
+const SkeletonRow = () => (
+  <tr className="animate-pulse border-b border-slate-100">
+    {Array.from({ length: 11 }).map((_, i) => (
+      <td key={i} className="px-3 py-2"><div className="h-3.5 bg-slate-200 rounded w-full" /></td>
+    ))}
+  </tr>
+);
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser }) => {
