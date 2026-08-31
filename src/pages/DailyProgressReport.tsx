@@ -289,27 +289,9 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({ adminU
           {/* Date */}
           <div className="flex flex-col gap-1">
             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Date</label>
-            <div className="relative">
-              <input type="date" value={filterDate} max={today}
-                onChange={e => setFilterDate(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer" style={{ minWidth: 148 }} />
-              <Calendar className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Level */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Select Level</label>
-            <div className="relative">
-              <select value={filterLevel}
-                onChange={e => { setFilterLevel(e.target.value as any); setFilterDistrictId('ALL'); }}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 120 }}>
-                {(adminUser?.role === 'SUPER_ADMIN' || adminUser?.role === 'ADMIN') && <option value="Division">Division</option>}
-                <option value="District">District</option>
-                <option value="Block">Block</option>
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
-            </div>
+            <input type="date" value={filterDate} max={today}
+              onChange={e => setFilterDate(e.target.value)}
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer" style={{ minWidth: 148 }} />
           </div>
 
           {/* State — SUPER_ADMIN only */}
@@ -326,6 +308,21 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({ adminU
               </div>
             </div>
           )}
+
+          {/* Level */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Select Level</label>
+            <div className="relative">
+              <select value={filterLevel}
+                onChange={e => { setFilterLevel(e.target.value as any); setFilterDistrictId('ALL'); }}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 120 }}>
+                {(adminUser?.role === 'SUPER_ADMIN' || adminUser?.role === 'ADMIN') && <option value="Division">Division</option>}
+                <option value="District">District</option>
+                <option value="Block">Block</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+            </div>
+          </div>
 
           {/* District */}
           {canPickDistrict && (
@@ -400,7 +397,8 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({ adminU
           </div>
 
           <KpiCard loading={loading} icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} iconBg="bg-emerald-50"
-            label="Reporting Today" value={fmt(kpis.reportingToday)} subValue={`of ${rows.length}`} subLabel="total units" />
+            label="Reporting Today" value={fmt(kpis.reportingToday)}
+            subValue={`of ${rows.length}`} subLabel={`${filterLevel.toLowerCase()}s total`} />
         </div>
       </div>
 
@@ -472,20 +470,20 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({ adminU
 
         {/* Scrollable table body */}
         <div className="overflow-auto flex-1 min-h-0">
-          <table className="w-full text-xs" style={{ minWidth: 1150 }}>
+          <table className="w-full" style={{ fontSize: '11px' }}>
             <thead className="sticky top-0 z-10">
               <tr className="gradient-header text-white">
-                <th className="px-3 py-2.5 text-left font-bold uppercase tracking-wider whitespace-nowrap sticky left-0 gradient-header z-20">Reporting Unit</th>
-                <th className="px-3 py-2.5 text-center font-bold uppercase tracking-wider whitespace-nowrap">Last Reported</th>
-                <th className="px-3 py-2.5 text-right font-bold uppercase tracking-wider whitespace-nowrap">Population<br/>(13–15 Yrs)</th>
-                <th className="px-3 py-2.5 text-right font-bold uppercase tracking-wider whitespace-nowrap">HPV Goal<br/>(0.8%)</th>
-                <th className="px-3 py-2.5 text-right font-bold uppercase tracking-wider whitespace-nowrap">Sessions Today</th>
-                <th className="px-3 py-2.5 text-right font-bold uppercase tracking-wider whitespace-nowrap">Vaccinations<br/>Today</th>
-                <th className="px-3 py-2.5 text-right font-bold uppercase tracking-wider whitespace-nowrap">Sessions<br/>Cumulative</th>
-                <th className="px-3 py-2.5 text-right font-bold uppercase tracking-wider whitespace-nowrap">Vaccinations<br/>Cumulative</th>
-                <th className="px-3 py-2.5 text-right font-bold uppercase tracking-wider whitespace-nowrap">Vacc/Session</th>
-                <th className="px-3 py-2.5 text-center font-bold uppercase tracking-wider whitespace-nowrap">Goal Achieved %</th>
-                <th className="px-3 py-2.5 text-center font-bold uppercase tracking-wider whitespace-nowrap">Rank</th>
+                <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide whitespace-nowrap sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Reporting Unit</th>
+                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Last Reported</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Population</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">HPV Goal</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Sess. Today</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vacc. Today</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Sess. Cumul.</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vacc. Cumul.</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vacc/Sess</th>
+                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Goal %</th>
+                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Rank</th>
               </tr>
             </thead>
             <tbody>
@@ -510,59 +508,59 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({ adminU
                 const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
                 return (
                   <tr key={row.id} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
-                    <td className={`px-3 py-2 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>{row.name}</td>
-                    <td className="px-3 py-2 text-center">
+                    <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>{row.name}</td>
+                    <td className="px-2 py-1.5 text-center">
                       {row.has_report
-                        ? <span className="font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">{fmtDate(row.last_reporting_date)}</span>
+                        ? <span className="font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">{fmtDate(row.last_reporting_date)}</span>
                         : <span className="text-slate-300">—</span>}
                     </td>
-                    <td className="px-3 py-2 text-right font-semibold text-slate-700">{fmt(row.population)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-green-700">{fmt(row.hpv_target)}</td>
-                    <td className="px-3 py-2 text-right">
+                    <td className="px-2 py-1.5 text-right font-semibold text-slate-700">{fmt(row.population)}</td>
+                    <td className="px-2 py-1.5 text-right font-semibold text-green-700">{fmt(row.hpv_target)}</td>
+                    <td className="px-2 py-1.5 text-right">
                       {row.sessions_held_today !== null
                         ? <span className="font-bold text-orange-700">{fmt(row.sessions_held_today)}</span>
                         : <span className="text-slate-300">—</span>}
                     </td>
-                    <td className="px-3 py-2 text-right">
+                    <td className="px-2 py-1.5 text-right">
                       {row.vaccinated_today !== null
                         ? <span className="font-bold text-blue-700">{fmt(row.vaccinated_today)}</span>
                         : <span className="text-slate-300">—</span>}
                     </td>
-                    <td className="px-3 py-2 text-right font-semibold text-orange-600">{row.sessions_held_cumulative !== null ? fmt(row.sessions_held_cumulative) : '—'}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-blue-700">{row.beneficiaries_vaccinated !== null ? fmt(row.beneficiaries_vaccinated) : '—'}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-teal-700">{row.vaccinations_per_session !== null ? fmt(row.vaccinations_per_session, 2) : '—'}</td>
-                    <td className="px-3 py-2 text-center">
+                    <td className="px-2 py-1.5 text-right font-semibold text-orange-600">{row.sessions_held_cumulative !== null ? fmt(row.sessions_held_cumulative) : '—'}</td>
+                    <td className="px-2 py-1.5 text-right font-semibold text-blue-700">{row.beneficiaries_vaccinated !== null ? fmt(row.beneficiaries_vaccinated) : '—'}</td>
+                    <td className="px-2 py-1.5 text-right font-semibold text-teal-700">{row.vaccinations_per_session !== null ? fmt(row.vaccinations_per_session, 2) : '—'}</td>
+                    <td className="px-2 py-1.5 text-center">
                       {coveragePct !== null ? (
                         <div className="flex flex-col items-center gap-0.5">
-                          <div className="w-16 bg-slate-200 rounded-full h-1.5">
-                            <div className="h-1.5 rounded-full transition-all"
+                          <div className="w-14 bg-slate-200 rounded-full h-1">
+                            <div className="h-1 rounded-full transition-all"
                               style={{ width: `${Math.min(coveragePct, 100)}%`, background: coveragePct >= 90 ? '#10b981' : coveragePct >= 70 ? '#14b8a6' : coveragePct >= 30 ? '#3b82f6' : '#f97316' }} />
                           </div>
                           <span className={`font-bold ${tier.color}`}>{fmt(coveragePct, 1)}%</span>
                         </div>
                       ) : <span className="text-slate-300">—</span>}
                     </td>
-                    <td className="px-3 py-2 text-center"><span className="font-black">{rankBadge}</span></td>
+                    <td className="px-2 py-1.5 text-center"><span className="font-black">{rankBadge}</span></td>
                   </tr>
                 );
               })}
             </tbody>
             {!loading && paginated.length > 0 && (
               <tfoot>
-                <tr className="border-t-2 border-[#3B1C63]/20 font-bold text-slate-800" style={{ background: 'rgba(59,28,99,0.04)' }}>
-                  <td className="px-3 py-2 font-extrabold sticky left-0 border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)' }}>TOTAL ({rows.length})</td>
-                  <td className="px-3 py-2 text-center text-slate-400">—</td>
-                  <td className="px-3 py-2 text-right">{fmt(kpis.totalPop)}</td>
-                  <td className="px-3 py-2 text-right text-green-700">{fmt(kpis.totalTarget)}</td>
-                  <td className="px-3 py-2 text-right text-orange-700">{fmt(kpis.totalSessionsToday)}</td>
-                  <td className="px-3 py-2 text-right text-blue-700">{fmt(kpis.totalVaccToday)}</td>
-                  <td className="px-3 py-2 text-right text-orange-600">{fmt(kpis.totalSessionsCumm)}</td>
-                  <td className="px-3 py-2 text-right text-blue-700">{fmt(kpis.totalVaccCumm)}</td>
-                  <td className="px-3 py-2 text-right text-teal-700">{fmt(kpis.vaccPerSession, 2)}</td>
-                  <td className="px-3 py-2 text-center">
+                <tr className="border-t-2 border-[#3B1C63]/20 font-bold text-slate-800" style={{ background: 'rgba(59,28,99,0.04)', fontSize: '11px' }}>
+                  <td className="px-2 py-1.5 font-extrabold sticky left-0 border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)' }}>TOTAL ({rows.length})</td>
+                  <td className="px-2 py-1.5 text-center text-slate-400">—</td>
+                  <td className="px-2 py-1.5 text-right">{fmt(kpis.totalPop)}</td>
+                  <td className="px-2 py-1.5 text-right text-green-700">{fmt(kpis.totalTarget)}</td>
+                  <td className="px-2 py-1.5 text-right text-orange-700">{fmt(kpis.totalSessionsToday)}</td>
+                  <td className="px-2 py-1.5 text-right text-blue-700">{fmt(kpis.totalVaccToday)}</td>
+                  <td className="px-2 py-1.5 text-right text-orange-600">{fmt(kpis.totalSessionsCumm)}</td>
+                  <td className="px-2 py-1.5 text-right text-blue-700">{fmt(kpis.totalVaccCumm)}</td>
+                  <td className="px-2 py-1.5 text-right text-teal-700">{fmt(kpis.vaccPerSession, 2)}</td>
+                  <td className="px-2 py-1.5 text-center">
                     <span className={`font-extrabold ${coverageTier(kpis.coveragePct).color}`}>{fmt(kpis.coveragePct, 1)}%</span>
                   </td>
-                  <td className="px-3 py-2 text-center text-slate-400">—</td>
+                  <td className="px-2 py-1.5 text-center text-slate-400">—</td>
                 </tr>
               </tfoot>
             )}
