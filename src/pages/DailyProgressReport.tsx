@@ -77,30 +77,29 @@ const KpiCard: React.FC<{
   icon: React.ReactNode; label: string; value: string;
   subLabel?: string; subValue?: string; iconBg: string; valueColor?: string; loading?: boolean;
 }> = ({ icon, label, value, subLabel, subValue, iconBg, valueColor = 'text-slate-900', loading }) => (
-  <div className="bg-white rounded-xl px-4 py-3 shadow-sm border border-slate-100 flex items-center gap-3 min-w-0 hover:shadow-md transition-shadow">
+  <div className="bg-white rounded-xl px-3 py-3 shadow-sm border border-slate-100 flex flex-col hover:shadow-md transition-shadow">
     {loading ? (
-      <div className="animate-pulse flex items-center gap-3 w-full">
-        <div className="w-12 h-12 rounded-full bg-slate-200 shrink-0" />
-        <div className="flex-1 space-y-1.5">
-          <div className="h-2.5 bg-slate-200 rounded w-2/3" />
-          <div className="h-5 bg-slate-200 rounded w-3/4" />
-          <div className="h-2.5 bg-slate-100 rounded w-1/2" />
-        </div>
+      <div className="animate-pulse flex flex-col gap-2">
+        <div className="w-8 h-8 rounded-full bg-slate-200" />
+        <div className="h-2.5 bg-slate-200 rounded w-2/3" />
+        <div className="h-5 bg-slate-200 rounded w-3/4" />
+        <div className="h-2.5 bg-slate-100 rounded w-1/2" />
       </div>
     ) : (
       <>
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${iconBg} shrink-0`}>{icon}</div>
-        <div className="min-w-0">
-          <div className="text-[11px] font-semibold text-slate-500 leading-tight">{label}</div>
-          <div className={`text-xl font-extrabold leading-tight mt-0.5 ${valueColor}`}>{value}</div>
-          {subLabel && subValue && (
-            <div className="text-[11px] font-semibold text-emerald-600 leading-tight mt-0.5">
-              {subValue} {subLabel}
-            </div>
-          )}
-          {subLabel && !subValue && (
-            <div className="text-[11px] font-medium text-slate-400 leading-tight mt-0.5">{subLabel}</div>
-          )}
+        {/* Icon — fixed size */}
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${iconBg} mb-2 shrink-0`}>{icon}</div>
+        {/* Label — fixed 2-line height so values always align */}
+        <div className="text-[10px] font-semibold text-slate-500 leading-tight" style={{ minHeight: '2.4em' }}>{label}</div>
+        {/* Value — always at same vertical distance */}
+        <div className={`text-base font-extrabold leading-tight mt-1 ${valueColor}`}>{value}</div>
+        {/* Sub-value — fixed height so bottom of all cards aligns */}
+        <div className="text-[10px] font-semibold leading-tight mt-0.5" style={{ minHeight: '1.3em' }}>
+          {subValue && subLabel
+            ? <span className="text-emerald-600">{subValue} {subLabel}</span>
+            : subLabel
+            ? <span className="text-slate-400">{subLabel}</span>
+            : <span className="opacity-0">—</span>}
         </div>
       </>
     )}
@@ -378,51 +377,53 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({ adminU
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-2">
-          <KpiCard loading={loading} icon={<Users className="w-5 h-5 text-purple-600" />} iconBg="bg-purple-50"
+        <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-2">
+          <KpiCard loading={loading} icon={<Users className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
             label="Population (13–15 Yrs)" value={fmt(kpis.totalPop)} />
-          <KpiCard loading={loading} icon={<Target className="w-5 h-5 text-green-600" />} iconBg="bg-green-50"
+          <KpiCard loading={loading} icon={<Target className="w-4 h-4 text-green-600" />} iconBg="bg-green-50"
             label="Goal (0.8%)" value={fmt(kpis.totalTarget)} valueColor="text-green-700"
-            subValue={fmt(kpis.totalVaccToday > 0 ? kpis.totalVaccToday : undefined)} subLabel={kpis.totalVaccToday > 0 ? 'Today' : undefined} />
-          <KpiCard loading={loading} icon={<Syringe className="w-5 h-5 text-blue-600" />} iconBg="bg-blue-50"
+            subValue={fmt(kpis.totalVaccToday)} subLabel="Today" />
+          <KpiCard loading={loading} icon={<Syringe className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
             label="HPV Vaccinations" value={fmt(kpis.totalVaccCumm)}
             subValue={fmt(kpis.totalVaccToday)} subLabel="Today" />
-          <KpiCard loading={loading} icon={<Calendar className="w-5 h-5 text-orange-500" />} iconBg="bg-orange-50"
+          <KpiCard loading={loading} icon={<Calendar className="w-4 h-4 text-orange-500" />} iconBg="bg-orange-50"
             label="Sessions Held" value={fmt(kpis.totalSessionsCumm)}
             subValue={fmt(kpis.totalSessionsToday)} subLabel="Today" />
-          <KpiCard loading={loading} icon={<Activity className="w-5 h-5 text-teal-600" />} iconBg="bg-teal-50"
-            label="Vaccinations / Session" value={fmt(kpis.vaccPerSession, 2)} subLabel="cumulative avg" />
+          <KpiCard loading={loading} icon={<Activity className="w-4 h-4 text-teal-600" />} iconBg="bg-teal-50"
+            label="Vacc / Session" value={fmt(kpis.vaccPerSession, 2)} subLabel="cumulative avg" />
 
-          {/* Circular Progress — same horizontal card layout */}
-          <div className="bg-white rounded-xl px-4 py-3 shadow-sm border border-slate-100 flex items-center gap-3 hover:shadow-md transition-shadow">
+          {/* Circular Progress — same vertical layout as other cards */}
+          <div className="bg-white rounded-xl px-3 py-3 shadow-sm border border-slate-100 flex flex-col hover:shadow-md transition-shadow">
             {loading ? (
-              <div className="animate-pulse flex items-center gap-3 w-full">
-                <div className="w-12 h-12 rounded-full bg-slate-200 shrink-0" />
-                <div className="flex-1 space-y-1.5">
-                  <div className="h-2.5 bg-slate-200 rounded w-2/3" />
-                  <div className="h-5 bg-slate-200 rounded w-3/4" />
-                </div>
+              <div className="animate-pulse flex flex-col gap-2">
+                <div className="w-8 h-8 rounded-full bg-slate-200" />
+                <div className="h-2.5 bg-slate-200 rounded w-2/3" />
+                <div className="h-5 bg-slate-200 rounded w-3/4" />
               </div>
             ) : (
               <>
-                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <CircularProgress pct={kpis.coveragePct} size={48} />
-                  <div style={{ position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 9 }} className="font-extrabold text-slate-900 leading-none">{fmt(kpis.coveragePct, 0)}%</span>
+                {/* Ring icon — same size as other card icons */}
+                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, flexShrink: 0, marginBottom: 8 }}>
+                  <CircularProgress pct={kpis.coveragePct} size={32} />
+                  <div style={{ position: 'absolute', fontSize: 7, fontWeight: 800, color: '#1e293b', lineHeight: 1 }}>
+                    {fmt(kpis.coveragePct, 0)}%
                   </div>
                 </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] font-semibold text-slate-500 leading-tight">Goal Achieved</div>
-                  <div className={`text-xl font-extrabold leading-tight mt-0.5 ${coverageTier(kpis.coveragePct).color}`}>{fmt(kpis.coveragePct, 1)}%</div>
-                  <div className={`text-[11px] font-semibold leading-tight mt-0.5 ${coverageTier(kpis.coveragePct).color}`}>{tierInfo.label.split(' ')[0]}</div>
+                {/* Label — same fixed min-height */}
+                <div className="text-[10px] font-semibold text-slate-500 leading-tight" style={{ minHeight: '2.4em' }}>Goal Achieved</div>
+                {/* Value */}
+                <div className={`text-base font-extrabold leading-tight mt-1 ${coverageTier(kpis.coveragePct).color}`}>{fmt(kpis.coveragePct, 1)}%</div>
+                {/* Sub — tier label */}
+                <div className={`text-[10px] font-semibold leading-tight mt-0.5 ${coverageTier(kpis.coveragePct).color}`} style={{ minHeight: '1.3em' }}>
+                  {tierInfo.label.split(' ')[0]}
                 </div>
               </>
             )}
           </div>
 
-          <KpiCard loading={loading} icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />} iconBg="bg-emerald-50"
+          <KpiCard loading={loading} icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} iconBg="bg-emerald-50"
             label="Reporting Today" value={fmt(kpis.reportingToday)}
-            subValue={`of ${rows.length}`} subLabel={`${filterLevel.toLowerCase()}s total`} />
+            subValue={`of ${rows.length}`} subLabel={`${filterLevel.toLowerCase()}s`} />
         </div>
       </div>
 
