@@ -642,7 +642,7 @@ app.get('/api/admin/users', authenticateToken, async (req, res) => {
 // Create new admin user
 app.post('/api/admin/users', authenticateToken, async (req, res) => {
   try {
-    const { username, name, password, role = 'ADMIN', state_id, district_id } = req.body;
+    const { username, name, password, role = 'ADMIN', state_id, district_id, ccl_id } = req.body;
     if (!username || !name || !password) return res.status(400).json({ error: 'Username, name and password required' });
     if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
 
