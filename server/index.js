@@ -1449,6 +1449,13 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: `Insufficient stock for batch ${batch_no}. Available: ${availableStock}` });
     }
 
+    // Fetch sender facility details
+    let senderFacility = null;
+    if (req.user.ccl_id) {
+       const { data: sFacility } = await supabase.from('vaccine_ccp').select('*').eq('ccl_id', req.user.ccl_id).maybeSingle();
+       if (sFacility) senderFacility = sFacility;
+    }
+
     // Insert ISSUE transaction for source
     const { data: issueTx, error: issueErr } = await supabase.from('vaccine_stock_transactions').insert([{
       vaccine_type: 'HPV Vaccine',
@@ -1462,8 +1469,10 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       destination_ccl_name: destFacility.facility_name,
       destination_ccl_id: destFacility.ccl_id,
       remarks: [notes, `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
-      state_id: req.user.state_id,
-      district_id: req.user.district_id || null,
+      state_id: senderFacility ? senderFacility.state_id : req.user.state_id,
+      district_id: senderFacility ? senderFacility.district_id : (req.user.district_id || null),
+      block_id: senderFacility ? senderFacility.block_id : (req.user.block_id || null),
+      facility_id: senderFacility ? senderFacility.id : null,
       created_by: getValidUuid(req.user.id)
     }]).select().single();
 
