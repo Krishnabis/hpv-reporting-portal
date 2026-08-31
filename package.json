@@ -24,6 +24,7 @@
     "express-rate-limit": "^8.7.0",
     "html2canvas": "^1.4.1",
     "jsonwebtoken": "^9.0.2",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.475.0",
     "node-fetch": "^3.3.2",
     "pg": "^8.13.1",

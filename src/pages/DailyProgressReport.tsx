@@ -5,6 +5,8 @@ import {
   Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { Logo } from '../components/Logo';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -202,11 +204,11 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
 
   const handleGenerate = () => generateReport();
 
-  const handleSaveImage = async () => {
+  const handleSavePDF = async () => {
     if (!reportRef.current) return;
-    setIsSavingImg(true); // Triggers paginated to show ALL rows
+    setIsSavingImg(true); // Triggers paginated to show ALL rows and the PDF header
 
-    // Wait for React to render the full non-paginated table
+    // Wait for React to render the full non-paginated table and header
     await new Promise(resolve => setTimeout(resolve, 400));
 
     try {
@@ -220,12 +222,12 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
         el.setAttribute('style', `${originalStyles.get(idx)}; overflow: visible !important; min-height: max-content !important; height: auto !important; flex: none !important;`);
       });
       const origRefStyle = container.getAttribute('style') || '';
-      container.setAttribute('style', `${origRefStyle}; overflow: visible !important; height: auto !important; min-height: max-content !important;`);
+      container.setAttribute('style', `${origRefStyle}; overflow: visible !important; height: auto !important; min-height: max-content !important; padding: 20px !important;`);
 
       const canvas = await html2canvas(container, { 
         scale: 2, 
         useCORS: true, 
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#ffffff',
         windowWidth: container.scrollWidth,
         windowHeight: container.scrollHeight
       });
@@ -237,11 +239,27 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
       container.setAttribute('style', origRefStyle);
 
       const imgData = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = imgData;
-      link.download = `HPV_Report_${filterDate}.png`;
-      link.click();
-    } catch (err) { console.error('Failed to save image', err); }
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      let heightLeft = pdfHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save(`HPV_Report_${filterDate}.pdf`);
+    } catch (err) { console.error('Failed to save PDF', err); }
     setIsSavingImg(false);
   };
 
@@ -318,9 +336,9 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
           <p className="text-[11px] text-slate-500 mt-0.5">Tracks daily &amp; cumulative HPV vaccination progress at State, Division, District, and Block levels</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handleSaveImage} disabled={!rows.length || isSavingImg}
+          <button onClick={handleSavePDF} disabled={!rows.length || isSavingImg}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0">
-            {isSavingImg ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5 text-slate-500" />} Save Image
+            {isSavingImg ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 text-slate-500" />} Download PDF
           </button>
           <button onClick={handleCSV} disabled={!rows.length}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0">
@@ -410,7 +428,21 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
       </div>
 
       {/* ── Dashboard Content to Save ─────────────────────────────────── */}
-      <div ref={reportRef} className="flex-1 flex flex-col min-h-0 gap-3 pb-2 bg-slate-50 rounded-xl">
+      <div ref={reportRef} className="flex-1 flex flex-col min-h-0 gap-3 pb-2 bg-slate-50 rounded-xl" style={{ backgroundColor: isSavingImg ? 'white' : undefined }}>
+        {isSavingImg && (
+          <div className="flex items-center justify-between mb-4 border-b border-slate-200 pb-4">
+            <Logo size="md" variant="dark" />
+            <div className="text-right flex flex-col gap-1">
+              <span className="text-xs font-semibold text-slate-700">
+                Report Generated On: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+              <span className="text-xs font-semibold text-slate-700">
+                Page 1 of {Math.ceil(((reportRef.current?.scrollHeight || 0) * (210 / (reportRef.current?.scrollWidth || 1))) / 297) || 1}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* ── KPI Cards ──────────────────────────────────────────────── */}
         <div className="shrink-0 p-1">
           <div className="flex items-center justify-between mb-1.5 px-1">

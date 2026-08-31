@@ -565,7 +565,8 @@ export const AdminDashboard: React.FC = () => {
           password: newAdminPassword, 
           role: newAdminRole === 'ADMIN' && newAdminDistrictId ? 'DISTRICT_ADMIN' : newAdminRole, 
           state_id: newAdminStateId || undefined,
-          district_id: newAdminDistrictId || undefined
+          district_id: newAdminDistrictId || undefined,
+          ccl_id: newAdminCclId || undefined
         })
       });
       const data = await res.json();
