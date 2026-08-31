@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Calendar, Download, BarChart3, ChevronDown, Search,
   ChevronLeft, ChevronRight, Activity, Target, Users,
-  Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera
+  Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
@@ -209,7 +209,10 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
   };
 
   const rankedRows = useMemo(() => {
-    const bestFirst = [...rows].sort((a, b) => ((a as any)[rankBy] ?? -1) - ((b as any)[rankBy] ?? -1)).reverse();
+    const bestFirst = [...rows]
+      .sort((a, b) => ((a as any)[rankBy] ?? -1) - ((b as any)[rankBy] ?? -1))
+      .reverse()
+      .map((r, i) => ({ ...r, rank: i + 1 }));
     return sortDir === 'best' ? bestFirst : [...bestFirst].reverse();
   }, [rows, rankBy, sortDir]);
 
@@ -276,10 +279,16 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight">HPV Vaccination — Daily Progress Report</h1>
           <p className="text-[11px] text-slate-500 mt-0.5">Tracks daily &amp; cumulative HPV vaccination progress at State, Division, District, and Block levels</p>
         </div>
-        <button onClick={handleCSV} disabled={!rows.length}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0">
-          <Download className="w-3.5 h-3.5" /> Download CSV
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleSaveImage} disabled={!rows.length || isSavingImg}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0">
+            {isSavingImg ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5 text-slate-500" />} Save Image
+          </button>
+          <button onClick={handleCSV} disabled={!rows.length}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0">
+            <Download className="w-3.5 h-3.5" /> Download CSV
+          </button>
+        </div>
       </div>
 
       {/* ── Filter Toolbar ─────────────────────────────────────────── */}
@@ -392,38 +401,13 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
           <KpiCard loading={loading} icon={<Activity className="w-4 h-4 text-teal-600" />} iconBg="bg-teal-50"
             label="Vacc / Session" value={fmt(kpis.vaccPerSession, 2)} subLabel="cumulative avg" />
 
-          {/* Circular Progress — same vertical layout as other cards */}
-          <div className="bg-white rounded-xl px-3 py-3 shadow-sm border border-slate-100 flex flex-col hover:shadow-md transition-shadow">
-            {loading ? (
-              <div className="animate-pulse flex flex-col gap-2">
-                <div className="w-8 h-8 rounded-full bg-slate-200" />
-                <div className="h-2.5 bg-slate-200 rounded w-2/3" />
-                <div className="h-5 bg-slate-200 rounded w-3/4" />
-              </div>
-            ) : (
-              <>
-                {/* Ring icon — same size as other card icons */}
-                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, flexShrink: 0, marginBottom: 8 }}>
-                  <CircularProgress pct={kpis.coveragePct} size={32} />
-                  <div style={{ position: 'absolute', fontSize: 7, fontWeight: 800, color: '#1e293b', lineHeight: 1 }}>
-                    {fmt(kpis.coveragePct, 0)}%
-                  </div>
-                </div>
-                {/* Label — same fixed min-height */}
-                <div className="text-[10px] font-semibold text-slate-500 leading-tight" style={{ minHeight: '2.4em' }}>Goal Achieved</div>
-                {/* Value */}
-                <div className={`text-base font-extrabold leading-tight mt-1 ${coverageTier(kpis.coveragePct).color}`}>{fmt(kpis.coveragePct, 1)}%</div>
-                {/* Sub — tier label */}
-                <div className={`text-[10px] font-semibold leading-tight mt-0.5 ${coverageTier(kpis.coveragePct).color}`} style={{ minHeight: '1.3em' }}>
-                  {tierInfo.label.split(' ')[0]}
-                </div>
-              </>
-            )}
-          </div>
+          <KpiCard loading={loading} icon={<PieChart className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
+            label="Goal Achieved" value={`${fmt(kpis.coveragePct, 1)}%`} valueColor={coverageTier(kpis.coveragePct).color}
+            subLabel={tierInfo.label.split(' ')[0]} />
 
           <KpiCard loading={loading} icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} iconBg="bg-emerald-50"
             label="Reporting Today" value={fmt(kpis.reportingToday)}
-            subValue={`of ${rows.length}`} subLabel={`${filterLevel.toLowerCase()}s`} />
+            subValue={`of ${rows.length}`} subLabel={filterLevel === 'Division' ? 'districts' : 'blocks'} />
         </div>
       </div>
 
