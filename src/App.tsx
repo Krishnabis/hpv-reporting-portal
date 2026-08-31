@@ -8,7 +8,6 @@ import { BlockFeedback } from './pages/BlockFeedback';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ProgressTrend } from './pages/ProgressTrend';
-import { DailyProgressReport } from './pages/DailyProgressReport';
 
 import { ImagePreloader } from './components/ImagePreloader';
 
@@ -46,7 +45,6 @@ export const App: React.FC = () => {
           <Route path="/progress-trend" element={<ProgressTrend />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/daily-report" element={<DailyProgressReport />} />
         </Routes>
       </ImagePreloader>
     </BrowserRouter>

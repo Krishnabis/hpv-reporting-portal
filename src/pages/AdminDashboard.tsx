@@ -14,6 +14,7 @@ import { SuperAdminUpload } from '../components/SuperAdminUpload';
 import { StateMap, getTier } from '../components/StateMap';
 import { AdminPopulation } from '../components/AdminPopulation';
 import { LocationMaster } from '../components/LocationMaster';
+import { DailyProgressReport } from './DailyProgressReport';
 
 interface KPIState {
   total_blocks: number;
@@ -906,6 +907,18 @@ export const AdminDashboard: React.FC = () => {
               
               {(analyticsOpen || sidebarCollapsed) && (
                 <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
+                  {/* Daily Progress Report */}
+                  <button
+                    onClick={() => handleTabChange('daily-progress')}
+                    title="Daily Progress Report"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'daily-progress' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'daily-progress' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Daily Progress</span>
+                  </button>
+
                   {/* Reports */}
                   <button
                     onClick={() => handleTabChange('reports')}
@@ -929,16 +942,6 @@ export const AdminDashboard: React.FC = () => {
                     <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Trend</span>
                   </button>
-
-                  {/* Daily Progress Report */}
-                  <a
-                    href="/admin/daily-report"
-                    title="Daily Progress Report"
-                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all text-slate-600 hover:bg-slate-100 hover:text-slate-900`}
-                  >
-                    <BarChart3 className="w-4 h-4 shrink-0 text-slate-400" />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Daily Progress</span>
-                  </a>
                 </div>
               )}
             </div>
@@ -2406,6 +2409,11 @@ export const AdminDashboard: React.FC = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* TAB: DAILY PROGRESS REPORT */}
+        {activeTab === 'daily-progress' && (
+          <DailyProgressReport adminUser={adminUser} />
         )}
 
         {/* TAB 2: REPORTS GENERATOR */}
