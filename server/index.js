@@ -2629,9 +2629,9 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         const totalBlockWastage = dBlocks.reduce((sum, b) => sum + b.wastage_reported, 0);
 
         const totalOpeningStock = distStats.openingStock + totalBlockOpening;
-        const totalEstimatedStock = distStats.estimatedStockBalance + totalBlockEstBal;
         const totalReportedMonthEnd = distStats.reportedMonthEndStock + totalBlockMonthEnd;
         const totalWastage = distStats.wastageReported + totalBlockWastage;
+        const totalEstimatedStock = Math.max(0, totalOpeningStock + distStats.periodReceived - totalBlockVaccinations - totalWastage);
 
         const totalPopulation = dBlocks.reduce((sum, b) => sum + b.population, 0);
         const annualRequirement = Math.round(totalPopulation * 0.01);
@@ -2722,7 +2722,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
           let action_required = 'ok';
           if (stock_availability_pct < 10) action_required = 'critical';
           else if (stock_availability_pct < 25) action_required = 'reorder';
-          
+          g.estimated_stock_balance = Math.max(0, g.opening_stock + g.vaccine_received - g.vaccinations - g.wastage_reported);
           return { ...g, month_end_reporting_pct: Math.round(month_end_reporting_pct), wastage_pct, stock_availability_pct, action_required };
         });
       } else if (level === 'STATE') {
@@ -2764,6 +2764,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
          let action_required = 'ok';
          if (stock_availability_pct < 10) action_required = 'critical';
          else if (stock_availability_pct < 25) action_required = 'reorder';
+         stateObj.estimated_stock_balance = Math.max(0, stateObj.opening_stock + stateObj.vaccine_received - stateObj.vaccinations - stateObj.wastage_reported);
          finalRows = [{ ...stateObj, month_end_reporting_pct: Math.round(month_end_reporting_pct), wastage_pct, stock_availability_pct, action_required }];
       }
     } else {
