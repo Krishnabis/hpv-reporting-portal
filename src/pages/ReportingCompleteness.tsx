@@ -204,83 +204,83 @@ export const ReportingCompleteness: React.FC<{
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-4">
           <div className="flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-[150px]">
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">Reporting Level</label>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">Reporting Level</label>
               <div className="relative">
-                <select value={level} onChange={e => { setLevel(e.target.value as any); }} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
+                <select value={level} onChange={e => { setLevel(e.target.value as any); }} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
                   <option value="State">State</option>
                   <option value="Division">Division</option>
                   <option value="District">District</option>
                   <option value="Block">Block</option>
                 </select>
-                <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
             
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">{level}</label>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">{level}</label>
               <div className="relative">
-                <select value={locationId} onChange={e => setLocationId(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
+                <select value={locationId} onChange={e => setLocationId(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
                   {locationOptions.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                 </select>
-                <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
             <div className="flex-1 min-w-[220px]">
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">Report Selector</label>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">Report Selector</label>
               <div className="relative">
-                <select value={reportType} onChange={e => setReportType(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
+                <select value={reportType} onChange={e => setReportType(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
                   <option value="ALL">All Reports</option>
                   <option value="DAILY_PROGRESS">Daily Progress Report</option>
                   <option value="MONTHLY_DUE_LIST">Monthly Due List Report</option>
                   <option value="MONTHLY_STOCK">Monthly Vaccine Stock Balance Report</option>
                 </select>
-                <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
             <div className="w-[160px]">
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">From Date</label>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">From Date</label>
               <div className="relative">
-                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-text [color-scheme:light]" />
+                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-2 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-text [color-scheme:light]" />
               </div>
             </div>
 
             <div className="w-[160px]">
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">To Date</label>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">To Date</label>
               <div className="relative">
-                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-text [color-scheme:light]" />
+                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-2 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-text [color-scheme:light]" />
               </div>
             </div>
 
-            <button onClick={fetchReport} disabled={loading} className="flex items-center gap-2 px-6 py-2.5 bg-[#0f3484] hover:bg-blue-900 text-white rounded-xl font-bold shadow-sm hover:shadow transition-all disabled:opacity-70 disabled:cursor-not-allowed">
-              {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <BarChart3 className="w-5 h-5" />}
+            <button onClick={fetchReport} disabled={loading} className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0f3484] hover:bg-blue-900 text-white rounded-lg text-sm font-bold shadow-sm hover:shadow transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <BarChart3 className="w-4 h-4" />}
               Generate Report
             </button>
           </div>
         </div>
 
         {/* Sub filters */}
-        <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
-          <div className="text-sm font-bold text-slate-700 flex items-center">
+        <div className="bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+          <div className="text-xs font-bold text-slate-700 flex items-center">
             <span className="text-slate-500 font-medium mr-2">Report Period:</span>
             {new Date(fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} to {new Date(toDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
           </div>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-4">
-              <span className="text-sm font-bold text-slate-700">Order:</span>
-              <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-600">
-                <input type="radio" checked={order === 'best'} onChange={() => setOrder('best')} className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-slate-300" />
+              <span className="text-xs font-bold text-slate-700">Order:</span>
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600">
+                <input type="radio" checked={order === 'best'} onChange={() => setOrder('best')} className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300" />
                 Best on Top
               </label>
-              <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-600">
-                <input type="radio" checked={order === 'worst'} onChange={() => setOrder('worst')} className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-slate-300" />
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600">
+                <input type="radio" checked={order === 'worst'} onChange={() => setOrder('worst')} className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300" />
                 Worst on Top
               </label>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-slate-700">Ranked By:</span>
-              <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="bg-slate-50 border-2 border-slate-200 text-slate-700 text-sm font-bold rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+              <span className="text-xs font-bold text-slate-700">Ranked By:</span>
+              <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="bg-slate-50 border-2 border-slate-200 text-slate-700 text-xs font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                 <option value="reporting">Reporting (%) (Default)</option>
                 <option value="ontime">On Time (%)</option>
               </select>
@@ -327,44 +327,44 @@ export const ReportingCompleteness: React.FC<{
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-          <div className="overflow-x-auto">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col max-h-[500px]">
+          <div className="overflow-auto flex-1">
             <table className="w-full text-left border-collapse min-w-[900px]">
-              <thead>
+              <thead className="sticky top-0 z-10">
                 <tr className="bg-[#f8fafd]">
-                  <th className="px-4 py-3 text-xs font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Reporting Unit</th>
-                  <th className="px-4 py-3 text-xs font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Report Name</th>
-                  <th className="px-4 py-3 text-xs font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Frequency</th>
-                  <th className="px-4 py-3 text-xs font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-200">Last Reported</th>
-                  <th className="px-4 py-3 text-xs font-extrabold text-[#5072a7] uppercase tracking-wider whitespace-nowrap bg-[#eff4f9] border-b border-[#dce3ec] text-center border-r border-[#dce3ec]" title="Hidden internally but visible here">Reports Expected<br/><span className="text-[10px] font-medium">(Hidden)</span></th>
-                  <th className="px-4 py-3 text-xs font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#e2ecf9] border-b border-[#c8d8ea] text-center border-r border-[#c8d8ea]">Reports<br/>Submitted</th>
-                  <th className="px-4 py-3 text-xs font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#f3eff7] border-b border-[#e1d9ea] border-r border-[#e1d9ea]">Reporting (%)</th>
-                  <th className="px-4 py-3 text-xs font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#f3eff7] border-b border-[#e1d9ea] border-r border-[#e1d9ea]">On Time (%)</th>
-                  <th className="px-4 py-3 text-xs font-extrabold text-amber-900 uppercase tracking-wider whitespace-nowrap bg-amber-50 border-b border-amber-200 text-center">Current Status<br/><span className="text-[10px] font-medium">(Complete / Late / Pending)</span></th>
+                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Reporting Unit</th>
+                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Report Name</th>
+                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Frequency</th>
+                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-200">Last Reported</th>
+                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#5072a7] uppercase tracking-wider whitespace-nowrap bg-[#eff4f9] border-b border-[#dce3ec] text-center border-r border-[#dce3ec]" title="Hidden internally but visible here">Reports Expected<br/><span className="text-[9px] font-medium">(Hidden)</span></th>
+                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#e2ecf9] border-b border-[#c8d8ea] text-center border-r border-[#c8d8ea]">Reports<br/>Submitted</th>
+                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#f3eff7] border-b border-[#e1d9ea] border-r border-[#e1d9ea]">Reporting (%)</th>
+                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#f3eff7] border-b border-[#e1d9ea] border-r border-[#e1d9ea]">On Time (%)</th>
+                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-amber-900 uppercase tracking-wider whitespace-nowrap bg-amber-50 border-b border-amber-200 text-center">Current Status<br/><span className="text-[9px] font-medium">(Complete / Late / Pending)</span></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 bg-white">
                 {paginatedRows.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-6 py-12 text-center text-slate-500 font-medium bg-slate-50">
+                    <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-500 font-medium bg-slate-50">
                       {loading ? 'Analyzing reports...' : 'No data found for the selected criteria. Try adjusting your filters or generating a new report.'}
                     </td>
                   </tr>
                 ) : (
                   paginatedRows.map((r, i) => (
                     <tr key={i} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="px-4 py-3 text-sm font-bold text-blue-600 whitespace-nowrap border-r border-slate-50">{r.unitName}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-slate-700 whitespace-nowrap border-r border-slate-50">{r.reportName}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-slate-600 whitespace-nowrap border-r border-slate-50">{r.frequency}</td>
-                      <td className="px-4 py-3 text-sm font-bold text-slate-600 whitespace-nowrap flex items-center gap-2 border-r border-slate-50">
+                      <td className="px-3 py-2.5 text-xs font-bold text-blue-600 whitespace-nowrap border-r border-slate-50">{r.unitName}</td>
+                      <td className="px-3 py-2.5 text-xs font-medium text-slate-700 whitespace-nowrap border-r border-slate-50">{r.reportName}</td>
+                      <td className="px-3 py-2.5 text-xs font-medium text-slate-600 whitespace-nowrap border-r border-slate-50">{r.frequency}</td>
+                      <td className="px-3 py-2.5 text-xs font-bold text-slate-600 whitespace-nowrap flex items-center gap-1.5 border-r border-slate-50">
                         {r.lastReported ? <span className="text-emerald-600">{formatDate(r.lastReported)}</span> : '—'}
-                        {r.lastReported && r.status === 'Complete' ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : (r.status === 'Pending' ? <AlertCircle className="w-4 h-4 text-rose-500" /> : <Clock className="w-4 h-4 text-amber-500" />)}
+                        {r.lastReported && r.status === 'Complete' ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : (r.status === 'Pending' ? <AlertCircle className="w-3.5 h-3.5 text-rose-500" /> : <Clock className="w-3.5 h-3.5 text-amber-500" />)}
                       </td>
-                      <td className="px-4 py-3 text-sm font-bold text-slate-700 text-center bg-slate-50/50 border-r border-slate-100">{r.expected}</td>
-                      <td className="px-4 py-3 text-sm font-bold text-slate-800 text-center bg-blue-50/30 border-r border-blue-100/50">{r.submitted}</td>
-                      <td className="px-4 py-3 border-r border-purple-50/50"><ProgressBar pct={r.reportingPct} /></td>
-                      <td className="px-4 py-3 border-r border-purple-50/50"><ProgressBar pct={r.onTimePct} /></td>
-                      <td className="px-4 py-3 text-center">{getStatusBadge(r.status)}</td>
+                      <td className="px-3 py-2.5 text-xs font-bold text-slate-700 text-center bg-slate-50/50 border-r border-slate-100">{r.expected}</td>
+                      <td className="px-3 py-2.5 text-xs font-bold text-slate-800 text-center bg-blue-50/30 border-r border-blue-100/50">{r.submitted}</td>
+                      <td className="px-3 py-2.5 border-r border-purple-50/50"><ProgressBar pct={r.reportingPct} /></td>
+                      <td className="px-3 py-2.5 border-r border-purple-50/50"><ProgressBar pct={r.onTimePct} /></td>
+                      <td className="px-3 py-2.5 text-center">{getStatusBadge(r.status)}</td>
                     </tr>
                   ))
                 )}
