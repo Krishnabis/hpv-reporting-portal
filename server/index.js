@@ -2310,15 +2310,16 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       .lt('transaction_date', monthStart)
       .eq('transaction_type', 'RECEIVED');
 
-    // Fetch Cumulative Vaccinations (Up to report date)
+    // Fetch vaccinations from daily_reports within the current month (for this month's vaccine usage)
     const { data: vaccReports } = await supabase
       .from('daily_reports')
       .select('block_id, beneficiaries_vaccinated, reporting_date')
       .in('block_id', blockIds)
+      .gte('reporting_date', monthStart)
       .lte('reporting_date', reportDateStr)
       .order('reporting_date', { ascending: false });
 
-    // Fetch Cumulative Vaccinations (Up to end of last month) for estimate
+    // Fetch latest cumulative vaccinations before this month (for opening stock estimation)
     const { data: prevVaccReports } = await supabase
       .from('daily_reports')
       .select('block_id, beneficiaries_vaccinated, reporting_date')
@@ -2351,11 +2352,15 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       allTxMap[t.block_id] = (allTxMap[t.block_id] || 0) + (t.quantity_doses || 0);
     });
 
+    // vaccMap: latest beneficiaries_vaccinated within the current month per block
+    // (beneficiaries_vaccinated is cumulative since campaign start, so the latest entry
+    //  in the month reflects the total vaccinated up to that date)
     const vaccMap = {};
     (vaccReports || []).forEach(r => {
       if (vaccMap[r.block_id] === undefined) vaccMap[r.block_id] = r.beneficiaries_vaccinated || 0;
     });
 
+    // prevVaccMap: latest cumulative vaccinations before month start (for opening stock calculation only)
     const prevVaccMap = {};
     (prevVaccReports || []).forEach(r => {
       if (prevVaccMap[r.block_id] === undefined) prevVaccMap[r.block_id] = r.beneficiaries_vaccinated || 0;
@@ -2377,10 +2382,12 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       }
 
       const vaccineReceived = txMap[b.id] || 0;
-      
-      const totalVaccinated = vaccMap[b.id] || 0;
+
+      // vaccinations this month: latest cumulative entry within the month minus prior month cumulative
+      // This gives the net doses administered from this month's stock
+      const totalVaccinatedThisMonth = vaccMap[b.id] || 0;
       const priorVaccinated = prevVaccMap[b.id] || 0;
-      const vaccinationsThisMonth = Math.max(0, totalVaccinated - priorVaccinated);
+      const vaccinationsThisMonth = Math.max(0, totalVaccinatedThisMonth - priorVaccinated);
 
       const estBalance = Math.max(0, openingStock + vaccineReceived - vaccinationsThisMonth);
       const wastage_reported = 0; 

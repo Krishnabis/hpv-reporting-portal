@@ -688,22 +688,22 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
           </div>
 
           {/* Scrollable table body */}
-          <div className="overflow-auto flex-1 min-h-0">
-            <table className="w-full" style={{ fontSize: '11px' }}>
+          <div className="overflow-y-auto flex-1 min-h-0">
+            <table className="w-full table-fixed" style={{ fontSize: '10px' }}>
               <thead className="sticky top-0 z-10">
                 <tr className="gradient-header text-white">
-                  <th className="px-2 py-2.5 text-left font-bold uppercase tracking-wide whitespace-nowrap sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Site / Unit</th>
-                  <th className="px-2 py-2.5 text-left font-bold uppercase tracking-wide whitespace-nowrap">District</th>
-                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Annual Requirement</th>
-                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Opening Stock</th>
-                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vaccine Received</th>
-                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vaccinations</th>
-                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Wastage (Reported)</th>
-                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Month-End Reporting %</th>
-                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Estimated Stock Balance</th>
-                  <th className="px-2 py-2.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Wastage %</th>
-                  <th className="px-2 py-2.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Stock Availability %</th>
-                  <th className="px-2 py-2.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Action</th>
+                  <th className="px-1.5 py-2 text-left font-bold uppercase tracking-wide gradient-header z-20" style={{ width: '13%' }}>Site / Unit</th>
+                  <th className="px-1.5 py-2 text-left font-bold uppercase tracking-wide" style={{ width: '9%' }}>District</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Annual Req.</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '7%' }}>Opening Stock</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Vaccine Received</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Vaccinations</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Wastage (Rptd)</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Month-End Rep. %</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '10%' }}>Est. Stock Balance</th>
+                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '7%' }}>Wastage %</th>
+                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '8%' }}>Stock Avail. %</th>
+                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '9%' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -728,28 +728,28 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
                     const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
                     return (
                       <tr key={row.id} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
-                        <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>
-                          {row.name} {row.is_urban && <span className="ml-1 px-1 py-0.5 rounded text-[9px] bg-indigo-100 text-indigo-700 font-bold uppercase">Urban</span>}
+                        <td className={`px-1.5 py-1.5 font-bold text-slate-800 border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`} style={{ width: '13%' }}>
+                          {row.name} {row.is_urban && <span className="ml-1 px-1 py-0.5 rounded text-[8px] bg-indigo-100 text-indigo-700 font-bold uppercase">Urban</span>}
                         </td>
-                        <td className="px-2 py-1.5 text-left font-medium text-slate-600">{row.district}</td>
-                        <td className="px-2 py-1.5 text-right font-semibold text-slate-700">{fmt(row.annual_requirement)}</td>
-                        <td className="px-2 py-1.5 text-right font-semibold text-blue-700">{fmt(row.opening_stock)}</td>
-                        <td className="px-2 py-1.5 text-right font-bold text-green-700">{fmt(row.vaccine_received)}</td>
-                        <td className="px-2 py-1.5 text-right font-semibold text-purple-700">{fmt(row.vaccinations)}</td>
-                        <td className="px-2 py-1.5 text-right font-semibold text-rose-600">{fmt(row.wastage_reported)}</td>
-                        <td className="px-2 py-1.5 text-right font-semibold text-slate-600">{fmt(row.month_end_reporting_pct)}%</td>
-                        <td className="px-2 py-1.5 text-right font-bold text-slate-800">{fmt(row.estimated_stock_balance)}</td>
-                        <td className="px-2 py-1.5 text-center font-semibold text-rose-700">{fmt(row.wastage_pct, 1)}%</td>
-                        <td className="px-2 py-1.5 text-center">
+                        <td className="px-1.5 py-1.5 text-left font-medium text-slate-600" style={{ width: '9%' }}>{row.district}</td>
+                        <td className="px-1.5 py-1.5 text-right font-semibold text-slate-700" style={{ width: '8%' }}>{fmt(row.annual_requirement)}</td>
+                        <td className="px-1.5 py-1.5 text-right font-semibold text-blue-700" style={{ width: '7%' }}>{fmt(row.opening_stock)}</td>
+                        <td className="px-1.5 py-1.5 text-right font-bold text-green-700" style={{ width: '8%' }}>{fmt(row.vaccine_received)}</td>
+                        <td className="px-1.5 py-1.5 text-right font-semibold text-purple-700" style={{ width: '8%' }}>{fmt(row.vaccinations)}</td>
+                        <td className="px-1.5 py-1.5 text-right font-semibold text-rose-600" style={{ width: '8%' }}>{fmt(row.wastage_reported)}</td>
+                        <td className="px-1.5 py-1.5 text-right font-semibold text-slate-600" style={{ width: '9%' }}>{fmt(row.month_end_reporting_pct)}%</td>
+                        <td className="px-1.5 py-1.5 text-right font-bold text-slate-800" style={{ width: '10%' }}>{fmt(row.estimated_stock_balance)}</td>
+                        <td className="px-1.5 py-1.5 text-center font-semibold text-rose-700" style={{ width: '7%' }}>{fmt(row.wastage_pct, 1)}%</td>
+                        <td className="px-1.5 py-1.5 text-center" style={{ width: '8%' }}>
                           <span className={`font-bold ${row.stock_availability_pct < 10 ? 'text-red-700' : row.stock_availability_pct < 30 ? 'text-orange-700' : 'text-green-700'}`}>
                             {fmt(row.stock_availability_pct, 1)}%
                           </span>
                         </td>
-                        <td className="px-2 py-1.5 text-center">
+                        <td className="px-1.5 py-1.5 text-center" style={{ width: '9%' }}>
                           {row.action_required === 'critical' ? (
-                            <span className="bg-red-600 text-white text-[9px] font-bold px-2 py-1 rounded shadow-sm">Critical - Replenish Now</span>
+                            <span className="bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm">Critical</span>
                           ) : row.action_required === 'reorder' ? (
-                            <span className="bg-orange-500 text-white text-[9px] font-bold px-2 py-1 rounded shadow-sm">Re-Order Stock</span>
+                            <span className="bg-orange-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm">Re-Order</span>
                           ) : (
                             <span className="text-slate-400 text-xs">—</span>
                           )}
@@ -760,14 +760,19 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
               </tbody>
               {!loading && paginated.length > 0 && (
                 <tfoot>
-                  <tr className="border-t-2 border-[#3B1C63]/20 font-bold text-slate-800" style={{ background: 'rgba(59,28,99,0.04)', fontSize: '11px' }}>
-                    <td className="px-2 py-1.5 font-extrabold sticky left-0 border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)' }}>TOTAL ({rows.length})</td>
-                    <td className="px-2 py-1.5 text-center text-slate-400">—</td>
-                    <td className="px-2 py-1.5 text-right text-slate-700">{fmt(kpis.totalTarget)}</td>
-                    <td className="px-2 py-1.5 text-center text-slate-400" colSpan={6}>—</td>
-                    <td className="px-2 py-1.5 text-center font-semibold text-rose-700">{fmt(kpis.avgWastage, 1)}%</td>
-                    <td className="px-2 py-1.5 text-center text-slate-400">—</td>
-                    <td className="px-2 py-1.5 text-center text-slate-400">—</td>
+                  <tr className="border-t-2 border-[#3B1C63]/20 font-bold text-slate-800" style={{ background: 'rgba(59,28,99,0.04)', fontSize: '10px' }}>
+                    <td className="px-1.5 py-1.5 font-extrabold border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)', width: '13%' }}>TOTAL ({rows.length})</td>
+                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '9%' }}>—</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.totalTarget)}</td>
+                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '7%' }}>—</td>
+                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '8%' }}>—</td>
+                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '8%' }}>—</td>
+                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '8%' }}>—</td>
+                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '9%' }}>—</td>
+                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '10%' }}>—</td>
+                    <td className="px-1.5 py-1.5 text-center font-semibold text-rose-700" style={{ width: '7%' }}>{fmt(kpis.avgWastage, 1)}%</td>
+                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '8%' }}>—</td>
+                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '9%' }}>—</td>
                   </tr>
                 </tfoot>
               )}
