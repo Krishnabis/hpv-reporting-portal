@@ -1858,6 +1858,31 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
         .in('month', monthList);
       stockReports = data || [];
     }
+
+    // Fetch all-time last reporting date per block (outside the date range filter)
+    const { data: allTimeDailyReports } = await supabase
+      .from('daily_reports')
+      .select('block_id, reporting_date')
+      .in('block_id', blockIds)
+      .order('reporting_date', { ascending: false });
+
+    // Build a map of block_id -> latest reporting_date ever
+    const lastReportedMap = {};
+    (allTimeDailyReports || []).forEach(r => {
+      if (!lastReportedMap[r.block_id]) {
+        lastReportedMap[r.block_id] = r.reporting_date;
+      }
+    });
+
+    // Helper: get latest reporting_date across blockIds
+    const getLastReported = (bIds) => {
+      let latest = null;
+      for (const bid of bIds) {
+        const d = lastReportedMap[bid];
+        if (d && (!latest || d > latest)) latest = d;
+      }
+      return latest;
+    };
     
     const rows = [];
     let totalExpected = 0;
@@ -1909,7 +1934,7 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
           isUrban: unit.isUrban,
           reportName: 'Daily Progress Report',
           frequency: 'Daily',
-          lastReported: lastReported ? lastReported.toISOString() : null,
+          lastReported: getLastReported(unit.blockIds),
           expected,
           submitted,
           reportingPct,

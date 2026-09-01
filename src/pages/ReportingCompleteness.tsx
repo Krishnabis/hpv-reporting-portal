@@ -126,9 +126,14 @@ export const ReportingCompleteness: React.FC<{
 
   const formatDate = (ds: string | null) => {
     if (!ds) return '—';
+    // If it's a plain date string (YYYY-MM-DD), parse it as local date to avoid UTC timezone shift
+    if (/^\d{4}-\d{2}-\d{2}$/.test(ds)) {
+      const [y, m, d] = ds.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
     const d = new Date(ds);
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' +
-           d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   const downloadCsv = () => {
