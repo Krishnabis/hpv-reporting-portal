@@ -196,16 +196,16 @@ export const ReportingCompleteness: React.FC<{
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-7xl mx-auto">
+      <div className="bg-white border-b border-slate-200 px-6 py-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 max-w-7xl mx-auto">
           <div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
               HPV KAVACH – Reporting Completeness & Timeliness Report
             </h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">Tracks reporting completeness and timeliness of Daily and Monthly reports across Reporting Units.</p>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">Tracks reporting completeness and timeliness of Daily and Monthly reports across Reporting Units.</p>
           </div>
-          <button onClick={downloadCsv} className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl font-bold shadow-sm transition-all whitespace-nowrap">
-            <Download className="w-4 h-4" />
+          <button onClick={downloadCsv} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-bold shadow-sm transition-all whitespace-nowrap">
+            <Download className="w-3.5 h-3.5" />
             Download CSV
           </button>
         </div>
