@@ -331,14 +331,13 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       drawKpi(242, kpiY, 'Critical Stock', fmt(kpis.criticalStockCount), '');
       
       const head = [[
-        'Site / Unit', 'District', 'Annual Requirement', 'Opening Stock',
+        'Site / Unit', 'Annual Requirement', 'Opening Stock',
         'Vaccine Received', 'Vaccinations', 'Wastage (Reported)',
-        'Month-End Reporting %', 'Estimated Stock Balance', 'Wastage %', 'Stock Availability %', 'Action'
+        'Month-end Reporting (%)', 'Estimated Stock Balance', 'Month-end Stock Balance', 'Wastage (%)', 'Stock Availability (%)', 'Action'
       ]];
 
       const body = filtered.map((r: any) => [
         r.name + (r.is_urban ? ' (Urban)' : ''),
-        r.district || '—',
         fmt(r.annual_requirement),
         fmt(r.opening_stock),
         fmt(r.vaccine_received),
@@ -346,6 +345,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
         fmt(r.wastage_reported),
         `${fmt(r.month_end_reporting_pct)}%`,
         fmt(r.estimated_stock_balance),
+        fmt(r.month_end_stock_balance),
         `${fmt(r.wastage_pct, 1)}%`,
         `${fmt(r.stock_availability_pct, 1)}%`,
         r.action_required === 'critical' ? 'Critical' : r.action_required === 'reorder' ? 'Re-Order' : '—'
@@ -355,15 +355,16 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       if (filtered.length > 0) {
         body.push([
           `TOTAL (${filtered.length})`,
-          '—',
           fmt(kpis.totalTarget),
-          '—',
-          '—',
-          '—',
+          fmt(kpis.totalOpeningStock),
+          fmt(kpis.totalVaccineReceived),
+          fmt(kpis.totalVaccinations),
+          fmt(kpis.totalWastageReported),
           `${fmt(kpis.avgMonthEndReporting, 1)}%`,
-          '—',
-          `${fmt(kpis.avgWastage, 1)}%`,
-          '—',
+          fmt(kpis.totalEstimatedStockBalance),
+          fmt(kpis.totalMonthEndStockBalance),
+          `${fmt(kpis.totalWastagePct, 1)}%`,
+          `${fmt(kpis.totalStockAvailabilityPct, 1)}%`,
           '—'
         ]);
       }
@@ -377,17 +378,11 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
         bodyStyles: { fontSize: 8, textColor: 50 },
         alternateRowStyles: { fillColor: [250, 250, 250] },
         columnStyles: {
-          0: { fontStyle: 'bold', textColor: [30, 41, 59] }, // Name
-          1: { halign: 'left' }, // District
-          2: { halign: 'right' }, // Annual Req.
-          3: { halign: 'right', textColor: [29, 78, 216] }, // Opening Stock
-          4: { halign: 'right', textColor: [21, 128, 61] }, // Vacc Received
-          5: { halign: 'right', textColor: [225, 29, 72] }, // Wastage (Rep)
-          6: { halign: 'right' }, // Month-end %
           7: { halign: 'right', fontStyle: 'bold' }, // Est. Balance
-          8: { halign: 'center', textColor: [190, 18, 60] }, // Wastage %
-          9: { halign: 'center', fontStyle: 'bold' }, // Stock Avail %
-          10: { halign: 'center' } // Action
+          8: { halign: 'right', fontStyle: 'bold', textColor: [29, 78, 216] }, // Month-End Balance
+          9: { halign: 'center', textColor: [190, 18, 60] }, // Wastage %
+          10: { halign: 'center', fontStyle: 'bold' }, // Stock Avail %
+          11: { halign: 'center', fontStyle: 'bold' }, // Action
         },
         willDrawCell: (data) => {
           if (data.row.index === body.length - 1 && filtered.length > 0) {
@@ -426,17 +421,28 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
   }, [filtered, currentPage, isSavingImg]);
 
   const kpis = useMemo(() => {
-    const totalPop = rows.reduce((s, r: any) => s + (r.population || (r.annual_requirement / 1.01) || 0), 0);
-    const totalTarget = rows.reduce((s, r: any) => s + (r.hpv_target || r.annual_requirement || 0), 0);
+    const totalPop = rows.reduce((s, r: any) => s + (r.population || 0), 0);
+    const totalTarget = rows.reduce((s, r: any) => s + (r.annual_requirement || 0), 0);
+    const totalOpeningStock = rows.reduce((s, r: any) => s + (r.opening_stock || 0), 0);
+    const totalVaccineReceived = rows.reduce((s, r: any) => s + (r.vaccine_received || 0), 0);
+    const totalVaccinations = rows.reduce((s, r: any) => s + (r.vaccinations || 0), 0);
+    const totalWastageReported = rows.reduce((s, r: any) => s + (r.wastage_reported || 0), 0);
+    const avgMonthEndReporting = rows.length ? rows.reduce((s, r: any) => s + (r.month_end_reporting_pct || 0), 0) / rows.length : 0;
+    const totalEstimatedStockBalance = rows.reduce((s, r: any) => s + (r.estimated_stock_balance || 0), 0);
+    const totalMonthEndStockBalance = rows.reduce((s, r: any) => s + (r.month_end_stock_balance || 0), 0);
+    const totalWastagePct = totalVaccineReceived > 0 ? (totalWastageReported / totalVaccineReceived) * 100 : 0;
+    const totalStockAvailabilityPct = totalTarget > 0 ? (totalMonthEndStockBalance / totalTarget) * 100 : 0;
+
     const totalStores = backendKpis.totalDvs;
     const totalColdChainPoints = backendKpis.totalCcp;
-    const avgMonthEndReporting = rows.length ? rows.reduce((s, r: any) => s + (r.month_end_reporting_pct || 0), 0) / rows.length : 0;
     const avgWastage = rows.length ? rows.reduce((s, r: any) => s + (r.wastage_pct || 0), 0) / rows.length : 0;
     const criticalStockCount = rows.filter((r: any) => r.action_required === 'critical').length;
     const reorderStockCount = rows.filter((r: any) => r.action_required === 'reorder').length;
 
     return {
-      totalPop, totalTarget, totalStores, totalColdChainPoints, avgMonthEndReporting, avgWastage,
+      totalPop, totalTarget, totalOpeningStock, totalVaccineReceived, totalVaccinations, totalWastageReported,
+      avgMonthEndReporting, totalEstimatedStockBalance, totalMonthEndStockBalance, totalWastagePct, totalStockAvailabilityPct,
+      totalStores, totalColdChainPoints, avgWastage,
       criticalStockCount, reorderStockCount
     };
   }, [rows]);
@@ -710,17 +716,17 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
               <thead className="sticky top-0 z-10">
                 <tr className="gradient-header text-white">
                   <th className="px-1.5 py-2 text-left font-bold uppercase tracking-wide gradient-header z-20" style={{ width: '13%' }}>Site / Unit</th>
-                  <th className="px-1.5 py-2 text-left font-bold uppercase tracking-wide" style={{ width: '9%' }}>District</th>
                   <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Annual Req.</th>
                   <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '7%' }}>Opening Stock</th>
                   <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Vaccine Received</th>
                   <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Vaccinations</th>
                   <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Wastage (Rptd)</th>
-                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Month-End Rep. %</th>
-                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '10%' }}>Est. Stock Balance</th>
-                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '7%' }}>Wastage %</th>
-                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '8%' }}>Stock Avail. %</th>
-                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '9%' }}>Action</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Month-end Rep. (%)</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Est. Stock Bal.</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Month-end Stock</th>
+                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '7%' }}>Wastage (%)</th>
+                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '8%' }}>Stock Avail. (%)</th>
+                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '7%' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -748,21 +754,21 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
                         <td className={`px-1.5 py-1.5 font-bold text-slate-800 border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`} style={{ width: '13%' }}>
                           {row.name} {row.is_urban && <span className="ml-1 px-1 py-0.5 rounded text-[8px] bg-indigo-100 text-indigo-700 font-bold uppercase">Urban</span>}
                         </td>
-                        <td className="px-1.5 py-1.5 text-left font-medium text-slate-600" style={{ width: '9%' }}>{row.district}</td>
                         <td className="px-1.5 py-1.5 text-right font-semibold text-slate-700" style={{ width: '8%' }}>{fmt(row.annual_requirement)}</td>
                         <td className="px-1.5 py-1.5 text-right font-semibold text-blue-700" style={{ width: '7%' }}>{fmt(row.opening_stock)}</td>
                         <td className="px-1.5 py-1.5 text-right font-bold text-green-700" style={{ width: '8%' }}>{fmt(row.vaccine_received)}</td>
                         <td className="px-1.5 py-1.5 text-right font-semibold text-purple-700" style={{ width: '8%' }}>{fmt(row.vaccinations)}</td>
                         <td className="px-1.5 py-1.5 text-right font-semibold text-rose-600" style={{ width: '8%' }}>{fmt(row.wastage_reported)}</td>
-                        <td className="px-1.5 py-1.5 text-right font-semibold text-slate-600" style={{ width: '9%' }}>{fmt(row.month_end_reporting_pct)}%</td>
-                        <td className="px-1.5 py-1.5 text-right font-bold text-slate-800" style={{ width: '10%' }}>{fmt(row.estimated_stock_balance)}</td>
+                        <td className="px-1.5 py-1.5 text-right font-semibold text-slate-600" style={{ width: '8%' }}>{fmt(row.month_end_reporting_pct)}%</td>
+                        <td className="px-1.5 py-1.5 text-right font-medium text-slate-700" style={{ width: '9%' }}>{fmt(row.estimated_stock_balance)}</td>
+                        <td className="px-1.5 py-1.5 text-right font-bold text-blue-800" style={{ width: '9%' }}>{fmt(row.month_end_stock_balance)}</td>
                         <td className="px-1.5 py-1.5 text-center font-semibold text-rose-700" style={{ width: '7%' }}>{fmt(row.wastage_pct, 1)}%</td>
                         <td className="px-1.5 py-1.5 text-center" style={{ width: '8%' }}>
-                          <span className={`font-bold ${row.stock_availability_pct < 10 ? 'text-red-700' : row.stock_availability_pct < 30 ? 'text-orange-700' : 'text-green-700'}`}>
+                          <span className={`font-bold ${row.stock_availability_pct < 10 ? 'text-red-700' : row.stock_availability_pct < 25 ? 'text-orange-700' : 'text-green-700'}`}>
                             {fmt(row.stock_availability_pct, 1)}%
                           </span>
                         </td>
-                        <td className="px-1.5 py-1.5 text-center" style={{ width: '9%' }}>
+                        <td className="px-1.5 py-1.5 text-center" style={{ width: '7%' }}>
                           {row.action_required === 'critical' ? (
                             <span className="bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm">Critical</span>
                           ) : row.action_required === 'reorder' ? (
@@ -779,17 +785,17 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
                 <tfoot>
                   <tr className="border-t-2 border-[#3B1C63]/20 font-bold text-slate-800" style={{ background: 'rgba(59,28,99,0.04)', fontSize: '10px' }}>
                     <td className="px-1.5 py-1.5 font-extrabold border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)', width: '13%' }}>TOTAL ({rows.length})</td>
-                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '9%' }}>—</td>
                     <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.totalTarget)}</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '7%' }}>{fmt(kpis.totalOpeningStock)}</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.totalVaccineReceived)}</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.totalVaccinations)}</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.totalWastageReported)}</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.avgMonthEndReporting, 1)}%</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '9%' }}>{fmt(kpis.totalEstimatedStockBalance)}</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '9%' }}>{fmt(kpis.totalMonthEndStockBalance)}</td>
+                    <td className="px-1.5 py-1.5 text-center font-semibold text-rose-700" style={{ width: '7%' }}>{fmt(kpis.totalWastagePct, 1)}%</td>
+                    <td className="px-1.5 py-1.5 text-center font-bold text-green-700" style={{ width: '8%' }}>{fmt(kpis.totalStockAvailabilityPct, 1)}%</td>
                     <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '7%' }}>—</td>
-                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '8%' }}>—</td>
-                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '8%' }}>—</td>
-                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '8%' }}>—</td>
-                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '9%' }}>—</td>
-                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '10%' }}>—</td>
-                    <td className="px-1.5 py-1.5 text-center font-semibold text-rose-700" style={{ width: '7%' }}>{fmt(kpis.avgWastage, 1)}%</td>
-                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '8%' }}>—</td>
-                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '9%' }}>—</td>
                   </tr>
                 </tfoot>
               )}
