@@ -1003,7 +1003,7 @@ export const AdminDashboard: React.FC = () => {
                       activeTab === 'stock-monitoring' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
-                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                    <Syringe className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-indigo-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Monitoring</span>
                   </button>
 

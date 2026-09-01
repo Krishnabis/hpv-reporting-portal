@@ -194,43 +194,40 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
 
   const generateReport = async () => {
     setLoading(true);
-    setTimeout(() => {
-      const mockRows: ReportRow[] = Array.from({ length: 15 }).map((_, i) => {
-        const annual_requirement = Math.floor(Math.random() * 5000) + 1000;
-        const opening_stock = Math.floor(annual_requirement * 0.1);
-        const vaccine_received = Math.floor(annual_requirement * 0.2);
-        const vaccinations = Math.floor(vaccine_received * 0.8);
-        const wastage_reported = Math.floor(vaccine_received * 0.05);
-        const estimated_stock_balance = opening_stock + vaccine_received - vaccinations - wastage_reported;
-        const wastage_pct = vaccine_received > 0 ? (wastage_reported / vaccine_received) * 100 : 0;
-        const stock_availability_pct = annual_requirement > 0 ? (estimated_stock_balance / annual_requirement) * 100 : 0;
-        const month_end_reporting_pct = Math.floor(Math.random() * 40) + 60;
+    try {
+      const q = new URLSearchParams();
+      if (filterDate) q.append('date', filterDate);
+      
+      let level = filterLevel;
+      if (filterLevel === 'State') {
+         if (filterStateId && filterStateId !== 'ALL') q.append('state_id', filterStateId);
+         level = 'STATE';
+      } else if (filterLevel === 'Division') {
+         if (filterDivisionId && filterDivisionId !== 'ALL') q.append('divisionId', filterDivisionId);
+         level = 'DIVISION';
+      } else if (filterLevel === 'District') {
+         if (filterDistrictId && filterDistrictId !== 'ALL') q.append('districtId', filterDistrictId);
+         level = 'DISTRICT';
+      } else {
+         if (filterDistrictId && filterDistrictId !== 'ALL') q.append('districtId', filterDistrictId);
+         level = 'BLOCK';
+      }
+      q.append('level', level);
 
-        let action_required: 'critical' | 'reorder' | 'ok' = 'ok';
-        if (stock_availability_pct < 10) action_required = 'critical';
-        else if (stock_availability_pct < 30) action_required = 'reorder';
-
-        return {
-          id: i,
-          name: `Unit ${i + 1}`,
-          district: `District ${Math.floor(i / 5) + 1}`,
-          annual_requirement,
-          opening_stock,
-          vaccine_received,
-          vaccinations,
-          wastage_reported,
-          month_end_reporting_pct,
-          estimated_stock_balance,
-          wastage_pct,
-          stock_availability_pct,
-          action_required
-        };
+      const res = await fetch(`/api/admin/reports/stock-monitoring?${q.toString()}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token')}` }
       });
-      setRows(mockRows);
+      if (!res.ok) throw new Error('Failed to fetch stock monitoring report');
+      const data = await res.json();
+      
+      setRows(data.rows || []);
       setReportDateLabel(filterDate);
       setReportGenerated(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   const handleGenerate = () => generateReport();

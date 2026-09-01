@@ -506,19 +506,29 @@ app.post('/api/reports/block/:id', async (req, res) => {
 
     if (useSupabase) {
       const { data: lastRep } = await supabase.from('daily_reports').select('line_list_count').eq('block_id', Number(id)).order('reporting_date', { ascending: false }).limit(1).maybeSingle();
-      const prevLineList = lastRep ? lastRep.line_list_count : 0;
+      let prevLineList = lastRep ? lastRep.line_list_count : 0;
+      
+      const vaxCount = Number(beneficiaries_vaccinated);
+      if (vaxCount > prevLineList) {
+        prevLineList = vaxCount;
+      }
 
       const { error } = await supabase.from('daily_reports').upsert(
-        [{ id: reportId, block_id: Number(id), reporting_date, sessions_held: Number(sessions_held), beneficiaries_vaccinated: Number(beneficiaries_vaccinated), line_list_count: prevLineList, submitted_by: submitted_by || 'Block Operator' }],
+        [{ id: reportId, block_id: Number(id), reporting_date, sessions_held: Number(sessions_held), beneficiaries_vaccinated: vaxCount, line_list_count: prevLineList, submitted_by: submitted_by || 'Block Operator' }],
         { onConflict: 'block_id,reporting_date', ignoreDuplicates: false }
       );
       if (error) throw error;
     } else {
       const idx = store.daily_reports.findIndex(r => r.block_id === Number(id) && r.reporting_date === reporting_date);
       const reps = store.daily_reports.filter(r => r.block_id === Number(id)).sort((a, b) => b.reporting_date.localeCompare(a.reporting_date));
-      const prevLineList = reps.length > 0 ? reps[0].line_list_count : 0;
+      let prevLineList = reps.length > 0 ? reps[0].line_list_count : 0;
+      
+      const vaxCount = Number(beneficiaries_vaccinated);
+      if (vaxCount > prevLineList) {
+        prevLineList = vaxCount;
+      }
 
-      const rec = { id: reportId, block_id: Number(id), reporting_date, sessions_held: Number(sessions_held), beneficiaries_vaccinated: Number(beneficiaries_vaccinated), line_list_count: prevLineList, submitted_by: submitted_by || 'Block Operator', submitted_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      const rec = { id: reportId, block_id: Number(id), reporting_date, sessions_held: Number(sessions_held), beneficiaries_vaccinated: vaxCount, line_list_count: prevLineList, submitted_by: submitted_by || 'Block Operator', submitted_at: new Date().toISOString(), updated_at: new Date().toISOString() };
       if (idx >= 0) store.daily_reports[idx] = rec; else store.daily_reports.push(rec);
       saveStore();
     }
@@ -2240,6 +2250,297 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
     res.json({ rows });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
+
+app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, res) => {
+  try {
+    const { date, districtId, blockId, divisionId, level = 'BLOCK' } = req.query;
+    const reportDateStr = date || new Date().toISOString().split('T')[0];
+    const reportDate = new Date(reportDateStr);
+    const monthStart = reportDate.toISOString().slice(0, 7) + '-01';
+    
+    // Get last month's start
+    const prevMonthDate = new Date(reportDate);
+    prevMonthDate.setDate(0); // last day of prev month
+    const lastMonthStart = prevMonthDate.toISOString().slice(0, 7) + '-01';
+
+    if (!useSupabase) return res.json({ rows: [] });
+
+    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+
+    let bQuery = supabase
+      .from('blocks')
+      .select(`
+        id, name, health_block_name, is_urban, lgd_code, district_id, hpv_target,
+        districts!inner(id, name, lgd_code, state_id, division_id, divisions(name))
+      `)
+      .eq('is_active', true)
+      .order('name');
+      
+    if (targetStateId) bQuery = bQuery.eq('districts.state_id', targetStateId);
+    if (districtId && districtId !== 'ALL') bQuery = bQuery.eq('district_id', districtId);
+    if (divisionId && divisionId !== 'ALL') bQuery = bQuery.eq('districts.division_id', divisionId);
+    if (blockId && blockId !== 'ALL') bQuery = bQuery.eq('id', blockId);
+
+    const { data: blocks, error: bErr } = await bQuery;
+    if (bErr) throw bErr;
+
+    const blockIds = blocks.map(b => b.id);
+
+    // Fetch Last Month's balances (Opening Stock reported)
+    const { data: balances } = await supabase
+      .from('monthly_balance')
+      .select('block_id, qty_doses')
+      .in('block_id', blockIds)
+      .eq('transaction_date', lastMonthStart);
+
+    // Fetch Current Month's transactions (RECEIVED)
+    const { data: txs } = await supabase
+      .from('vaccine_stock_transactions')
+      .select('block_id, quantity_doses, transaction_type')
+      .in('block_id', blockIds)
+      .gte('transaction_date', monthStart)
+      .lte('transaction_date', reportDateStr)
+      .eq('transaction_type', 'RECEIVED');
+
+    // Fetch All-time transactions (for estimated Opening Stock)
+    const { data: allTxs } = await supabase
+      .from('vaccine_stock_transactions')
+      .select('block_id, quantity_doses, transaction_type')
+      .in('block_id', blockIds)
+      .lt('transaction_date', monthStart)
+      .eq('transaction_type', 'RECEIVED');
+
+    // Fetch Cumulative Vaccinations (Up to report date)
+    const { data: vaccReports } = await supabase
+      .from('daily_reports')
+      .select('block_id, beneficiaries_vaccinated, reporting_date')
+      .in('block_id', blockIds)
+      .lte('reporting_date', reportDateStr)
+      .order('reporting_date', { ascending: false });
+
+    // Fetch Cumulative Vaccinations (Up to end of last month) for estimate
+    const { data: prevVaccReports } = await supabase
+      .from('daily_reports')
+      .select('block_id, beneficiaries_vaccinated, reporting_date')
+      .in('block_id', blockIds)
+      .lt('reporting_date', monthStart)
+      .order('reporting_date', { ascending: false });
+
+    // Base Population for Targets
+    const { data: profiles } = await supabase
+      .from('block_reporting_profiles')
+      .select('block_id, base_population, initial_hpv_target')
+      .in('block_id', blockIds);
+      
+    const profileMap = {};
+    (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
+
+    // Build Maps
+    const balMap = {};
+    (balances || []).forEach(b => {
+      balMap[b.block_id] = (balMap[b.block_id] || 0) + (b.qty_doses || 0);
+    });
+
+    const txMap = {};
+    (txs || []).forEach(t => {
+      txMap[t.block_id] = (txMap[t.block_id] || 0) + (t.quantity_doses || 0);
+    });
+
+    const allTxMap = {};
+    (allTxs || []).forEach(t => {
+      allTxMap[t.block_id] = (allTxMap[t.block_id] || 0) + (t.quantity_doses || 0);
+    });
+
+    const vaccMap = {};
+    (vaccReports || []).forEach(r => {
+      if (vaccMap[r.block_id] === undefined) vaccMap[r.block_id] = r.beneficiaries_vaccinated || 0;
+    });
+
+    const prevVaccMap = {};
+    (prevVaccReports || []).forEach(r => {
+      if (prevVaccMap[r.block_id] === undefined) prevVaccMap[r.block_id] = r.beneficiaries_vaccinated || 0;
+    });
+
+    const blockData = blocks.map(b => {
+      const prof = profileMap[b.id];
+      const pop = prof?.base_population || 0;
+      const target = b.hpv_target || prof?.initial_hpv_target || (pop > 0 ? Math.round(pop * 0.01) : 0);
+
+      const hasMonthEnd = balMap[b.id] !== undefined;
+      let openingStock = 0;
+      if (hasMonthEnd) {
+        openingStock = balMap[b.id];
+      } else {
+        const allTimeReceived = allTxMap[b.id] || 0;
+        const allTimeVaccinatedPriorMonth = prevVaccMap[b.id] || 0;
+        openingStock = Math.max(0, allTimeReceived - allTimeVaccinatedPriorMonth);
+      }
+
+      const vaccineReceived = txMap[b.id] || 0;
+      
+      const totalVaccinated = vaccMap[b.id] || 0;
+      const priorVaccinated = prevVaccMap[b.id] || 0;
+      const vaccinationsThisMonth = Math.max(0, totalVaccinated - priorVaccinated);
+
+      const estBalance = Math.max(0, openingStock + vaccineReceived - vaccinationsThisMonth);
+      const wastage_reported = 0; 
+      const wastage_pct = vaccineReceived > 0 ? (wastage_reported / vaccineReceived) * 100 : 0;
+      const stock_availability_pct = target > 0 ? (estBalance / target) * 100 : 0;
+      const month_end_reporting_pct = hasMonthEnd ? 100 : 0;
+
+      let action_required = 'ok';
+      if (stock_availability_pct < 10) action_required = 'critical';
+      else if (stock_availability_pct < 30) action_required = 'reorder';
+
+      return {
+        id: b.id,
+        name: b.health_block_name || b.name,
+        is_urban: b.is_urban,
+        district: b.districts?.name,
+        district_id: b.district_id,
+        division_id: b.districts?.division_id,
+        division_name: b.districts?.divisions?.name,
+        population: pop,
+        annual_requirement: target,
+        opening_stock: openingStock,
+        vaccine_received: vaccineReceived,
+        vaccinations: vaccinationsThisMonth,
+        wastage_reported,
+        wastage_pct,
+        estimated_stock_balance: estBalance,
+        stock_availability_pct,
+        month_end_reporting_pct,
+        action_required
+      };
+    });
+
+    let finalRows = [];
+    if (level === 'DISTRICT') {
+      const distGroup = {};
+      blockData.forEach(b => {
+        const distId = b.district_id;
+        if (!distGroup[distId]) {
+          distGroup[distId] = {
+            id: distId,
+            name: b.district,
+            district: b.district,
+            district_id: distId,
+            is_urban: false,
+            population: 0,
+            annual_requirement: 0,
+            opening_stock: 0,
+            vaccine_received: 0,
+            vaccinations: 0,
+            wastage_reported: 0,
+            blocks_with_month_end: 0,
+            total_blocks: 0
+          };
+        }
+        const g = distGroup[distId];
+        g.population += b.population;
+        g.annual_requirement += b.annual_requirement;
+        g.opening_stock += b.opening_stock;
+        g.vaccine_received += b.vaccine_received;
+        g.vaccinations += b.vaccinations;
+        g.wastage_reported += b.wastage_reported;
+        if (b.month_end_reporting_pct === 100) g.blocks_with_month_end += 1;
+        g.total_blocks += 1;
+      });
+      
+      finalRows = Object.values(distGroup).map(g => {
+        const estBalance = Math.max(0, g.opening_stock + g.vaccine_received - g.vaccinations);
+        const wastage_pct = g.vaccine_received > 0 ? (g.wastage_reported / g.vaccine_received) * 100 : 0;
+        const stock_availability_pct = g.annual_requirement > 0 ? (estBalance / g.annual_requirement) * 100 : 0;
+        const month_end_reporting_pct = g.total_blocks > 0 ? Math.round((g.blocks_with_month_end / g.total_blocks) * 100) : 0;
+        let action_required = 'ok';
+        if (stock_availability_pct < 10) action_required = 'critical';
+        else if (stock_availability_pct < 30) action_required = 'reorder';
+
+        return { ...g, estimated_stock_balance: estBalance, wastage_pct, stock_availability_pct, month_end_reporting_pct, action_required };
+      });
+    } else if (level === 'DIVISION') {
+      const divGroup = {};
+      blockData.forEach(b => {
+        const divId = b.division_id || 'unknown';
+        if (!divGroup[divId]) {
+          divGroup[divId] = {
+            id: divId,
+            name: `${b.division_name || 'Unknown'} Division`,
+            district: `${b.division_name || 'Unknown'} Division`,
+            is_urban: false,
+            population: 0,
+            annual_requirement: 0,
+            opening_stock: 0,
+            vaccine_received: 0,
+            vaccinations: 0,
+            wastage_reported: 0,
+            blocks_with_month_end: 0,
+            total_blocks: 0
+          };
+        }
+        const g = divGroup[divId];
+        g.population += b.population;
+        g.annual_requirement += b.annual_requirement;
+        g.opening_stock += b.opening_stock;
+        g.vaccine_received += b.vaccine_received;
+        g.vaccinations += b.vaccinations;
+        g.wastage_reported += b.wastage_reported;
+        if (b.month_end_reporting_pct === 100) g.blocks_with_month_end += 1;
+        g.total_blocks += 1;
+      });
+      finalRows = Object.values(divGroup).map(g => {
+        const estBalance = Math.max(0, g.opening_stock + g.vaccine_received - g.vaccinations);
+        const wastage_pct = g.vaccine_received > 0 ? (g.wastage_reported / g.vaccine_received) * 100 : 0;
+        const stock_availability_pct = g.annual_requirement > 0 ? (estBalance / g.annual_requirement) * 100 : 0;
+        const month_end_reporting_pct = g.total_blocks > 0 ? Math.round((g.blocks_with_month_end / g.total_blocks) * 100) : 0;
+        let action_required = 'ok';
+        if (stock_availability_pct < 10) action_required = 'critical';
+        else if (stock_availability_pct < 30) action_required = 'reorder';
+        return { ...g, estimated_stock_balance: estBalance, wastage_pct, stock_availability_pct, month_end_reporting_pct, action_required };
+      });
+    } else if (level === 'STATE') {
+      const stateObj = {
+        id: 'uttarakhand',
+        name: 'Uttarakhand State',
+        district: 'Uttarakhand State',
+        is_urban: false,
+        population: 0,
+        annual_requirement: 0,
+        opening_stock: 0,
+        vaccine_received: 0,
+        vaccinations: 0,
+        wastage_reported: 0,
+        blocks_with_month_end: 0,
+        total_blocks: 0
+      };
+      blockData.forEach(b => {
+        stateObj.population += b.population;
+        stateObj.annual_requirement += b.annual_requirement;
+        stateObj.opening_stock += b.opening_stock;
+        stateObj.vaccine_received += b.vaccine_received;
+        stateObj.vaccinations += b.vaccinations;
+        stateObj.wastage_reported += b.wastage_reported;
+        if (b.month_end_reporting_pct === 100) stateObj.blocks_with_month_end += 1;
+        stateObj.total_blocks += 1;
+      });
+      const estBalance = Math.max(0, stateObj.opening_stock + stateObj.vaccine_received - stateObj.vaccinations);
+      const wastage_pct = stateObj.vaccine_received > 0 ? (stateObj.wastage_reported / stateObj.vaccine_received) * 100 : 0;
+      const stock_availability_pct = stateObj.annual_requirement > 0 ? (estBalance / stateObj.annual_requirement) * 100 : 0;
+      const month_end_reporting_pct = stateObj.total_blocks > 0 ? Math.round((stateObj.blocks_with_month_end / stateObj.total_blocks) * 100) : 0;
+      let action_required = 'ok';
+      if (stock_availability_pct < 10) action_required = 'critical';
+      else if (stock_availability_pct < 30) action_required = 'reorder';
+      finalRows = [{ ...stateObj, estimated_stock_balance: estBalance, wastage_pct, stock_availability_pct, month_end_reporting_pct, action_required }];
+    } else {
+      finalRows = blockData;
+    }
+
+    res.json({ rows: finalRows });
+  } catch (err) {
+    console.error('Stock Monitoring API error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 // ─── Super Admin CSV Uploads ──────────────────────────────────────────────────
 
 function buildLocationMap(blocks, districts, states) {
@@ -2471,8 +2772,12 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
         }
       }
 
-      const lineList = parseInt(llStr, 10);
-      const vaccinated = parseInt(vaccStr, 10);
+      let lineList = parseInt(llStr, 10);
+      let vaccinated = parseInt(vaccStr, 10);
+      
+      if (!isNaN(lineList) && !isNaN(vaccinated) && vaccinated > lineList) {
+        lineList = vaccinated;
+      }
 
       if (isNaN(lineList) || isNaN(vaccinated)) {
         errors.push(`Row ${i + 1}: Invalid linelisted or vaccinated numbers.`);
@@ -3654,6 +3959,36 @@ app.post('/api/due-list/:blockId', async (req, res) => {
         [{ block_id: Number(blockId), block_incharge_name, block_incharge_mobile, facilities_manager_name, facilities_manager_mobile, total_afs: Number(total_afs) || 0, total_ashas: Number(total_ashas) || 0, updated_at: new Date().toISOString() }],
         { onConflict: 'block_id', ignoreDuplicates: false }
       );
+
+      // Sync line listing count to the latest daily report
+      const { data: latestDaily } = await supabase.from('daily_reports')
+        .select('id, beneficiaries_vaccinated')
+        .eq('block_id', Number(blockId))
+        .order('reporting_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const newEligible = Number(total_eligible_girls) || 0;
+      const todayStr = new Date().toLocaleDateString('en-CA');
+      const dailyReportId = `rep-${blockId}-${todayStr}`;
+
+      if (latestDaily) {
+        let finalLineList = newEligible;
+        if (latestDaily.beneficiaries_vaccinated > finalLineList) {
+          finalLineList = latestDaily.beneficiaries_vaccinated;
+        }
+        await supabase.from('daily_reports').update({ line_list_count: finalLineList }).eq('id', latestDaily.id);
+      } else {
+        await supabase.from('daily_reports').insert([{
+          id: dailyReportId,
+          block_id: Number(blockId),
+          reporting_date: todayStr,
+          sessions_held: 0,
+          beneficiaries_vaccinated: 0,
+          line_list_count: newEligible,
+          submitted_by: 'System (Monthly Sync)'
+        }]);
+      }
     }
 
     await logAudit('BLOCK_OPERATOR', 'SUBMIT_DUE_LIST_REPORT', 'monthly_due_list_reports', reportId);
