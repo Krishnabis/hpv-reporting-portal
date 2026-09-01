@@ -2623,6 +2623,16 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         const distStats = getDistrictStoreStats(distId);
         
         const totalBlockVaccinations = dBlocks.reduce((sum, b) => sum + b.vaccinations, 0);
+        const totalBlockOpening = dBlocks.reduce((sum, b) => sum + b.opening_stock, 0);
+        const totalBlockEstBal = dBlocks.reduce((sum, b) => sum + b.estimated_stock_balance, 0);
+        const totalBlockMonthEnd = dBlocks.reduce((sum, b) => sum + b.month_end_stock_balance, 0);
+        const totalBlockWastage = dBlocks.reduce((sum, b) => sum + b.wastage_reported, 0);
+
+        const totalOpeningStock = distStats.openingStock + totalBlockOpening;
+        const totalEstimatedStock = distStats.estimatedStockBalance + totalBlockEstBal;
+        const totalReportedMonthEnd = distStats.reportedMonthEndStock + totalBlockMonthEnd;
+        const totalWastage = distStats.wastageReported + totalBlockWastage;
+
         const totalPopulation = dBlocks.reduce((sum, b) => sum + b.population, 0);
         const annualRequirement = Math.round(totalPopulation * 0.01);
         
@@ -2630,8 +2640,8 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         const totalL2L3Reporting = distStats.reportingCcps + dBlocks.reduce((sum, b) => sum + b._bReportingCcps, 0);
         const districtMonthEndReportingPct = totalL2L3Facs > 0 ? (totalL2L3Reporting / totalL2L3Facs) * 100 : 0;
         
-        const wastage_pct = distStats.periodReceived > 0 ? (distStats.wastageReported / distStats.periodReceived) * 100 : 0;
-        const stock_availability_pct = annualRequirement > 0 ? (distStats.reportedMonthEndStock / annualRequirement) * 100 : 0;
+        const wastage_pct = distStats.periodReceived > 0 ? (totalWastage / distStats.periodReceived) * 100 : 0;
+        const stock_availability_pct = annualRequirement > 0 ? (totalReportedMonthEnd / annualRequirement) * 100 : 0;
         
         let action_required = 'ok';
         if (stock_availability_pct < 10) action_required = 'critical';
@@ -2647,12 +2657,12 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
           is_urban: false,
           population: totalPopulation,
           annual_requirement: annualRequirement,
-          opening_stock: distStats.openingStock,
+          opening_stock: totalOpeningStock,
           vaccine_received: distStats.periodReceived,
           vaccinations: totalBlockVaccinations,
-          estimated_stock_balance: distStats.estimatedStockBalance,
-          month_end_stock_balance: distStats.reportedMonthEndStock,
-          wastage_reported: distStats.wastageReported,
+          estimated_stock_balance: totalEstimatedStock,
+          month_end_stock_balance: totalReportedMonthEnd,
+          wastage_reported: totalWastage,
           wastage_pct: wastage_pct,
           stock_availability_pct: stock_availability_pct,
           month_end_reporting_pct: Math.round(districtMonthEndReportingPct),
@@ -2660,7 +2670,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
           _dFacsLength: totalL2L3Facs,
           _dReportingCcps: totalL2L3Reporting,
           _dPeriodReceived: distStats.periodReceived,
-          _dReportedMonthEnd: distStats.reportedMonthEndStock
+          _dReportedMonthEnd: totalReportedMonthEnd
         };
       });
 
