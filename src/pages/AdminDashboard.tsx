@@ -16,6 +16,7 @@ import { AdminPopulation } from '../components/AdminPopulation';
 import { LocationMaster } from '../components/LocationMaster';
 import { DailyProgressReport } from './DailyProgressReport';
 import { ReportingCompleteness } from './ReportingCompleteness';
+import { VaccineStockMonitoringReport } from './VaccineStockMonitoringReport';
 
 interface KPIState {
   total_blocks: number;
@@ -69,7 +70,7 @@ interface ReportRow {
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'vaccine-management' | 'stock-receiving' | 'stock-issuing' | 'month-end-balance' | 'monthly-report' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity' | 'ccl-management'>((sessionStorage.getItem('hpv_admin_active_tab') as any) || 'dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'vaccine-management' | 'stock-receiving' | 'stock-issuing' | 'month-end-balance' | 'monthly-report' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity' | 'ccl-management' | 'daily-progress' | 'completeness-report' | 'stock-monitoring'>((sessionStorage.getItem('hpv_admin_active_tab') as any) || 'dashboard');
   
 
   const [usersOpen, setUsersOpen] = useState(false);
@@ -994,6 +995,18 @@ export const AdminDashboard: React.FC = () => {
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Daily Progress</span>
                   </button>
 
+                  {/* Stock Monitoring Report */}
+                  <button
+                    onClick={() => handleTabChange('stock-monitoring')}
+                    title="Stock Monitoring Report"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'stock-monitoring' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Monitoring</span>
+                  </button>
+
                   {/* Completeness Report */}
                   <button
                     onClick={() => handleTabChange('completeness-report')}
@@ -1483,7 +1496,7 @@ export const AdminDashboard: React.FC = () => {
                   (selectedDistrict && kpis?.block_chart_data && kpis.block_chart_data.some((b: any) => b.district === selectedDistrict))) ? (
                   <div className="flex-1 min-h-0 overflow-y-auto">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 sm:gap-y-1.5 pb-2">
-                    {(!selectedDistrict ? [...kpis.district_chart_data] : [...kpis.block_chart_data.filter((b: any) => b.district === selectedDistrict)])
+                    {(!selectedDistrict ? [...(kpis?.district_chart_data || [])] : [...(kpis?.block_chart_data || []).filter((b: any) => b.district === selectedDistrict)])
                        .sort((a, b) => {
                         const pa = selectedKpi === 'linelist' ? a.lineListPct : a.coveragePct;
                         const pb = selectedKpi === 'linelist' ? b.lineListPct : b.coveragePct;
@@ -1512,7 +1525,7 @@ export const AdminDashboard: React.FC = () => {
                               <span className="text-[11px] font-bold text-slate-800 truncate">
                                 {rowName}
                                 {((isBlock && d.isLowStock) || (!isBlock && d.hasLowStockBlock)) && (
-                                  <Syringe className="w-3 h-3 text-pink-500 inline-block ml-1 -mt-0.5" title="Low stock in this area" />
+                                  <span title="Low stock in this area"><Syringe className="w-3 h-3 text-pink-500 inline-block ml-1 -mt-0.5" /></span>
                                 )}
                                 {isBlock && d.is_urban && (
                                   <span className="text-slate-400 font-medium ml-1">
@@ -1941,7 +1954,7 @@ export const AdminDashboard: React.FC = () => {
                                     <span className="text-[11px] font-bold text-slate-800 truncate">
                                       {rowName}
                                       {((isBlock && d.isLowStock) || (!isBlock && d.hasLowStockBlock)) && (
-                                        <Syringe className="w-3 h-3 text-pink-500 inline-block ml-1 -mt-0.5" title="Low stock in this area" />
+                                        <span title="Low stock in this area"><Syringe className="w-3 h-3 text-pink-500 inline-block ml-1 -mt-0.5" /></span>
                                       )}
                                       {isBlock && d.is_urban && (
                                         <span className="text-slate-400 font-medium ml-1">
@@ -2475,6 +2488,13 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'daily-progress' && (
           <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
             <DailyProgressReport adminUser={adminUser} />
+          </div>
+        )}
+
+        {/* TAB: STOCK MONITORING REPORT */}
+        {activeTab === 'stock-monitoring' && (
+          <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
+            <VaccineStockMonitoringReport adminUser={adminUser} />
           </div>
         )}
 
