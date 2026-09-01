@@ -997,13 +997,13 @@ export const AdminDashboard: React.FC = () => {
                   {/* Completeness Report */}
                   <button
                     onClick={() => handleTabChange('completeness-report')}
-                    title="Reporting Completeness & Timeliness Report"
+                    title="Reporting Report"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
                       activeTab === 'completeness-report' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
                     <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'completeness-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Completeness & Timeliness</span>
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Reporting Report</span>
                   </button>
 
                   {/* Reports */}
