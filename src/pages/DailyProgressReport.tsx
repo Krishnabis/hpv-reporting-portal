@@ -664,11 +664,11 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
                 <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Last Reported</th>
                 <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Population</th>
                 <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">HPV Goal</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Sess. Today</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vacc. Today</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Sess. Cumul.</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vacc. Cumul.</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vacc/Sess</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Sessions Today</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vaccinations Today</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Sessions Cumulative</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vaccinations Cumulative</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vaccinations Per Session</th>
                 <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Goal %</th>
                 <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Rank</th>
               </tr>
