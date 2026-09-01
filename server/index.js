@@ -2555,7 +2555,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
     const blockData = blocks.map(b => {
       const prof = profileMap[b.id];
       const pop = prof?.base_population || b.population || 0;
-      const target = Math.round(pop * 1.01);
+      const target = Math.round(pop * 0.01);
       
       const stats = getBlockStats(b.id);
       
@@ -2582,6 +2582,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         wastage_reported: stats.wastageReported,
         wastage_pct,
         estimated_stock_balance: stats.estimatedStockBalance,
+        month_end_stock_balance: stats.reportedMonthEndStock,
         stock_availability_pct,
         month_end_reporting_pct: stats.monthEndReportingPct,
         action_required,
@@ -2603,7 +2604,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         
         const totalBlockVaccinations = dBlocks.reduce((sum, b) => sum + b.vaccinations, 0);
         const totalPopulation = dBlocks.reduce((sum, b) => sum + b.population, 0);
-        const annualRequirement = Math.round(totalPopulation * 1.01);
+        const annualRequirement = Math.round(totalPopulation * 0.01);
         
         const totalL2L3Facs = distStats.facsLength + dBlocks.reduce((sum, b) => sum + b._bFacsLength, 0);
         const totalL2L3Reporting = distStats.reportingCcps + dBlocks.reduce((sum, b) => sum + b._bReportingCcps, 0);
@@ -2630,6 +2631,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
           vaccine_received: distStats.periodReceived,
           vaccinations: totalBlockVaccinations,
           estimated_stock_balance: distStats.estimatedStockBalance,
+          month_end_stock_balance: distStats.reportedMonthEndStock,
           wastage_reported: distStats.wastageReported,
           wastage_pct: wastage_pct,
           stock_availability_pct: stock_availability_pct,
@@ -2659,6 +2661,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                vaccine_received: 0,
                vaccinations: 0,
                estimated_stock_balance: 0,
+               month_end_stock_balance: 0,
                wastage_reported: 0,
                _totalFacs: 0,
                _totalRep: 0,
@@ -2673,6 +2676,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
           g.vaccine_received += d.vaccine_received;
           g.vaccinations += d.vaccinations;
           g.estimated_stock_balance += d.estimated_stock_balance;
+          g.month_end_stock_balance += d.month_end_stock_balance;
           g.wastage_reported += d.wastage_reported;
           g._totalFacs += d._dFacsLength;
           g._totalRep += d._dReportingCcps;
@@ -2702,6 +2706,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
            vaccine_received: 0,
            vaccinations: 0,
            estimated_stock_balance: 0,
+           month_end_stock_balance: 0,
            wastage_reported: 0,
            _totalFacs: 0,
            _totalRep: 0,
@@ -2715,6 +2720,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
            stateObj.vaccine_received += d.vaccine_received;
            stateObj.vaccinations += d.vaccinations;
            stateObj.estimated_stock_balance += d.estimated_stock_balance;
+           stateObj.month_end_stock_balance += d.month_end_stock_balance;
            stateObj.wastage_reported += d.wastage_reported;
            stateObj._totalFacs += d._dFacsLength;
            stateObj._totalRep += d._dReportingCcps;

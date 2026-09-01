@@ -652,6 +652,36 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleSaveEditedUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    try {
+      const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+      const res = await fetch(`/api/admin/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: editingUser.name,
+          username: editingUser.username,
+          password: editingUser.password || undefined, // only send if provided
+          role: editingUser.role,
+          state_id: editingUser.state_id || undefined,
+          district_id: editingUser.district_id || undefined,
+          status: editingUser.status || (editingUser.is_active ? 'ACTIVE' : 'DISABLED')
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update user');
+      setEditingUser(null);
+      fetchAdminUsers();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
   const handleAddLocation = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddLocLoading(true); setAddLocMsg('');
@@ -2996,7 +3026,7 @@ export const AdminDashboard: React.FC = () => {
                           }`}
                           title={`Click to ${u.is_active ? 'disable' : 'enable'} access`}
                         >
-                          {u.is_active ? 'Active' : 'Disabled'}
+                          {u.status || (u.is_active ? 'Active' : 'Disabled')}
                         </button>
                       </td>
                       <td className="px-4 py-2.5 text-slate-400 text-[10px]">
@@ -3015,6 +3045,86 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Edit User Modal */}
+        {editingUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
+                <h3 className="font-bold text-slate-800">Edit Admin User</h3>
+                <button onClick={() => setEditingUser(null)} className="p-1 hover:bg-slate-200 rounded-lg text-slate-500 transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleSaveEditedUser} className="p-5 space-y-4 overflow-y-auto flex-1">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Full Name *</label>
+                  <input type="text" value={editingUser.name || ''} onChange={e => setEditingUser({...editingUser, name: e.target.value})} required
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Username *</label>
+                  <input type="text" value={editingUser.username || ''} onChange={e => setEditingUser({...editingUser, username: e.target.value})} required
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Password (Leave blank to keep current)</label>
+                  <input type="password" value={editingUser.password || ''} onChange={e => setEditingUser({...editingUser, password: e.target.value})} placeholder="New password"
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Role</label>
+                  <select value={editingUser.role || ''} onChange={e => setEditingUser({...editingUser, role: e.target.value})}
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
+                    <option value="ADMIN">State Admin</option>
+                    <option value="VACCINE_MANAGER">Vaccine Manager</option>
+                    <option value="SUPER_ADMIN">Super Admin</option>
+                  </select>
+                </div>
+                {(editingUser.role === 'ADMIN' || editingUser.role === 'VACCINE_MANAGER') && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State</label>
+                    <select value={editingUser.state_id || ''} onChange={e => setEditingUser({...editingUser, state_id: e.target.value, district_id: ''})} required
+                      className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
+                      <option value="">Select State</option>
+                      {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                {editingUser.role === 'ADMIN' && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">District (Optional)</label>
+                    <select value={editingUser.district_id || ''} onChange={e => setEditingUser({...editingUser, district_id: e.target.value})} disabled={!editingUser.state_id}
+                      className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600 disabled:opacity-50">
+                      <option value="">{editingUser.state_id ? 'State-level only' : 'Select State first'}</option>
+                      {editingUser.state_id && districtsList.filter(d => String(d.state_id) === String(editingUser.state_id)).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Status</label>
+                  <select value={editingUser.status || (editingUser.is_active ? 'ACTIVE' : 'DISABLED')} onChange={e => setEditingUser({...editingUser, status: e.target.value})}
+                    className="px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600">
+                    <option value="ACTIVE">Active</option>
+                    <option value="DISABLED">Disabled</option>
+                    <option value="ON_LEAVE">On Leave</option>
+                  </select>
+                </div>
+              </form>
+              <div className="p-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 mt-auto">
+                <button type="button" onClick={() => setEditingUser(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-colors">
+                  Cancel
+                </button>
+                <button type="button" onClick={handleSaveEditedUser}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white gradient-header shadow hover:shadow-md transition-all">
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        </>
         )}
 
         {/* TAB 5: SETTINGS — Reset Password Only */}

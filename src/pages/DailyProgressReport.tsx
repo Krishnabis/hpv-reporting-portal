@@ -212,16 +212,27 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
       // Attempt to load and add logo
       try {
         const logoImg = new Image();
-        logoImg.src = '/headinglogo.png';
+        logoImg.src = '/favicon.jpg';
         await new Promise((resolve, reject) => {
           logoImg.onload = resolve;
           logoImg.onerror = reject;
         });
-        // The original image might be wider now that it contains text.
-        pdf.addImage(logoImg, 'PNG', 14, 10, 50, 15);
+        pdf.addImage(logoImg, 'JPEG', 14, 10, 14, 14);
       } catch (e) {
-        console.warn('Could not load headinglogo.png for PDF');
+        console.warn('Could not load favicon.jpg for PDF');
       }
+
+      // Title
+      pdf.setFontSize(18);
+      pdf.setTextColor(15, 23, 42); // slate-900
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('HPV Vaccination \u2014 Daily Progress Report', 32, 16);
+      
+      // Subtitle
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 116, 139); // slate-500
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Tracks daily & cumulative HPV vaccination progress at State, Division, District, and Block levels', 32, 22);
 
       // Top Right:
       pdf.setFontSize(9);
@@ -231,37 +242,31 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
       pdf.text(`Report Generated On: ${generatedDate}`, 282, 15, { align: 'right' });
       pdf.text('Page 1 of 1', 282, 20, { align: 'right' });
 
-      // Title
-      pdf.setFontSize(18);
-      pdf.setTextColor(15, 23, 42); // slate-900 (very dark)
+      // Time Duration
+      pdf.setFontSize(10);
+      pdf.setTextColor(30, 41, 59); // slate-800
       pdf.setFont('helvetica', 'bold');
-      pdf.text('HPV Vaccination \u2014 Daily Progress Report', 14, 38);
-      
-      // Subtitle
-      pdf.setFontSize(9);
-      pdf.setTextColor(100, 116, 139); // slate-500
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('Tracks daily & cumulative HPV vaccination progress at State, Division, District, and Block levels', 14, 43);
-      
-      // Location row (around Y=51)
+      pdf.text(`Time Duration: Date ${reportDate}`, 14, 34);
+
+      // Location row
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(30, 41, 59); // dark text
-      pdf.text(locationLabel, 14, 51);
+      pdf.text(locationLabel, 14, 40);
       
       const locWidth = pdf.getTextWidth(locationLabel);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(148, 163, 184); // slate-400
       const subLabel = ` \u2014 ${filterLevel === 'Division' ? 'Districts inside Division' : (filterLevel === 'State' ? 'Divisions inside State' : (filterLevel === 'District' ? 'Blocks inside District' : 'Overview'))}`;
-      pdf.text(subLabel, 14 + locWidth, 51);
+      pdf.text(subLabel, 14 + locWidth, 40);
       
       // Right side badge: "Progressing"
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(37, 99, 235); // blue-600
-      pdf.text('Progressing', 282, 51, { align: 'right' });
+      pdf.text('Progressing', 282, 40, { align: 'right' });
 
       // Draw KPIs
-      const kpiY = 64;
+      const kpiY = 50;
       const drawKpi = (x: number, y: number, label: string, val1: string, val2: string) => {
         pdf.setDrawColor(226, 232, 240); // slate-200
         pdf.setFillColor(255, 255, 255);
@@ -336,7 +341,7 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
       }
 
       autoTable(pdf, {
-        startY: 85,
+        startY: 70,
         head,
         body,
         theme: 'grid',

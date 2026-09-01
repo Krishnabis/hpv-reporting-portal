@@ -161,10 +161,48 @@ export const ReportingCompleteness: React.FC<{
     setIsDownloadingPdf(true);
     try {
       const pdf = new jsPDF('l', 'mm', 'a4');
+      
+      // Attempt to load and add logo
+      try {
+        const logoImg = new Image();
+        logoImg.src = '/favicon.jpg';
+        await new Promise((resolve, reject) => {
+          logoImg.onload = resolve;
+          logoImg.onerror = reject;
+        });
+        pdf.addImage(logoImg, 'JPEG', 14, 10, 14, 14);
+      } catch (e) {
+        console.warn('Could not load favicon.jpg for PDF');
+      }
+
+      // Title
       pdf.setFontSize(18);
-      pdf.text('HPV KAVACH \u2014 Reporting Completeness', 14, 20);
+      pdf.setTextColor(15, 23, 42); // slate-900
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('HPV Vaccination \u2014 Reporting Completeness & Timeliness', 32, 16);
+      
+      // Subtitle
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 116, 139); // slate-500
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Tracks reporting completeness and timeliness of Daily and Monthly reports across Reporting Units.', 32, 22);
+
+      // Top Right:
+      pdf.setFontSize(9);
+      pdf.setTextColor(100);
+      pdf.setFont('helvetica', 'normal');
+      const generatedDate = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).replace(/ am| pm/i, m => m.toUpperCase());
+      pdf.text(`Report Generated On: ${generatedDate}`, 282, 15, { align: 'right' });
+      pdf.text('Page 1 of 1', 282, 20, { align: 'right' });
+
+      // Time Duration
+      pdf.setFontSize(10);
+      pdf.setTextColor(30, 41, 59); // slate-800
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`Time Duration: ${formatDate(fromDate)} to ${formatDate(toDate)}`, 14, 34);
+
       autoTable(pdf, {
-        startY: 30,
+        startY: 40,
         head: [['Reporting Unit', 'Report Name', 'Frequency', 'Reports Expected', 'Reports Submitted', 'Reporting (%)', 'On Time (%)', 'Status']],
         body: sortedRows.map(r => [`${r.unitName}${r.isUrban ? ' (Urban)' : ''}`, r.reportName, r.frequency, r.expected, r.submitted, r.reportingPct, r.onTimePct, r.status]),
       });
