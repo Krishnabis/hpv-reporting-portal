@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  Calendar, Download, BarChart3, ChevronDown, Search,
+  Calendar, Download, BarChart3, ChevronDown, Search, Maximize2, Minimize2,
   ChevronLeft, ChevronRight, Activity, Target, Users,
   Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart
 } from 'lucide-react';
@@ -165,6 +165,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 15;
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -632,7 +633,9 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
         )}
 
         {/* ── KPI Cards ──────────────────────────────────────────────── */}
-        <div className="shrink-0 p-1">
+        {!isExpanded && (
+          <>
+            <div className="shrink-0 p-1">
           <div className="flex items-center justify-between mb-1.5 px-1">
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-purple-600" />
@@ -719,6 +722,8 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
             </div>
           </div>
         </div>
+          </>
+        )}
 
         {/* ── Data Table — flex-1 so it fills remaining space ────────── */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-0 overflow-hidden">
@@ -734,6 +739,12 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
                 <span className="text-[10px] text-slate-400">• {rows.filter(r => r.has_today_report).length} reported today</span>
               )}
             </div>
+            
+            <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider transition-colors mx-auto">
+              {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+              {isExpanded ? 'Collapse Table' : 'Expand Table'}
+            </button>
+            
             <div className="relative">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
               <input type="text" placeholder="Search by name..." value={search}
@@ -755,7 +766,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
                   <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Wastage (Rptd)</th>
                   <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Month-end Rep. (%)</th>
                   <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Est. Stock Bal.</th>
-                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Month-end Stock</th>
+                  {/* <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Month-end Stock</th> */}
                   <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '7%' }}>Wastage (%)</th>
                   <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '8%' }}>Stock Avail. (%)</th>
                   <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '7%' }}>Action</th>
@@ -793,7 +804,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
                         <td className="px-1.5 py-1.5 text-right font-semibold text-rose-600" style={{ width: '8%' }}>{fmt(row.wastage_reported)}</td>
                         <td className="px-1.5 py-1.5 text-right font-semibold text-slate-600" style={{ width: '8%' }}>{fmt(row.month_end_reporting_pct)}%</td>
                         <td className="px-1.5 py-1.5 text-right font-medium text-slate-700" style={{ width: '9%' }}>{fmt(row.estimated_stock_balance)}</td>
-                        <td className="px-1.5 py-1.5 text-right font-bold text-blue-800" style={{ width: '9%' }}>{fmt(row.month_end_stock_balance)}</td>
+                        {/* <td className="px-1.5 py-1.5 text-right font-bold text-blue-800" style={{ width: '9%' }}>{fmt(row.month_end_stock_balance)}</td> */}
                         <td className="px-1.5 py-1.5 text-center font-semibold text-rose-700" style={{ width: '7%' }}>{fmt(row.wastage_pct, 1)}%</td>
                         <td className="px-1.5 py-1.5 text-center" style={{ width: '8%' }}>
                           <span className={`font-bold ${row.stock_availability_pct < 10 ? 'text-red-700' : row.stock_availability_pct < 25 ? 'text-orange-700' : 'text-green-700'}`}>
@@ -824,7 +835,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
                     <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.totalWastageReported)}</td>
                     <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.avgMonthEndReporting, 1)}%</td>
                     <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '9%' }}>{fmt(kpis.totalEstimatedStockBalance)}</td>
-                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '9%' }}>{fmt(kpis.totalMonthEndStockBalance)}</td>
+                    {/* <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '9%' }}>{fmt(kpis.totalMonthEndStockBalance)}</td> */}
                     <td className="px-1.5 py-1.5 text-center font-semibold text-rose-700" style={{ width: '7%' }}>{fmt(kpis.totalWastagePct, 1)}%</td>
                     <td className="px-1.5 py-1.5 text-center font-bold text-green-700" style={{ width: '8%' }}>{fmt(kpis.totalStockAvailabilityPct, 2)}%</td>
                     <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '7%' }}>—</td>
