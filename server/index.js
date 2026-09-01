@@ -2598,7 +2598,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         annual_requirement: target,
         opening_stock: stats.openingStock,
         vaccine_received: stats.periodReceived,
-        vaccinations: stats.totalVaccinations,
+        vaccinations: stats.periodVaccinations,
         wastage_reported: stats.wastageReported,
         wastage_pct,
         estimated_stock_balance: stats.estimatedStockBalance,
