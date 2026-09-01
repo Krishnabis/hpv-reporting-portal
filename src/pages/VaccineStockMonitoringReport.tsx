@@ -91,7 +91,7 @@ const KpiCard: React.FC<{
   icon: React.ReactNode; label: string; value: string;
   subLabel?: string; subValue?: string; iconBg: string; valueColor?: string; loading?: boolean;
 }> = ({ icon, label, value, subLabel, subValue, iconBg, valueColor = 'text-slate-900', loading }) => (
-  <div className="bg-white rounded-xl px-2.5 py-2 shadow-sm border border-slate-200 flex items-center gap-2 hover:shadow-md transition-shadow">
+  <div className="bg-white rounded-xl px-2.5 py-2 shadow-sm border border-slate-200 flex items-center gap-2 hover:shadow-md transition-shadow" title={label}>
     {loading ? (
       <div className="animate-pulse flex items-center gap-2 w-full">
         <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0" />
@@ -204,10 +204,10 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
          level = 'STATE';
       } else if (filterLevel === 'Division') {
          if (filterDivisionId && filterDivisionId !== 'ALL') q.append('divisionId', filterDivisionId);
-         level = 'DIVISION';
+         level = 'DISTRICT';
       } else if (filterLevel === 'District') {
          if (filterDistrictId && filterDistrictId !== 'ALL') q.append('districtId', filterDistrictId);
-         level = 'DISTRICT';
+         level = 'BLOCK';
       } else {
          if (filterDistrictId && filterDistrictId !== 'ALL') q.append('districtId', filterDistrictId);
          level = 'BLOCK';
@@ -318,31 +318,24 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       drawKpi(242, kpiY, 'Critical Stock', fmt(kpis.criticalStockCount), '');
       
       const head = [[
-        `Site / Unit (${filterLevel === 'Division' ? 'District' : 'Block'})`,
-        'District',
-        'Annual Req.',
-        'Opening Stock',
-        'Vacc. Received',
-        'Wastage (Rep)',
-        'Month-end %',
-        'Est. Balance',
-        'Wastage %',
-        'Stock Avail %',
-        'Action'
+        'Site / Unit', 'District', 'Annual Requirement', 'Opening Stock',
+        'Vaccine Received', 'Vaccinations', 'Wastage (Reported)',
+        'Month-End Reporting %', 'Estimated Stock Balance', 'Wastage %', 'Stock Availability %', 'Action'
       ]];
 
-      const body = filtered.map(row => [
-        row.name,
-        row.district,
-        fmt(row.annual_requirement),
-        fmt(row.opening_stock),
-        fmt(row.vaccine_received),
-        fmt(row.wastage_reported),
-        `${fmt(row.month_end_reporting_pct)}%`,
-        fmt(row.estimated_stock_balance),
-        `${fmt(row.wastage_pct, 1)}%`,
-        `${fmt(row.stock_availability_pct, 1)}%`,
-        row.action_required === 'critical' ? 'Critical' : row.action_required === 'reorder' ? 'Re-Order' : '—'
+      const body = filtered.map((r: any) => [
+        r.name + (r.is_urban ? ' (Urban)' : ''),
+        r.district || '—',
+        fmt(r.annual_requirement),
+        fmt(r.opening_stock),
+        fmt(r.vaccine_received),
+        fmt(r.vaccinations),
+        fmt(r.wastage_reported),
+        `${fmt(r.month_end_reporting_pct)}%`,
+        fmt(r.estimated_stock_balance),
+        `${fmt(r.wastage_pct, 1)}%`,
+        `${fmt(r.stock_availability_pct, 1)}%`,
+        r.action_required === 'critical' ? 'Critical' : r.action_required === 'reorder' ? 'Re-Order' : '—'
       ]);
 
       // Add totals row
@@ -566,7 +559,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       </div>
 
       {/* ── Dashboard Content to Save ─────────────────────────────────── */}
-      <div ref={reportRef} className="flex-1 flex flex-col min-h-0 gap-3 pb-2 bg-slate-50 rounded-xl" style={{ backgroundColor: isSavingImg ? 'white' : undefined }}>
+      <div ref={reportRef} className="flex-1 flex flex-col min-h-0 gap-1 pb-2 bg-slate-50 rounded-xl" style={{ backgroundColor: isSavingImg ? 'white' : undefined }}>
         {isSavingImg && (
           <div className="flex items-center justify-between mb-4 border-b border-slate-200 pb-4">
             <Logo size="md" variant="dark" />
@@ -620,7 +613,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
         </div>
 
         {/* ── Second Toolbar (below cards) ───────────────────────────── */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 justify-between shrink-0">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-2 flex flex-wrap items-center gap-3 justify-between shrink-0">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
             <Calendar className="w-3.5 h-3.5 text-purple-500" />
             <span>Report Date:</span>
@@ -687,18 +680,18 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
             <table className="w-full" style={{ fontSize: '11px' }}>
               <thead className="sticky top-0 z-10">
                 <tr className="gradient-header text-white">
-                  <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide whitespace-nowrap sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Site / Unit</th>
-                  <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide whitespace-nowrap">District</th>
-                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Annual Req.</th>
-                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Opening Stock</th>
-                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vaccine Received</th>
-                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vaccinations</th>
-                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Wastage (Rep)</th>
-                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Month-end Rep %</th>
-                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Est. Stock Bal.</th>
-                  <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Wastage %</th>
-                  <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Stock Avail %</th>
-                  <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Action</th>
+                  <th className="px-2 py-2.5 text-left font-bold uppercase tracking-wide whitespace-nowrap sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Site / Unit</th>
+                  <th className="px-2 py-2.5 text-left font-bold uppercase tracking-wide whitespace-nowrap">District</th>
+                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Annual Requirement</th>
+                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Opening Stock</th>
+                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vaccine Received</th>
+                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vaccinations</th>
+                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Wastage (Reported)</th>
+                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Month-End Reporting %</th>
+                  <th className="px-2 py-2.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Estimated Stock Balance</th>
+                  <th className="px-2 py-2.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Wastage %</th>
+                  <th className="px-2 py-2.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Stock Availability %</th>
+                  <th className="px-2 py-2.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -724,7 +717,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
                     return (
                       <tr key={row.id} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
                         <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>
-                          {row.name}
+                          {row.name} {row.is_urban && <span className="ml-1 px-1 py-0.5 rounded text-[9px] bg-indigo-100 text-indigo-700 font-bold uppercase">Urban</span>}
                         </td>
                         <td className="px-2 py-1.5 text-left font-medium text-slate-600">{row.district}</td>
                         <td className="px-2 py-1.5 text-right font-semibold text-slate-700">{fmt(row.annual_requirement)}</td>
