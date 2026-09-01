@@ -25,7 +25,7 @@ interface CompletenessKPIs {
   units: number;
 }
 
-const CircularProgress: React.FC<{ pct: number; size?: number }> = ({ pct, size = 72 }) => {
+const CircularProgress: React.FC<{ pct: number; size?: number; strokeWidth?: number }> = ({ pct, size = 72, strokeWidth = 8 }) => {
   const clampedPct = Math.min(100, Math.max(0, pct));
   const radius = (size - 10) / 2;
   const circ = 2 * Math.PI * radius;
@@ -33,10 +33,10 @@ const CircularProgress: React.FC<{ pct: number; size?: number }> = ({ pct, size 
   const color = clampedPct >= 90 ? '#10b981' : clampedPct >= 70 ? '#14b8a6' : clampedPct >= 30 ? '#3b82f6' : '#f97316';
   return (
     <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#e2e8f0" strokeWidth={8} />
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#e2e8f0" strokeWidth={strokeWidth} />
       <circle
         cx={size / 2} cy={size / 2} r={radius}
-        fill="none" stroke={color} strokeWidth={8}
+        fill="none" stroke={color} strokeWidth={strokeWidth}
         strokeDasharray={circ} strokeDashoffset={offset}
         strokeLinecap="round"
         style={{ transition: 'stroke-dashoffset 1s ease' }}
@@ -273,67 +273,77 @@ export const ReportingCompleteness: React.FC<{
         </div>
 
         {/* Sub filters */}
-        <div className="bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
-          <div className="text-xs font-bold text-slate-700 flex items-center">
+        <div className="bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-200 flex items-center w-full">
+          {/* Part 1: Report Period */}
+          <div className="flex-1 text-[11px] font-bold text-slate-700 flex items-center justify-start">
             <span className="text-slate-500 font-medium mr-2">Report Period:</span>
             {new Date(fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} to {new Date(toDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
           </div>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-bold text-slate-700">Order:</span>
-              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600">
-                <input type="radio" checked={order === 'best'} onChange={() => setOrder('best')} className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300" />
-                Best on Top
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600">
-                <input type="radio" checked={order === 'worst'} onChange={() => setOrder('worst')} className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300" />
-                Worst on Top
-              </label>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-700">Ranked By:</span>
-              <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="bg-slate-50 border-2 border-slate-200 text-slate-700 text-xs font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
-                <option value="reporting">Reporting (%) (Default)</option>
-                <option value="ontime">On Time (%)</option>
-              </select>
-            </div>
+          
+          {/* Part 2: Order */}
+          <div className="flex-1 flex items-center justify-center gap-4">
+            <span className="text-[11px] font-bold text-slate-700">Order:</span>
+            <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-slate-600">
+              <input type="radio" checked={order === 'best'} onChange={() => setOrder('best')} className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300" />
+              Best on Top
+            </label>
+            <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-slate-600">
+              <input type="radio" checked={order === 'worst'} onChange={() => setOrder('worst')} className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300" />
+              Worst on Top
+            </label>
+          </div>
+          
+          {/* Part 3: Ranked By */}
+          <div className="flex-1 flex items-center justify-end gap-2">
+            <span className="text-[11px] font-bold text-slate-700">Ranked By:</span>
+            <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="bg-slate-50 border-2 border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+              <option value="reporting">Reporting (%) (Default)</option>
+              <option value="ontime">On Time (%)</option>
+            </select>
           </div>
         </div>
 
         {/* KPI Panel */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row">
-          <div className="p-4 md:w-1/3 border-b md:border-b-0 md:border-r border-slate-100 flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 text-[#0f3484] rounded-xl flex items-center justify-center shrink-0">
-              <BarChart3 className="w-5 h-5" />
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100">
+          
+          {/* Part 1 */}
+          <div className="flex-1 p-3 flex items-center gap-3 pl-5 py-4">
+            <div className="w-9 h-9 bg-blue-50 text-[#0f3484] rounded-xl flex items-center justify-center shrink-0">
+              <BarChart3 className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-900">{locationOptions.find(o => o.id === locationId)?.name || 'All Locations'}</h3>
-              <p className="text-xs text-slate-500 font-medium">Report Selector: {reportType === 'ALL' ? 'All Reports' : reportType.replace(/_/g, ' ')}</p>
+              <h3 className="text-[13px] font-black text-slate-900">{locationOptions.find(o => o.id === locationId)?.name || 'All Locations'}</h3>
+              <p className="text-[10px] text-slate-500 font-medium">Report Selector: {reportType === 'ALL' ? 'All Reports' : reportType.replace(/_/g, ' ')}</p>
             </div>
           </div>
           
-          <div className="flex-1 grid grid-cols-2 md:grid-cols-4 p-4 gap-4 items-center">
+          {/* Part 2 */}
+          <div className="flex-1 p-3 flex items-center justify-center gap-8 py-4">
             <div className="text-center">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Reports Expected</div>
-              <div className="text-xl font-black text-slate-900">{kpis?.expected.toLocaleString() || '—'}</div>
+              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reports Expected</div>
+              <div className="text-lg font-black text-slate-900 leading-none">{kpis?.expected.toLocaleString() || '—'}</div>
             </div>
-            <div className="text-center border-r border-slate-100">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Reports Received</div>
-              <div className="text-xl font-black text-slate-900">{kpis?.received.toLocaleString() || '—'}</div>
+            <div className="text-center">
+              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reports Received</div>
+              <div className="text-lg font-black text-slate-900 leading-none">{kpis?.received.toLocaleString() || '—'}</div>
+            </div>
+          </div>
+          
+          {/* Part 3 */}
+          <div className="flex-1 p-3 flex items-center justify-center gap-4 py-4 pr-5">
+            <div className="flex flex-col gap-0.5">
+              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider text-right">Overall Reporting (%)</div>
+              <div className="text-xl font-black text-emerald-600 text-right leading-none">{kpis?.reportingPct || 0}%</div>
+              <div className="text-[9px] font-bold text-slate-500 text-right">On Time <span className={kpis?.onTimePct && kpis.onTimePct >= 70 ? 'text-emerald-600' : 'text-amber-600'}>{kpis?.onTimePct || 0}%</span></div>
             </div>
             
-            <div className="col-span-2 flex items-center justify-between px-3">
-              <div className="flex flex-col gap-1">
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Overall Reporting (%)</div>
-                <div className="text-2xl font-black text-emerald-600 text-right">{kpis?.reportingPct || 0}%</div>
-                <div className="text-xs font-bold text-slate-500 text-right">On Time <span className={kpis?.onTimePct && kpis.onTimePct >= 70 ? 'text-emerald-600' : 'text-amber-600'}>{kpis?.onTimePct || 0}%</span></div>
-              </div>
-              <CircularProgress pct={kpis?.reportingPct || 0} size={64} />
-              
-              <div className="text-center ml-3 pl-4 border-l border-slate-100">
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Reporting Units</div>
-                <div className="text-xl font-black text-slate-900">{kpis?.units.toLocaleString() || '—'}</div>
-              </div>
+            <CircularProgress pct={kpis?.reportingPct || 0} size={48} strokeWidth={5} />
+            
+            <div className="h-8 border-l border-slate-200"></div>
+            
+            <div className="text-center">
+              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reporting Units</div>
+              <div className="text-lg font-black text-slate-900 leading-none mt-1">{kpis?.units.toLocaleString() || '—'}</div>
             </div>
           </div>
         </div>
