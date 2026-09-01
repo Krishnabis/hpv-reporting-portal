@@ -439,6 +439,5 @@ export const ReportingCompleteness: React.FC<{
           </p>
         </div>
       </div>
-    </div>
   );
 };

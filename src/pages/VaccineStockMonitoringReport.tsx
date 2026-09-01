@@ -24,6 +24,18 @@ interface ReportRow {
   wastage_pct: number | null;
   stock_availability_pct: number | null;
   action_required: 'critical' | 'reorder' | 'ok';
+  is_urban?: boolean;
+  has_report?: boolean;
+  last_reporting_date?: string | null;
+  population?: number;
+  hpv_target?: number;
+  sessions_held_today?: number | null;
+  vaccinated_today?: number | null;
+  sessions_held_cumulative?: number | null;
+  beneficiaries_vaccinated?: number | null;
+  vaccinations_per_session?: number | null;
+  vaccination_coverage_pct?: number | null;
+  rank?: number;
 }
 
 type RankBy = 'stock_availability_pct' | 'wastage_pct' | 'month_end_reporting_pct';
@@ -193,7 +205,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
         const wastage_pct = vaccine_received > 0 ? (wastage_reported / vaccine_received) * 100 : 0;
         const stock_availability_pct = annual_requirement > 0 ? (estimated_stock_balance / annual_requirement) * 100 : 0;
         const month_end_reporting_pct = Math.floor(Math.random() * 40) + 60;
-        
+
         let action_required: 'critical' | 'reorder' | 'ok' = 'ok';
         if (stock_availability_pct < 10) action_required = 'critical';
         else if (stock_availability_pct < 30) action_required = 'reorder';
@@ -227,7 +239,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
     setIsSavingImg(true);
     try {
       const pdf = new jsPDF('l', 'mm', 'a4');
-      
+
       // Attempt to load and add logo
       try {
         const logoImg = new Image();
@@ -236,7 +248,6 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
           logoImg.onload = resolve;
           logoImg.onerror = reject;
         });
-        // The original image might be wider now that it contains text.
         pdf.addImage(logoImg, 'PNG', 14, 10, 50, 15);
       } catch (e) {
         console.warn('Could not load headinglogo.png for PDF');
@@ -246,7 +257,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       pdf.setFontSize(9);
       pdf.setTextColor(100);
       pdf.setFont('helvetica', 'normal');
-      const generatedDate = new Date().toLocaleString('en-IN', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true}).replace(/ am| pm/i, m => m.toUpperCase());
+      const generatedDate = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).replace(/ am| pm/i, m => m.toUpperCase());
       pdf.text(`Report Generated On: ${generatedDate}`, 282, 15, { align: 'right' });
       pdf.text('Page 1 of 1', 282, 20, { align: 'right' });
 
@@ -254,13 +265,13 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       pdf.setFontSize(18);
       pdf.setTextColor(15, 23, 42); // slate-900 (very dark)
       pdf.setFont('helvetica', 'bold');
-      pdf.text('HPV Vaccination \u2014 Daily Progress Report', 14, 38);
+      pdf.text('HPV Vaccination \u2014 Vaccine Stock Monitoring', 14, 38);
       
       // Subtitle
       pdf.setFontSize(9);
       pdf.setTextColor(100, 116, 139); // slate-500
       pdf.setFont('helvetica', 'normal');
-      pdf.text('Tracks daily & cumulative HPV vaccination progress at State, Division, District, and Block levels', 14, 43);
+      pdf.text('Tracks vaccine stock, requirement, and availability at all levels', 14, 43);
       
       // Location row (around Y=51)
       pdf.setFontSize(10);
@@ -302,39 +313,39 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       };
 
       drawKpi(14, kpiY, 'Total Population', fmt(kpis.totalPop), '');
-      drawKpi(52, kpiY, 'Goal', fmt(kpis.totalTarget), `${(kpis.totalPop ? (kpis.totalTarget/kpis.totalPop)*100 : 0).toFixed(1)}% of total pop`);
-      drawKpi(90, kpiY, 'HPV Vaccinations', fmt(kpis.totalVaccCumm), `${fmt(kpis.totalVaccToday)} Today`);
-      drawKpi(128, kpiY, 'Sessions Held', fmt(kpis.totalSessionsCumm), `${fmt(kpis.totalSessionsToday)} Today`);
-      drawKpi(166, kpiY, 'Vacc / Session', kpis.vaccPerSession.toFixed(2), 'cumulative avg');
-      drawKpi(204, kpiY, 'Goal Achieved', `${kpis.coveragePct.toFixed(1)}%`, '');
-      drawKpi(242, kpiY, 'Reporting Today', `${kpis.reportingToday}`, `of ${rows.length} units`);
+      drawKpi(52, kpiY, 'Annual Req.', fmt(kpis.totalTarget), '');
+      drawKpi(90, kpiY, 'Vaccine Stores', fmt(kpis.totalStores), '');
+      drawKpi(128, kpiY, 'Cold Chain Pts', fmt(kpis.totalColdChainPoints), '');
+      drawKpi(166, kpiY, 'Month-end Rep.', `${fmt(kpis.avgMonthEndReporting, 1)}%`, 'average');
+      drawKpi(204, kpiY, 'Wastage (%)', `${fmt(kpis.avgWastage, 1)}%`, 'average');
+      drawKpi(242, kpiY, 'Critical Stock', fmt(kpis.criticalStockCount), '');
       
       const head = [[
-        `Reporting Unit (${filterLevel === 'Division' ? 'District' : 'Block'})`,
-        'Last Reported',
-        'Population',
-        'HPV Goal',
-        'Sess. Today',
-        'Vacc. Today',
-        'Sess. Cumul.',
-        'Vacc. Cumul.',
-        'Vacc/Sess',
-        'Goal %',
-        'Rank'
+        `Site / Unit (${filterLevel === 'Division' ? 'District' : 'Block'})`,
+        'District',
+        'Annual Req.',
+        'Opening Stock',
+        'Vacc. Received',
+        'Wastage (Rep)',
+        'Month-end %',
+        'Est. Balance',
+        'Wastage %',
+        'Stock Avail %',
+        'Action'
       ]];
 
       const body = filtered.map(row => [
-        row.name + (row.is_urban ? ' (Urban)' : ''),
-        row.has_report ? fmtDate(row.last_reporting_date) : '—',
-        fmt(row.population),
-        fmt(row.hpv_target),
-        row.sessions_held_today !== null ? fmt(row.sessions_held_today) : '—',
-        row.vaccinated_today !== null ? fmt(row.vaccinated_today) : '—',
-        row.sessions_held_cumulative !== null ? fmt(row.sessions_held_cumulative) : '—',
-        row.beneficiaries_vaccinated !== null ? fmt(row.beneficiaries_vaccinated) : '—',
-        row.vaccinations_per_session !== null ? fmt(row.vaccinations_per_session, 2) : '—',
-        row.vaccination_coverage_pct != null ? `${fmt(row.vaccination_coverage_pct, 1)}%` : '—',
-        (row as any).rank ?? '-'
+        row.name,
+        row.district,
+        fmt(row.annual_requirement),
+        fmt(row.opening_stock),
+        fmt(row.vaccine_received),
+        fmt(row.wastage_reported),
+        `${fmt(row.month_end_reporting_pct)}%`,
+        fmt(row.estimated_stock_balance),
+        `${fmt(row.wastage_pct, 1)}%`,
+        `${fmt(row.stock_availability_pct, 1)}%`,
+        row.action_required === 'critical' ? 'Critical' : row.action_required === 'reorder' ? 'Re-Order' : '—'
       ]);
 
       // Add totals row
@@ -342,14 +353,14 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
         body.push([
           `TOTAL (${filtered.length})`,
           '—',
-          fmt(kpis.totalPop),
           fmt(kpis.totalTarget),
-          fmt(kpis.totalSessionsToday),
-          fmt(kpis.totalVaccToday),
-          fmt(kpis.totalSessionsCumm),
-          fmt(kpis.totalVaccCumm),
           '—',
-          kpis.totalTarget > 0 ? `${fmt((kpis.totalVaccCumm / kpis.totalTarget) * 100, 1)}%` : '—',
+          '—',
+          '—',
+          `${fmt(kpis.avgMonthEndReporting, 1)}%`,
+          '—',
+          `${fmt(kpis.avgWastage, 1)}%`,
+          '—',
           '—'
         ]);
       }
@@ -364,16 +375,16 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
         alternateRowStyles: { fillColor: [250, 250, 250] },
         columnStyles: {
           0: { fontStyle: 'bold', textColor: [30, 41, 59] }, // Name
-          1: { halign: 'center' },
-          2: { halign: 'right' },
-          3: { halign: 'right', textColor: [16, 185, 129] }, // Goal
-          4: { halign: 'right', textColor: [234, 88, 12] }, // Sess Today
-          5: { halign: 'right', textColor: [37, 99, 235] }, // Vacc Today
-          6: { halign: 'right', textColor: [234, 88, 12] }, // Sess Cumul
-          7: { halign: 'right', textColor: [37, 99, 235] }, // Vacc Cumul
-          8: { halign: 'right', textColor: [15, 118, 110] }, // Vacc/Sess
-          9: { halign: 'center', fontStyle: 'bold' }, // Coverage
-          10: { halign: 'center', fontStyle: 'bold' } // Rank
+          1: { halign: 'left' }, // District
+          2: { halign: 'right' }, // Annual Req.
+          3: { halign: 'right', textColor: [29, 78, 216] }, // Opening Stock
+          4: { halign: 'right', textColor: [21, 128, 61] }, // Vacc Received
+          5: { halign: 'right', textColor: [225, 29, 72] }, // Wastage (Rep)
+          6: { halign: 'right' }, // Month-end %
+          7: { halign: 'right', fontStyle: 'bold' }, // Est. Balance
+          8: { halign: 'center', textColor: [190, 18, 60] }, // Wastage %
+          9: { halign: 'center', fontStyle: 'bold' }, // Stock Avail %
+          10: { halign: 'center' } // Action
         },
         willDrawCell: (data) => {
           if (data.row.index === body.length - 1 && filtered.length > 0) {
@@ -412,20 +423,24 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
   }, [filtered, currentPage, isSavingImg]);
 
   const kpis = useMemo(() => {
-    const totalPop = rows.reduce((s, r: any) => s + (r.annual_requirement / 1.01 || 0), 0);
-    const totalTarget = rows.reduce((s, r: any) => s + (r.annual_requirement || 0), 0);
+    const totalPop = rows.reduce((s, r: any) => s + (r.population || (r.annual_requirement / 1.01) || 0), 0);
+    const totalTarget = rows.reduce((s, r: any) => s + (r.hpv_target || r.annual_requirement || 0), 0);
     const totalStores = 2; // mock
     const totalColdChainPoints = 13; // mock
     const avgMonthEndReporting = rows.length ? rows.reduce((s, r: any) => s + (r.month_end_reporting_pct || 0), 0) / rows.length : 0;
     const avgWastage = rows.length ? rows.reduce((s, r: any) => s + (r.wastage_pct || 0), 0) / rows.length : 0;
     const criticalStockCount = rows.filter((r: any) => r.action_required === 'critical').length;
     const reorderStockCount = rows.filter((r: any) => r.action_required === 'reorder').length;
-    return { totalPop, totalTarget, totalStores, totalColdChainPoints, avgMonthEndReporting, avgWastage, criticalStockCount, reorderStockCount };
+
+    return {
+      totalPop, totalTarget, totalStores, totalColdChainPoints, avgMonthEndReporting, avgWastage,
+      criticalStockCount, reorderStockCount
+    };
   }, [rows]);
 
   const handleCSV = () => {
     if (!rows.length) return;
-    const headers = ['Rank','Reporting Unit','Coverage %'];
+    const headers = ['Rank', 'Reporting Unit', 'Coverage %'];
     const csvRows = rankedRows.map((r: any, i: number) => [i + 1, `"${r.name}"`, r.vaccination_coverage_pct]);
     const content = [headers.join(','), ...csvRows.map(r => r.join(','))].join('\n');
     const blob = new Blob([content], { type: 'text/csv' });
@@ -452,7 +467,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
     return 'All Units';
   }, [filterLevel, filterDistrictId, filterDivisionId, filterStateId, stateDistricts, divisionsList, statesList]);
 
-  const tierInfo = coverageTier(reportGenerated ? kpis.coveragePct : null);
+  const tierInfo = coverageTier(reportGenerated ? kpis.avgMonthEndReporting : null);
 
   return (
     <div className="flex flex-col h-full gap-3">
@@ -577,185 +592,185 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
               <span className="text-xs font-bold text-slate-700">{locationLabel}</span>
               <span className="text-[10px] text-slate-400">— {filterLevel === 'Division' ? 'Districts inside Division' : 'Blocks inside District'}</span>
             </div>
-          {reportGenerated && (
-            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${tierInfo.bg} ${tierInfo.color}`}>{tierInfo.label}</span>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-1.5">
-          <KpiCard loading={loading} icon={<Users className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
-            label="Total Population" value={fmt(kpis.totalPop)} valueColor="text-purple-700" />
-          <KpiCard loading={loading} icon={<Target className="w-4 h-4 text-green-600" />} iconBg="bg-green-50"
-            label="Annual Requirement" value={fmt(kpis.totalTarget)} valueColor="text-green-700"
-            subLabel="Population × 1.01" />
-          <KpiCard loading={loading} icon={<Activity className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
-            label="District Vaccine Stores" value={fmt(kpis.totalStores)} />
-          <KpiCard loading={loading} icon={<Activity className="w-4 h-4 text-orange-500" />} iconBg="bg-orange-50"
-            label="Cold Chain Points" value={fmt(kpis.totalColdChainPoints)} />
-          <KpiCard loading={loading} icon={<CheckCircle2 className="w-4 h-4 text-teal-600" />} iconBg="bg-teal-50"
-            label="Month-end Reporting" value={`${fmt(kpis.avgMonthEndReporting, 1)}%`} subLabel="average" />
-          <KpiCard loading={loading} icon={<PieChart className="w-4 h-4 text-rose-600" />} iconBg="bg-rose-50"
-            label="Wastage (%)" value={`${fmt(kpis.avgWastage, 1)}%`} subLabel="average" />
-          <div className="cursor-pointer" onClick={() => { setSearch(''); setRankBy('stock_availability_pct'); setSortDir('worst'); }}>
-            <KpiCard loading={loading} icon={<AlertCircle className="w-4 h-4 text-red-600" />} iconBg="bg-red-50"
-              label="Critical Stock" value={fmt(kpis.criticalStockCount)} valueColor="text-red-700" subLabel="click to filter" />
+            {reportGenerated && (
+              <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${tierInfo.bg} ${tierInfo.color}`}>{tierInfo.label}</span>
+            )}
           </div>
-          <div className="cursor-pointer" onClick={() => { setSearch(''); setRankBy('stock_availability_pct'); setSortDir('worst'); }}>
-            <KpiCard loading={loading} icon={<RefreshCw className="w-4 h-4 text-orange-600" />} iconBg="bg-orange-50"
-              label="Re-Order Stock" value={fmt(kpis.reorderStockCount)} valueColor="text-orange-700" subLabel="click to filter" />
-          </div>
-        </div>
-      </div>
 
-      {/* ── Second Toolbar (below cards) ───────────────────────────── */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 justify-between shrink-0">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-          <Calendar className="w-3.5 h-3.5 text-purple-500" />
-          <span>Report Date:</span>
-          <span className="font-extrabold text-slate-900">{fmtDate(reportDateLabel || today)}</span>
-        </div>
-
-        {/* Sort direction */}
-        <div className="flex items-center gap-3">
-          {(['best', 'worst'] as SortDir[]).map(val => (
-            <label key={val} className="flex items-center gap-1.5 cursor-pointer select-none">
-              <div
-                onClick={() => setSortDir(val)}
-                className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${sortDir === val ? 'border-purple-600' : 'border-slate-300'}`}
-              >
-                {sortDir === val && <div className="w-1.5 h-1.5 rounded-full bg-purple-600" />}
-              </div>
-              <span className={`text-xs font-semibold cursor-pointer ${sortDir === val ? 'text-purple-700' : 'text-slate-500'}`}
-                onClick={() => setSortDir(val)}>
-                {val === 'best' ? 'Best on Top' : 'Worst on Top'}
-              </span>
-            </label>
-          ))}
-        </div>
-
-        {/* Ranked By */}
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Ranked By</span>
-          <div className="relative">
-            <select value={rankBy} onChange={e => setRankBy(e.target.value as RankBy)}
-              className="pl-2.5 pr-7 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer">
-              <option value="stock_availability_pct">Stock Availability (%)</option>
-              <option value="wastage_pct">Wastage (%)</option>
-              <option value="month_end_reporting_pct">Month-end Reporting (%)</option>
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1.5 pointer-events-none" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-1.5">
+            <KpiCard loading={loading} icon={<Users className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
+              label="Total Population" value={fmt(kpis.totalPop)} valueColor="text-purple-700" />
+            <KpiCard loading={loading} icon={<Target className="w-4 h-4 text-green-600" />} iconBg="bg-green-50"
+              label="Annual Requirement" value={fmt(kpis.totalTarget)} valueColor="text-green-700"
+              subLabel="Population × 1.01" />
+            <KpiCard loading={loading} icon={<Activity className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
+              label="District Vaccine Stores" value={fmt(kpis.totalStores)} />
+            <KpiCard loading={loading} icon={<Activity className="w-4 h-4 text-orange-500" />} iconBg="bg-orange-50"
+              label="Cold Chain Points" value={fmt(kpis.totalColdChainPoints)} />
+            <KpiCard loading={loading} icon={<CheckCircle2 className="w-4 h-4 text-teal-600" />} iconBg="bg-teal-50"
+              label="Month-end Reporting" value={`${fmt(kpis.avgMonthEndReporting, 1)}%`} subLabel="average" />
+            <KpiCard loading={loading} icon={<PieChart className="w-4 h-4 text-rose-600" />} iconBg="bg-rose-50"
+              label="Wastage (%)" value={`${fmt(kpis.avgWastage, 1)}%`} subLabel="average" />
+            <div className="cursor-pointer" onClick={() => { setSearch(''); setRankBy('stock_availability_pct'); setSortDir('worst'); }}>
+              <KpiCard loading={loading} icon={<AlertCircle className="w-4 h-4 text-red-600" />} iconBg="bg-red-50"
+                label="Critical Stock" value={fmt(kpis.criticalStockCount)} valueColor="text-red-700" subLabel="click to filter" />
+            </div>
+            <div className="cursor-pointer" onClick={() => { setSearch(''); setRankBy('stock_availability_pct'); setSortDir('worst'); }}>
+              <KpiCard loading={loading} icon={<RefreshCw className="w-4 h-4 text-orange-600" />} iconBg="bg-orange-50"
+                label="Re-Order Stock" value={fmt(kpis.reorderStockCount)} valueColor="text-orange-700" subLabel="click to filter" />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ── Data Table — flex-1 so it fills remaining space ────────── */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-0 overflow-hidden">
+        {/* ── Second Toolbar (below cards) ───────────────────────────── */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 justify-between shrink-0">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+            <Calendar className="w-3.5 h-3.5 text-purple-500" />
+            <span>Report Date:</span>
+            <span className="font-extrabold text-slate-900">{fmtDate(reportDateLabel || today)}</span>
+          </div>
 
-        {/* Table toolbar */}
-        <div className="px-4 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          {/* Sort direction */}
+          <div className="flex items-center gap-3">
+            {(['best', 'worst'] as SortDir[]).map(val => (
+              <label key={val} className="flex items-center gap-1.5 cursor-pointer select-none">
+                <div
+                  onClick={() => setSortDir(val)}
+                  className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${sortDir === val ? 'border-purple-600' : 'border-slate-300'}`}
+                >
+                  {sortDir === val && <div className="w-1.5 h-1.5 rounded-full bg-purple-600" />}
+                </div>
+                <span className={`text-xs font-semibold cursor-pointer ${sortDir === val ? 'text-purple-700' : 'text-slate-500'}`}
+                  onClick={() => setSortDir(val)}>
+                  {val === 'best' ? 'Best on Top' : 'Worst on Top'}
+                </span>
+              </label>
+            ))}
+          </div>
+
+          {/* Ranked By */}
           <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-xs font-bold text-slate-700">
-              {filtered.length} {filterLevel === 'Division' ? 'District' : 'Block'}{filtered.length !== 1 ? 's' : ''}
-            </span>
-            {reportGenerated && !loading && (
-              <span className="text-[10px] text-slate-400">• {rows.filter(r => r.has_today_report).length} reported today</span>
-            )}
-          </div>
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
-            <input type="text" placeholder="Search by name..." value={search}
-              onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-              className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400" style={{ width: 200 }} />
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Ranked By</span>
+            <div className="relative">
+              <select value={rankBy} onChange={e => setRankBy(e.target.value as RankBy)}
+                className="pl-2.5 pr-7 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer">
+                <option value="stock_availability_pct">Stock Availability (%)</option>
+                <option value="wastage_pct">Wastage (%)</option>
+                <option value="month_end_reporting_pct">Month-end Reporting (%)</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1.5 pointer-events-none" />
+            </div>
           </div>
         </div>
 
-        {/* Scrollable table body */}
-        <div className="overflow-auto flex-1 min-h-0">
-          <table className="w-full" style={{ fontSize: '11px' }}>
-            <thead className="sticky top-0 z-10">
-              <tr className="gradient-header text-white">
-                <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide whitespace-nowrap sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Site / Unit</th>
-                <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide whitespace-nowrap">District</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Annual Req.</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Opening Stock</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vaccine Received</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vaccinations</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Wastage (Rep)</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Month-end Rep %</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Est. Stock Bal.</th>
-                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Wastage %</th>
-                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Stock Avail %</th>
-                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />) :
-              paginated.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="py-16 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <AlertCircle className="w-10 h-10 text-slate-300" />
-                      <p className="text-slate-400 font-semibold text-sm">
-                        {reportGenerated ? 'No matching records found.' : 'Click Generate Report to load data.'}
-                      </p>
-                    </div>
-                  </td>
+        {/* ── Data Table — flex-1 so it fills remaining space ────────── */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-0 overflow-hidden">
+
+          {/* Table toolbar */}
+          <div className="px-4 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center gap-2">
+              <Filter className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-xs font-bold text-slate-700">
+                {filtered.length} {filterLevel === 'Division' ? 'District' : 'Block'}{filtered.length !== 1 ? 's' : ''}
+              </span>
+              {reportGenerated && !loading && (
+                <span className="text-[10px] text-slate-400">• {rows.filter(r => r.has_today_report).length} reported today</span>
+              )}
+            </div>
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+              <input type="text" placeholder="Search by name..." value={search}
+                onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+                className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400" style={{ width: 200 }} />
+            </div>
+          </div>
+
+          {/* Scrollable table body */}
+          <div className="overflow-auto flex-1 min-h-0">
+            <table className="w-full" style={{ fontSize: '11px' }}>
+              <thead className="sticky top-0 z-10">
+                <tr className="gradient-header text-white">
+                  <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide whitespace-nowrap sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Site / Unit</th>
+                  <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide whitespace-nowrap">District</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Annual Req.</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Opening Stock</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vaccine Received</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vaccinations</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Wastage (Rep)</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Month-end Rep %</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Est. Stock Bal.</th>
+                  <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Wastage %</th>
+                  <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Stock Avail %</th>
+                  <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Action</th>
                 </tr>
-              ) : paginated.map((row: any, idx: number) => {
-                const isEven = idx % 2 === 0;
-                const coveragePct = row.vaccination_coverage_pct;
-                const tier = coverageTier(coveragePct);
-                const rankNum = row.rank;
-                const rankBadge = rankNum === 1 ? '🥇' : rankNum === 2 ? '🥈' : rankNum === 3 ? '🥉' : `#${rankNum}`;
-                const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
-                return (
-                  <tr key={row.id} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
-                    <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>
-                      {row.name}
-                    </td>
-                    <td className="px-2 py-1.5 text-left font-medium text-slate-600">{row.district}</td>
-                    <td className="px-2 py-1.5 text-right font-semibold text-slate-700">{fmt(row.annual_requirement)}</td>
-                    <td className="px-2 py-1.5 text-right font-semibold text-blue-700">{fmt(row.opening_stock)}</td>
-                    <td className="px-2 py-1.5 text-right font-bold text-green-700">{fmt(row.vaccine_received)}</td>
-                    <td className="px-2 py-1.5 text-right font-semibold text-purple-700">{fmt(row.vaccinations)}</td>
-                    <td className="px-2 py-1.5 text-right font-semibold text-rose-600">{fmt(row.wastage_reported)}</td>
-                    <td className="px-2 py-1.5 text-right font-semibold text-slate-600">{fmt(row.month_end_reporting_pct)}%</td>
-                    <td className="px-2 py-1.5 text-right font-bold text-slate-800">{fmt(row.estimated_stock_balance)}</td>
-                    <td className="px-2 py-1.5 text-center font-semibold text-rose-700">{fmt(row.wastage_pct, 1)}%</td>
-                    <td className="px-2 py-1.5 text-center">
-                      <span className={`font-bold ${row.stock_availability_pct < 10 ? 'text-red-700' : row.stock_availability_pct < 30 ? 'text-orange-700' : 'text-green-700'}`}>
-                        {fmt(row.stock_availability_pct, 1)}%
-                      </span>
-                    </td>
-                    <td className="px-2 py-1.5 text-center">
-                      {row.action_required === 'critical' ? (
-                        <span className="bg-red-600 text-white text-[9px] font-bold px-2 py-1 rounded shadow-sm">Critical - Replenish Now</span>
-                      ) : row.action_required === 'reorder' ? (
-                        <span className="bg-orange-500 text-white text-[9px] font-bold px-2 py-1 rounded shadow-sm">Re-Order Stock</span>
-                      ) : (
-                        <span className="text-slate-400 text-xs">—</span>
-                      )}
-                    </td>
+              </thead>
+              <tbody>
+                {loading ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />) :
+                  paginated.length === 0 ? (
+                    <tr>
+                      <td colSpan={11} className="py-16 text-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <AlertCircle className="w-10 h-10 text-slate-300" />
+                          <p className="text-slate-400 font-semibold text-sm">
+                            {reportGenerated ? 'No matching records found.' : 'Click Generate Report to load data.'}
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : paginated.map((row: any, idx: number) => {
+                    const isEven = idx % 2 === 0;
+                    const coveragePct = row.vaccination_coverage_pct;
+                    const tier = coverageTier(coveragePct);
+                    const rankNum = row.rank;
+                    const rankBadge = rankNum === 1 ? '🥇' : rankNum === 2 ? '🥈' : rankNum === 3 ? '🥉' : `#${rankNum}`;
+                    const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
+                    return (
+                      <tr key={row.id} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
+                        <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>
+                          {row.name}
+                        </td>
+                        <td className="px-2 py-1.5 text-left font-medium text-slate-600">{row.district}</td>
+                        <td className="px-2 py-1.5 text-right font-semibold text-slate-700">{fmt(row.annual_requirement)}</td>
+                        <td className="px-2 py-1.5 text-right font-semibold text-blue-700">{fmt(row.opening_stock)}</td>
+                        <td className="px-2 py-1.5 text-right font-bold text-green-700">{fmt(row.vaccine_received)}</td>
+                        <td className="px-2 py-1.5 text-right font-semibold text-purple-700">{fmt(row.vaccinations)}</td>
+                        <td className="px-2 py-1.5 text-right font-semibold text-rose-600">{fmt(row.wastage_reported)}</td>
+                        <td className="px-2 py-1.5 text-right font-semibold text-slate-600">{fmt(row.month_end_reporting_pct)}%</td>
+                        <td className="px-2 py-1.5 text-right font-bold text-slate-800">{fmt(row.estimated_stock_balance)}</td>
+                        <td className="px-2 py-1.5 text-center font-semibold text-rose-700">{fmt(row.wastage_pct, 1)}%</td>
+                        <td className="px-2 py-1.5 text-center">
+                          <span className={`font-bold ${row.stock_availability_pct < 10 ? 'text-red-700' : row.stock_availability_pct < 30 ? 'text-orange-700' : 'text-green-700'}`}>
+                            {fmt(row.stock_availability_pct, 1)}%
+                          </span>
+                        </td>
+                        <td className="px-2 py-1.5 text-center">
+                          {row.action_required === 'critical' ? (
+                            <span className="bg-red-600 text-white text-[9px] font-bold px-2 py-1 rounded shadow-sm">Critical - Replenish Now</span>
+                          ) : row.action_required === 'reorder' ? (
+                            <span className="bg-orange-500 text-white text-[9px] font-bold px-2 py-1 rounded shadow-sm">Re-Order Stock</span>
+                          ) : (
+                            <span className="text-slate-400 text-xs">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+              {!loading && paginated.length > 0 && (
+                <tfoot>
+                  <tr className="border-t-2 border-[#3B1C63]/20 font-bold text-slate-800" style={{ background: 'rgba(59,28,99,0.04)', fontSize: '11px' }}>
+                    <td className="px-2 py-1.5 font-extrabold sticky left-0 border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)' }}>TOTAL ({rows.length})</td>
+                    <td className="px-2 py-1.5 text-center text-slate-400">—</td>
+                    <td className="px-2 py-1.5 text-right text-slate-700">{fmt(kpis.totalTarget)}</td>
+                    <td className="px-2 py-1.5 text-center text-slate-400" colSpan={6}>—</td>
+                    <td className="px-2 py-1.5 text-center font-semibold text-rose-700">{fmt(kpis.avgWastage, 1)}%</td>
+                    <td className="px-2 py-1.5 text-center text-slate-400">—</td>
+                    <td className="px-2 py-1.5 text-center text-slate-400">—</td>
                   </tr>
-                );
-              })}
-            </tbody>
-            {!loading && paginated.length > 0 && (
-              <tfoot>
-                <tr className="border-t-2 border-[#3B1C63]/20 font-bold text-slate-800" style={{ background: 'rgba(59,28,99,0.04)', fontSize: '11px' }}>
-                  <td className="px-2 py-1.5 font-extrabold sticky left-0 border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)' }}>TOTAL ({rows.length})</td>
-                  <td className="px-2 py-1.5 text-center text-slate-400">—</td>
-                  <td className="px-2 py-1.5 text-right text-slate-700">{fmt(kpis.totalTarget)}</td>
-                  <td className="px-2 py-1.5 text-center text-slate-400" colSpan={6}>—</td>
-                  <td className="px-2 py-1.5 text-center font-semibold text-rose-700">{fmt(kpis.avgWastage, 1)}%</td>
-                  <td className="px-2 py-1.5 text-center text-slate-400">—</td>
-                  <td className="px-2 py-1.5 text-center text-slate-400">—</td>
-                </tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
+                </tfoot>
+              )}
+            </table>
+          </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
@@ -790,4 +805,4 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
   );
 };
 
-export default DailyProgressReport;
+export default VaccineStockMonitoringReport;
