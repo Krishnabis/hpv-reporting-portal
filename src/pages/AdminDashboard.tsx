@@ -2003,6 +2003,11 @@ export const AdminDashboard: React.FC = () => {
                                           {d.stockBalance?.toLocaleString('en-IN') || 0}
                                         </span>
                                       </div>
+                                      <div className="flex items-center" title="Utilization Percentage">
+                                        <span className="text-[9px] font-bold text-pink-700 bg-pink-100 px-1.5 py-0.5 rounded shrink-0">
+                                          {pct?.toFixed(1) || '0.0'}%
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
