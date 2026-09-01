@@ -1966,9 +1966,11 @@ export const AdminDashboard: React.FC = () => {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 sm:gap-y-1.5 pb-2">
                             {(!selectedDistrict ? [...vaccDashboard.districtUtilization] : [...vaccDashboard.blockUtilization.filter((b: any) => b.district === selectedDistrict)]).map((d: any, idx: number) => {
                               const pct = d.utilizationPct;
-                              const tier = getTier(pct);
                               const isBlock = !!selectedDistrict;
                               const rowName = isBlock ? d.block : d.district;
+                              const isCrit = isBlock ? d.isCriticalStock : d.hasCriticalStockBlock;
+                              const isLow = isBlock ? d.isLowStock : d.hasLowStockBlock;
+                              
                               return (
                                 <div 
                                   key={isBlock ? d.block_id : d.district_id} 
@@ -1980,29 +1982,29 @@ export const AdminDashboard: React.FC = () => {
                                   className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${(!isBlock && (adminUser?.role !== 'DISTRICT_ADMIN' || d.district === adminUser.district_name)) ? 'cursor-pointer hover:bg-blue-50/50' : ''} ${(!isBlock && adminUser?.role === 'DISTRICT_ADMIN' && d.district !== adminUser.district_name) ? 'opacity-70 grayscale' : ''}`}
                                 >
                                   <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
-                                  <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
-                                    <span className="text-[11px] font-bold text-slate-800 truncate">
+                                  <div className="flex-1 min-w-0 flex items-center gap-1.5 truncate">
+                                    <span className={`text-[11px] font-bold truncate shrink-0 ${isCrit ? 'text-red-700 bg-red-100 px-1 rounded' : isLow ? 'text-orange-600' : 'text-slate-800'}`}>
                                       {rowName}
-                                      {((isBlock && d.isLowStock) || (!isBlock && d.hasLowStockBlock)) && (
-                                        <span title="Low stock in this area"><Syringe className="w-3 h-3 text-pink-500 inline-block ml-1 -mt-0.5" /></span>
-                                      )}
                                       {isBlock && d.is_urban && (
-                                        <span className="text-slate-400 font-medium ml-1">
-                                          Urban
-                                        </span>
+                                        <span className="text-slate-400 font-medium ml-1">Urban</span>
                                       )}
                                     </span>
-                                    <span className="text-[9px] font-semibold text-slate-400 shrink-0">({d.vaccinated?.toLocaleString('en-IN')} / {d.issued?.toLocaleString('en-IN')})</span>
-                                    {d.deltaVaccinated > 0 && (
-                                      <span className="flex items-center text-emerald-500 font-bold text-[9px] shrink-0 ml-1 bg-emerald-50 px-1 rounded" title={`+${d.deltaVaccinated} since last report`}>
-                                        <TrendingUp className="w-2.5 h-2.5" />
-                                        <span className="ml-0.5">{d.deltaVaccinated.toLocaleString('en-IN')}</span>
-                                      </span>
-                                    )}
+                                    
+                                    <div className="flex-1 border-b border-dashed border-slate-200 mx-1"></div>
+                                    
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <div className="flex items-center gap-0.5" title="Total Issued">
+                                        <Syringe className="w-3 h-3 text-blue-500" />
+                                        <span className="text-[9px] font-bold text-slate-700">{d.issued?.toLocaleString('en-IN') || 0}</span>
+                                      </div>
+                                      <div className="flex items-center gap-1" title="Estimated Stock Balance">
+                                        <span className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider">Est. Bal:</span>
+                                        <span className={`text-[10px] font-bold ${isCrit ? 'text-red-600' : isLow ? 'text-orange-500' : 'text-emerald-600'}`}>
+                                          {d.stockBalance?.toLocaleString('en-IN') || 0}
+                                        </span>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tier.bg} ${tier.text} shrink-0`}>
-                                    {pct}%
-                                  </span>
                                 </div>
                               );
                             })}
