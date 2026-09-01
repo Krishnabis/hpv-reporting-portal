@@ -225,7 +225,26 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       if (!res.ok) throw new Error('Failed to fetch stock monitoring report');
       const data = await res.json();
       
-      setRows(data.rows || []);
+      const fetchedRows = data.rows || [];
+      // Override backend 1.01 logic with explicit 0.01 calculation in frontend
+      const correctedRows = fetchedRows.map((r: any) => {
+        const pop = Number(r.population) || 0;
+        const target = Math.round(pop * 0.01);
+        const availPct = target > 0 ? ((Number(r.month_end_stock_balance) || 0) / target) * 100 : 0;
+        
+        let action_required = 'ok';
+        if (availPct < 10) action_required = 'critical';
+        else if (availPct < 25) action_required = 'reorder';
+        
+        return {
+          ...r,
+          annual_requirement: target > 0 ? target : (r.annual_requirement || 0),
+          stock_availability_pct: target > 0 ? availPct : (r.stock_availability_pct || 0),
+          action_required
+        };
+      });
+      
+      setRows(correctedRows);
       setBackendKpis(data.kpis || { totalDvs: 0, totalCcp: 0 });
       setReportDateLabel(filterFromMonth);
       setReportDateToLabel(filterToMonth);
