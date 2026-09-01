@@ -2,8 +2,10 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Calendar, Download, BarChart3, ChevronDown, Search,
   ChevronLeft, ChevronRight, Activity, Target, Users,
-  Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart, Clock, Info
+  Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart, Clock, Info, FileText
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface CompletenessRow {
   unitName: string;
@@ -61,7 +63,7 @@ export const ReportingCompleteness: React.FC<{
     d.setDate(d.getDate() - 7);
     return d.toISOString().split('T')[0];
   });
-  const [toDate, setToDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  const [toDate, setToDate] = useState<string>(new Date().toISOString().split('T')[0]);
   
   const [kpis, setKpis] = useState<CompletenessKPIs | null>(null);
   const [rows, setRows] = useState<CompletenessRow[]>([]);
@@ -72,6 +74,7 @@ export const ReportingCompleteness: React.FC<{
   // Pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   // Deriving location options
   const locationOptions = useMemo(() => {
@@ -173,6 +176,26 @@ export const ReportingCompleteness: React.FC<{
     document.body.removeChild(link);
   };
 
+  const downloadPdf = async () => {
+    if (!sortedRows.length) return;
+    setIsDownloadingPdf(true);
+    try {
+      const pdf = new jsPDF('l', 'mm', 'a4');
+      pdf.setFontSize(18);
+      pdf.text('HPV KAVACH \u2014 Reporting Completeness', 14, 20);
+      autoTable(pdf, {
+        startY: 30,
+        head: [['Reporting Unit', 'Report Name', 'Frequency', 'Reports Expected', 'Reports Submitted', 'Reporting (%)', 'On Time (%)', 'Status']],
+        body: sortedRows.map(r => [r.unitName, r.reportName, r.frequency, r.expected, r.submitted, r.reportingPct, r.onTimePct, r.status]),
+      });
+      pdf.save(`Completeness_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (e) {
+      console.error("PDF generation failed", e);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Complete': return <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200"><CheckCircle2 className="w-3.5 h-3.5" /> Complete</div>;
@@ -181,21 +204,8 @@ export const ReportingCompleteness: React.FC<{
     }
   };
 
-  const ProgressBar = ({ pct }: { pct: number }) => {
-    const color = pct >= 90 ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-500' : pct >= 30 ? 'bg-orange-500' : 'bg-rose-500';
-    return (
-      <div className="flex flex-col gap-1 w-24">
-        <span className={`text-xs font-bold ${color.replace('bg-', 'text-')}`}>{pct}%</span>
-        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-          <div className={`h-full ${color} rounded-full`} style={{ width: `${Math.min(100, Math.max(0, pct))}%` }} />
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      {/* Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 max-w-7xl mx-auto">
           <div>
@@ -204,14 +214,17 @@ export const ReportingCompleteness: React.FC<{
             </h1>
             <p className="text-xs text-slate-500 font-medium mt-0.5">Tracks reporting completeness and timeliness of Daily and Monthly reports across Reporting Units.</p>
           </div>
-          <button onClick={downloadCsv} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-bold shadow-sm transition-all whitespace-nowrap">
-            <Download className="w-3.5 h-3.5" />
-            Download CSV
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={downloadCsv} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-bold shadow-sm transition-all whitespace-nowrap">
+              <Download className="w-4 h-4" /> Download CSV
+            </button>
+            <button onClick={downloadPdf} disabled={isDownloadingPdf} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0f3484] hover:bg-[#0c2a6b] text-white rounded-lg text-sm font-bold shadow-sm transition-all whitespace-nowrap disabled:opacity-70">
+              {isDownloadingPdf ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />} Download PDF
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Filters */}
       <div className="max-w-7xl mx-auto w-full px-4 md:px-6 py-4 flex flex-col gap-4">
         <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-3">
           <div className="flex items-end gap-3">
@@ -231,7 +244,7 @@ export const ReportingCompleteness: React.FC<{
             <div className="w-[160px] shrink-0">
               <label className="block text-[11px] font-bold text-slate-700 mb-1">{level}</label>
               <div className="relative">
-                <select value={locationId} onChange={e => setLocationId(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis">
+                <select value={locationId} onChange={e => setLocationId(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
                   {locationOptions.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                 </select>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -241,7 +254,7 @@ export const ReportingCompleteness: React.FC<{
             <div className="flex-1 min-w-[160px]">
               <label className="block text-[11px] font-bold text-slate-700 mb-1">Report Selector</label>
               <div className="relative">
-                <select value={reportType} onChange={e => setReportType(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis">
+                <select value={reportType} onChange={e => setReportType(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
                   <option value="ALL">All Reports</option>
                   <option value="DAILY_PROGRESS">Daily Progress Report</option>
                   <option value="MONTHLY_DUE_LIST">Monthly Due List Report</option>
@@ -253,60 +266,49 @@ export const ReportingCompleteness: React.FC<{
 
             <div className="w-[125px] shrink-0">
               <label className="block text-[11px] font-bold text-slate-700 mb-1">From Date</label>
-              <div className="relative">
-                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-[11px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-text [color-scheme:light]" />
-              </div>
+              <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-[11px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all" />
             </div>
 
             <div className="w-[125px] shrink-0">
               <label className="block text-[11px] font-bold text-slate-700 mb-1">To Date</label>
-              <div className="relative">
-                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-[11px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-text [color-scheme:light]" />
-              </div>
+              <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-[11px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all" />
             </div>
 
-            <button onClick={fetchReport} disabled={loading} className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#0f3484] hover:bg-blue-900 text-white rounded-lg text-xs font-bold shadow-sm hover:shadow transition-all disabled:opacity-70 disabled:cursor-not-allowed h-[34px]">
+            <button onClick={fetchReport} disabled={loading} className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#0f3484] hover:bg-blue-900 text-white rounded-lg text-xs font-bold shadow-sm hover:shadow transition-all disabled:opacity-70 h-[34px]">
               {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
               Generate
             </button>
           </div>
         </div>
 
-        {/* Sub filters */}
         <div className="bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-200 flex items-center w-full">
-          {/* Part 1: Report Period */}
           <div className="flex-1 text-[11px] font-bold text-slate-700 flex items-center justify-start">
             <span className="text-slate-500 font-medium mr-2">Report Period:</span>
             {new Date(fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} to {new Date(toDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
           </div>
           
-          {/* Part 2: Order */}
           <div className="flex-1 flex items-center justify-center gap-4">
             <span className="text-[11px] font-bold text-slate-700">Order:</span>
             <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-slate-600">
-              <input type="radio" checked={order === 'best'} onChange={() => setOrder('best')} className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300" />
+              <input type="radio" checked={order === 'best'} onChange={() => setOrder('best')} className="w-3.5 h-3.5 text-blue-600 border-slate-300" />
               Best on Top
             </label>
             <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-slate-600">
-              <input type="radio" checked={order === 'worst'} onChange={() => setOrder('worst')} className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 border-slate-300" />
+              <input type="radio" checked={order === 'worst'} onChange={() => setOrder('worst')} className="w-3.5 h-3.5 text-blue-600 border-slate-300" />
               Worst on Top
             </label>
           </div>
           
-          {/* Part 3: Ranked By */}
           <div className="flex-1 flex items-center justify-end gap-2">
             <span className="text-[11px] font-bold text-slate-700">Ranked By:</span>
-            <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="bg-slate-50 border-2 border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+            <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="bg-slate-50 border-2 border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500">
               <option value="reporting">Reporting (%) (Default)</option>
               <option value="ontime">On Time (%)</option>
             </select>
           </div>
         </div>
 
-        {/* KPI Panel */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100">
-          
-          {/* Part 1 */}
           <div className="flex-1 p-3 flex items-center gap-3 pl-5 py-4">
             <div className="w-9 h-9 bg-blue-50 text-[#0f3484] rounded-xl flex items-center justify-center shrink-0">
               <BarChart3 className="w-4 h-4" />
@@ -317,8 +319,7 @@ export const ReportingCompleteness: React.FC<{
             </div>
           </div>
           
-          {/* Part 2 */}
-          <div className="flex-1 p-3 flex items-center justify-center gap-8 py-4">
+          <div className="flex-1 p-3 flex items-center justify-center gap-6 py-4">
             <div className="text-center">
               <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reports Expected</div>
               <div className="text-lg font-black text-slate-900 leading-none">{kpis?.expected.toLocaleString() || '—'}</div>
@@ -329,18 +330,13 @@ export const ReportingCompleteness: React.FC<{
             </div>
           </div>
           
-          {/* Part 3 */}
           <div className="flex-1 p-3 flex items-center justify-center gap-4 py-4 pr-5">
             <div className="flex flex-col gap-0.5">
               <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider text-right">Overall Reporting (%)</div>
               <div className="text-xl font-black text-emerald-600 text-right leading-none">{kpis?.reportingPct || 0}%</div>
-              <div className="text-[9px] font-bold text-slate-500 text-right">On Time <span className={kpis?.onTimePct && kpis.onTimePct >= 70 ? 'text-emerald-600' : 'text-amber-600'}>{kpis?.onTimePct || 0}%</span></div>
             </div>
-            
             <CircularProgress pct={kpis?.reportingPct || 0} size={48} strokeWidth={5} />
-            
             <div className="h-8 border-l border-slate-200"></div>
-            
             <div className="text-center">
               <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reporting Units</div>
               <div className="text-lg font-black text-slate-900 leading-none mt-1">{kpis?.units.toLocaleString() || '—'}</div>
@@ -348,45 +344,65 @@ export const ReportingCompleteness: React.FC<{
           </div>
         </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col max-h-[500px]">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-1 min-h-[400px]">
           <div className="overflow-auto flex-1">
-            <table className="w-full text-left border-collapse min-w-[900px]">
+            <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10">
                 <tr className="bg-[#f8fafd]">
-                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Reporting Unit</th>
-                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Report Name</th>
-                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Frequency</th>
-                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-200">Last Reported</th>
-                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#5072a7] uppercase tracking-wider whitespace-nowrap bg-[#eff4f9] border-b border-[#dce3ec] text-center border-r border-[#dce3ec]" title="Hidden internally but visible here">Reports Expected<br/><span className="text-[9px] font-medium">(Hidden)</span></th>
-                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#e2ecf9] border-b border-[#c8d8ea] text-center border-r border-[#c8d8ea]">Reports<br/>Submitted</th>
-                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#f3eff7] border-b border-[#e1d9ea] border-r border-[#e1d9ea]">Reporting (%)</th>
-                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#f3eff7] border-b border-[#e1d9ea] border-r border-[#e1d9ea]">On Time (%)</th>
-                  <th className="px-3 py-2.5 text-[10px] font-extrabold text-amber-900 uppercase tracking-wider whitespace-nowrap bg-amber-50 border-b border-amber-200 text-center">Current Status<br/><span className="text-[9px] font-medium">(Complete / Late / Pending)</span></th>
+                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Reporting Unit</th>
+                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Report Name</th>
+                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Frequency</th>
+                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-200">Last Reported</th>
+                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#5072a7] uppercase tracking-wider whitespace-nowrap bg-[#eff4f9] border-b border-[#dce3ec] text-center border-r border-[#dce3ec]" title="Hidden internally but visible here">Reports Expected<br/><span className="text-[9px] font-medium">(Hidden)</span></th>
+                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#e2ecf9] border-b border-[#c8d8ea] text-center border-r border-[#c8d8ea]">Reports<br/>Submitted</th>
+                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#f3eff7] border-b border-[#e1d9ea] border-r border-[#e1d9ea]">Reporting (%)</th>
+                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#f3eff7] border-b border-[#e1d9ea] border-r border-[#e1d9ea]">On Time (%)</th>
+                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-amber-900 uppercase tracking-wider whitespace-nowrap bg-amber-50 border-b border-amber-200 text-center">Current Status<br/><span className="text-[9px] font-medium">(Complete / Late / Pending)</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
                 {paginatedRows.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-500 font-medium bg-slate-50">
-                      {loading ? 'Analyzing reports...' : 'No data found for the selected criteria. Try adjusting your filters or generating a new report.'}
+                    <td colSpan={9} className="px-2 py-8 text-center text-slate-500">
+                      No reports found matching your filters
                     </td>
                   </tr>
                 ) : (
                   paginatedRows.map((r, i) => (
-                    <tr key={i} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="px-3 py-2.5 text-xs font-bold text-blue-600 whitespace-nowrap border-r border-slate-50">{r.unitName}</td>
-                      <td className="px-3 py-2.5 text-xs font-medium text-slate-700 whitespace-nowrap border-r border-slate-50">{r.reportName}</td>
-                      <td className="px-3 py-2.5 text-xs font-medium text-slate-600 whitespace-nowrap border-r border-slate-50">{r.frequency}</td>
-                      <td className="px-3 py-2.5 text-xs font-bold text-slate-600 whitespace-nowrap flex items-center gap-1.5 border-r border-slate-50">
-                        {r.lastReported ? <span className="text-emerald-600">{formatDate(r.lastReported)}</span> : '—'}
-                        {r.lastReported && r.status === 'Complete' ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : (r.status === 'Pending' ? <AlertCircle className="w-3.5 h-3.5 text-rose-500" /> : <Clock className="w-3.5 h-3.5 text-amber-500" />)}
+                    <tr key={i} className="hover:bg-slate-50/80 transition-colors group">
+                      <td className="px-2 py-1.5 border-r border-slate-100/50">
+                        <div className="font-bold text-[#0f3484] text-xs group-hover:text-blue-600 transition-colors">{r.unitName}</div>
                       </td>
-                      <td className="px-3 py-2.5 text-xs font-bold text-slate-700 text-center bg-slate-50/50 border-r border-slate-100">{r.expected}</td>
-                      <td className="px-3 py-2.5 text-xs font-bold text-slate-800 text-center bg-blue-50/30 border-r border-blue-100/50">{r.submitted}</td>
-                      <td className="px-3 py-2.5 border-r border-purple-50/50"><ProgressBar pct={r.reportingPct} /></td>
-                      <td className="px-3 py-2.5 border-r border-purple-50/50"><ProgressBar pct={r.onTimePct} /></td>
-                      <td className="px-3 py-2.5 text-center">{getStatusBadge(r.status)}</td>
+                      <td className="px-2 py-1.5 text-xs text-slate-600 font-medium border-r border-slate-100/50">{r.reportName}</td>
+                      <td className="px-2 py-1.5 text-xs text-slate-600 border-r border-slate-100/50">{r.frequency}</td>
+                      <td className="px-2 py-1.5 text-xs font-bold border-r border-slate-200">
+                        {r.lastReported ? (
+                          <span className="text-emerald-700 flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-amber-500" /> {formatDate(r.lastReported)}</span>
+                        ) : (
+                          <span className="text-slate-400 font-medium italic">Never</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-1.5 text-sm font-bold text-slate-700 text-center bg-[#f8fafc] border-r border-slate-200/60">{r.expected}</td>
+                      <td className="px-2 py-1.5 text-sm font-black text-slate-900 text-center bg-blue-50/30 border-r border-slate-200/60">{r.submitted}</td>
+                      <td className="px-2 py-1.5 border-r border-slate-100/50 bg-[#faf9fb] align-top">
+                        <div className="flex flex-col gap-1 w-12 mt-0.5">
+                          <span className={`text-[11px] leading-none font-bold ${r.reportingPct >= 70 ? 'text-emerald-600' : r.reportingPct >= 30 ? 'text-orange-500' : r.reportingPct > 0 ? 'text-amber-600' : 'text-rose-500'}`}>{r.reportingPct}%</span>
+                          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden shrink-0">
+                            <div className={`h-full ${r.reportingPct >= 70 ? 'bg-emerald-500' : r.reportingPct >= 30 ? 'bg-orange-500' : 'bg-amber-500'}`} style={{ width: `${r.reportingPct}%` }}></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-2 py-1.5 border-r border-slate-100/50 bg-[#faf9fb] align-top">
+                        <div className="flex flex-col gap-1 w-12 mt-0.5">
+                          <span className={`text-[11px] leading-none font-bold ${r.onTimePct >= 70 ? 'text-emerald-600' : r.onTimePct >= 30 ? 'text-orange-500' : r.onTimePct > 0 ? 'text-amber-600' : 'text-rose-500'}`}>{r.onTimePct}%</span>
+                          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden shrink-0">
+                            <div className={`h-full ${r.onTimePct >= 70 ? 'bg-emerald-500' : r.onTimePct >= 30 ? 'bg-orange-500' : 'bg-amber-500'}`} style={{ width: `${r.onTimePct}%` }}></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-2 py-1.5 text-center bg-amber-50/10">
+                        {getStatusBadge(r.status)}
+                      </td>
                     </tr>
                   ))
                 )}
