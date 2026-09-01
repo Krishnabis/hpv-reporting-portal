@@ -302,37 +302,37 @@ export const ReportingCompleteness: React.FC<{
 
         {/* KPI Panel */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row">
-          <div className="p-6 md:w-1/3 border-b md:border-b-0 md:border-r border-slate-100 flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-50 text-[#0f3484] rounded-xl flex items-center justify-center shrink-0">
-              <BarChart3 className="w-6 h-6" />
+          <div className="p-4 md:w-1/3 border-b md:border-b-0 md:border-r border-slate-100 flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-50 text-[#0f3484] rounded-xl flex items-center justify-center shrink-0">
+              <BarChart3 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-black text-slate-900">{locationOptions.find(o => o.id === locationId)?.name || 'All Locations'}</h3>
-              <p className="text-sm text-slate-500 font-medium">Report Selector: {reportType === 'ALL' ? 'All Reports' : reportType.replace(/_/g, ' ')}</p>
+              <h3 className="text-base font-black text-slate-900">{locationOptions.find(o => o.id === locationId)?.name || 'All Locations'}</h3>
+              <p className="text-xs text-slate-500 font-medium">Report Selector: {reportType === 'ALL' ? 'All Reports' : reportType.replace(/_/g, ' ')}</p>
             </div>
           </div>
           
-          <div className="flex-1 grid grid-cols-2 md:grid-cols-4 p-6 gap-6 items-center">
+          <div className="flex-1 grid grid-cols-2 md:grid-cols-4 p-4 gap-4 items-center">
             <div className="text-center">
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Reports Expected</div>
-              <div className="text-2xl font-black text-slate-900">{kpis?.expected.toLocaleString() || '—'}</div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Reports Expected</div>
+              <div className="text-xl font-black text-slate-900">{kpis?.expected.toLocaleString() || '—'}</div>
             </div>
             <div className="text-center border-r border-slate-100">
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Reports Received</div>
-              <div className="text-2xl font-black text-slate-900">{kpis?.received.toLocaleString() || '—'}</div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Reports Received</div>
+              <div className="text-xl font-black text-slate-900">{kpis?.received.toLocaleString() || '—'}</div>
             </div>
             
-            <div className="col-span-2 flex items-center justify-between px-4">
+            <div className="col-span-2 flex items-center justify-between px-3">
               <div className="flex flex-col gap-1">
-                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Overall Reporting (%)</div>
-                <div className="text-3xl font-black text-emerald-600 text-right">{kpis?.reportingPct || 0}%</div>
-                <div className="text-sm font-bold text-slate-500 text-right">On Time <span className={kpis?.onTimePct && kpis.onTimePct >= 70 ? 'text-emerald-600' : 'text-amber-600'}>{kpis?.onTimePct || 0}%</span></div>
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Overall Reporting (%)</div>
+                <div className="text-2xl font-black text-emerald-600 text-right">{kpis?.reportingPct || 0}%</div>
+                <div className="text-xs font-bold text-slate-500 text-right">On Time <span className={kpis?.onTimePct && kpis.onTimePct >= 70 ? 'text-emerald-600' : 'text-amber-600'}>{kpis?.onTimePct || 0}%</span></div>
               </div>
-              <CircularProgress pct={kpis?.reportingPct || 0} size={84} />
+              <CircularProgress pct={kpis?.reportingPct || 0} size={64} />
               
-              <div className="text-center ml-4 pl-6 border-l border-slate-100">
-                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Reporting Units</div>
-                <div className="text-2xl font-black text-slate-900">{kpis?.units.toLocaleString() || '—'}</div>
+              <div className="text-center ml-3 pl-4 border-l border-slate-100">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Reporting Units</div>
+                <div className="text-xl font-black text-slate-900">{kpis?.units.toLocaleString() || '—'}</div>
               </div>
             </div>
           </div>
