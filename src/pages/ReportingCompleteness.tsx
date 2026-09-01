@@ -93,6 +93,18 @@ export const ReportingCompleteness: React.FC<{
     }
   }, [level, adminUser]);
 
+  const hasFetched = useRef(false);
+  useEffect(() => {
+    if (!hasFetched.current && locationId) {
+      // Small timeout to allow state to settle if it was just changed
+      const timer = setTimeout(() => {
+        fetchReport();
+      }, 0);
+      hasFetched.current = true;
+      return () => clearTimeout(timer);
+    }
+  }, [locationId]);
+
   const fetchReport = async () => {
     setLoading(true);
     try {
