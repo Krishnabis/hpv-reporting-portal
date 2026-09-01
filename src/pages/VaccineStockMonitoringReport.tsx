@@ -617,7 +617,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
               label="Total Population" value={fmt(kpis.totalPop)} valueColor="text-purple-700" />
             <KpiCard loading={loading} icon={<Target className="w-4 h-4 text-green-600" />} iconBg="bg-green-50"
               label="Annual Requirement" value={fmt(kpis.totalTarget)} valueColor="text-green-700"
-              subLabel="Population × 1.01" />
+              subLabel="Population × 0.01" />
             <KpiCard loading={loading} icon={<Activity className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
               label={
                 <div className="flex items-center gap-1">
