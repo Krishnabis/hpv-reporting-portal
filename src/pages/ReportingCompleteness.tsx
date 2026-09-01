@@ -285,8 +285,8 @@ export const ReportingCompleteness: React.FC<{
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100 shrink-0">
-          <div className="flex-1 p-3 flex items-center gap-3 pl-5 py-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100 shrink-0">
+          <div className="p-3 flex items-center gap-3 pl-5 py-4">
             <div className="w-9 h-9 bg-purple-50 text-[#522B85] rounded-xl flex items-center justify-center shrink-0">
               <BarChart3 className="w-4 h-4" />
             </div>
@@ -296,7 +296,7 @@ export const ReportingCompleteness: React.FC<{
             </div>
           </div>
           
-          <div className="flex-1 p-3 flex items-center justify-center gap-6 py-4">
+          <div className="p-3 flex items-center justify-center gap-6 py-4">
             <div className="text-center">
               <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reports Expected</div>
               <div className="text-lg font-black text-slate-900 leading-none">{kpis?.expected.toLocaleString() || '—'}</div>
@@ -307,7 +307,7 @@ export const ReportingCompleteness: React.FC<{
             </div>
           </div>
           
-          <div className="flex-1 p-3 flex items-center justify-center gap-4 py-4 pr-5">
+          <div className="p-3 flex items-center justify-center gap-4 py-4 pr-5">
             <div className="flex flex-col gap-0.5">
               <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider text-right">Overall Reporting (%)</div>
               <div className="text-xl font-black text-emerald-600 text-right leading-none">{kpis?.reportingPct || 0}%</div>
