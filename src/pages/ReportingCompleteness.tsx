@@ -212,62 +212,62 @@ export const ReportingCompleteness: React.FC<{
       </div>
 
       {/* Filters */}
-      <div className="max-w-7xl mx-auto w-full px-4 md:px-6 py-6 flex flex-col gap-6">
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-4">
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="flex-1 min-w-[150px]">
+      <div className="max-w-7xl mx-auto w-full px-4 md:px-6 py-4 flex flex-col gap-4">
+        <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-3">
+          <div className="flex items-end gap-3">
+            <div className="w-[120px] shrink-0">
               <label className="block text-[11px] font-bold text-slate-700 mb-1">Reporting Level</label>
               <div className="relative">
-                <select value={level} onChange={e => { setLevel(e.target.value as any); }} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
+                <select value={level} onChange={e => { setLevel(e.target.value as any); }} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
                   <option value="State">State</option>
                   <option value="Division">Division</option>
                   <option value="District">District</option>
                   <option value="Block">Block</option>
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
             
-            <div className="flex-1 min-w-[200px]">
+            <div className="w-[160px] shrink-0">
               <label className="block text-[11px] font-bold text-slate-700 mb-1">{level}</label>
               <div className="relative">
-                <select value={locationId} onChange={e => setLocationId(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
+                <select value={locationId} onChange={e => setLocationId(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis">
                   {locationOptions.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
-            <div className="flex-1 min-w-[220px]">
+            <div className="flex-1 min-w-[160px]">
               <label className="block text-[11px] font-bold text-slate-700 mb-1">Report Selector</label>
               <div className="relative">
-                <select value={reportType} onChange={e => setReportType(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-3 py-2 pr-8 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
+                <select value={reportType} onChange={e => setReportType(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis">
                   <option value="ALL">All Reports</option>
                   <option value="DAILY_PROGRESS">Daily Progress Report</option>
                   <option value="MONTHLY_DUE_LIST">Monthly Due List Report</option>
                   <option value="MONTHLY_STOCK">Monthly Vaccine Stock Balance Report</option>
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
-            <div className="w-[160px]">
+            <div className="w-[125px] shrink-0">
               <label className="block text-[11px] font-bold text-slate-700 mb-1">From Date</label>
               <div className="relative">
-                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-2 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-text [color-scheme:light]" />
+                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-[11px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-text [color-scheme:light]" />
               </div>
             </div>
 
-            <div className="w-[160px]">
+            <div className="w-[125px] shrink-0">
               <label className="block text-[11px] font-bold text-slate-700 mb-1">To Date</label>
               <div className="relative">
-                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-2 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-text [color-scheme:light]" />
+                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-[11px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-text [color-scheme:light]" />
               </div>
             </div>
 
-            <button onClick={fetchReport} disabled={loading} className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0f3484] hover:bg-blue-900 text-white rounded-lg text-sm font-bold shadow-sm hover:shadow transition-all disabled:opacity-70 disabled:cursor-not-allowed">
-              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <BarChart3 className="w-4 h-4" />}
-              Generate Report
+            <button onClick={fetchReport} disabled={loading} className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#0f3484] hover:bg-blue-900 text-white rounded-lg text-xs font-bold shadow-sm hover:shadow transition-all disabled:opacity-70 disabled:cursor-not-allowed h-[34px]">
+              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
+              Generate
             </button>
           </div>
         </div>
