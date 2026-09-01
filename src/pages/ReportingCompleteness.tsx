@@ -184,14 +184,13 @@ export const ReportingCompleteness: React.FC<{
   };
 
   return (
-    <div className="h-screen bg-slate-50 flex flex-col font-sans overflow-hidden">
-      <div className="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 max-w-7xl mx-auto">
+    <div className="flex flex-col h-full gap-3">
+      <div className="flex items-center justify-between shrink-0">
           <div>
-            <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              HPV KAVACH – Reporting Completeness & Timeliness Report
-            </h1>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">Tracks reporting completeness and timeliness of Daily and Monthly reports across Reporting Units.</p>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            HPV KAVACH – Reporting Completeness & Timeliness Report
+          </h1>
+          <p className="text-[11px] text-slate-500 mt-0.5">Tracks reporting completeness and timeliness of Daily and Monthly reports across Reporting Units.</p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={downloadPdf} disabled={isDownloadingPdf} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0">
@@ -201,91 +200,96 @@ export const ReportingCompleteness: React.FC<{
               <Download className="w-4 h-4" /> Download CSV
             </button>
           </div>
-        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto w-full px-4 md:px-6 py-4 flex flex-col gap-4 overflow-hidden flex-1">
-        <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-3 shrink-0">
-          <div className="flex items-end gap-3">
-            <div className="w-[120px] shrink-0">
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">State</label>
-              <div className="relative">
-                <select disabled className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none transition-all cursor-not-allowed">
-                  <option>Uttarakhand</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-50" />
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 shrink-0">
+        <div className="flex flex-wrap gap-2.5 items-end">
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">State</label>
+            <div className="relative">
+              <select disabled className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none appearance-none cursor-not-allowed" style={{ minWidth: 160 }}>
+                <option>Uttarakhand</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none opacity-50" />
               </div>
             </div>
             
-            <div className="w-[160px] shrink-0">
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">Area</label>
-              <div className="relative">
-                <select value={level} onChange={e => setLevel(e.target.value as any)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
-                  <option value="State">State</option>
-                  <option value="Division">Division</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Area</label>
+            <div className="relative">
+              <select value={level} onChange={e => setLevel(e.target.value as any)} className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 120 }}>
+                <option value="State">State</option>
+                <option value="Division">Division</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
+          </div>
 
-            <div className="flex-1 min-w-[160px]">
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">Report Selector</label>
-              <div className="relative">
-                <select value={reportType} onChange={e => setReportType(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
-                  <option value="ALL">All Reports</option>
-                  <option value="DAILY_PROGRESS">Daily Progress Report</option>
-                  <option value="MONTHLY_DUE_LIST">Monthly Due List Report</option>
-                  <option value="MONTHLY_STOCK">Monthly Vaccine Stock Balance Report</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Selector</label>
+            <div className="relative">
+              <select value={reportType} onChange={e => setReportType(e.target.value)} className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 180 }}>
+                <option value="ALL">All Reports</option>
+                <option value="DAILY_PROGRESS">Daily Progress Report</option>
+                <option value="MONTHLY_DUE_LIST">Monthly Due List Report</option>
+                <option value="MONTHLY_STOCK">Monthly Vaccine Stock Balance Report</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
+          </div>
 
-            <div className="w-[125px] shrink-0">
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">From Date</label>
-              <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-[11px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all" />
-            </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">From Date</label>
+            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer" style={{ minWidth: 140 }} />
+          </div>
 
-            <div className="w-[125px] shrink-0">
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">To Date</label>
-              <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-[11px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all" />
-            </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">To Date</label>
+            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer" style={{ minWidth: 140 }} />
+          </div>
 
-            <button onClick={fetchReport} disabled={loading} className="shrink-0 flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 h-[34px] cursor-pointer">
-              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
-              Generate Report
-            </button>
+          <button onClick={fetchReport} disabled={loading} style={{ height: 36, borderRadius: 8, minWidth: 160 }} className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer">
+            {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
+            {loading ? 'Generating...' : 'Generate Report'}
+          </button>
           </div>
         </div>
 
-        <div className="bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-200 flex items-center w-full shrink-0">
-          <div className="flex-1 text-[11px] font-bold text-slate-700 flex items-center justify-start">
-            <span className="text-slate-500 font-medium mr-2">Report Period:</span>
-            {new Date(fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} to {new Date(toDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-          </div>
-          
-          <div className="flex-1 flex items-center justify-center gap-4">
-            <span className="text-[11px] font-bold text-slate-700">Order:</span>
-            <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-slate-600">
-              <input type="radio" checked={order === 'best'} onChange={() => setOrder('best')} className="w-3.5 h-3.5 text-[#522B85] border-slate-300 focus:ring-[#522B85]" />
-              Best on Top
-            </label>
-            <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-slate-600">
-              <input type="radio" checked={order === 'worst'} onChange={() => setOrder('worst')} className="w-3.5 h-3.5 text-[#522B85] border-slate-300 focus:ring-[#522B85]" />
-              Worst on Top
-            </label>
-          </div>
-          
-          <div className="flex-1 flex items-center justify-end gap-2">
-            <span className="text-[11px] font-bold text-slate-700">Ranked By:</span>
-            <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="bg-slate-50 border-2 border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-[#522B85] focus:ring-2 focus:ring-[#522B85]/20">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 justify-between shrink-0">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+          <Calendar className="w-3.5 h-3.5 text-purple-500" />
+          <span>Report Period:</span>
+          <span className="font-extrabold text-slate-900">{new Date(fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} to {new Date(toDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <div onClick={() => setOrder('best')} className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${order === 'best' ? 'border-purple-600' : 'border-slate-300'}`}>
+              {order === 'best' && <div className="w-1.5 h-1.5 rounded-full bg-purple-600" />}
+            </div>
+            <span className={`text-xs font-semibold cursor-pointer ${order === 'best' ? 'text-purple-700' : 'text-slate-500'}`} onClick={() => setOrder('best')}>Best on Top</span>
+          </label>
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <div onClick={() => setOrder('worst')} className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${order === 'worst' ? 'border-purple-600' : 'border-slate-300'}`}>
+              {order === 'worst' && <div className="w-1.5 h-1.5 rounded-full bg-purple-600" />}
+            </div>
+            <span className={`text-xs font-semibold cursor-pointer ${order === 'worst' ? 'text-purple-700' : 'text-slate-500'}`} onClick={() => setOrder('worst')}>Worst on Top</span>
+          </label>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Ranked By</span>
+          <div className="relative">
+            <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="pl-2.5 pr-7 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer">
               <option value="reporting">Reporting (%) (Default)</option>
               <option value="ontime">On Time (%)</option>
             </select>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1.5 pointer-events-none" />
           </div>
         </div>
+      </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100 shrink-0">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100 shrink-0">
           <div className="p-3 flex items-center gap-3 pl-5 py-4">
             <div className="w-9 h-9 bg-purple-50 text-[#522B85] rounded-xl flex items-center justify-center shrink-0">
               <BarChart3 className="w-4 h-4" />
@@ -321,7 +325,7 @@ export const ReportingCompleteness: React.FC<{
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-1 min-h-[400px]">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-[400px] overflow-hidden">
           <div className="overflow-auto flex-1">
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10">
