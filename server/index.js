@@ -1789,10 +1789,8 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
     const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
     if (targetStateId) bQuery = bQuery.eq('districts.state_id', targetStateId);
     
-    if (level === 'State') {
+    if (level === 'State' || level === 'Division') {
       // already filtered by targetStateId
-    } else if (level === 'Division' && location_id && location_id !== 'ALL') {
-      bQuery = bQuery.eq('districts.division_id', location_id);
     } else if (level === 'District' && location_id && location_id !== 'ALL') {
       bQuery = bQuery.eq('district_id', location_id);
     } else if (level === 'Block' && location_id && location_id !== 'ALL') {
@@ -1808,8 +1806,6 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
     const blockIds = blocks.map(b => b.id);
     const fromDate = new Date(from_date);
     const toDate = new Date(to_date);
-    
-    // Expected daily reports (days difference)
     const msInDay = 24 * 60 * 60 * 1000;
     const daysExpected = Math.max(1, Math.floor((toDate.getTime() - fromDate.getTime()) / msInDay) + 1);
     
@@ -1858,33 +1854,49 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
     let totalReceived = 0;
     let totalOnTime = 0;
     
-    for (const block of blocks) {
+    let unitsToProcess = [];
+    if (level === 'Division') {
+      const dMap = new Map();
+      for (const b of blocks) {
+        if (!dMap.has(b.district_id)) {
+          dMap.set(b.district_id, { id: b.district_id, name: b.districts?.name || 'Unknown', isUrban: false, blockIds: [] });
+        }
+        dMap.get(b.district_id).blockIds.push(b.id);
+      }
+      unitsToProcess = Array.from(dMap.values());
+    } else {
+      unitsToProcess = blocks.map(b => ({ id: b.id, name: b.name, isUrban: b.is_urban, blockIds: [b.id] }));
+    }
+    
+    for (const unit of unitsToProcess) {
+      const numBlocks = unit.blockIds.length;
       if (report_type === 'ALL' || report_type === 'DAILY_PROGRESS') {
-        const blockDaily = dailyReports.filter(r => r.block_id === block.id);
-        const expected = daysExpected;
-        const submitted = blockDaily.length;
+        const unitDaily = dailyReports.filter(r => unit.blockIds.includes(r.block_id));
+        const expected = daysExpected * numBlocks;
+        const submitted = unitDaily.length;
         
         let onTimeCount = 0;
         let lastReported = null;
         
-        blockDaily.forEach(r => {
+        unitDaily.forEach(r => {
            const repDate = new Date(r.reporting_date);
            const cutoff = new Date(repDate.getTime() + (24 * 60 * 60 * 1000));
-           cutoff.setHours(15, 59, 59, 999); // 3:59 PM next day
+           cutoff.setHours(15, 59, 59, 999);
            const created = new Date(r.created_at || r.submitted_at || new Date().toISOString());
            if (created <= cutoff) onTimeCount++;
            if (!lastReported || created > lastReported) lastReported = created;
         });
         
-        const reportingPct = Math.round((submitted / expected) * 100);
-        const onTimePct = Math.round((onTimeCount / expected) * 100);
+        const reportingPct = expected > 0 ? Math.round((submitted / expected) * 100) : 0;
+        const onTimePct = expected > 0 ? Math.round((onTimeCount / expected) * 100) : 0;
         
         totalExpected += expected;
         totalReceived += submitted;
         totalOnTime += onTimeCount;
         
         rows.push({
-          unitName: block.name,
+          unitName: unit.name,
+          isUrban: unit.isUrban,
           reportName: 'Daily Progress Report',
           frequency: 'Daily',
           lastReported: lastReported ? lastReported.toISOString() : null,
@@ -1897,14 +1909,14 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
       }
       
       if (report_type === 'ALL' || report_type === 'MONTHLY_DUE_LIST') {
-        const blockDue = dueListReports.filter(r => r.block_id === block.id);
-        const expected = monthsExpected;
-        const submitted = blockDue.length;
+        const unitDue = dueListReports.filter(r => unit.blockIds.includes(r.block_id));
+        const expected = monthsExpected * numBlocks;
+        const submitted = unitDue.length;
         
         let onTimeCount = 0;
         let lastReported = null;
         
-        blockDue.forEach(r => {
+        unitDue.forEach(r => {
            const [yr, mo] = r.reporting_month.split('-');
            const cutoff = new Date(parseInt(yr), parseInt(mo), 5, 23, 59, 59); 
            const created = new Date(r.submitted_at || r.created_at || new Date().toISOString());
@@ -1912,15 +1924,16 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
            if (!lastReported || created > lastReported) lastReported = created;
         });
         
-        const reportingPct = Math.round((submitted / expected) * 100);
-        const onTimePct = Math.round((onTimeCount / expected) * 100);
+        const reportingPct = expected > 0 ? Math.round((submitted / expected) * 100) : 0;
+        const onTimePct = expected > 0 ? Math.round((onTimeCount / expected) * 100) : 0;
         
         totalExpected += expected;
         totalReceived += submitted;
         totalOnTime += onTimeCount;
         
         rows.push({
-          unitName: block.name,
+          unitName: unit.name,
+          isUrban: unit.isUrban,
           reportName: 'Monthly Due List Report',
           frequency: 'Monthly',
           lastReported: lastReported ? lastReported.toISOString() : null,
@@ -1933,14 +1946,14 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
       }
       
       if (report_type === 'ALL' || report_type === 'MONTHLY_STOCK') {
-        const blockStock = stockReports.filter(r => r.block_id === block.id);
-        const expected = monthsExpected;
-        const submitted = blockStock.length;
+        const unitStock = stockReports.filter(r => unit.blockIds.includes(r.block_id));
+        const expected = monthsExpected * numBlocks;
+        const submitted = unitStock.length;
         
         let onTimeCount = 0;
         let lastReported = null;
         
-        blockStock.forEach(r => {
+        unitStock.forEach(r => {
            const [yr, mo] = r.month.split('-');
            const cutoff = new Date(parseInt(yr), parseInt(mo), 5, 23, 59, 59);
            const created = new Date(r.created_at || r.submitted_at || new Date().toISOString());
@@ -1948,15 +1961,16 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
            if (!lastReported || created > lastReported) lastReported = created;
         });
         
-        const reportingPct = Math.round((submitted / expected) * 100);
-        const onTimePct = Math.round((onTimeCount / expected) * 100);
+        const reportingPct = expected > 0 ? Math.round((submitted / expected) * 100) : 0;
+        const onTimePct = expected > 0 ? Math.round((onTimeCount / expected) * 100) : 0;
         
         totalExpected += expected;
         totalReceived += submitted;
         totalOnTime += onTimeCount;
         
         rows.push({
-          unitName: block.name,
+          unitName: unit.name,
+          isUrban: unit.isUrban,
           reportName: 'Monthly Vaccine Stock Balance Report',
           frequency: 'Monthly',
           lastReported: lastReported ? lastReported.toISOString() : null,

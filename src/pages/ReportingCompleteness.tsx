@@ -17,6 +17,7 @@ interface CompletenessRow {
   reportingPct: number;
   onTimePct: number;
   status: 'Complete' | 'Late' | 'Pending';
+  isUrban?: boolean;
 }
 
 interface CompletenessKPIs {
@@ -55,8 +56,8 @@ export const ReportingCompleteness: React.FC<{
   adminUser: any;
 }> = ({ states, allDistricts, masterBlocks, divisions, adminUser }) => {
   const [loading, setLoading] = useState(false);
-  const [level, setLevel] = useState<'State' | 'Division' | 'District' | 'Block'>('District');
-  const [locationId, setLocationId] = useState<string>('ALL');
+  const [level, setLevel] = useState<'State' | 'Division'>('State');
+  
   const [reportType, setReportType] = useState<string>('ALL');
   const [fromDate, setFromDate] = useState<string>(() => {
     const d = new Date();
@@ -76,37 +77,16 @@ export const ReportingCompleteness: React.FC<{
   const [pageSize, setPageSize] = useState(10);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
-  // Deriving location options
-  const locationOptions = useMemo(() => {
-    let opts = [{ id: 'ALL', name: `All ${level}s` }];
-    if (level === 'State') opts = opts.concat(states.map(s => ({ id: s.id.toString(), name: s.name })));
-    if (level === 'Division') opts = opts.concat(divisions.map(d => ({ id: d.id.toString(), name: d.name })));
-    if (level === 'District') opts = opts.concat(allDistricts.map(d => ({ id: d.id.toString(), name: d.name })));
-    if (level === 'Block') opts = opts.concat(masterBlocks.map(b => ({ id: b.id.toString(), name: b.name })));
-    return opts;
-  }, [level, states, divisions, allDistricts, masterBlocks]);
-
-  // Set default location when level changes
-  useEffect(() => {
-    if (adminUser?.role === 'DISTRICT_ADMIN' && adminUser.district_id) {
-       if (level === 'District') setLocationId(adminUser.district_id.toString());
-       else setLocationId('ALL');
-    } else {
-       setLocationId('ALL');
-    }
-  }, [level, adminUser]);
-
   const hasFetched = useRef(false);
   useEffect(() => {
-    if (!hasFetched.current && locationId) {
-      // Small timeout to allow state to settle if it was just changed
+    if (!hasFetched.current) {
       const timer = setTimeout(() => {
         fetchReport();
       }, 0);
       hasFetched.current = true;
       return () => clearTimeout(timer);
     }
-  }, [locationId]);
+  }, []);
 
   const fetchReport = async () => {
     setLoading(true);
@@ -114,7 +94,6 @@ export const ReportingCompleteness: React.FC<{
       const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
       const q = new URLSearchParams({
         level,
-        location_id: locationId,
         report_type: reportType,
         from_date: fromDate,
         to_date: toDate
@@ -162,7 +141,7 @@ export const ReportingCompleteness: React.FC<{
     const csvContent = [
       headers.join(','),
       ...sortedRows.map(r => [
-        `"${r.unitName}"`, `"${r.reportName}"`, `"${r.frequency}"`, `"${formatDate(r.lastReported)}"`,
+        `"${r.unitName}${r.isUrban ? ' (Urban)' : ''}"`, `"${r.reportName}"`, `"${r.frequency}"`, `"${formatDate(r.lastReported)}"`,
         r.expected, r.submitted, `${r.reportingPct}%`, `${r.onTimePct}%`, r.status
       ].join(','))
     ].join('\n');
@@ -186,7 +165,7 @@ export const ReportingCompleteness: React.FC<{
       autoTable(pdf, {
         startY: 30,
         head: [['Reporting Unit', 'Report Name', 'Frequency', 'Reports Expected', 'Reports Submitted', 'Reporting (%)', 'On Time (%)', 'Status']],
-        body: sortedRows.map(r => [r.unitName, r.reportName, r.frequency, r.expected, r.submitted, r.reportingPct, r.onTimePct, r.status]),
+        body: sortedRows.map(r => [`${r.unitName}${r.isUrban ? ' (Urban)' : ''}`, r.reportName, r.frequency, r.expected, r.submitted, r.reportingPct, r.onTimePct, r.status]),
       });
       pdf.save(`Completeness_Report_${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (e) {
@@ -205,8 +184,8 @@ export const ReportingCompleteness: React.FC<{
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <div className="bg-white border-b border-slate-200 px-6 py-3">
+    <div className="h-screen bg-slate-50 flex flex-col font-sans overflow-hidden">
+      <div className="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 max-w-7xl mx-auto">
           <div>
             <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -225,27 +204,25 @@ export const ReportingCompleteness: React.FC<{
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto w-full px-4 md:px-6 py-4 flex flex-col gap-4">
-        <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-3">
+      <div className="max-w-7xl mx-auto w-full px-4 md:px-6 py-4 flex flex-col gap-4 overflow-hidden flex-1">
+        <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-3 shrink-0">
           <div className="flex items-end gap-3">
             <div className="w-[120px] shrink-0">
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">Reporting Level</label>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">State</label>
               <div className="relative">
-                <select value={level} onChange={e => { setLevel(e.target.value as any); }} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
-                  <option value="State">State</option>
-                  <option value="Division">Division</option>
-                  <option value="District">District</option>
-                  <option value="Block">Block</option>
+                <select disabled className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none transition-all cursor-not-allowed">
+                  <option>Uttarakhand</option>
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-50" />
               </div>
             </div>
             
             <div className="w-[160px] shrink-0">
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">{level}</label>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">Area</label>
               <div className="relative">
-                <select value={locationId} onChange={e => setLocationId(e.target.value)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
-                  {locationOptions.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                <select value={level} onChange={e => setLevel(e.target.value as any)} className="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-900 text-xs font-bold rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
+                  <option value="State">State</option>
+                  <option value="Division">Division</option>
                 </select>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -281,7 +258,7 @@ export const ReportingCompleteness: React.FC<{
           </div>
         </div>
 
-        <div className="bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-200 flex items-center w-full">
+        <div className="bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-200 flex items-center w-full shrink-0">
           <div className="flex-1 text-[11px] font-bold text-slate-700 flex items-center justify-start">
             <span className="text-slate-500 font-medium mr-2">Report Period:</span>
             {new Date(fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} to {new Date(toDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -308,13 +285,13 @@ export const ReportingCompleteness: React.FC<{
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100 shrink-0">
           <div className="flex-1 p-3 flex items-center gap-3 pl-5 py-4">
             <div className="w-9 h-9 bg-blue-50 text-[#0f3484] rounded-xl flex items-center justify-center shrink-0">
               <BarChart3 className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-[13px] font-black text-slate-900">{locationOptions.find(o => o.id === locationId)?.name || 'All Locations'}</h3>
+              <h3 className="text-[13px] font-black text-slate-900">{level === 'State' ? 'All Blocks (Statewide)' : 'All Districts (Statewide)'}</h3>
               <p className="text-[10px] text-slate-500 font-medium">Report Selector: {reportType === 'ALL' ? 'All Reports' : reportType.replace(/_/g, ' ')}</p>
             </div>
           </div>
@@ -371,7 +348,14 @@ export const ReportingCompleteness: React.FC<{
                   paginatedRows.map((r, i) => (
                     <tr key={i} className="hover:bg-slate-50/80 transition-colors group">
                       <td className="px-2 py-1.5 border-r border-slate-100/50">
-                        <div className="font-bold text-[#0f3484] text-xs group-hover:text-blue-600 transition-colors">{r.unitName}</div>
+                        <div className="font-bold text-[#0f3484] text-xs flex items-center gap-1.5">
+                          {r.unitName}
+                          {r.isUrban && (
+                            <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-purple-100 text-purple-700 uppercase tracking-wider">
+                              Urban
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-2 py-1.5 text-xs text-slate-600 font-medium border-r border-slate-100/50">{r.reportName}</td>
                       <td className="px-2 py-1.5 text-xs text-slate-600 border-r border-slate-100/50">{r.frequency}</td>
