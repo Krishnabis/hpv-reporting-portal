@@ -1775,6 +1775,216 @@ app.get('/api/admin/trend', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) => {
+  try {
+    const { level, location_id, report_type, from_date, to_date } = req.query;
+    if (!useSupabase) return res.json({ rows: [], kpis: {} });
+    
+    // 1. Fetch reporting units (Blocks) based on location filters
+    let bQuery = supabase.from('blocks').select(`
+        id, name, district_id,
+        districts!inner(id, name, state_id, division_id, divisions(name))
+      `).eq('is_active', true);
+      
+    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+    if (targetStateId) bQuery = bQuery.eq('districts.state_id', targetStateId);
+    
+    if (level === 'State') {
+      // already filtered by targetStateId
+    } else if (level === 'Division' && location_id && location_id !== 'ALL') {
+      bQuery = bQuery.eq('districts.division_id', location_id);
+    } else if (level === 'District' && location_id && location_id !== 'ALL') {
+      bQuery = bQuery.eq('district_id', location_id);
+    } else if (level === 'Block' && location_id && location_id !== 'ALL') {
+      bQuery = bQuery.eq('id', location_id);
+    }
+    
+    const { data: blocks, error: bErr } = await bQuery;
+    if (bErr) throw bErr;
+    if (!blocks || blocks.length === 0) {
+      return res.json({ rows: [], kpis: { expected: 0, received: 0, onTime: 0, reportingPct: 0, onTimePct: 0, units: 0 } });
+    }
+    
+    const blockIds = blocks.map(b => b.id);
+    const fromDate = new Date(from_date);
+    const toDate = new Date(to_date);
+    
+    // Expected daily reports (days difference)
+    const msInDay = 24 * 60 * 60 * 1000;
+    const daysExpected = Math.max(1, Math.floor((toDate.getTime() - fromDate.getTime()) / msInDay) + 1);
+    
+    // Expected monthly reports
+    let monthsExpected = 1;
+    let tempDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), 1);
+    const monthList = [];
+    while (tempDate <= toDate) {
+      const ym = `${tempDate.getFullYear()}-${String(tempDate.getMonth() + 1).padStart(2, '0')}`;
+      if (!monthList.includes(ym)) monthList.push(ym);
+      tempDate.setMonth(tempDate.getMonth() + 1);
+    }
+    monthsExpected = monthList.length;
+    
+    let dailyReports = [];
+    let dueListReports = [];
+    let stockReports = [];
+    
+    if (report_type === 'ALL' || report_type === 'DAILY_PROGRESS') {
+      const { data } = await supabase.from('daily_reports')
+        .select('*')
+        .in('block_id', blockIds)
+        .gte('reporting_date', from_date)
+        .lte('reporting_date', to_date);
+      dailyReports = data || [];
+    }
+    
+    if (report_type === 'ALL' || report_type === 'MONTHLY_DUE_LIST') {
+      const { data } = await supabase.from('monthly_due_list_reports')
+        .select('*')
+        .in('block_id', blockIds)
+        .in('reporting_month', monthList);
+      dueListReports = data || [];
+    }
+    
+    if (report_type === 'ALL' || report_type === 'MONTHLY_STOCK') {
+      const { data } = await supabase.from('monthly_balance')
+        .select('*')
+        .in('block_id', blockIds)
+        .in('month', monthList);
+      stockReports = data || [];
+    }
+    
+    const rows = [];
+    let totalExpected = 0;
+    let totalReceived = 0;
+    let totalOnTime = 0;
+    
+    for (const block of blocks) {
+      if (report_type === 'ALL' || report_type === 'DAILY_PROGRESS') {
+        const blockDaily = dailyReports.filter(r => r.block_id === block.id);
+        const expected = daysExpected;
+        const submitted = blockDaily.length;
+        
+        let onTimeCount = 0;
+        let lastReported = null;
+        
+        blockDaily.forEach(r => {
+           const repDate = new Date(r.reporting_date);
+           const cutoff = new Date(repDate.getTime() + (24 * 60 * 60 * 1000));
+           cutoff.setHours(15, 59, 59, 999); // 3:59 PM next day
+           const created = new Date(r.created_at || r.submitted_at || new Date().toISOString());
+           if (created <= cutoff) onTimeCount++;
+           if (!lastReported || created > lastReported) lastReported = created;
+        });
+        
+        const reportingPct = Math.round((submitted / expected) * 100);
+        const onTimePct = Math.round((onTimeCount / expected) * 100);
+        
+        totalExpected += expected;
+        totalReceived += submitted;
+        totalOnTime += onTimeCount;
+        
+        rows.push({
+          unitName: block.name,
+          reportName: 'Daily Progress Report',
+          frequency: 'Daily',
+          lastReported: lastReported ? lastReported.toISOString() : null,
+          expected,
+          submitted,
+          reportingPct,
+          onTimePct,
+          status: submitted >= expected ? 'Complete' : (submitted > 0 ? 'Late' : 'Pending')
+        });
+      }
+      
+      if (report_type === 'ALL' || report_type === 'MONTHLY_DUE_LIST') {
+        const blockDue = dueListReports.filter(r => r.block_id === block.id);
+        const expected = monthsExpected;
+        const submitted = blockDue.length;
+        
+        let onTimeCount = 0;
+        let lastReported = null;
+        
+        blockDue.forEach(r => {
+           const [yr, mo] = r.reporting_month.split('-');
+           const cutoff = new Date(parseInt(yr), parseInt(mo), 5, 23, 59, 59); 
+           const created = new Date(r.submitted_at || r.created_at || new Date().toISOString());
+           if (created <= cutoff) onTimeCount++;
+           if (!lastReported || created > lastReported) lastReported = created;
+        });
+        
+        const reportingPct = Math.round((submitted / expected) * 100);
+        const onTimePct = Math.round((onTimeCount / expected) * 100);
+        
+        totalExpected += expected;
+        totalReceived += submitted;
+        totalOnTime += onTimeCount;
+        
+        rows.push({
+          unitName: block.name,
+          reportName: 'Monthly Due List Report',
+          frequency: 'Monthly',
+          lastReported: lastReported ? lastReported.toISOString() : null,
+          expected,
+          submitted,
+          reportingPct,
+          onTimePct,
+          status: submitted >= expected ? 'Complete' : (submitted > 0 ? 'Late' : 'Pending')
+        });
+      }
+      
+      if (report_type === 'ALL' || report_type === 'MONTHLY_STOCK') {
+        const blockStock = stockReports.filter(r => r.block_id === block.id);
+        const expected = monthsExpected;
+        const submitted = blockStock.length;
+        
+        let onTimeCount = 0;
+        let lastReported = null;
+        
+        blockStock.forEach(r => {
+           const [yr, mo] = r.month.split('-');
+           const cutoff = new Date(parseInt(yr), parseInt(mo), 5, 23, 59, 59);
+           const created = new Date(r.created_at || r.submitted_at || new Date().toISOString());
+           if (created <= cutoff) onTimeCount++;
+           if (!lastReported || created > lastReported) lastReported = created;
+        });
+        
+        const reportingPct = Math.round((submitted / expected) * 100);
+        const onTimePct = Math.round((onTimeCount / expected) * 100);
+        
+        totalExpected += expected;
+        totalReceived += submitted;
+        totalOnTime += onTimeCount;
+        
+        rows.push({
+          unitName: block.name,
+          reportName: 'Monthly Vaccine Stock Balance Report',
+          frequency: 'Monthly',
+          lastReported: lastReported ? lastReported.toISOString() : null,
+          expected,
+          submitted,
+          reportingPct,
+          onTimePct,
+          status: submitted >= expected ? 'Complete' : (submitted > 0 ? 'Late' : 'Pending')
+        });
+      }
+    }
+    
+    res.json({
+      kpis: {
+        expected: totalExpected,
+        received: totalReceived,
+        reportingPct: totalExpected > 0 ? Math.round((totalReceived / totalExpected) * 100) : 0,
+        onTimePct: totalExpected > 0 ? Math.round((totalOnTime / totalExpected) * 100) : 0,
+        units: blocks.length
+      },
+      rows
+    });
+  } catch (err) {
+    console.error('Completeness API error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
   try {
     const { date, districtId, blockId, divisionId, level = 'BLOCK' } = req.query;

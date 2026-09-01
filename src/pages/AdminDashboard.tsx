@@ -15,6 +15,7 @@ import { StateMap, getTier } from '../components/StateMap';
 import { AdminPopulation } from '../components/AdminPopulation';
 import { LocationMaster } from '../components/LocationMaster';
 import { DailyProgressReport } from './DailyProgressReport';
+import { ReportingCompleteness } from './ReportingCompleteness';
 
 interface KPIState {
   total_blocks: number;
@@ -991,6 +992,18 @@ export const AdminDashboard: React.FC = () => {
                   >
                     <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'daily-progress' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Daily Progress</span>
+                  </button>
+
+                  {/* Completeness Report */}
+                  <button
+                    onClick={() => handleTabChange('completeness-report')}
+                    title="Reporting Completeness & Timeliness Report"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'completeness-report' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'completeness-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Completeness & Timeliness</span>
                   </button>
 
                   {/* Reports */}
@@ -2462,6 +2475,19 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'daily-progress' && (
           <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
             <DailyProgressReport adminUser={adminUser} />
+          </div>
+        )}
+
+        {/* TAB: COMPLETENESS REPORT */}
+        {activeTab === 'completeness-report' && (
+          <div className="flex flex-col flex-1 min-h-0 h-full overflow-auto bg-slate-50">
+            <ReportingCompleteness
+              states={statesList}
+              allDistricts={allDistrictsList}
+              masterBlocks={masterBlocks}
+              divisions={divisionsList}
+              adminUser={adminUser}
+            />
           </div>
         )}
 
