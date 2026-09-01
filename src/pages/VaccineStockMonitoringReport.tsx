@@ -240,9 +240,8 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       const correctedRows = fetchedRows.map((r: any) => {
         const pop = Number(r.population) || 0;
         const target = Math.round(pop * 0.01);
-        const periodTarget = (target / 12) * numMonths;
         const stockBal = r.month_end_stock_balance != null ? Number(r.month_end_stock_balance) : Number(r.estimated_stock_balance || 0);
-        const availPct = periodTarget > 0 ? (stockBal / periodTarget) * 100 : 0;
+        const availPct = target > 0 ? (stockBal / target) * 100 : 0;
         
         let action_required = 'ok';
         if (availPct < 10) action_required = 'critical';
@@ -251,8 +250,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
         return {
           ...r,
           annual_requirement: target > 0 ? target : (r.annual_requirement || 0),
-          stock_availability_pct: periodTarget > 0 ? availPct : (r.stock_availability_pct || 0),
-          period_target: periodTarget,
+          stock_availability_pct: target > 0 ? availPct : (r.stock_availability_pct || 0),
           stock_bal_used: stockBal,
           action_required
         };
@@ -464,9 +462,8 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
     const totalEstimatedStockBalance = rows.reduce((s, r: any) => s + (r.estimated_stock_balance || 0), 0);
     const totalMonthEndStockBalance = rows.reduce((s, r: any) => s + (r.month_end_stock_balance || 0), 0);
     const totalWastagePct = totalVaccineReceived > 0 ? (totalWastageReported / totalVaccineReceived) * 100 : 0;
-    const totalPeriodTarget = rows.reduce((s, r: any) => s + (r.period_target || 0), 0);
     const totalStockBalUsed = rows.reduce((s, r: any) => s + (r.stock_bal_used || 0), 0);
-    const totalStockAvailabilityPct = totalPeriodTarget > 0 ? (totalStockBalUsed / totalPeriodTarget) * 100 : 0;
+    const totalStockAvailabilityPct = totalTarget > 0 ? (totalStockBalUsed / totalTarget) * 100 : 0;
 
     const totalStores = backendKpis.totalDvs;
     const totalColdChainPoints = backendKpis.totalCcp;
