@@ -2903,6 +2903,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 4: USERS MANAGEMENT */}
         {activeTab === 'users' && (
+          <>
           <div className="space-y-5 flex-1 min-h-0 flex flex-col pb-4">
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight shrink-0">Admin User Management</h1>
 
