@@ -2534,8 +2534,24 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
     } else {
       finalRows = blockData;
     }
+    let totalDvs = 0;
+    let totalCcp = 0;
+    
+    if (blockData.length > 0) {
+      const finalDistrictIds = [...new Set(blockData.map(b => b.district_id).filter(Boolean))];
+      const finalBlockIds = blockData.map(b => b.id).filter(Boolean);
 
-    res.json({ rows: finalRows });
+      if (finalDistrictIds.length > 0) {
+        const { data: dvs } = await supabase.from('vaccine_ccp').select('id').eq('unit_level', 2).in('district_id', finalDistrictIds);
+        totalDvs = dvs ? dvs.length : 0;
+      }
+      if (finalBlockIds.length > 0) {
+        const { data: ccps } = await supabase.from('vaccine_ccp').select('id').eq('unit_level', 3).in('block_id', finalBlockIds);
+        totalCcp = ccps ? ccps.length : 0;
+      }
+    }
+
+    res.json({ rows: finalRows, kpis: { totalDvs, totalCcp } });
   } catch (err) {
     console.error('Stock Monitoring API error:', err);
     res.status(500).json({ error: err.message });

@@ -660,17 +660,17 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
           <table className="w-full" style={{ fontSize: '11px' }}>
             <thead className="sticky top-0 z-10">
               <tr className="gradient-header text-white">
-                <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide whitespace-nowrap sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Reporting Unit ({filterLevel === 'Division' ? 'District' : 'Block'})</th>
-                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Last Reported</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Population</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">HPV Goal</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Sess. Today</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vacc. Today</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Sess. Cumul.</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vacc. Cumul.</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide whitespace-nowrap">Vacc/Sess</th>
-                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Goal %</th>
-                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide whitespace-nowrap">Rank</th>
+                <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Reporting Unit ({filterLevel === 'Division' ? 'District' : 'Block'})</th>
+                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Last Reported</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Population</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">HPV Goal</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Sess. Today</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vacc. Today</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Sess. Cumul.</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vacc. Cumul.</th>
+                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vacc/Sess</th>
+                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Goal %</th>
+                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Rank</th>
               </tr>
             </thead>
             <tbody>

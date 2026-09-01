@@ -59,11 +59,7 @@ export const ReportingCompleteness: React.FC<{
   const [level, setLevel] = useState<'State' | 'Division'>('State');
   
   const [reportType, setReportType] = useState<string>('ALL');
-  const [fromDate, setFromDate] = useState<string>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 7);
-    return d.toISOString().split('T')[0];
-  });
+  const [fromDate, setFromDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [toDate, setToDate] = useState<string>(new Date().toISOString().split('T')[0]);
   
   const [kpis, setKpis] = useState<CompletenessKPIs | null>(null);
@@ -188,7 +184,7 @@ export const ReportingCompleteness: React.FC<{
       <div className="flex items-center justify-between shrink-0">
           <div>
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            HPV KAVACH – Reporting Completeness & Timeliness Report
+            HPV Vaccination – Reporting Completeness & Timeliness Report
           </h1>
           <p className="text-[11px] text-slate-500 mt-0.5">Tracks reporting completeness and timeliness of Daily and Monthly reports across Reporting Units.</p>
           </div>
@@ -289,38 +285,38 @@ export const ReportingCompleteness: React.FC<{
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100 shrink-0">
-          <div className="p-3 flex items-center gap-3 pl-5 py-4">
-            <div className="w-9 h-9 bg-purple-50 text-[#522B85] rounded-xl flex items-center justify-center shrink-0">
-              <BarChart3 className="w-4 h-4" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
+          <div className="bg-white rounded-md shadow-sm border border-slate-200 p-2.5 flex items-center gap-2">
+            <div className="w-8 h-8 bg-purple-50 text-[#522B85] rounded-md flex items-center justify-center shrink-0">
+              <BarChart3 className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h3 className="text-[13px] font-black text-slate-900">{level === 'State' ? 'All Blocks (Statewide)' : 'All Districts (Statewide)'}</h3>
-              <p className="text-[10px] text-slate-500 font-medium">Report Selector: {reportType === 'ALL' ? 'All Reports' : reportType.replace(/_/g, ' ')}</p>
+              <h3 className="text-[11px] font-black text-slate-900">{level === 'State' ? 'All Blocks (Statewide)' : 'All Districts (Statewide)'}</h3>
+              <p className="text-[9px] text-slate-500 font-medium">Report Selector: {reportType === 'ALL' ? 'All Reports' : reportType.replace(/_/g, ' ')}</p>
             </div>
           </div>
           
-          <div className="p-3 flex items-center justify-center gap-6 py-4">
+          <div className="bg-white rounded-md shadow-sm border border-slate-200 p-2.5 flex items-center justify-center gap-6">
             <div className="text-center">
-              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reports Expected</div>
-              <div className="text-lg font-black text-slate-900 leading-none">{kpis?.expected.toLocaleString() || '—'}</div>
+              <div className="text-[8px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reports Expected</div>
+              <div className="text-base font-black text-slate-900 leading-none">{kpis?.expected.toLocaleString() || '—'}</div>
             </div>
             <div className="text-center">
-              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reports Received</div>
-              <div className="text-lg font-black text-slate-900 leading-none">{kpis?.received.toLocaleString() || '—'}</div>
+              <div className="text-[8px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reports Received</div>
+              <div className="text-base font-black text-slate-900 leading-none">{kpis?.received.toLocaleString() || '—'}</div>
             </div>
           </div>
           
-          <div className="p-3 flex items-center justify-center gap-4 py-4 pr-5">
+          <div className="bg-white rounded-md shadow-sm border border-slate-200 p-2.5 flex items-center justify-center gap-4">
             <div className="flex flex-col gap-0.5">
-              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider text-right">Overall Reporting (%)</div>
-              <div className="text-xl font-black text-emerald-600 text-right leading-none">{kpis?.reportingPct || 0}%</div>
+              <div className="text-[8px] font-bold text-slate-500 uppercase tracking-wider text-right">Overall Reporting (%)</div>
+              <div className="text-lg font-black text-emerald-600 text-right leading-none">{kpis?.reportingPct || 0}%</div>
             </div>
-            <CircularProgress pct={kpis?.reportingPct || 0} size={48} strokeWidth={5} />
-            <div className="h-8 border-l border-slate-200"></div>
+            <CircularProgress pct={kpis?.reportingPct || 0} size={32} strokeWidth={4} />
+            <div className="h-6 border-l border-slate-200"></div>
             <div className="text-center">
-              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reporting Units</div>
-              <div className="text-lg font-black text-slate-900 leading-none mt-1">{kpis?.units.toLocaleString() || '—'}</div>
+              <div className="text-[8px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Reporting Units</div>
+              <div className="text-base font-black text-slate-900 leading-none mt-1">{kpis?.units.toLocaleString() || '—'}</div>
             </div>
           </div>
         </div>
