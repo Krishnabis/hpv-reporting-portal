@@ -744,24 +744,46 @@ app.put('/api/admin/users/:id', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
     const { id } = req.params;
-    const { name, role, state_id, district_id } = req.body;
+    const { name, username, password, role, state_id, district_id, status } = req.body;
     
+    let updateData = {
+      name,
+      username,
+      role,
+      state_id: state_id ? Number(state_id) : null,
+      district_id: district_id ? Number(district_id) : null,
+      updated_at: new Date().toISOString()
+    };
+    
+    if (password) {
+      updateData.password_hash = hashPassword(password);
+    }
+    
+    if (status) {
+      updateData.status = status;
+      if (status === 'ACTIVE') updateData.is_active = true;
+      if (status === 'DISABLED') updateData.is_active = false;
+    }
+
     if (useSupabase) {
-      const { error } = await supabase.from('admin_users').update({ 
-        name, 
-        role, 
-        state_id: state_id ? Number(state_id) : null, 
-        district_id: district_id ? Number(district_id) : null,
-        updated_at: new Date().toISOString()
-      }).eq('id', id);
+      let { error } = await supabase.from('admin_users').update(updateData).eq('id', id);
+      
+      // Fallback if status column does not exist
+      if (error && (error.code === '42703' || (error.message && error.message.includes('status')))) {
+        const fallbackData = { ...updateData };
+        delete fallbackData.status;
+        const fallback = await supabase.from('admin_users').update(fallbackData).eq('id', id);
+        error = fallback.error;
+      }
+      
       if (error) throw error;
       
-      logAudit(req.user.id, 'UPDATE_ADMIN_USER', 'Updated admin user details', { target_id: id, name, role });
+      logAudit(req.user.id, 'UPDATE_ADMIN_USER', 'Updated admin user details', { target_id: id, name, role, username, status });
       res.json({ success: true });
     } else {
       const idx = store.admin_users.findIndex(u => u.id === id);
       if (idx === -1) return res.status(404).json({ error: 'User not found' });
-      store.admin_users[idx] = { ...store.admin_users[idx], name, role, state_id: state_id ? Number(state_id) : null, district_id: district_id ? Number(district_id) : null };
+      store.admin_users[idx] = { ...store.admin_users[idx], ...updateData };
       res.json({ success: true });
     }
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -2278,24 +2300,39 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
 
 app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, res) => {
   try {
-    const { date, districtId, blockId, divisionId, level = 'BLOCK' } = req.query;
-    const reportDateStr = date || new Date().toISOString().split('T')[0];
-    const reportDate = new Date(reportDateStr);
-    const monthStart = reportDate.toISOString().slice(0, 7) + '-01';
+    const { fromMonth, toMonth, districtId, blockId, divisionId, level = 'BLOCK' } = req.query;
     
-    // Get last month's start
-    const prevMonthDate = new Date(reportDate);
-    prevMonthDate.setDate(0); // last day of prev month
-    const lastMonthStart = prevMonthDate.toISOString().slice(0, 7) + '-01';
+    // Parse Dates
+    const todayStr = new Date().toISOString().split('T')[0];
+    const currentMonthStr = todayStr.slice(0, 7);
+    
+    const fromMonthStr = fromMonth || currentMonthStr;
+    const toMonthStr = toMonth || currentMonthStr;
+    
+    const fromDateStart = fromMonthStr + '-01';
+    
+    let toDateEnd;
+    if (toMonthStr === currentMonthStr) {
+      toDateEnd = todayStr;
+    } else {
+      const [year, month] = toMonthStr.split('-');
+      const lastDay = new Date(year, month, 0).getDate();
+      toDateEnd = `${toMonthStr}-${lastDay}`;
+    }
+
+    const prevMonthDate = new Date(fromDateStart);
+    prevMonthDate.setDate(0); 
+    const prevMonthStart = prevMonthDate.toISOString().slice(0, 7) + '-01';
 
     if (!useSupabase) return res.json({ rows: [] });
 
     const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
 
+    // 1. Fetch Blocks & Targets
     let bQuery = supabase
       .from('blocks')
       .select(`
-        id, name, health_block_name, is_urban, lgd_code, district_id, hpv_target,
+        id, name, health_block_name, is_urban, lgd_code, district_id, hpv_target, population,
         districts!inner(id, name, lgd_code, state_id, division_id, divisions(name))
       `)
       .eq('is_active', true)
@@ -2310,48 +2347,8 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
     if (bErr) throw bErr;
 
     const blockIds = blocks.map(b => b.id);
+    const finalDistrictIds = [...new Set(blocks.map(b => b.district_id))];
 
-    // Fetch Last Month's balances (Opening Stock reported)
-    const { data: balances } = await supabase
-      .from('monthly_balance')
-      .select('block_id, qty_doses')
-      .in('block_id', blockIds)
-      .eq('transaction_date', lastMonthStart);
-
-    // Fetch Current Month's transactions (RECEIVED)
-    const { data: txs } = await supabase
-      .from('vaccine_stock_transactions')
-      .select('block_id, quantity_doses, transaction_type')
-      .in('block_id', blockIds)
-      .gte('transaction_date', monthStart)
-      .lte('transaction_date', reportDateStr)
-      .eq('transaction_type', 'RECEIVED');
-
-    // Fetch All-time transactions (for estimated Opening Stock)
-    const { data: allTxs } = await supabase
-      .from('vaccine_stock_transactions')
-      .select('block_id, quantity_doses, transaction_type')
-      .in('block_id', blockIds)
-      .lt('transaction_date', monthStart)
-      .eq('transaction_type', 'RECEIVED');
-
-    // Fetch ALL-TIME latest vaccination report per block (beneficiaries_vaccinated is cumulative)
-    const { data: allVaccReports } = await supabase
-      .from('daily_reports')
-      .select('block_id, beneficiaries_vaccinated, reporting_date')
-      .in('block_id', blockIds)
-      .lte('reporting_date', reportDateStr)
-      .order('reporting_date', { ascending: false });
-
-    // Fetch latest cumulative vaccinations before this month (for opening stock estimation)
-    const { data: prevVaccReports } = await supabase
-      .from('daily_reports')
-      .select('block_id, beneficiaries_vaccinated, reporting_date')
-      .in('block_id', blockIds)
-      .lt('reporting_date', monthStart)
-      .order('reporting_date', { ascending: false });
-
-    // Base Population for Targets
     const { data: profiles } = await supabase
       .from('block_reporting_profiles')
       .select('block_id, base_population, initial_hpv_target')
@@ -2360,70 +2357,214 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
     const profileMap = {};
     (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
 
-    // Build Maps
-    const balMap = {};
+    // 2. Fetch CCPs for District and Block logic
+    const { data: allCcps } = await supabase
+      .from('vaccine_ccp')
+      .select('id, unit_level, district_id, block_id')
+      .in('unit_level', ['2', '3'])
+      .in('district_id', finalDistrictIds);
+      
+    const districtStores = allCcps.filter(c => c.unit_level === '2');
+    const blockCcps = allCcps.filter(c => c.unit_level === '3');
+    
+    const districtStoreMap = {}; 
+    districtStores.forEach(c => {
+      if (!districtStoreMap[c.district_id]) districtStoreMap[c.district_id] = [];
+      districtStoreMap[c.district_id].push(c.id);
+    });
+
+    const blockCcpMap = {}; 
+    blockCcps.forEach(c => {
+      if (!blockCcpMap[c.block_id]) blockCcpMap[c.block_id] = [];
+      blockCcpMap[c.block_id].push(c.id);
+    });
+
+    // 3. Fetch Monthly Balances (for actual Opening Stock and Month-End Stock)
+    const toMonthStart = toMonthStr + '-01';
+    const { data: balances } = await supabase
+      .from('monthly_balance')
+      .select('facility_id, block_id, qty_doses, transaction_date')
+      .in('transaction_date', [prevMonthStart, toMonthStart]);
+
+    const openingBalances = {}; 
+    const closingBalances = {}; 
+    const cclsReportedMonthEnd = new Set(); 
+
     (balances || []).forEach(b => {
-      balMap[b.block_id] = (balMap[b.block_id] || 0) + (b.qty_doses || 0);
-    });
-
-    const txMap = {};
-    (txs || []).forEach(t => {
-      txMap[t.block_id] = (txMap[t.block_id] || 0) + (t.quantity_doses || 0);
-    });
-
-    const allTxMap = {};
-    (allTxs || []).forEach(t => {
-      allTxMap[t.block_id] = (allTxMap[t.block_id] || 0) + (t.quantity_doses || 0);
-    });
-
-    // allTimeVaccMap: latest (highest) cumulative vaccination value per block across all time
-    const allTimeVaccMap = {};
-    (allVaccReports || []).forEach(r => {
-      if (allTimeVaccMap[r.block_id] === undefined) {
-        allTimeVaccMap[r.block_id] = r.beneficiaries_vaccinated || 0;
+      if (b.transaction_date === prevMonthStart) {
+        openingBalances[b.facility_id] = b.qty_doses;
+      }
+      if (b.transaction_date === toMonthStart) {
+        closingBalances[b.facility_id] = b.qty_doses;
+        cclsReportedMonthEnd.add(b.facility_id);
       }
     });
 
-    // prevVaccMap: latest cumulative vaccinations before month start (for opening stock calculation only)
-    const prevVaccMap = {};
-    (prevVaccReports || []).forEach(r => {
-      if (prevVaccMap[r.block_id] === undefined) prevVaccMap[r.block_id] = r.beneficiaries_vaccinated || 0;
-    });
+    // 4. Fetch Transactions for calculation (RECEIVED & ISSUED)
+    const { data: blockTxs } = await supabase
+      .from('vaccine_stock_transactions')
+      .select('block_id, quantity_doses, transaction_type, transaction_date')
+      .in('block_id', blockIds);
+      
+    const { data: dailyReports } = await supabase
+      .from('daily_reports')
+      .select('block_id, beneficiaries_vaccinated, reporting_date')
+      .in('block_id', blockIds);
+
+    const getBlockStats = (blockId) => {
+      const facs = blockCcpMap[blockId] || [];
+      let allCcpsReportedOpening = facs.length > 0;
+      let totalReportedOpening = 0;
+      facs.forEach(f => {
+        if (openingBalances[f] !== undefined) {
+          totalReportedOpening += openingBalances[f];
+        } else {
+          allCcpsReportedOpening = false;
+        }
+      });
+      
+      let openingStock = 0;
+      if (allCcpsReportedOpening) {
+        openingStock = totalReportedOpening;
+      } else {
+        let allTimeRecv = 0;
+        (blockTxs || []).forEach(t => {
+          if (t.block_id === blockId && t.transaction_type === 'RECEIVED' && t.transaction_date < fromDateStart) {
+            allTimeRecv += t.quantity_doses || 0;
+          }
+        });
+        let maxVaccBeforeFrom = 0;
+        (dailyReports || []).forEach(r => {
+          if (r.block_id === blockId && r.reporting_date < fromDateStart) {
+             if (r.beneficiaries_vaccinated > maxVaccBeforeFrom) maxVaccBeforeFrom = r.beneficiaries_vaccinated;
+          }
+        });
+        openingStock = Math.max(0, allTimeRecv - maxVaccBeforeFrom);
+      }
+      
+      let periodReceived = 0;
+      (blockTxs || []).forEach(t => {
+        if (t.block_id === blockId && t.transaction_type === 'RECEIVED' && t.transaction_date >= fromDateStart && t.transaction_date <= toDateEnd) {
+          periodReceived += t.quantity_doses || 0;
+        }
+      });
+      
+      let maxVaccBeforeFrom = 0;
+      let maxVaccBeforeTo = 0;
+      (dailyReports || []).forEach(r => {
+        if (r.block_id === blockId) {
+           if (r.reporting_date < fromDateStart && r.beneficiaries_vaccinated > maxVaccBeforeFrom) maxVaccBeforeFrom = r.beneficiaries_vaccinated;
+           if (r.reporting_date <= toDateEnd && r.beneficiaries_vaccinated > maxVaccBeforeTo) maxVaccBeforeTo = r.beneficiaries_vaccinated;
+        }
+      });
+      const periodVaccinations = Math.max(0, maxVaccBeforeTo - maxVaccBeforeFrom);
+      
+      const estimatedStockBalance = Math.max(0, openingStock + periodReceived - periodVaccinations);
+      
+      let allCcpsReportedClosing = facs.length > 0;
+      let totalReportedClosing = 0;
+      let reportingCcps = 0;
+      facs.forEach(f => {
+        if (closingBalances[f] !== undefined) {
+          totalReportedClosing += closingBalances[f];
+          reportingCcps++;
+        } else {
+          allCcpsReportedClosing = false;
+        }
+      });
+      
+      const monthEndReportingPct = facs.length > 0 ? (reportingCcps / facs.length) * 100 : 0;
+      let reportedMonthEndStock = allCcpsReportedClosing ? totalReportedClosing : estimatedStockBalance;
+      const wastageReported = estimatedStockBalance - (allCcpsReportedClosing ? totalReportedClosing : estimatedStockBalance);
+      
+      return {
+        openingStock, periodReceived, periodVaccinations, estimatedStockBalance,
+        monthEndReportingPct, reportedMonthEndStock, wastageReported,
+        facsLength: facs.length, reportingCcps
+      };
+    };
+
+    const { data: distTxs } = await supabase
+      .from('vaccine_stock_transactions')
+      .select('district_id, quantity_doses, transaction_type, transaction_date')
+      .in('district_id', finalDistrictIds)
+      .is('block_id', null);
+
+    const getDistrictStoreStats = (districtId) => {
+      const facs = districtStoreMap[districtId] || [];
+      
+      let allCcpsReportedOpening = facs.length > 0;
+      let totalReportedOpening = 0;
+      facs.forEach(f => {
+        if (openingBalances[f] !== undefined) {
+          totalReportedOpening += openingBalances[f];
+        } else {
+          allCcpsReportedOpening = false;
+        }
+      });
+      
+      let openingStock = 0;
+      if (allCcpsReportedOpening) {
+        openingStock = totalReportedOpening;
+      } else {
+        let allTimeRecv = 0;
+        let allTimeIss = 0;
+        (distTxs || []).forEach(t => {
+          if (t.district_id === districtId && t.transaction_date < fromDateStart) {
+            if (t.transaction_type === 'RECEIVED') allTimeRecv += t.quantity_doses || 0;
+            if (t.transaction_type === 'ISSUED') allTimeIss += t.quantity_doses || 0;
+          }
+        });
+        openingStock = Math.max(0, allTimeRecv - allTimeIss);
+      }
+      
+      let periodReceived = 0;
+      let periodIssued = 0;
+      (distTxs || []).forEach(t => {
+        if (t.district_id === districtId && t.transaction_date >= fromDateStart && t.transaction_date <= toDateEnd) {
+          if (t.transaction_type === 'RECEIVED') periodReceived += t.quantity_doses || 0;
+          if (t.transaction_type === 'ISSUED') periodIssued += t.quantity_doses || 0;
+        }
+      });
+      
+      const estimatedStockBalance = Math.max(0, openingStock + periodReceived - periodIssued);
+      
+      let allCcpsReportedClosing = facs.length > 0;
+      let totalReportedClosing = 0;
+      let reportingCcps = 0;
+      facs.forEach(f => {
+        if (closingBalances[f] !== undefined) {
+          totalReportedClosing += closingBalances[f];
+          reportingCcps++;
+        } else {
+          allCcpsReportedClosing = false;
+        }
+      });
+      
+      const monthEndReportingPct = facs.length > 0 ? (reportingCcps / facs.length) * 100 : 0;
+      const wastageReported = estimatedStockBalance - (allCcpsReportedClosing ? totalReportedClosing : estimatedStockBalance);
+      const reportedMonthEndStock = allCcpsReportedClosing ? totalReportedClosing : estimatedStockBalance;
+      
+      return {
+        openingStock, periodReceived, periodIssued, estimatedStockBalance,
+        monthEndReportingPct, reportedMonthEndStock, wastageReported,
+        facsLength: facs.length, reportingCcps
+      };
+    };
 
     const blockData = blocks.map(b => {
       const prof = profileMap[b.id];
-      const pop = prof?.base_population || 0;
-      const target = b.hpv_target || prof?.initial_hpv_target || (pop > 0 ? Math.round(pop * 0.01) : 0);
-
-      const hasMonthEnd = balMap[b.id] !== undefined;
-      let openingStock = 0;
-      if (hasMonthEnd) {
-        openingStock = balMap[b.id];
-      } else {
-        const allTimeReceived = allTxMap[b.id] || 0;
-        const allTimeVaccinatedPriorMonth = prevVaccMap[b.id] || 0;
-        openingStock = Math.max(0, allTimeReceived - allTimeVaccinatedPriorMonth);
-      }
-
-      const vaccineReceived = txMap[b.id] || 0;
-
-      // Total cumulative vaccinations up to report date (beneficiaries_vaccinated is cumulative)
-      const totalVaccinations = allTimeVaccMap[b.id] || 0;
-      const priorVaccinated = prevVaccMap[b.id] || 0;
-
-      // Vaccinations administered this month = total cumulative minus what was done before this month
-      const vaccinationsThisMonth = Math.max(0, totalVaccinations - priorVaccinated);
-
-      // Estimated stock balance = opening stock (carried from prior month) + received this month - used this month
-      const estBalance = Math.max(0, openingStock + vaccineReceived - vaccinationsThisMonth);
-      const wastage_reported = 0; 
-      const wastage_pct = vaccineReceived > 0 ? (wastage_reported / vaccineReceived) * 100 : 0;
-      const stock_availability_pct = target > 0 ? (estBalance / target) * 100 : 0;
-      const month_end_reporting_pct = hasMonthEnd ? 100 : 0;
-
+      const pop = prof?.base_population || b.population || 0;
+      const target = Math.round(pop * 1.01);
+      
+      const stats = getBlockStats(b.id);
+      
+      const wastage_pct = stats.periodReceived > 0 ? (stats.wastageReported / stats.periodReceived) * 100 : 0;
+      const stock_availability_pct = target > 0 ? (stats.reportedMonthEndStock / target) * 100 : 0;
+      
       let action_required = 'ok';
       if (stock_availability_pct < 10) action_required = 'critical';
-      else if (stock_availability_pct < 30) action_required = 'reorder';
+      else if (stock_availability_pct < 25) action_required = 'reorder';
 
       return {
         id: b.id,
@@ -2435,155 +2576,167 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         division_name: b.districts?.divisions?.name,
         population: pop,
         annual_requirement: target,
-        opening_stock: openingStock,
-        vaccine_received: vaccineReceived,
-        vaccinations: totalVaccinations,
-        wastage_reported,
+        opening_stock: stats.openingStock,
+        vaccine_received: stats.periodReceived,
+        vaccinations: stats.periodVaccinations,
+        wastage_reported: stats.wastageReported,
         wastage_pct,
-        estimated_stock_balance: estBalance,
+        estimated_stock_balance: stats.estimatedStockBalance,
         stock_availability_pct,
-        month_end_reporting_pct,
-        action_required
+        month_end_reporting_pct: stats.monthEndReportingPct,
+        action_required,
+        _bFacsLength: stats.facsLength,
+        _bReportingCcps: stats.reportingCcps
       };
     });
 
     let finalRows = [];
-    if (level === 'DISTRICT') {
+    if (level === 'DISTRICT' || level === 'DIVISION' || level === 'STATE') {
       const distGroup = {};
-      blockData.forEach(b => {
-        const distId = b.district_id;
-        if (!distGroup[distId]) {
-          distGroup[distId] = {
-            id: distId,
-            name: b.district,
-            district: b.district,
-            district_id: distId,
-            is_urban: false,
-            population: 0,
-            annual_requirement: 0,
-            opening_stock: 0,
-            vaccine_received: 0,
-            vaccinations: 0,
-            wastage_reported: 0,
-            blocks_with_month_end: 0,
-            total_blocks: 0
-          };
-        }
-        const g = distGroup[distId];
-        g.population += b.population;
-        g.annual_requirement += b.annual_requirement;
-        g.opening_stock += b.opening_stock;
-        g.vaccine_received += b.vaccine_received;
-        g.vaccinations += b.vaccinations;
-        g.wastage_reported += b.wastage_reported;
-        if (b.month_end_reporting_pct === 100) g.blocks_with_month_end += 1;
-        g.total_blocks += 1;
-      });
       
-      finalRows = Object.values(distGroup).map(g => {
-        const estBalance = Math.max(0, g.opening_stock + g.vaccine_received - g.vaccinations);
-        const wastage_pct = g.vaccine_received > 0 ? (g.wastage_reported / g.vaccine_received) * 100 : 0;
-        const stock_availability_pct = g.annual_requirement > 0 ? (estBalance / g.annual_requirement) * 100 : 0;
-        const month_end_reporting_pct = g.total_blocks > 0 ? Math.round((g.blocks_with_month_end / g.total_blocks) * 100) : 0;
+      finalDistrictIds.forEach(distId => {
+        const dBlocks = blockData.filter(b => b.district_id === distId);
+        if (dBlocks.length === 0) return;
+        
+        const firstBlock = dBlocks[0];
+        const distStats = getDistrictStoreStats(distId);
+        
+        const totalBlockVaccinations = dBlocks.reduce((sum, b) => sum + b.vaccinations, 0);
+        const totalPopulation = dBlocks.reduce((sum, b) => sum + b.population, 0);
+        const annualRequirement = Math.round(totalPopulation * 1.01);
+        
+        const totalL2L3Facs = distStats.facsLength + dBlocks.reduce((sum, b) => sum + b._bFacsLength, 0);
+        const totalL2L3Reporting = distStats.reportingCcps + dBlocks.reduce((sum, b) => sum + b._bReportingCcps, 0);
+        const districtMonthEndReportingPct = totalL2L3Facs > 0 ? (totalL2L3Reporting / totalL2L3Facs) * 100 : 0;
+        
+        const wastage_pct = distStats.periodReceived > 0 ? (distStats.wastageReported / distStats.periodReceived) * 100 : 0;
+        const stock_availability_pct = annualRequirement > 0 ? (distStats.reportedMonthEndStock / annualRequirement) * 100 : 0;
+        
         let action_required = 'ok';
         if (stock_availability_pct < 10) action_required = 'critical';
-        else if (stock_availability_pct < 30) action_required = 'reorder';
+        else if (stock_availability_pct < 25) action_required = 'reorder';
+        
+        distGroup[distId] = {
+          id: distId,
+          name: firstBlock.district,
+          district: firstBlock.district,
+          district_id: distId,
+          division_id: firstBlock.division_id,
+          division_name: firstBlock.division_name,
+          is_urban: false,
+          population: totalPopulation,
+          annual_requirement: annualRequirement,
+          opening_stock: distStats.openingStock,
+          vaccine_received: distStats.periodReceived,
+          vaccinations: totalBlockVaccinations,
+          estimated_stock_balance: distStats.estimatedStockBalance,
+          wastage_reported: distStats.wastageReported,
+          wastage_pct: wastage_pct,
+          stock_availability_pct: stock_availability_pct,
+          month_end_reporting_pct: Math.round(districtMonthEndReportingPct),
+          action_required: action_required,
+          _dFacsLength: totalL2L3Facs,
+          _dReportingCcps: totalL2L3Reporting,
+          _dPeriodReceived: distStats.periodReceived,
+          _dReportedMonthEnd: distStats.reportedMonthEndStock
+        };
+      });
 
-        return { ...g, estimated_stock_balance: estBalance, wastage_pct, stock_availability_pct, month_end_reporting_pct, action_required };
-      });
-    } else if (level === 'DIVISION') {
-      const divGroup = {};
-      blockData.forEach(b => {
-        const divId = b.division_id || 'unknown';
-        if (!divGroup[divId]) {
-          divGroup[divId] = {
-            id: divId,
-            name: `${b.division_name || 'Unknown'} Division`,
-            district: `${b.division_name || 'Unknown'} Division`,
-            is_urban: false,
-            population: 0,
-            annual_requirement: 0,
-            opening_stock: 0,
-            vaccine_received: 0,
-            vaccinations: 0,
-            wastage_reported: 0,
-            blocks_with_month_end: 0,
-            total_blocks: 0
-          };
-        }
-        const g = divGroup[divId];
-        g.population += b.population;
-        g.annual_requirement += b.annual_requirement;
-        g.opening_stock += b.opening_stock;
-        g.vaccine_received += b.vaccine_received;
-        g.vaccinations += b.vaccinations;
-        g.wastage_reported += b.wastage_reported;
-        if (b.month_end_reporting_pct === 100) g.blocks_with_month_end += 1;
-        g.total_blocks += 1;
-      });
-      finalRows = Object.values(divGroup).map(g => {
-        const estBalance = Math.max(0, g.opening_stock + g.vaccine_received - g.vaccinations);
-        const wastage_pct = g.vaccine_received > 0 ? (g.wastage_reported / g.vaccine_received) * 100 : 0;
-        const stock_availability_pct = g.annual_requirement > 0 ? (estBalance / g.annual_requirement) * 100 : 0;
-        const month_end_reporting_pct = g.total_blocks > 0 ? Math.round((g.blocks_with_month_end / g.total_blocks) * 100) : 0;
-        let action_required = 'ok';
-        if (stock_availability_pct < 10) action_required = 'critical';
-        else if (stock_availability_pct < 30) action_required = 'reorder';
-        return { ...g, estimated_stock_balance: estBalance, wastage_pct, stock_availability_pct, month_end_reporting_pct, action_required };
-      });
-    } else if (level === 'STATE') {
-      const stateObj = {
-        id: 'uttarakhand',
-        name: 'Uttarakhand State',
-        district: 'Uttarakhand State',
-        is_urban: false,
-        population: 0,
-        annual_requirement: 0,
-        opening_stock: 0,
-        vaccine_received: 0,
-        vaccinations: 0,
-        wastage_reported: 0,
-        blocks_with_month_end: 0,
-        total_blocks: 0
-      };
-      blockData.forEach(b => {
-        stateObj.population += b.population;
-        stateObj.annual_requirement += b.annual_requirement;
-        stateObj.opening_stock += b.opening_stock;
-        stateObj.vaccine_received += b.vaccine_received;
-        stateObj.vaccinations += b.vaccinations;
-        stateObj.wastage_reported += b.wastage_reported;
-        if (b.month_end_reporting_pct === 100) stateObj.blocks_with_month_end += 1;
-        stateObj.total_blocks += 1;
-      });
-      const estBalance = Math.max(0, stateObj.opening_stock + stateObj.vaccine_received - stateObj.vaccinations);
-      const wastage_pct = stateObj.vaccine_received > 0 ? (stateObj.wastage_reported / stateObj.vaccine_received) * 100 : 0;
-      const stock_availability_pct = stateObj.annual_requirement > 0 ? (estBalance / stateObj.annual_requirement) * 100 : 0;
-      const month_end_reporting_pct = stateObj.total_blocks > 0 ? Math.round((stateObj.blocks_with_month_end / stateObj.total_blocks) * 100) : 0;
-      let action_required = 'ok';
-      if (stock_availability_pct < 10) action_required = 'critical';
-      else if (stock_availability_pct < 30) action_required = 'reorder';
-      finalRows = [{ ...stateObj, estimated_stock_balance: estBalance, wastage_pct, stock_availability_pct, month_end_reporting_pct, action_required }];
+      if (level === 'DISTRICT') {
+        finalRows = Object.values(distGroup);
+      } else if (level === 'DIVISION') {
+        const divGroup = {};
+        Object.values(distGroup).forEach(d => {
+          const divId = d.division_id || 'unknown';
+          if (!divGroup[divId]) {
+             divGroup[divId] = {
+               id: divId,
+               name: `${d.division_name || 'Unknown'} Division`,
+               district: `${d.division_name || 'Unknown'} Division`,
+               population: 0,
+               annual_requirement: 0,
+               opening_stock: 0,
+               vaccine_received: 0,
+               vaccinations: 0,
+               estimated_stock_balance: 0,
+               wastage_reported: 0,
+               _totalFacs: 0,
+               _totalRep: 0,
+               _totalPeriodReceived: 0,
+               _totalReportedMonthEnd: 0
+             };
+          }
+          const g = divGroup[divId];
+          g.population += d.population;
+          g.annual_requirement += d.annual_requirement;
+          g.opening_stock += d.opening_stock;
+          g.vaccine_received += d.vaccine_received;
+          g.vaccinations += d.vaccinations;
+          g.estimated_stock_balance += d.estimated_stock_balance;
+          g.wastage_reported += d.wastage_reported;
+          g._totalFacs += d._dFacsLength;
+          g._totalRep += d._dReportingCcps;
+          g._totalPeriodReceived += d._dPeriodReceived;
+          g._totalReportedMonthEnd += d._dReportedMonthEnd;
+        });
+        
+        finalRows = Object.values(divGroup).map(g => {
+          const month_end_reporting_pct = g._totalFacs > 0 ? (g._totalRep / g._totalFacs) * 100 : 0;
+          const wastage_pct = g._totalPeriodReceived > 0 ? (g.wastage_reported / g._totalPeriodReceived) * 100 : 0;
+          const stock_availability_pct = g.annual_requirement > 0 ? (g._totalReportedMonthEnd / g.annual_requirement) * 100 : 0;
+          
+          let action_required = 'ok';
+          if (stock_availability_pct < 10) action_required = 'critical';
+          else if (stock_availability_pct < 25) action_required = 'reorder';
+          
+          return { ...g, month_end_reporting_pct: Math.round(month_end_reporting_pct), wastage_pct, stock_availability_pct, action_required };
+        });
+      } else if (level === 'STATE') {
+         const stateObj = {
+           id: 'uttarakhand',
+           name: 'Uttarakhand State',
+           district: 'Uttarakhand State',
+           population: 0,
+           annual_requirement: 0,
+           opening_stock: 0,
+           vaccine_received: 0,
+           vaccinations: 0,
+           estimated_stock_balance: 0,
+           wastage_reported: 0,
+           _totalFacs: 0,
+           _totalRep: 0,
+           _totalPeriodReceived: 0,
+           _totalReportedMonthEnd: 0
+         };
+         Object.values(distGroup).forEach(d => {
+           stateObj.population += d.population;
+           stateObj.annual_requirement += d.annual_requirement;
+           stateObj.opening_stock += d.opening_stock;
+           stateObj.vaccine_received += d.vaccine_received;
+           stateObj.vaccinations += d.vaccinations;
+           stateObj.estimated_stock_balance += d.estimated_stock_balance;
+           stateObj.wastage_reported += d.wastage_reported;
+           stateObj._totalFacs += d._dFacsLength;
+           stateObj._totalRep += d._dReportingCcps;
+           stateObj._totalPeriodReceived += d._dPeriodReceived;
+           stateObj._totalReportedMonthEnd += d._dReportedMonthEnd;
+         });
+         const month_end_reporting_pct = stateObj._totalFacs > 0 ? (stateObj._totalRep / stateObj._totalFacs) * 100 : 0;
+         const wastage_pct = stateObj._totalPeriodReceived > 0 ? (stateObj.wastage_reported / stateObj._totalPeriodReceived) * 100 : 0;
+         const stock_availability_pct = stateObj.annual_requirement > 0 ? (stateObj._totalReportedMonthEnd / stateObj.annual_requirement) * 100 : 0;
+          
+         let action_required = 'ok';
+         if (stock_availability_pct < 10) action_required = 'critical';
+         else if (stock_availability_pct < 25) action_required = 'reorder';
+         finalRows = [{ ...stateObj, month_end_reporting_pct: Math.round(month_end_reporting_pct), wastage_pct, stock_availability_pct, action_required }];
+      }
     } else {
       finalRows = blockData;
     }
-    let totalDvs = 0;
-    let totalCcp = 0;
     
-    if (blockData.length > 0) {
-      const finalDistrictIds = [...new Set(blockData.map(b => b.district_id).filter(Boolean))];
-      const finalBlockIds = blockData.map(b => b.id).filter(Boolean);
-
-      if (finalDistrictIds.length > 0) {
-        const { data: dvs } = await supabase.from('vaccine_ccp').select('id').eq('unit_level', 2).in('district_id', finalDistrictIds);
-        totalDvs = dvs ? dvs.length : 0;
-      }
-      if (finalBlockIds.length > 0) {
-        const { data: ccps } = await supabase.from('vaccine_ccp').select('id').eq('unit_level', 3).in('block_id', finalBlockIds);
-        totalCcp = ccps ? ccps.length : 0;
-      }
-    }
-
+    let totalDvs = districtStores.length;
+    let totalCcp = blockCcps.length;
+    
     res.json({ rows: finalRows, kpis: { totalDvs, totalCcp } });
   } catch (err) {
     console.error('Stock Monitoring API error:', err);
