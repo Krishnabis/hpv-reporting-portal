@@ -2439,12 +2439,15 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             allTimeRecv += t.quantity_doses || 0;
           }
         });
-        let maxVaccBeforeFrom = 0;
+        let latestBeforeFrom = null;
         (dailyReports || []).forEach(r => {
           if (r.block_id === blockId && r.reporting_date < fromDateStart) {
-             if (r.beneficiaries_vaccinated > maxVaccBeforeFrom) maxVaccBeforeFrom = r.beneficiaries_vaccinated;
+             if (!latestBeforeFrom || r.reporting_date > latestBeforeFrom.reporting_date) {
+               latestBeforeFrom = r;
+             }
           }
         });
+        const maxVaccBeforeFrom = latestBeforeFrom ? latestBeforeFrom.beneficiaries_vaccinated : 0;
         openingStock = Math.max(0, allTimeRecv - maxVaccBeforeFrom);
       }
       
@@ -2455,14 +2458,24 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         }
       });
       
-      let maxVaccBeforeFrom = 0;
-      let maxVaccBeforeTo = 0;
+      let latestBeforeFrom = null;
+      let latestBeforeTo = null;
       (dailyReports || []).forEach(r => {
         if (r.block_id === blockId) {
-           if (r.reporting_date < fromDateStart && r.beneficiaries_vaccinated > maxVaccBeforeFrom) maxVaccBeforeFrom = r.beneficiaries_vaccinated;
-           if (r.reporting_date <= toDateEnd && r.beneficiaries_vaccinated > maxVaccBeforeTo) maxVaccBeforeTo = r.beneficiaries_vaccinated;
+           if (r.reporting_date < fromDateStart) {
+             if (!latestBeforeFrom || r.reporting_date > latestBeforeFrom.reporting_date) {
+               latestBeforeFrom = r;
+             }
+           }
+           if (r.reporting_date <= toDateEnd) {
+             if (!latestBeforeTo || r.reporting_date > latestBeforeTo.reporting_date) {
+               latestBeforeTo = r;
+             }
+           }
         }
       });
+      const maxVaccBeforeFrom = latestBeforeFrom ? latestBeforeFrom.beneficiaries_vaccinated : 0;
+      const maxVaccBeforeTo = latestBeforeTo ? latestBeforeTo.beneficiaries_vaccinated : 0;
       const periodVaccinations = Math.max(0, maxVaccBeforeTo - maxVaccBeforeFrom);
       const totalVaccinations = maxVaccBeforeTo;
       
