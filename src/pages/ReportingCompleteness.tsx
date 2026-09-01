@@ -194,11 +194,11 @@ export const ReportingCompleteness: React.FC<{
             <p className="text-xs text-slate-500 font-medium mt-0.5">Tracks reporting completeness and timeliness of Daily and Monthly reports across Reporting Units.</p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={downloadCsv} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-bold shadow-sm transition-all whitespace-nowrap">
-              <Download className="w-4 h-4" /> Download CSV
+            <button onClick={downloadPdf} disabled={isDownloadingPdf} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0">
+              {isDownloadingPdf ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4 text-slate-500" />} Download PDF
             </button>
-            <button onClick={downloadPdf} disabled={isDownloadingPdf} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0f3484] hover:bg-[#0c2a6b] text-white rounded-lg text-sm font-bold shadow-sm transition-all whitespace-nowrap disabled:opacity-70">
-              {isDownloadingPdf ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />} Download PDF
+            <button onClick={downloadCsv} disabled={!rows.length} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0">
+              <Download className="w-4 h-4" /> Download CSV
             </button>
           </div>
         </div>
@@ -251,9 +251,9 @@ export const ReportingCompleteness: React.FC<{
               <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-200 text-slate-900 text-[11px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all" />
             </div>
 
-            <button onClick={fetchReport} disabled={loading} className="shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#0f3484] hover:bg-blue-900 text-white rounded-lg text-xs font-bold shadow-sm hover:shadow transition-all disabled:opacity-70 h-[34px]">
+            <button onClick={fetchReport} disabled={loading} className="shrink-0 flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 h-[34px] cursor-pointer">
               {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
-              Generate
+              Generate Report
             </button>
           </div>
         </div>
@@ -267,18 +267,18 @@ export const ReportingCompleteness: React.FC<{
           <div className="flex-1 flex items-center justify-center gap-4">
             <span className="text-[11px] font-bold text-slate-700">Order:</span>
             <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-slate-600">
-              <input type="radio" checked={order === 'best'} onChange={() => setOrder('best')} className="w-3.5 h-3.5 text-blue-600 border-slate-300" />
+              <input type="radio" checked={order === 'best'} onChange={() => setOrder('best')} className="w-3.5 h-3.5 text-[#522B85] border-slate-300 focus:ring-[#522B85]" />
               Best on Top
             </label>
             <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-slate-600">
-              <input type="radio" checked={order === 'worst'} onChange={() => setOrder('worst')} className="w-3.5 h-3.5 text-blue-600 border-slate-300" />
+              <input type="radio" checked={order === 'worst'} onChange={() => setOrder('worst')} className="w-3.5 h-3.5 text-[#522B85] border-slate-300 focus:ring-[#522B85]" />
               Worst on Top
             </label>
           </div>
           
           <div className="flex-1 flex items-center justify-end gap-2">
             <span className="text-[11px] font-bold text-slate-700">Ranked By:</span>
-            <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="bg-slate-50 border-2 border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500">
+            <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="bg-slate-50 border-2 border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg px-2 py-1 focus:outline-none focus:border-[#522B85] focus:ring-2 focus:ring-[#522B85]/20">
               <option value="reporting">Reporting (%) (Default)</option>
               <option value="ontime">On Time (%)</option>
             </select>
@@ -287,7 +287,7 @@ export const ReportingCompleteness: React.FC<{
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-100 shrink-0">
           <div className="flex-1 p-3 flex items-center gap-3 pl-5 py-4">
-            <div className="w-9 h-9 bg-blue-50 text-[#0f3484] rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 bg-purple-50 text-[#522B85] rounded-xl flex items-center justify-center shrink-0">
               <BarChart3 className="w-4 h-4" />
             </div>
             <div>
@@ -325,16 +325,16 @@ export const ReportingCompleteness: React.FC<{
           <div className="overflow-auto flex-1">
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10">
-                <tr className="bg-[#f8fafd]">
-                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Reporting Unit</th>
-                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Report Name</th>
-                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-100/50">Frequency</th>
-                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap border-b border-slate-200 border-r border-slate-200">Last Reported</th>
-                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#5072a7] uppercase tracking-wider whitespace-nowrap bg-[#eff4f9] border-b border-[#dce3ec] text-center border-r border-[#dce3ec]" title="Hidden internally but visible here">Reports Expected<br/><span className="text-[9px] font-medium">(Hidden)</span></th>
-                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#e2ecf9] border-b border-[#c8d8ea] text-center border-r border-[#c8d8ea]">Reports<br/>Submitted</th>
-                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#f3eff7] border-b border-[#e1d9ea] border-r border-[#e1d9ea]">Reporting (%)</th>
-                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-[#0f3484] uppercase tracking-wider whitespace-nowrap bg-[#f3eff7] border-b border-[#e1d9ea] border-r border-[#e1d9ea]">On Time (%)</th>
-                  <th className="px-2 py-1.5 text-[10px] font-extrabold text-amber-900 uppercase tracking-wider whitespace-nowrap bg-amber-50 border-b border-amber-200 text-center">Current Status<br/><span className="text-[9px] font-medium">(Complete / Late / Pending)</span></th>
+                <tr className="gradient-header text-white shadow-sm">
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">Reporting Unit</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">Report Name</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">Frequency</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">Last Reported</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-purple-100 uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 text-center border-r border-purple-900/20" title="Hidden internally but visible here">Reports Expected<br/><span className="text-[9px] font-medium opacity-80">(Hidden)</span></th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 text-center border-r border-purple-900/20">Reports<br/>Submitted</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">Reporting (%)</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">On Time (%)</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-amber-300 uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 text-center">Current Status<br/><span className="text-[9px] font-medium opacity-80">(Complete / Late / Pending)</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
@@ -348,7 +348,7 @@ export const ReportingCompleteness: React.FC<{
                   paginatedRows.map((r, i) => (
                     <tr key={i} className="hover:bg-slate-50/80 transition-colors group">
                       <td className="px-2 py-1.5 border-r border-slate-100/50">
-                        <div className="font-bold text-[#0f3484] text-xs flex items-center gap-1.5">
+                        <div className="font-bold text-[#3B1C63] text-xs flex items-center gap-1.5">
                           {r.unitName}
                           {r.isUrban && (
                             <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-purple-100 text-purple-700 uppercase tracking-wider">
@@ -367,7 +367,7 @@ export const ReportingCompleteness: React.FC<{
                         )}
                       </td>
                       <td className="px-2 py-1.5 text-sm font-bold text-slate-700 text-center bg-[#f8fafc] border-r border-slate-200/60">{r.expected}</td>
-                      <td className="px-2 py-1.5 text-sm font-black text-slate-900 text-center bg-blue-50/30 border-r border-slate-200/60">{r.submitted}</td>
+                      <td className="px-2 py-1.5 text-sm font-black text-[#522B85] text-center bg-purple-50/30 border-r border-slate-200/60">{r.submitted}</td>
                       <td className="px-2 py-1.5 border-r border-slate-100/50 bg-[#faf9fb] align-top">
                         <div className="flex flex-col gap-1 w-12 mt-0.5">
                           <span className={`text-[11px] leading-none font-bold ${r.reportingPct >= 70 ? 'text-emerald-600' : r.reportingPct >= 30 ? 'text-orange-500' : r.reportingPct > 0 ? 'text-amber-600' : 'text-rose-500'}`}>{r.reportingPct}%</span>
