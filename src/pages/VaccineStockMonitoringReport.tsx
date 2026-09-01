@@ -225,12 +225,24 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       if (!res.ok) throw new Error('Failed to fetch stock monitoring report');
       const data = await res.json();
       
+      let numMonths = 1;
+      if (filterFromMonth && filterToMonth) {
+        const fromDate = new Date(filterFromMonth + '-01');
+        const toDate = new Date(filterToMonth + '-01');
+        if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime())) {
+          numMonths = (toDate.getFullYear() - fromDate.getFullYear()) * 12 + (toDate.getMonth() - fromDate.getMonth()) + 1;
+          if (numMonths < 1) numMonths = 1;
+        }
+      }
+
       const fetchedRows = data.rows || [];
       // Override backend 1.01 logic with explicit 0.01 calculation in frontend
       const correctedRows = fetchedRows.map((r: any) => {
         const pop = Number(r.population) || 0;
         const target = Math.round(pop * 0.01);
-        const availPct = target > 0 ? ((Number(r.month_end_stock_balance) || 0) / target) * 100 : 0;
+        const periodTarget = (target / 12) * numMonths;
+        const stockBal = r.month_end_stock_balance != null ? Number(r.month_end_stock_balance) : Number(r.estimated_stock_balance || 0);
+        const availPct = periodTarget > 0 ? (stockBal / periodTarget) * 100 : 0;
         
         let action_required = 'ok';
         if (availPct < 10) action_required = 'critical';
@@ -239,7 +251,9 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
         return {
           ...r,
           annual_requirement: target > 0 ? target : (r.annual_requirement || 0),
-          stock_availability_pct: target > 0 ? availPct : (r.stock_availability_pct || 0),
+          stock_availability_pct: periodTarget > 0 ? availPct : (r.stock_availability_pct || 0),
+          period_target: periodTarget,
+          stock_bal_used: stockBal,
           action_required
         };
       });
@@ -366,7 +380,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
         fmt(r.estimated_stock_balance),
         fmt(r.month_end_stock_balance),
         `${fmt(r.wastage_pct, 1)}%`,
-        `${fmt(r.stock_availability_pct, 1)}%`,
+        `${fmt(r.stock_availability_pct, 2)}%`,
         r.action_required === 'critical' ? 'Critical' : r.action_required === 'reorder' ? 'Re-Order' : '—'
       ]);
 
@@ -383,7 +397,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
           fmt(kpis.totalEstimatedStockBalance),
           fmt(kpis.totalMonthEndStockBalance),
           `${fmt(kpis.totalWastagePct, 1)}%`,
-          `${fmt(kpis.totalStockAvailabilityPct, 1)}%`,
+          `${fmt(kpis.totalStockAvailabilityPct, 2)}%`,
           '—'
         ]);
       }
@@ -450,7 +464,9 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
     const totalEstimatedStockBalance = rows.reduce((s, r: any) => s + (r.estimated_stock_balance || 0), 0);
     const totalMonthEndStockBalance = rows.reduce((s, r: any) => s + (r.month_end_stock_balance || 0), 0);
     const totalWastagePct = totalVaccineReceived > 0 ? (totalWastageReported / totalVaccineReceived) * 100 : 0;
-    const totalStockAvailabilityPct = totalTarget > 0 ? (totalMonthEndStockBalance / totalTarget) * 100 : 0;
+    const totalPeriodTarget = rows.reduce((s, r: any) => s + (r.period_target || 0), 0);
+    const totalStockBalUsed = rows.reduce((s, r: any) => s + (r.stock_bal_used || 0), 0);
+    const totalStockAvailabilityPct = totalPeriodTarget > 0 ? (totalStockBalUsed / totalPeriodTarget) * 100 : 0;
 
     const totalStores = backendKpis.totalDvs;
     const totalColdChainPoints = backendKpis.totalCcp;
@@ -784,7 +800,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
                         <td className="px-1.5 py-1.5 text-center font-semibold text-rose-700" style={{ width: '7%' }}>{fmt(row.wastage_pct, 1)}%</td>
                         <td className="px-1.5 py-1.5 text-center" style={{ width: '8%' }}>
                           <span className={`font-bold ${row.stock_availability_pct < 10 ? 'text-red-700' : row.stock_availability_pct < 25 ? 'text-orange-700' : 'text-green-700'}`}>
-                            {fmt(row.stock_availability_pct, 1)}%
+                            {fmt(row.stock_availability_pct, 2)}%
                           </span>
                         </td>
                         <td className="px-1.5 py-1.5 text-center" style={{ width: '7%' }}>
@@ -813,7 +829,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
                     <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '9%' }}>{fmt(kpis.totalEstimatedStockBalance)}</td>
                     <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '9%' }}>{fmt(kpis.totalMonthEndStockBalance)}</td>
                     <td className="px-1.5 py-1.5 text-center font-semibold text-rose-700" style={{ width: '7%' }}>{fmt(kpis.totalWastagePct, 1)}%</td>
-                    <td className="px-1.5 py-1.5 text-center font-bold text-green-700" style={{ width: '8%' }}>{fmt(kpis.totalStockAvailabilityPct, 1)}%</td>
+                    <td className="px-1.5 py-1.5 text-center font-bold text-green-700" style={{ width: '8%' }}>{fmt(kpis.totalStockAvailabilityPct, 2)}%</td>
                     <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '7%' }}>—</td>
                   </tr>
                 </tfoot>

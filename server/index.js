@@ -2409,7 +2409,8 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
     const { data: blockTxs } = await supabase
       .from('vaccine_stock_transactions')
       .select('block_id, quantity_doses, transaction_type, transaction_date')
-      .in('block_id', blockIds);
+      .in('block_id', blockIds)
+      .eq('level', '3');
       
     const { data: dailyReports } = await supabase
       .from('daily_reports')
@@ -2463,6 +2464,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         }
       });
       const periodVaccinations = Math.max(0, maxVaccBeforeTo - maxVaccBeforeFrom);
+      const totalVaccinations = maxVaccBeforeTo;
       
       const estimatedStockBalance = Math.max(0, openingStock + periodReceived - periodVaccinations);
       
@@ -2483,7 +2485,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       const wastageReported = estimatedStockBalance - (allCcpsReportedClosing ? totalReportedClosing : estimatedStockBalance);
       
       return {
-        openingStock, periodReceived, periodVaccinations, estimatedStockBalance,
+        openingStock, periodReceived, periodVaccinations, totalVaccinations, estimatedStockBalance,
         monthEndReportingPct, reportedMonthEndStock, wastageReported,
         facsLength: facs.length, reportingCcps
       };
@@ -2491,9 +2493,9 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
 
     const { data: distTxs } = await supabase
       .from('vaccine_stock_transactions')
-      .select('district_id, quantity_doses, transaction_type, transaction_date')
+      .select('district_id, facility_id, quantity_doses, transaction_type, transaction_date')
       .in('district_id', finalDistrictIds)
-      .is('block_id', null);
+      .eq('level', '2');
 
     const getDistrictStoreStats = (districtId) => {
       const facs = districtStoreMap[districtId] || [];
@@ -2515,7 +2517,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         let allTimeRecv = 0;
         let allTimeIss = 0;
         (distTxs || []).forEach(t => {
-          if (t.district_id === districtId && t.transaction_date < fromDateStart) {
+          if (t.district_id === districtId && facs.includes(t.facility_id) && t.transaction_date < fromDateStart) {
             if (t.transaction_type === 'RECEIVED') allTimeRecv += t.quantity_doses || 0;
             if (t.transaction_type === 'ISSUED') allTimeIss += t.quantity_doses || 0;
           }
@@ -2526,7 +2528,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       let periodReceived = 0;
       let periodIssued = 0;
       (distTxs || []).forEach(t => {
-        if (t.district_id === districtId && t.transaction_date >= fromDateStart && t.transaction_date <= toDateEnd) {
+        if (t.district_id === districtId && facs.includes(t.facility_id) && t.transaction_date >= fromDateStart && t.transaction_date <= toDateEnd) {
           if (t.transaction_type === 'RECEIVED') periodReceived += t.quantity_doses || 0;
           if (t.transaction_type === 'ISSUED') periodIssued += t.quantity_doses || 0;
         }
@@ -2583,7 +2585,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         annual_requirement: target,
         opening_stock: stats.openingStock,
         vaccine_received: stats.periodReceived,
-        vaccinations: stats.periodVaccinations,
+        vaccinations: stats.totalVaccinations,
         wastage_reported: stats.wastageReported,
         wastage_pct,
         estimated_stock_balance: stats.estimatedStockBalance,
