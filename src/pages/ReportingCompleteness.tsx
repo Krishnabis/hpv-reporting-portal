@@ -398,41 +398,46 @@ export const ReportingCompleteness: React.FC<{
             </table>
           </div>
           
-          <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-3 text-sm text-slate-600 font-medium">
-              Show
-              <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }} className="bg-white border border-slate-300 rounded px-2 py-1 font-bold text-slate-800 focus:outline-none focus:border-blue-500">
+          <div className="px-4 py-2 border-t border-slate-100 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3 text-[10px] text-slate-500 font-medium">
+              <span>Show</span>
+              <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }} className="bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 font-bold text-slate-700 focus:outline-none focus:border-purple-500">
                 <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
               </select>
-              records per page
-              <span className="ml-4">
-                Showing {sortedRows.length > 0 ? (page - 1) * pageSize + 1 : 0} to {Math.min(page * pageSize, sortedRows.length)} of {sortedRows.length} records
+              <span>records per page</span>
+              <span className="ml-2">
+                Showing {sortedRows.length > 0 ? (page - 1) * pageSize + 1 : 0}–{Math.min(page * pageSize, sortedRows.length)} of {sortedRows.length}
               </span>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1.5 rounded bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1).map((p, i, arr) => (
-                <React.Fragment key={p}>
-                  {i > 0 && arr[i - 1] !== p - 1 && <span className="px-2 text-slate-400">...</span>}
-                  <button onClick={() => setPage(p)} className={`min-w-[32px] h-8 rounded text-sm font-bold transition-colors ${page === p ? 'bg-[#0f3484] text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>{p}</button>
-                </React.Fragment>
-              ))}
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages || totalPages === 0} className="p-1.5 rounded bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"><ChevronRight className="w-4 h-4" /></button>
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 transition-colors">
+                <ChevronLeft className="w-3.5 h-3.5 text-slate-600" />
+              </button>
+              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                const pg = totalPages <= 7 ? i + 1 : page <= 4 ? i + 1 : page >= totalPages - 3 ? totalPages - 6 + i : page - 3 + i;
+                return (
+                  <button key={pg} onClick={() => setPage(pg)} className={`w-7 h-7 rounded-lg text-[10px] font-bold transition-colors ${page === pg ? 'bg-purple-700 text-white' : 'border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                    {pg}
+                  </button>
+                );
+              })}
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages || totalPages === 0} className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 transition-colors">
+                <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+              </button>
             </div>
           </div>
         </div>
         
         {/* Footer Note */}
-        <div className="bg-[#f0f4f8] rounded-xl px-4 py-3 border border-blue-100 flex items-start gap-3">
-          <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+        <div className="bg-[#f3eff7] rounded-xl px-4 py-3 border border-[#e1d9ea] flex items-start gap-3">
+          <Info className="w-5 h-5 text-[#522B85] shrink-0 mt-0.5" />
           <p className="text-sm font-medium text-slate-700">
             <span className="font-bold">Note:</span> Daily Progress Report is expected every day. Monthly Due List Report and Monthly Vaccine Stock Balance Report are expected by the 5th of each month.
           </p>
         </div>
-
       </div>
     </div>
   );
