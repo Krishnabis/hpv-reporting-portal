@@ -23,7 +23,11 @@ interface ReportRow {
   entity_type: string;
 }
 
-export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adminUser }) => {
+export const VaccineStockMonitoringReport: React.FC<{ 
+  adminUser: any,
+  divisions: any[],
+  districts: any[]
+}> = ({ adminUser, divisions, districts }) => {
   const [data, setData] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,32 +42,13 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
   const [selectedDistrict, setSelectedDistrict] = useState('ALL');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc'); // Least on Top is 'asc'
 
-  // Metadata
-  const [divisions, setDivisions] = useState<any[]>([]);
-  const [districts, setDistricts] = useState<any[]>([]);
-
-  useEffect(() => {
-    const fetchMetadata = async () => {
-      try {
-        const token = localStorage.getItem('hpv_token') || sessionStorage.getItem('hpv_token');
-        const res = await fetch('/api/superadmin/export-table/locations', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const json = await res.json();
-        if (json.divisions) setDivisions(json.divisions);
-        if (json.districts) setDistricts(json.districts);
-      } catch (err) {
-        console.error('Failed to fetch metadata', err);
-      }
-    };
-    fetchMetadata();
-  }, []);
+  // Divisions and districts are now passed as props, so we don't need to fetch them here.
 
   const fetchData = async (reset = false) => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('hpv_token') || sessionStorage.getItem('hpv_token');
+      const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
       const params = new URLSearchParams({
         reportingMonth: targetMonth,
         level: reportLevel,

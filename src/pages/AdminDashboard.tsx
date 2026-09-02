@@ -2530,7 +2530,11 @@ export const AdminDashboard: React.FC = () => {
         {/* TAB: STOCK MONITORING REPORT */}
         <div className={activeTab === 'stock-monitoring' ? 'contents' : 'hidden'}>
           <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
-            <VaccineStockMonitoringReport adminUser={adminUser} />
+            <VaccineStockMonitoringReport 
+              adminUser={adminUser} 
+              divisions={divisionsList}
+              districts={allDistrictsList}
+            />
           </div>
         </div>
 
