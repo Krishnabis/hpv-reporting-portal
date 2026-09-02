@@ -217,6 +217,7 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       }
       q.append('level', level);
       q.append('debug', 'true');
+      q.append('reset', 'true');
 
       const res = await fetch(`/api/admin/reports/stock-monitoring?${q.toString()}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token')}` }

@@ -2369,7 +2369,13 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       blockCcpMap[c.block_id].push(c.id);
     });
 
+    const reset = req.query.reset === 'true';
+
     // Backfill & Ensure Ledger
+    if (reset && supabase) {
+        await supabase.from('vaccine_stock_ledger').delete().not('id', 'is', null); // Delete all rows safely
+    }
+
     if (debug === 'true') {
         const result = await ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap, true);
         if (result && result.error) {
