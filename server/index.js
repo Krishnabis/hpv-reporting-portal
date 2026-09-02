@@ -1292,6 +1292,15 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
        }
     });
 
+    // Fetch latest stock ledger to get accurate current stock balances for blocks
+    const { data: rawLedgers, error: lErr } = await supabase.from('vaccine_stock_ledger').select('block_id, entity_type, closing_stock_estimated, reporting_month').order('reporting_month', { ascending: false });
+    if (lErr) throw lErr;
+    const latestLedgers = {};
+    (rawLedgers || []).forEach(r => {
+      const key = r.entity_type === 'BLOCK' ? `block_${r.block_id}` : `district_${r.district_id}`;
+      if (!latestLedgers[key]) latestLedgers[key] = r;
+    });
+
     let bq = supabase.from('blocks').select('id, name, health_block_name, is_urban, district_id, districts!inner(name, state_id)').eq('is_active', true);
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
     const allBlocks = (await bq).data || [];
@@ -1309,7 +1318,10 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
       
       const prof = profMap[bId];
       const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
-      const stockBalance = stat.received - stat.vaccinated;
+      
+      const ledger = latestLedgers[`block_${bId}`];
+      const stockBalance = ledger && ledger.closing_stock_estimated != null ? ledger.closing_stock_estimated : (stat.received - stat.vaccinated);
+      
       const isLowStock = target > 0 && stockBalance < (target * 0.25);
       const isCriticalStock = target > 0 && stockBalance < (target * 0.10);
       
