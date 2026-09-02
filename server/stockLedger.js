@@ -259,8 +259,8 @@ export async function ensureMonthlyLedger(upToMonthStr, blocks, districtStores, 
         }
 
         if (upserts.length > 0) {
-            const { error: upsertErr } = await supabase.from('vaccine_stock_ledger').upsert(upserts, { onConflict: 'block_id, district_id, reporting_month, entity_type' });
-            if (upsertErr) console.error('Error upserting ledger for month', monthStr, upsertErr);
+            const { error: upsertErr } = await supabase.from('vaccine_stock_ledger').insert(upserts);
+            if (upsertErr) console.error('Error inserting ledger for month', monthStr, upsertErr);
         }
     }
 }
