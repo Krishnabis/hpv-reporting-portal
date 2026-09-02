@@ -2305,7 +2305,7 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
 
 app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, res) => {
   try {
-    const { reportingMonth, districtId, blockId, divisionId, level = 'BLOCK' } = req.query;
+    const { reportingMonth, districtId, blockId, divisionId, level = 'BLOCK', debug } = req.query;
     
     // Parse Dates
     const todayStr = new Date().toISOString().split('T')[0];
@@ -2368,7 +2368,14 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
     });
 
     // Backfill & Ensure Ledger
-    await ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap);
+    if (debug === 'true') {
+        const result = await ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap, true);
+        if (result && result.error) {
+            return res.json({ rows: [], kpis: { totalDvs: 0, totalCcp: 0 }, debugError: result.error });
+        }
+    } else {
+        await ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap);
+    }
 
     // Fetch ledger for target month
     const { data: ledgerRecords } = await supabase

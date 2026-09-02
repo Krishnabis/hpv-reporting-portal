@@ -9,8 +9,8 @@ export function determineStockAction(stockAvailabilityPct) {
 }
 
 // Function to calculate and backfill monthly stock ledger
-export async function ensureMonthlyLedger(upToMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profilesMap) {
-    if (!useSupabase) return;
+export async function ensureMonthlyLedger(upToMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profilesMap, returnError = false) {
+    if (!useSupabase) return null;
 
     const startMonth = '2026-01';
     
@@ -264,6 +264,7 @@ export async function ensureMonthlyLedger(upToMonthStr, blocks, districtStores, 
             if (upsertErr) {
                 console.error('Error inserting ledger for month', monthStr, upsertErr);
                 fs.writeFileSync('db_error.log', JSON.stringify(upsertErr, null, 2));
+                if (returnError) return { error: upsertErr };
             }
         }
     }

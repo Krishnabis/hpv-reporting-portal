@@ -216,12 +216,17 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
          level = 'BLOCK';
       }
       q.append('level', level);
+      q.append('debug', 'true');
 
       const res = await fetch(`/api/admin/reports/stock-monitoring?${q.toString()}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token')}` }
       });
       if (!res.ok) throw new Error('Failed to fetch stock monitoring report');
       const data = await res.json();
+      
+      if (data.debugError) {
+          alert('Database Insert Error:\n' + JSON.stringify(data.debugError, null, 2));
+      }
       
       let numMonths = 1;
       if (filterFromMonth && filterToMonth) {
