@@ -2486,6 +2486,10 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                     estimated_stock_balance: 0,
                     stock_availability_pct: 0,
                     action_required: 'No Action',
+                    month_end_reporting_pct_sum: 0,
+                    month_end_stock_reported_sum: 0,
+                    valid_reporting_count: 0,
+                    total_entities: 0,
                     entity_type: 'DISTRICT_AGGREGATE'
                 };
             }
@@ -2495,6 +2499,12 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             g.vaccine_received += d.vaccine_received;
             g.vaccinations += d.vaccinations;
             g.estimated_stock_balance += d.estimated_stock_balance;
+            g.month_end_reporting_pct_sum += (d.month_end_reporting_pct || 0);
+            if (d.month_end_stock_reported != null) {
+                g.month_end_stock_reported_sum += d.month_end_stock_reported;
+                g.valid_reporting_count++;
+            }
+            g.total_entities++;
             // For district aggregate, the action is based on aggregate stock availability
         });
         
@@ -2503,6 +2513,10 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             if (g.stock_availability_pct < 10) g.action_required = 'Replenish Now';
             else if (g.stock_availability_pct < 25) g.action_required = 'Re-order Stock';
             else g.action_required = '—';
+            
+            g.month_end_reporting_pct = g.total_entities > 0 ? Math.round(g.month_end_reporting_pct_sum / g.total_entities) : 0;
+            g.month_end_stock_reported = g.valid_reporting_count > 0 ? g.month_end_stock_reported_sum : null;
+            
             return g;
         });
     } else {
