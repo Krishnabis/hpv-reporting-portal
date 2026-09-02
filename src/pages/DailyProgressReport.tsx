@@ -258,7 +258,7 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
       const locWidth = pdf.getTextWidth(locationLabel);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(148, 163, 184); // slate-400
-      const subLabel = ` \u2014 ${filterLevel === 'Division' ? 'Districts inside Division' : (filterLevel === 'State' ? 'Divisions inside State' : (filterLevel === 'District' ? 'Blocks inside District' : 'Overview'))}`;
+      const subLabel = ` \u2014 ${filterLevel === 'Division' ? 'Districts inside Division' : (filterLevel === 'District' ? 'Blocks inside District' : 'Overview')}`;
       pdf.text(subLabel, 14 + locWidth, 40);
       
       // Right side badge: "Progressing"

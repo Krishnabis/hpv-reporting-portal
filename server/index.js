@@ -2318,8 +2318,6 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
-});
-
 app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, res) => {
   try {
     const { reportingMonth, districtId, blockId, divisionId, level = 'BLOCK', debug } = req.query;
