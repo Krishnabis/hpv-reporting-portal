@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  Calendar, Download, BarChart3, ChevronDown, Search,
+  Calendar, Download, BarChart3, ChevronDown, Search, Maximize2, Minimize2,
   ChevronLeft, ChevronRight, Activity, Target, Users,
   Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart, Clock, Info, FileText
 } from 'lucide-react';
@@ -72,6 +72,7 @@ export const ReportingCompleteness: React.FC<{
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const hasFetched = useRef(false);
   useEffect(() => {
@@ -294,6 +295,8 @@ export const ReportingCompleteness: React.FC<{
           </div>
         </div>
 
+        {!isExpanded && (
+          <>
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 justify-between shrink-0">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
           <Calendar className="w-3.5 h-3.5 text-purple-500" />
@@ -363,8 +366,30 @@ export const ReportingCompleteness: React.FC<{
             </div>
           </div>
         </div>
+          </>
+        )}
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-[400px] overflow-hidden">
+        
+        {/* Table toolbar */}
+        <div className="px-4 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2">
+            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs font-bold text-slate-700">
+              {rows.length} {level === 'State' ? 'Block' : 'District'}{rows.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          
+          <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider transition-colors mx-auto">
+            {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            {isExpanded ? 'Collapse Table' : 'Expand Table'}
+          </button>
+          
+          <div className="relative" style={{ width: 140 }}>
+             {/* Invisible placeholder for symmetry */}
+          </div>
+        </div>
+
           <div className="overflow-auto flex-1">
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10">

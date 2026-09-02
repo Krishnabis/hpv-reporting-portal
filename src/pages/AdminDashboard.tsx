@@ -358,24 +358,29 @@ export const AdminDashboard: React.FC = () => {
     fetchAlertCount();
   }, [navigate]);
 
-  // Load active tab data on initial load
+  // Pre-load data in the background
   useEffect(() => {
     if (adminUser) {
       const tab = activeTab;
       if (tab === 'users' || tab === 'activity') setUsersOpen(true);
       if (tab === 'upload' || tab === 'settings' || tab === 'ccl-management') setSettingsOpen(true);
       if (tab === 'reports' || tab === 'trend') setAnalyticsOpen(true);
-      if (tab === 'locations') fetchMasterLocations();
-      if (tab === 'users') fetchAdminUsers();
-      if (tab === 'audit') fetchAuditLogs();
-      if (tab === 'activity') fetchActivityData();
-      if (tab === 'vaccine-management') fetchVaccineDashboard();
+
+      // Preload data unconditionally in the background
+      fetchMasterLocations();
+      fetchAdminUsers();
+      fetchAuditLogs();
+      fetchActivityData();
+      fetchVaccineDashboard();
+      fetchStockHistory();
+      fetchCclList();
+
       const isLvl2 = adminUser.district_id || String(adminUser.ccl_unit_level) === '2';
-      if (tab === 'stock-receiving') { fetchStockHistory(); fetchBatches(); }
-      if (tab === 'stock-issuing') { fetchVaccFacilities(isLvl2 ? 3 : 2); fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
-      if (tab === 'month-end-balance') { fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
+      // Only fetch batches conditionally to avoid state overwrite conflicts for shared state variables
+      if (tab === 'stock-receiving') { fetchBatches(); }
+      if (tab === 'stock-issuing') { fetchVaccFacilities(isLvl2 ? 3 : 2); fetchBatches(isLvl2 ? '2' : '1'); }
+      if (tab === 'month-end-balance') { fetchBatches(isLvl2 ? '2' : '1'); }
       if (tab === 'monthly-report') { fetchBatches('3'); }
-      if (tab === 'ccl-management') fetchCclList();
     }
   }, [adminUser]);
 
@@ -788,7 +793,7 @@ export const AdminDashboard: React.FC = () => {
     if (tab === 'users') fetchAdminUsers();
     if (tab === 'audit') fetchAuditLogs();
     if (tab === 'activity') fetchActivityData();
-    if (tab === 'vaccine-management') fetchVaccineDashboard();
+    if (tab === 'dashboard' || tab === 'vaccine-management') fetchVaccineDashboard();
     const isLvl2 = adminUser?.district_id || String(adminUser?.ccl_unit_level) === '2';
     if (tab === 'stock-receiving') { fetchStockHistory(); fetchBatches(); }
     if (tab === 'stock-issuing') { fetchVaccFacilities(isLvl2 ? 3 : 2); fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
@@ -1276,7 +1281,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Main Area — flex column, fills remaining height */}
       <main className="flex-1 flex flex-col min-h-0 overflow-y-auto lg:overflow-hidden p-3 sm:p-4 w-full max-w-full">
         {/* TAB 1: DASHBOARD OVERVIEW */}
-        {activeTab === 'dashboard' && (
+        <div className={activeTab === 'dashboard' ? 'contents' : 'hidden'}>
           <div className="flex flex-col min-h-full lg:h-full gap-2 lg:min-h-0 max-w-7xl mx-auto w-full pb-10 lg:pb-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex flex-col gap-0.5">
@@ -1599,71 +1604,65 @@ export const AdminDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Bottom Banner - Global Strategy */}
-              <div className="bg-[#fff0f5] border-2 border-[#fbcfe8] rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col sm:flex-row items-stretch relative">
-                {/* 3 Boxes Area */}
-                <div className="flex-1 p-1.5 sm:p-2.5">
-                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2 h-full">
-                    {/* Pink Box */}
-                    <div className="flex flex-col p-2 bg-white/80 border border-[#fbcfe8] border-b-[4px] sm:border-b-[6px] border-b-[#f472b6] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
-                      <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-xl sm:text-2xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
-                          <span className="text-sm sm:text-base font-black text-[#e93c7a] leading-none">%</span>
-                        </div>
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-pink-50 rounded-full flex items-center justify-center border border-pink-100 shadow-sm shrink-0">
-                          <Syringe className="w-3 h-3 sm:w-4 sm:h-4 text-[#e93c7a] transform -rotate-45" />
-                        </div>
-                      </div>
-                      <div className="h-px bg-[#fbcfe8] w-2/3 my-1.5" />
-                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
-                        of Girls Vaccinated Against HPV by Age 15
-                      </p>
-                    </div>
-                    {/* Teal Box */}
-                    <div className="flex flex-col p-2 bg-white/80 border border-[#ccfbf1] border-b-[4px] sm:border-b-[6px] border-b-[#2dd4bf] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
-                      <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-xl sm:text-2xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
-                          <span className="text-sm sm:text-base font-black text-[#0d9488] leading-none">%</span>
-                        </div>
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-teal-50 rounded-full flex items-center justify-center border border-teal-100 shadow-sm shrink-0">
-                          <SearchIcon className="w-3 h-3 sm:w-4 sm:h-4 text-[#0d9488]" />
-                        </div>
-                      </div>
-                      <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
-                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
-                        of Women Screened with a high-performance test by Ages 35 and 45
-                      </p>
-                    </div>
-                    {/* Purple Box */}
-                    <div className="flex flex-col p-2 bg-white/80 border border-[#e9d5ff] border-b-[4px] sm:border-b-[6px] border-b-[#a855f7] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
-                      <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-xl sm:text-2xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
-                          <span className="text-sm sm:text-base font-black text-[#7e22ce] leading-none">%</span>
-                        </div>
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100 shadow-sm shrink-0">
-                          <HeartPulse className="w-3 h-3 sm:w-4 sm:h-4 text-[#7e22ce]" />
-                        </div>
-                      </div>
-                      <div className="h-px bg-[#e9d5ff] w-2/3 my-1.5" />
-                      <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
-                        of Women identified with Cervical Disease Receive Treatment
-                      </p>
-                    </div>
+              {/* Bottom Banner - Vaccine Dashboard */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2">
+                <div className="p-2 sm:p-3 border-b border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-[12px] sm:text-sm font-bold text-slate-800">Vaccine Dashboard</h3>
+                    <p className="text-[9px] sm:text-[10px] text-slate-500">Monitors HPV vaccine stock availability and flags areas requiring timely replenishment.</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 cursor-help shrink-0" title="Alerts are based on current stock balance relative to total issued stock">
+                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-600">Vaccine Stock Alert</span>
+                    <Info className="w-3.5 h-3.5 text-slate-400" />
                   </div>
                 </div>
-
-                {/* Right Side Strategy Text */}
-                <div className="w-full sm:w-[140px] lg:w-[160px] p-3 sm:p-4 flex flex-col justify-center items-end text-right border-t sm:border-t-0 sm:border-l border-[#fbcfe8] bg-[#fff0f5] shrink-0 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-pink-100 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none opacity-50"></div>
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 text-[#e93c7a] drop-shadow-sm mb-2 relative z-10" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C8.69 2 6 4.69 6 8c0 2.21 1.2 4.14 3.03 5.25L4.44 21.4c-.22.39.06.88.51.88h2.39l3.52-6.28 1.14-.65c.34.15.71.24 1.09.24.38 0 .75-.09 1.09-.24l1.14.65 3.52 6.28h2.39c.45 0 .73-.49.51-.88l-4.59-8.15C19.8 12.14 21 10.21 21 8c0-3.31-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
-                  </svg>
-                  <h3 className="text-[12px] sm:text-[13px] lg:text-[14px] font-bold text-[#b81d5b] tracking-tight leading-snug relative z-10 [text-wrap:balance]">
-                    Global Strategy to Eliminate Cervical Cancer by 2030
-                  </h3>
+                <div className="p-2 sm:p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 bg-white/50">
+                  <div className="flex flex-col p-2 sm:p-3 bg-red-50 border border-red-100 rounded-xl">
+                    <div className="flex justify-between items-center mb-1 sm:mb-2">
+                      <span className="text-[10px] sm:text-xs font-bold text-red-800">Critical</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold text-red-600 bg-red-100 px-1.5 sm:px-2 py-0.5 rounded-full text-center">Replenish Now</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                      <div>
+                        <div className="text-lg sm:text-xl font-black text-red-700">
+                          {(vaccDashboard?.districtUtilization || []).filter((d: any) => (d.stockBalance || 0) < ((d.issued || 1) * 0.10)).length || 0}
+                        </div>
+                        <div className="text-[9px] sm:text-[10px] font-medium text-red-600/80">Districts</div>
+                      </div>
+                      <div>
+                        <div className="text-lg sm:text-xl font-black text-red-700">
+                          {(vaccDashboard?.blockUtilization || []).filter((d: any) => (d.stockBalance || 0) < ((d.issued || 1) * 0.10)).length || 0}
+                        </div>
+                        <div className="text-[9px] sm:text-[10px] font-medium text-red-600/80">Blocks</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col p-2 sm:p-3 bg-orange-50 border border-orange-100 rounded-xl">
+                    <div className="flex justify-between items-center mb-1 sm:mb-2">
+                      <span className="text-[10px] sm:text-xs font-bold text-orange-800">Re-Order</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 sm:px-2 py-0.5 rounded-full text-center">Re-order stock</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                      <div>
+                        <div className="text-lg sm:text-xl font-black text-orange-700">
+                          {(vaccDashboard?.districtUtilization || []).filter((d: any) => {
+                            const isCrit = (d.stockBalance || 0) < ((d.issued || 1) * 0.10);
+                            return (d.stockBalance || 0) < ((d.issued || 1) * 0.30) && !isCrit;
+                          }).length || 0}
+                        </div>
+                        <div className="text-[9px] sm:text-[10px] font-medium text-orange-600/80">Districts</div>
+                      </div>
+                      <div>
+                        <div className="text-lg sm:text-xl font-black text-orange-700">
+                          {(vaccDashboard?.blockUtilization || []).filter((d: any) => {
+                            const isCrit = (d.stockBalance || 0) < ((d.issued || 1) * 0.10);
+                            return (d.stockBalance || 0) < ((d.issued || 1) * 0.30) && !isCrit;
+                          }).length || 0}
+                        </div>
+                        <div className="text-[9px] sm:text-[10px] font-medium text-orange-600/80">Blocks</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1747,8 +1746,8 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
-        {activeTab === 'vaccine-management' && (
+        </div>
+        <div className={activeTab === 'vaccine-management' ? 'contents' : 'hidden'}>
           <div className="flex flex-col min-h-full lg:h-full gap-2 lg:min-h-0 max-w-7xl mx-auto w-full pb-10 lg:pb-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex flex-col gap-0.5">
@@ -2022,65 +2021,65 @@ export const AdminDashboard: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Bottom Banner - Global Strategy */}
-                    <div className="bg-[#fff0f5] border-2 border-[#fbcfe8] rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col sm:flex-row items-stretch relative">
-                      <div className="flex-1 p-1.5 sm:p-2.5">
-                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 h-full">
-                          <div className="flex flex-col p-2 bg-white/80 border border-[#fbcfe8] border-b-[4px] sm:border-b-[6px] border-b-[#f472b6] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
-                            <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                              <div className="flex items-baseline gap-0.5">
-                                <span className="text-xl sm:text-2xl font-black text-[#e93c7a] leading-none tracking-tighter">90</span>
-                                <span className="text-sm sm:text-base font-black text-[#e93c7a] leading-none">%</span>
-                              </div>
-                              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-pink-50 rounded-full flex items-center justify-center border border-pink-100 shadow-sm shrink-0">
-                                <img src="/target_icon.svg" className="w-3 h-3 sm:w-4 sm:h-4" alt="Target" />
-                              </div>
-                            </div>
-                            <div className="h-px bg-[#fbcfe8] w-2/3 my-1.5" />
-                            <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
-                              of Girls Vaccinated Against HPV by Age 15
-                            </p>
-                          </div>
-                          <div className="flex flex-col p-2 bg-white/80 border border-[#ccfbf1] border-b-[4px] sm:border-b-[6px] border-b-[#2dd4bf] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
-                            <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                              <div className="flex items-baseline gap-0.5">
-                                <span className="text-xl sm:text-2xl font-black text-[#0d9488] leading-none tracking-tighter">70</span>
-                                <span className="text-sm sm:text-base font-black text-[#0d9488] leading-none">%</span>
-                              </div>
-                              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-teal-50 rounded-full flex items-center justify-center border border-teal-100 shadow-sm shrink-0">
-                                <img src="/target_icon.svg" className="w-3 h-3 sm:w-4 sm:h-4" alt="Target" />
-                              </div>
-                            </div>
-                            <div className="h-px bg-[#ccfbf1] w-2/3 my-1.5" />
-                            <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
-                              of Women Screened with a high-performance test by Ages 35 and 45
-                            </p>
-                          </div>
-                          <div className="flex flex-col p-2 bg-white/80 border border-[#e9d5ff] border-b-[4px] sm:border-b-[6px] border-b-[#a855f7] rounded-xl relative overflow-hidden group h-full shadow-sm backdrop-blur-sm">
-                            <div className="flex justify-between items-center z-10 w-full mb-1 sm:mb-2">
-                              <div className="flex items-baseline gap-0.5">
-                                <span className="text-xl sm:text-2xl font-black text-[#7e22ce] leading-none tracking-tighter">90</span>
-                                <span className="text-sm sm:text-base font-black text-[#7e22ce] leading-none">%</span>
-                              </div>
-                              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-50 rounded-full flex items-center justify-center border border-purple-100 shadow-sm shrink-0">
-                                <img src="/target_icon.svg" className="w-3 h-3 sm:w-4 sm:h-4" alt="Target" />
-                              </div>
-                            </div>
-                            <div className="h-px bg-[#e9d5ff] w-2/3 my-1.5" />
-                            <p className="text-[9px] sm:text-[11px] text-[#021a40] font-bold leading-snug z-10 [text-wrap:pretty]">
-                              of Women identified with Cervical Disease Receive Treatment
-                            </p>
-                          </div>
+                    {/* Bottom Banner - Vaccine Dashboard */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2">
+                      <div className="p-2 sm:p-3 border-b border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <h3 className="text-[12px] sm:text-sm font-bold text-slate-800">Vaccine Dashboard</h3>
+                          <p className="text-[9px] sm:text-[10px] text-slate-500">Monitors HPV vaccine stock availability and flags areas requiring timely replenishment.</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 cursor-help shrink-0" title="Alerts are based on current stock balance relative to total issued stock">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-slate-600">Vaccine Stock Alert</span>
+                          <Info className="w-3.5 h-3.5 text-slate-400" />
                         </div>
                       </div>
-                      <div className="w-full sm:w-[140px] lg:w-[160px] p-3 sm:p-4 flex flex-col justify-center items-end text-right border-t sm:border-t-0 sm:border-l border-[#fbcfe8] bg-[#fff0f5] shrink-0 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-pink-100 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none opacity-50"></div>
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 text-[#e93c7a] drop-shadow-sm mb-2 relative z-10" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2C8.69 2 6 4.69 6 8c0 2.21 1.2 4.14 3.03 5.25L4.44 21.4c-.22.39.06.88.51.88h2.39l3.52-6.28 1.14-.65c.34.15.71.24 1.09.24.38 0 .75-.09 1.09-.24l1.14.65 3.52 6.28h2.39c.45 0 .73-.49.51-.88l-4.59-8.15C19.8 12.14 21 10.21 21 8c0-3.31-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
-                        </svg>
-                        <h3 className="text-[12px] sm:text-[13px] lg:text-[14px] font-bold text-[#b81d5b] tracking-tight leading-snug relative z-10 [text-wrap:balance]">
-                          Global Strategy to Eliminate Cervical Cancer by 2030
-                        </h3>
+                      <div className="p-2 sm:p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 bg-white/50">
+                        <div className="flex flex-col p-2 sm:p-3 bg-red-50 border border-red-100 rounded-xl">
+                          <div className="flex justify-between items-center mb-1 sm:mb-2">
+                            <span className="text-[10px] sm:text-xs font-bold text-red-800">Critical</span>
+                            <span className="text-[9px] sm:text-[10px] font-bold text-red-600 bg-red-100 px-1.5 sm:px-2 py-0.5 rounded-full text-center">Replenish Now</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mt-1">
+                            <div>
+                              <div className="text-lg sm:text-xl font-black text-red-700">
+                                {(vaccDashboard?.districtUtilization || []).filter((d: any) => (d.stockBalance || 0) < ((d.issued || 1) * 0.10)).length || 0}
+                              </div>
+                              <div className="text-[9px] sm:text-[10px] font-medium text-red-600/80">Districts</div>
+                            </div>
+                            <div>
+                              <div className="text-lg sm:text-xl font-black text-red-700">
+                                {(vaccDashboard?.blockUtilization || []).filter((d: any) => (d.stockBalance || 0) < ((d.issued || 1) * 0.10)).length || 0}
+                              </div>
+                              <div className="text-[9px] sm:text-[10px] font-medium text-red-600/80">Blocks</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col p-2 sm:p-3 bg-orange-50 border border-orange-100 rounded-xl">
+                          <div className="flex justify-between items-center mb-1 sm:mb-2">
+                            <span className="text-[10px] sm:text-xs font-bold text-orange-800">Re-Order</span>
+                            <span className="text-[9px] sm:text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 sm:px-2 py-0.5 rounded-full text-center">Re-order stock</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mt-1">
+                            <div>
+                              <div className="text-lg sm:text-xl font-black text-orange-700">
+                                {(vaccDashboard?.districtUtilization || []).filter((d: any) => {
+                                  const isCrit = (d.stockBalance || 0) < ((d.issued || 1) * 0.10);
+                                  return (d.stockBalance || 0) < ((d.issued || 1) * 0.30) && !isCrit;
+                                }).length || 0}
+                              </div>
+                              <div className="text-[9px] sm:text-[10px] font-medium text-orange-600/80">Districts</div>
+                            </div>
+                            <div>
+                              <div className="text-lg sm:text-xl font-black text-orange-700">
+                                {(vaccDashboard?.blockUtilization || []).filter((d: any) => {
+                                  const isCrit = (d.stockBalance || 0) < ((d.issued || 1) * 0.10);
+                                  return (d.stockBalance || 0) < ((d.issued || 1) * 0.30) && !isCrit;
+                                }).length || 0}
+                              </div>
+                              <div className="text-[9px] sm:text-[10px] font-medium text-orange-600/80">Blocks</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2145,10 +2144,10 @@ export const AdminDashboard: React.FC = () => {
               </>
             )}
           </div>
-        )}
+        </div>
 
         {/* Stock Receiving Tab */}
-        {activeTab === 'stock-receiving' && (
+        <div className={activeTab === 'stock-receiving' ? 'contents' : 'hidden'}>
           <div className="max-w-2xl mx-auto w-full space-y-6 pb-10">
             <div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Stock Receiving</h1>
@@ -2229,10 +2228,10 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
           </div>
-        )}
+        </div>
 
         {/* Stock Issuing Tab */}
-        {activeTab === 'stock-issuing' && (
+        <div className={activeTab === 'stock-issuing' ? 'contents' : 'hidden'}>
           <div className="max-w-2xl mx-auto w-full space-y-6 pb-10">
             <div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Stock Issuing</h1>
@@ -2338,10 +2337,10 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
           </div>
-        )}
+        </div>
 
         {/* Month End Balance Tab */}
-        {activeTab === 'month-end-balance' && (
+        <div className={activeTab === 'month-end-balance' ? 'contents' : 'hidden'}>
           <div className="max-w-2xl mx-auto w-full space-y-6 pb-10">
             <div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Month End Balance</h1>
@@ -2433,10 +2432,10 @@ export const AdminDashboard: React.FC = () => {
               </div>
             )}
           </div>
-        )}
+        </div>
 
         {/* Block Monthly Report Tab */}
-        {activeTab === 'monthly-report' && (
+        <div className={activeTab === 'monthly-report' ? 'contents' : 'hidden'}>
           <div className="max-w-4xl mx-auto w-full space-y-6 pb-10">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
               <div>
@@ -2519,24 +2518,24 @@ export const AdminDashboard: React.FC = () => {
               </div>
             )}
           </div>
-        )}
+        </div>
 
         {/* TAB: DAILY PROGRESS REPORT */}
-        {activeTab === 'daily-progress' && (
+        <div className={activeTab === 'daily-progress' ? 'contents' : 'hidden'}>
           <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
             <DailyProgressReport adminUser={adminUser} />
           </div>
-        )}
+        </div>
 
         {/* TAB: STOCK MONITORING REPORT */}
-        {activeTab === 'stock-monitoring' && (
+        <div className={activeTab === 'stock-monitoring' ? 'contents' : 'hidden'}>
           <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
             <VaccineStockMonitoringReport adminUser={adminUser} />
           </div>
-        )}
+        </div>
 
         {/* TAB: COMPLETENESS REPORT */}
-        {activeTab === 'completeness-report' && (
+        <div className={activeTab === 'completeness-report' ? 'contents' : 'hidden'}>
           <div className="flex flex-col flex-1 min-h-0 h-full overflow-auto bg-slate-50">
             <ReportingCompleteness
               states={statesList}
@@ -2546,10 +2545,10 @@ export const AdminDashboard: React.FC = () => {
               adminUser={adminUser}
             />
           </div>
-        )}
+        </div>
 
         {/* TAB 2: REPORTS GENERATOR */}
-        {activeTab === 'reports' && (
+        <div className={activeTab === 'reports' ? 'contents' : 'hidden'}>
           <div className="space-y-4 flex-1 min-h-full lg:min-h-0 flex flex-col pb-4">
             <div className="flex items-center justify-between">
               <div>
@@ -2879,10 +2878,10 @@ export const AdminDashboard: React.FC = () => {
               )}
             </div>
           </div>
-        )}
+        </div>
 
         {/* TAB 2.5: TREND */}
-        {activeTab === 'trend' && (
+        <div className={activeTab === 'trend' ? 'contents' : 'hidden'}>
           <AdminTrend
             statesList={statesList}
             divisionsList={filteredDivisions}
@@ -2899,15 +2898,15 @@ export const AdminDashboard: React.FC = () => {
             filterBlockId={filterBlockId}
             setFilterBlockId={setFilterBlockId}
           />
-        )}
+        </div>
 
         {/* TAB 3: LOCATIONS MASTER */}
-        {activeTab === 'locations' && (
+        <div className={activeTab === 'locations' ? 'contents' : 'hidden'}>
           <LocationMaster />
-        )}
+        </div>
 
         {/* TAB 4: USERS MANAGEMENT */}
-        {activeTab === 'users' && (
+        <div className={activeTab === 'users' ? 'contents' : 'hidden'}>
           <>
           <div className="space-y-5 flex-1 min-h-0 flex flex-col pb-4">
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight shrink-0">Admin User Management</h1>
@@ -3133,10 +3132,10 @@ export const AdminDashboard: React.FC = () => {
           </div>
         )}
         </>
-        )}
+        </div>
 
         {/* TAB 5: SETTINGS — Reset Password Only */}
-        {activeTab === 'settings' && (
+        <div className={activeTab === 'settings' ? 'contents' : 'hidden'}>
           <div className="space-y-6 flex-1 min-h-0 overflow-y-auto pb-4">
             <div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Settings</h1>
@@ -3175,11 +3174,11 @@ export const AdminDashboard: React.FC = () => {
               </form>
             </div>
           </div>
-        )}
+        </div>
 
 
         {/* TAB 6: AUDIT LOGS */}
-        {activeTab === 'activity' && adminUser?.role === 'SUPER_ADMIN' && (
+        {adminUser?.role === 'SUPER_ADMIN' && (<div className={activeTab === 'activity' ? 'contents' : 'hidden'}>
           <div className="space-y-6">
             <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
               <div>
@@ -3223,9 +3222,9 @@ export const AdminDashboard: React.FC = () => {
               )}
             </div>
           </div>
-        )}
+        </div>)}
 
-        {activeTab === 'audit' && (
+        <div className={activeTab === 'audit' ? 'contents' : 'hidden'}>
           <div className="space-y-6 flex-1 min-h-0 flex flex-col pb-4">
             <div>
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -3271,15 +3270,15 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
+        </div>
 
-        {activeTab === 'population' && (
+        <div className={activeTab === 'population' ? 'contents' : 'hidden'}>
           <AdminPopulation activeStateId={activeStateId} />
-        )}
+        </div>
 
-        {activeTab === 'upload' && adminUser?.role === 'SUPER_ADMIN' && (
+        {adminUser?.role === 'SUPER_ADMIN' && (<div className={activeTab === 'upload' ? 'contents' : 'hidden'}>
           <SuperAdminUpload />
-        )}
+        </div>)}
 
         {/* Modal for Monthly Report Submission */}
         {selectedCcp && (
@@ -3410,7 +3409,7 @@ export const AdminDashboard: React.FC = () => {
 
 
         {/* CCL Management Tab */}
-        {activeTab === 'ccl-management' && (
+        <div className={activeTab === 'ccl-management' ? 'contents' : 'hidden'}>
           <div className="max-w-7xl mx-auto w-full flex flex-col h-[calc(100vh-100px)] pb-6 px-4 sm:px-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -3625,7 +3624,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
             )}
           </div>
-        )}
+        </div>
 
 
       </main>
