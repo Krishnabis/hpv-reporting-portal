@@ -743,15 +743,16 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
             <table className="w-full table-fixed" style={{ fontSize: '10px' }}>
               <thead className="sticky top-0 z-10">
                 <tr className="gradient-header text-white">
-                  <th className="px-1.5 py-2 text-left font-bold uppercase tracking-wide gradient-header z-20" style={{ width: '13%' }}>Site / Unit</th>
-                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Annual Req.</th>
-                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '7%' }}>Opening Stock</th>
-                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Vaccine Received</th>
-                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Vaccinations</th>
-                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Wastage (Rptd)</th>
-                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Month-end Rep. (%)</th>
-                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Est. Stock Bal.</th>
-                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '8%' }}>Stock Avail. (%)</th>
+                  <th className="px-1.5 py-2 text-left font-bold uppercase tracking-wide gradient-header z-20" style={{ width: '13%' }}>Site Unit</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Annual Requirement (Doses)</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Pre. Month-end Reporting (%)</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Pre.Month-end Stock (Reported)</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '8%' }}>Opening Stock (Crude Estimate)</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Vaccine Received (current month)</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Vaccinations (current month)</th>
+                  <th className="px-1.5 py-2 text-right font-bold uppercase tracking-wide" style={{ width: '9%' }}>Closing Stock (Estimated)</th>
+                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '9%' }}>Estimation Model</th>
+                  <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '8%' }}>Stock Availability (%)</th>
                   <th className="px-1.5 py-2 text-center font-bold uppercase tracking-wide" style={{ width: '7%' }}>Action</th>
                 </tr>
               </thead>
@@ -781,19 +782,20 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
                           {row.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE' ? <MapPin className="w-3.5 h-3.5 text-pink-500" /> : <MapPin className="w-3.5 h-3.5 text-slate-400" />}
                           {row.name} {row.is_urban && <span className="ml-1 px-1 py-0.5 rounded text-[8px] bg-indigo-100 text-indigo-700 font-bold uppercase">Urban</span>}
                         </td>
-                        <td className="px-1.5 py-1.5 text-right font-semibold text-slate-700" style={{ width: '8%' }}>{fmt(row.annual_requirement)}</td>
-                        <td className="px-1.5 py-1.5 text-right font-semibold text-blue-700" style={{ width: '7%' }}>{fmt(row.opening_stock)}</td>
-                        <td className="px-1.5 py-1.5 text-right font-bold text-green-700" style={{ width: '8%' }}>{fmt(row.vaccine_received)}</td>
-                        <td className="px-1.5 py-1.5 text-right font-semibold text-purple-700" style={{ width: '8%' }}>{fmt(row.vaccinations)}</td>
-                        <td className="px-1.5 py-1.5 text-right font-semibold text-rose-600" style={{ width: '8%' }}>{fmt(row.wastage_reported)}</td>
-                        <td className="px-1.5 py-1.5 text-right font-semibold text-slate-600" style={{ width: '8%' }}>{fmt(row.month_end_reporting_pct)}%</td>
-                        <td className="px-1.5 py-1.5 text-right font-medium text-slate-700" style={{ width: '9%' }}>{fmt(row.estimated_stock_balance)}</td>
-                        <td className="px-1.5 py-1.5 text-center" style={{ width: '8%' }}>
+                        <td className="px-1.5 py-1.5 text-right font-semibold text-slate-700">{fmt(row.annual_requirement)}</td>
+                        <td className="px-1.5 py-1.5 text-right font-semibold text-slate-600">{fmt(row.month_end_reporting_pct)}%</td>
+                        <td className="px-1.5 py-1.5 text-right font-semibold text-slate-600">{row.month_end_stock_reported != null ? fmt(row.month_end_stock_reported) : '—'}</td>
+                        <td className="px-1.5 py-1.5 text-right font-semibold text-blue-700">{fmt(row.opening_stock)}</td>
+                        <td className="px-1.5 py-1.5 text-right font-bold text-green-700">{fmt(row.vaccine_received)}</td>
+                        <td className="px-1.5 py-1.5 text-right font-semibold text-purple-700">{fmt(row.vaccinations)}</td>
+                        <td className="px-1.5 py-1.5 text-right font-medium text-slate-700">{fmt(row.estimated_stock_balance)}</td>
+                        <td className="px-1.5 py-1.5 text-center font-medium text-slate-600">{row.estimation_model || '—'}</td>
+                        <td className="px-1.5 py-1.5 text-center">
                           <span className={`font-bold ${row.stock_availability_pct < 10 ? 'text-red-700' : row.stock_availability_pct < 25 ? 'text-orange-700' : 'text-green-700'}`}>
                             {fmt(row.stock_availability_pct, 2)}%
                           </span>
                         </td>
-                        <td className="px-1.5 py-1.5 text-center" style={{ width: '7%' }}>
+                        <td className="px-1.5 py-1.5 text-center">
                           {row.action_required === 'critical' ? (
                             <span className="bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm">Critical</span>
                           ) : row.action_required === 'reorder' ? (
@@ -809,16 +811,17 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
               {!loading && paginated.length > 0 && (
                 <tfoot>
                   <tr className="border-t-2 border-[#3B1C63]/20 font-bold text-slate-800" style={{ background: 'rgba(59,28,99,0.04)', fontSize: '10px' }}>
-                    <td className="px-1.5 py-1.5 font-extrabold border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)', width: '13%' }}>TOTAL ({rows.length})</td>
-                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.totalTarget)}</td>
-                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '7%' }}>{fmt(kpis.totalOpeningStock)}</td>
-                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.totalVaccineReceived)}</td>
-                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.totalVaccinations)}</td>
-                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.totalWastageReported)}</td>
-                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '8%' }}>{fmt(kpis.avgMonthEndReporting, 1)}%</td>
-                    <td className="px-1.5 py-1.5 text-right text-slate-700" style={{ width: '9%' }}>{fmt(kpis.totalEstimatedStockBalance)}</td>
-                    <td className="px-1.5 py-1.5 text-center font-bold text-green-700" style={{ width: '8%' }}>{fmt(kpis.totalStockAvailabilityPct, 2)}%</td>
-                    <td className="px-1.5 py-1.5 text-center text-slate-400" style={{ width: '7%' }}>—</td>
+                    <td className="px-1.5 py-1.5 font-extrabold border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)' }}>TOTAL ({rows.length})</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700">{fmt(kpis.totalTarget)}</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700">—</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700">—</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700">{fmt(kpis.totalOpeningStock)}</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700">{fmt(kpis.totalVaccineReceived)}</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700">{fmt(kpis.totalVaccinations)}</td>
+                    <td className="px-1.5 py-1.5 text-right text-slate-700">{fmt(kpis.totalEstimatedStockBalance)}</td>
+                    <td className="px-1.5 py-1.5 text-center text-slate-700">—</td>
+                    <td className="px-1.5 py-1.5 text-center font-bold text-green-700">{fmt(kpis.totalStockAvailabilityPct, 2)}%</td>
+                    <td className="px-1.5 py-1.5 text-center text-slate-400">—</td>
                   </tr>
                 </tfoot>
               )}

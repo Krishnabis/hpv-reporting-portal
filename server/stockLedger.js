@@ -75,7 +75,7 @@ export async function ensureMonthlyLedger(upToMonthStr, blocks, districtStores, 
             .select('district_id, block_id, level, facility_id, quantity_doses, transaction_type, transaction_date')
             .gte('transaction_date', monthStart)
             .lte('transaction_date', monthEnd)
-            .eq('transaction_type', 'RECEIVED');
+            .in('transaction_type', ['RECEIVED', 'ISSUED']);
 
         // Fetch daily reports for vaccinations (cumulative before month and in month)
         // We will fetch all daily reports up to this month to compute max
@@ -125,7 +125,9 @@ export async function ensureMonthlyLedger(upToMonthStr, blocks, districtStores, 
 
             let received = 0;
             (txs || []).forEach(t => {
-                if (t.block_id === block.id && t.level === '3') received += t.quantity_doses || 0;
+                if (t.block_id === block.id && t.level === '3' && t.transaction_type === 'RECEIVED') {
+                    received += t.quantity_doses || 0;
+                }
             });
 
             let latestBeforeMonth = 0;
@@ -215,14 +217,16 @@ export async function ensureMonthlyLedger(upToMonthStr, blocks, districtStores, 
             }
 
             let received = 0;
+            let issued = 0;
             (txs || []).forEach(t => {
                 if (t.district_id === districtId && t.level === '2' && facs.includes(t.facility_id)) {
-                    received += t.quantity_doses || 0;
+                    if (t.transaction_type === 'RECEIVED') received += t.quantity_doses || 0;
+                    else if (t.transaction_type === 'ISSUED') issued += t.quantity_doses || 0;
                 }
             });
 
-            const vaccineConsumedWastage = 0; // District stores do not do vaccinations
-            const closingStock = Math.max(0, openingStock + received - vaccineConsumedWastage);
+            const vaccineConsumedWastage = issued; // District stores do not vaccinate, so we log issued quantity here
+            const closingStock = Math.max(0, openingStock + received - issued);
             const stockAvailability = 0;
             const action = '—';
 
