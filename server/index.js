@@ -2457,7 +2457,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 annual_requirement: r.annual_requirement,
                 opening_stock: r.opening_stock,
                 vaccine_received: r.vaccine_received_current_month,
-                vaccinations: r.vaccinations_current_month,
+                vaccinations: r.vaccine_consumed_wastage_factor, // For district stores, this field holds the issued amount
                 estimated_stock_balance: r.closing_stock_estimated,
                 month_end_reporting_pct: r.pre_month_reporting_percentage,
                 month_end_reporting_count: r.pre_month_reporting_count,
