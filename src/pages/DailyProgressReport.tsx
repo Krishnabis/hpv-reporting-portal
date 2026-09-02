@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  Calendar, Download, BarChart3, ChevronDown, Search,
+  Calendar, Download, BarChart3, ChevronDown, Search, Maximize2, Minimize2,
   ChevronLeft, ChevronRight, Activity, Target, Users,
   Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart
 } from 'lucide-react';
@@ -150,6 +150,7 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 15;
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -246,7 +247,7 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
       pdf.setFontSize(10);
       pdf.setTextColor(30, 41, 59); // slate-800
       pdf.setFont('helvetica', 'bold');
-      pdf.text(`Time Duration: Date ${reportDate}`, 14, 34);
+      pdf.text(`Time Duration: Date ${reportDateLabel || filterDate}`, 14, 34);
 
       // Location row
       pdf.setFontSize(10);
@@ -557,8 +558,10 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
         )}
 
         {/* ── KPI Cards ──────────────────────────────────────────────── */}
-        <div className="shrink-0 p-1">
-          <div className="flex items-center justify-between mb-1.5 px-1">
+        {!isExpanded && (
+          <>
+            <div className="shrink-0 p-1">
+              <div className="flex items-center justify-between mb-1.5 px-1">
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-purple-600" />
               <span className="text-xs font-bold text-slate-700">{locationLabel}</span>
@@ -637,6 +640,8 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
           </div>
         </div>
       </div>
+          </>
+        )}
 
       {/* ── Data Table — flex-1 so it fills remaining space ────────── */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-0 overflow-hidden">
@@ -652,6 +657,12 @@ export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser })
               <span className="text-[10px] text-slate-400">• {rows.filter(r => r.has_today_report).length} reported today</span>
             )}
           </div>
+          
+          <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider transition-colors mx-auto">
+            {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            {isExpanded ? 'Collapse Table' : 'Expand Table'}
+          </button>
+          
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
             <input type="text" placeholder="Search by name..." value={search}
