@@ -1,4 +1,5 @@
 import { supabase, useSupabase } from './db/database.js';
+import fs from 'fs';
 
 // Helper to determine the stock availability action
 export function determineStockAction(stockAvailabilityPct) {
@@ -97,7 +98,7 @@ export async function ensureMonthlyLedger(upToMonthStr, blocks, districtStores, 
             if (existingMap[block.id]) continue; 
 
             const profile = profilesMap[block.id] || { base_population: 0 };
-            const annualReq = Math.round((profile.base_population * 0.01) * 1.01);
+            const annualReq = Math.round(((profile.base_population || 0) * 0.01) * 1.01);
 
             let preMonthReportingPct = 0;
             let preMonthEndStockReported = null;
@@ -260,7 +261,10 @@ export async function ensureMonthlyLedger(upToMonthStr, blocks, districtStores, 
 
         if (upserts.length > 0) {
             const { error: upsertErr } = await supabase.from('vaccine_stock_ledger').insert(upserts);
-            if (upsertErr) console.error('Error inserting ledger for month', monthStr, upsertErr);
+            if (upsertErr) {
+                console.error('Error inserting ledger for month', monthStr, upsertErr);
+                fs.writeFileSync('db_error.log', JSON.stringify(upsertErr, null, 2));
+            }
         }
     }
 }
