@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import rateLimit from 'express-rate-limit';
 import { supabase, useSupabase, store, saveStore } from './db/database.js';
 import { ensureMonthlyLedger } from './stockLedger.js';
 
