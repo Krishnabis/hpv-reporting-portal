@@ -2395,7 +2395,11 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             return res.json({ rows: [], kpis: { totalDvs: 0, totalCcp: 0 }, debugError: result.error });
         }
     } else {
-        await ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap);
+        const result = await ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap);
+        if (result && result.error) {
+            console.error('Ledger generation failed:', result.error);
+            throw new Error(`Ledger generation failed: ${result.error}`);
+        }
     }
 
     // Fetch ledger for target month
