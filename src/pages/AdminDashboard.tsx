@@ -16,6 +16,7 @@ import { AdminPopulation } from '../components/AdminPopulation';
 import { LocationMaster } from '../components/LocationMaster';
 import { DailyProgressReport } from './DailyProgressReport';
 import { ReportingCompleteness } from './ReportingCompleteness';
+import { VaccineStockMonitoringReport } from './VaccineStockMonitoringReport';
 
 interface KPIState {
   total_blocks: number;
@@ -69,7 +70,7 @@ interface ReportRow {
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'vaccine-management' | 'stock-receiving' | 'stock-issuing' | 'month-end-balance' | 'monthly-report' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity' | 'ccl-management' | 'daily-progress' | 'completeness-report'>((sessionStorage.getItem('hpv_admin_active_tab') as any) || 'dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'vaccine-management' | 'stock-receiving' | 'stock-issuing' | 'month-end-balance' | 'monthly-report' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity' | 'ccl-management' | 'daily-progress' | 'completeness-report' | 'stock-monitoring'>((sessionStorage.getItem('hpv_admin_active_tab') as any) || 'dashboard');
   
 
   const [usersOpen, setUsersOpen] = useState(false);
@@ -1027,6 +1028,18 @@ export const AdminDashboard: React.FC = () => {
                   >
                     <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'daily-progress' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Daily Progress</span>
+                  </button>
+
+                  {/* Stock Monitoring Report */}
+                  <button
+                    onClick={() => handleTabChange('stock-monitoring')}
+                    title="Stock Monitoring Report"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'stock-monitoring' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <Syringe className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Monitoring</span>
                   </button>
 
                   {/* Completeness Report */}
@@ -2511,6 +2524,13 @@ export const AdminDashboard: React.FC = () => {
         <div className={activeTab === 'daily-progress' ? 'contents' : 'hidden'}>
           <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
             <DailyProgressReport adminUser={adminUser} />
+          </div>
+        </div>
+
+        {/* TAB: STOCK MONITORING REPORT */}
+        <div className={activeTab === 'stock-monitoring' ? 'contents' : 'hidden'}>
+          <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
+            <VaccineStockMonitoringReport adminUser={adminUser} />
           </div>
         </div>
 

@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import { supabase, useSupabase, store, saveStore } from './db/database.js';
+import { ensureMonthlyLedger } from './stockLedger.js';
 
 dotenv.config();
 
@@ -1292,6 +1293,14 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     });
 
 
+    // Fetch latest stock ledger to get accurate current stock balances for blocks
+    const { data: rawLedgers, error: lErr } = await supabase.from('vaccine_stock_ledger').select('block_id, entity_type, closing_stock_estimated, reporting_month').order('reporting_month', { ascending: false });
+    if (lErr) throw lErr;
+    const latestLedgers = {};
+    (rawLedgers || []).forEach(r => {
+      const key = r.entity_type === 'BLOCK' ? `block_${r.block_id}` : `district_${r.district_id}`;
+      if (!latestLedgers[key]) latestLedgers[key] = r;
+    });
 
     let bq = supabase.from('blocks').select('id, name, health_block_name, is_urban, district_id, districts!inner(name, state_id)').eq('is_active', true);
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
@@ -1311,7 +1320,8 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
       const prof = profMap[bId];
       const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
       
-      const stockBalance = stat.received - stat.vaccinated;
+      const ledger = latestLedgers[`block_${bId}`];
+      const stockBalance = ledger && ledger.closing_stock_estimated != null ? ledger.closing_stock_estimated : Math.max(0, stat.received - stat.vaccinated);
       
       const isLowStock = target > 0 && stockBalance < (target * 0.25);
       const isCriticalStock = target > 0 && stockBalance < (target * 0.10);
@@ -2306,6 +2316,245 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
 
     res.json({ rows });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+});
+
+app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, res) => {
+  try {
+    const { reportingMonth, districtId, blockId, divisionId, level = 'BLOCK', debug } = req.query;
+    
+    // Parse Dates
+    const todayStr = new Date().toISOString().split('T')[0];
+    const currentMonthStr = todayStr.slice(0, 7);
+    const targetMonthStr = reportingMonth || currentMonthStr;
+
+    if (!useSupabase) return res.json({ rows: [], kpis: { totalDvs: 0, totalCcp: 0 } });
+
+    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+
+    // 1. Fetch Blocks & Targets
+    let bQuery = supabase
+      .from('blocks')
+      .select(`
+        id, name, health_block_name, is_urban, lgd_code, district_id, hpv_target, population,
+        districts!inner(id, name, lgd_code, state_id, division_id, divisions(name))
+      `)
+      .eq('is_active', true)
+      .order('name');
+
+    if (targetStateId) bQuery = bQuery.eq('districts.state_id', targetStateId);
+    if (districtId && districtId !== 'ALL') bQuery = bQuery.eq('district_id', districtId);
+    if (divisionId && divisionId !== 'ALL') bQuery = bQuery.eq('districts.division_id', divisionId);
+    if (blockId && blockId !== 'ALL') bQuery = bQuery.eq('id', blockId);
+
+    const { data: blocks, error: bErr } = await bQuery;
+    if (bErr) throw bErr;
+
+    const blockIds = blocks.map(b => b.id);
+    const finalDistrictIds = [...new Set(blocks.map(b => b.district_id))];
+
+    const { data: profiles } = await supabase
+      .from('block_reporting_profiles')
+      .select('block_id, base_population, initial_hpv_target')
+      .in('block_id', blockIds);
+      
+    const profileMap = {};
+    (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
+
+    // 2. Fetch CCPs for District and Block logic
+    const { data: allCcps } = await supabase
+      .from('vaccine_ccp')
+      .select('id, unit_level, district_id, block_id')
+      .in('unit_level', ['2', '3'])
+      .in('district_id', finalDistrictIds);
+      
+    const districtStores = allCcps.filter(c => c.unit_level === '2');
+    const blockCcps = allCcps.filter(c => c.unit_level === '3');
+    
+    const districtStoreMap = {}; 
+    districtStores.forEach(c => {
+      if (!districtStoreMap[c.district_id]) districtStoreMap[c.district_id] = [];
+      districtStoreMap[c.district_id].push(c.id);
+    });
+
+    const blockCcpMap = {}; 
+    blockCcps.forEach(c => {
+      if (!blockCcpMap[c.block_id]) blockCcpMap[c.block_id] = [];
+      blockCcpMap[c.block_id].push(c.id);
+    });
+
+    const reset = req.query.reset === 'true';
+
+    // Backfill & Ensure Ledger
+    if (reset && supabase) {
+        await supabase.from('vaccine_stock_ledger').delete().eq('reporting_month', targetMonthStr);
+    }
+
+    if (debug === 'true') {
+        const result = await ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap, true);
+        if (result && result.error) {
+            return res.json({ rows: [], kpis: { totalDvs: 0, totalCcp: 0 }, debugError: result.error });
+        }
+    } else {
+        await ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap);
+    }
+
+    // Fetch ledger for target month
+    const { data: ledgerRecords } = await supabase
+        .from('vaccine_stock_ledger')
+        .select('*')
+        .eq('reporting_month', targetMonthStr)
+        .in('district_id', finalDistrictIds);
+
+    const blockData = [];
+    const districtStoreData = [];
+
+    (ledgerRecords || []).forEach(r => {
+        if (r.entity_type === 'BLOCK' && blockIds.includes(r.block_id)) {
+            const b = blocks.find(x => x.id === r.block_id);
+            if (!b) return;
+            blockData.push({
+                id: b.id,
+                name: b.health_block_name || b.name,
+                is_urban: b.is_urban,
+                population: b.population || 0,
+                district: b.districts?.name,
+                district_id: b.district_id,
+                division_id: b.districts?.division_id,
+                division_name: b.districts?.divisions?.name,
+                annual_requirement: r.annual_requirement,
+                opening_stock: r.opening_stock,
+                vaccine_received: r.vaccine_received_current_month,
+                vaccinations: r.vaccinations_current_month,
+                estimated_stock_balance: r.closing_stock_estimated,
+                month_end_reporting_pct: r.pre_month_reporting_percentage,
+                month_end_reporting_count: r.pre_month_reporting_count,
+                month_end_total_ccp: r.pre_month_total_ccp,
+                month_end_stock_reported: r.pre_month_end_stock_reported,
+                opening_stock_crude_method: r.opening_stock_crude_method,
+                estimation_model: r.estimation_model,
+                stock_availability_pct: r.stock_availability_percentage,
+                action_required: r.action,
+                vaccine_received_last_12_months: r.vaccine_received_last_12_months,
+                vaccinations_last_12_months: r.vaccinations_last_12_months,
+                entity_type: 'BLOCK'
+            });
+        } else if (r.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE' && finalDistrictIds.includes(r.district_id)) {
+            const d = blocks.find(x => x.district_id === r.district_id)?.districts;
+            if (!d) return;
+            districtStoreData.push({
+                id: r.district_id + '-ccl2',
+                name: d.name + ' District Store',
+                population: 0,
+                is_urban: false,
+                district: d.name,
+                district_id: r.district_id,
+                division_id: d.division_id,
+                division_name: d.divisions?.name,
+                annual_requirement: r.annual_requirement,
+                opening_stock: r.opening_stock,
+                vaccine_received: r.vaccine_received_current_month,
+                vaccinations: r.vaccinations_current_month,
+                estimated_stock_balance: r.closing_stock_estimated,
+                month_end_reporting_pct: r.pre_month_reporting_percentage,
+                month_end_reporting_count: r.pre_month_reporting_count,
+                month_end_total_ccp: r.pre_month_total_ccp,
+                month_end_stock_reported: r.pre_month_end_stock_reported,
+                opening_stock_crude_method: r.opening_stock_crude_method,
+                estimation_model: r.estimation_model,
+                stock_availability_pct: r.stock_availability_percentage,
+                action_required: r.action,
+                vaccine_received_last_12_months: r.vaccine_received_last_12_months,
+                vaccinations_last_12_months: r.vaccinations_last_12_months,
+                entity_type: 'CCL_LEVEL_2_DISTRICT_STORE'
+            });
+        }
+    });
+
+    let finalRows = [];
+    if (level === 'DISTRICT') {
+        const distGroup = {};
+        [...blockData, ...districtStoreData].forEach(d => {
+            const distId = d.district_id;
+            if (!distGroup[distId]) {
+                distGroup[distId] = {
+                    id: distId,
+                    name: d.district,
+                    district: d.district,
+                    district_id: distId,
+                    division_id: d.division_id,
+                    division_name: d.division_name,
+                    annual_requirement: 0,
+                    opening_stock: 0,
+                    vaccine_received: 0,
+                    vaccinations: 0,
+                    estimated_stock_balance: 0,
+                    stock_availability_pct: 0,
+                    action_required: '—',
+                    month_end_reporting_count_sum: 0,
+                    month_end_total_ccp_sum: 0,
+                    month_end_stock_reported_sum: 0,
+                    opening_stock_crude_method_sum: 0,
+                    vaccine_received_last_12_months_sum: 0,
+                    vaccinations_last_12_months_sum: 0,
+                    valid_reporting_count: 0,
+                    total_entities: 0,
+                    entity_type: 'DISTRICT_AGGREGATE'
+                };
+            }
+            const g = distGroup[distId];
+            g.annual_requirement += d.annual_requirement;
+            g.opening_stock += d.opening_stock;
+            g.vaccine_received += d.vaccine_received;
+            g.vaccinations += d.vaccinations;
+            g.estimated_stock_balance += d.estimated_stock_balance;
+            
+            g.month_end_reporting_count_sum += (d.month_end_reporting_count || 0);
+            g.month_end_total_ccp_sum += (d.month_end_total_ccp || 0);
+            
+            g.opening_stock_crude_method_sum += (d.opening_stock_crude_method || 0);
+            g.vaccine_received_last_12_months_sum += (d.vaccine_received_last_12_months || 0);
+            g.vaccinations_last_12_months_sum += (d.vaccinations_last_12_months || 0);
+            
+            if (d.month_end_stock_reported != null) {
+                g.month_end_stock_reported_sum += d.month_end_stock_reported;
+                g.valid_reporting_count++;
+            }
+            g.total_entities++;
+        });
+        
+        finalRows = Object.values(distGroup).map(g => {
+            g.stock_availability_pct = g.annual_requirement > 0 ? (g.opening_stock / g.annual_requirement) * 100 : 0;
+            if (g.stock_availability_pct > 0) {
+                if (g.stock_availability_pct < 10) g.action_required = 'Critical';
+                else if (g.stock_availability_pct < 25) g.action_required = 'Re-order Stock';
+            }
+            
+            g.month_end_reporting_pct = g.month_end_total_ccp_sum > 0 ? (g.month_end_reporting_count_sum / g.month_end_total_ccp_sum) * 100 : 0;
+            g.month_end_reporting_count = g.month_end_reporting_count_sum;
+            g.month_end_total_ccp = g.month_end_total_ccp_sum;
+            
+            g.month_end_stock_reported = g.valid_reporting_count > 0 ? g.month_end_stock_reported_sum : null;
+            g.opening_stock_crude_method = g.opening_stock_crude_method_sum;
+            g.vaccine_received_last_12_months = g.vaccine_received_last_12_months_sum;
+            g.vaccinations_last_12_months = g.vaccinations_last_12_months_sum;
+            g.estimation_model = g.month_end_reporting_pct === 100 ? 'Reported Value Method' : 'Crude Method';
+            
+            return g;
+        });
+    } else {
+        finalRows = [...districtStoreData, ...blockData];
+    }
+    
+    let totalDvs = districtStores.length;
+    let totalCcp = blockCcps.length;
+    
+    res.json({ rows: finalRows, kpis: { totalDvs, totalCcp } });
+  } catch (err) {
+    console.error('Stock Monitoring API error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ─── Super Admin CSV Uploads ──────────────────────────────────────────────────
