@@ -101,14 +101,14 @@ export async function ensureMonthlyLedger(targetMonthStr, blocks, districtStores
             // Received
             let receivedLast12Months = 0;
             (transactionsLast12 || []).forEach(t => {
-                if (t.block_id === block.id && t.transaction_type === 'RECEIVED') {
+                if (t.block_id === block.id && t.transaction_type === 'RECEIVED' && facs.includes(t.facility_id)) {
                     receivedLast12Months += t.quantity_doses;
                 }
             });
 
             let receivedCurrentMonth = 0;
             (transactionsCurrent || []).forEach(t => {
-                if (t.block_id === block.id && t.transaction_type === 'RECEIVED') {
+                if (t.block_id === block.id && t.transaction_type === 'RECEIVED' && facs.includes(t.facility_id)) {
                     receivedCurrentMonth += t.quantity_doses;
                 }
             });
