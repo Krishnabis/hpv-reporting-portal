@@ -2430,7 +2430,9 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       });
       
       let openingStock = 0;
+      let _unflooredOpeningStock = 0;
       if (allCcpsReportedOpening) {
+        _unflooredOpeningStock = totalReportedOpening;
         openingStock = totalReportedOpening;
       } else {
         let allTimeRecv = 0;
@@ -2448,11 +2450,8 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
           }
         });
         const maxVaccBeforeFrom = latestBeforeFrom ? latestBeforeFrom.beneficiaries_vaccinated : 0;
-        const _unflooredOpeningStock = allTimeRecv - maxVaccBeforeFrom;
+        _unflooredOpeningStock = allTimeRecv - maxVaccBeforeFrom;
         openingStock = Math.max(0, _unflooredOpeningStock);
-      } else {
-        const _unflooredOpeningStock = totalReportedOpening;
-        openingStock = totalReportedOpening;
       }
       
       let periodReceived = 0;
@@ -2502,7 +2501,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       const wastageReported = estimatedStockBalance - (allCcpsReportedClosing ? totalReportedClosing : estimatedStockBalance);
       
       return {
-        openingStock, _unflooredOpeningStock: typeof _unflooredOpeningStock !== 'undefined' ? _unflooredOpeningStock : openingStock, periodReceived, periodVaccinations, totalVaccinations, estimatedStockBalance,
+        openingStock, _unflooredOpeningStock, periodReceived, periodVaccinations, totalVaccinations, estimatedStockBalance,
         monthEndReportingPct, reportedMonthEndStock, wastageReported,
         facsLength: facs.length, reportingCcps
       };
@@ -2528,7 +2527,9 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       });
       
       let openingStock = 0;
+      let _unflooredOpeningStock = 0;
       if (allCcpsReportedOpening) {
+        _unflooredOpeningStock = totalReportedOpening;
         openingStock = totalReportedOpening;
       } else {
         let allTimeRecv = 0;
@@ -2539,11 +2540,8 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             if (t.transaction_type === 'ISSUED') allTimeIss += t.quantity_doses || 0;
           }
         });
-        const _unflooredOpeningStock = allTimeRecv - allTimeIss;
+        _unflooredOpeningStock = allTimeRecv - allTimeIss;
         openingStock = Math.max(0, _unflooredOpeningStock);
-      } else {
-        const _unflooredOpeningStock = totalReportedOpening;
-        openingStock = totalReportedOpening;
       }
       
       let periodReceived = 0;
@@ -2574,7 +2572,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       const reportedMonthEndStock = allCcpsReportedClosing ? totalReportedClosing : estimatedStockBalance;
       
       return {
-        openingStock, _unflooredOpeningStock: typeof _unflooredOpeningStock !== 'undefined' ? _unflooredOpeningStock : openingStock, periodReceived, periodIssued, estimatedStockBalance,
+        openingStock, _unflooredOpeningStock, periodReceived, periodIssued, estimatedStockBalance,
         monthEndReportingPct, reportedMonthEndStock, wastageReported,
         facsLength: facs.length, reportingCcps
       };
