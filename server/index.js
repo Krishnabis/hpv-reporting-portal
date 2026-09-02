@@ -2507,17 +2507,19 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             }
             const g = distGroup[distId];
             g.annual_requirement += d.annual_requirement;
-            g.opening_stock += d.opening_stock;
-            g.vaccine_received += d.vaccine_received;
-            g.vaccinations += d.vaccinations;
-            g.estimated_stock_balance += d.estimated_stock_balance;
+            
+            if (d.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE') {
+                // District Store ONLY contributes to "Received"
+                g.vaccine_received += d.vaccine_received;
+                g.vaccine_received_last_12_months_sum += d.vaccine_received_last_12_months;
+            } else {
+                // Blocks ONLY contribute to "Vaccinations"
+                g.vaccinations += d.vaccinations;
+                g.vaccinations_last_12_months_sum += d.vaccinations_last_12_months;
+            }
             
             g.month_end_reporting_count_sum += (d.month_end_reporting_count || 0);
             g.month_end_total_ccp_sum += (d.month_end_total_ccp || 0);
-            
-            g.opening_stock_crude_method_sum += (d.opening_stock_crude_method || 0);
-            g.vaccine_received_last_12_months_sum += (d.vaccine_received_last_12_months || 0);
-            g.vaccinations_last_12_months_sum += (d.vaccinations_last_12_months || 0);
             
             if (d.month_end_stock_reported != null) {
                 g.month_end_stock_reported_sum += d.month_end_stock_reported;
@@ -2527,21 +2529,30 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         });
         
         finalRows = Object.values(distGroup).map(g => {
-            g.stock_availability_pct = g.annual_requirement > 0 ? (g.opening_stock / g.annual_requirement) * 100 : 0;
-            if (g.stock_availability_pct > 0) {
-                if (g.stock_availability_pct < 10) g.action_required = 'Critical';
-                else if (g.stock_availability_pct < 25) g.action_required = 'Re-order Stock';
-            }
+            // Recalculate Crude Method at the District Level
+            const consumed12M = Math.round(g.vaccinations_last_12_months_sum * 1.01);
+            g.opening_stock_crude_method = Math.max(0, g.vaccine_received_last_12_months_sum - consumed12M);
             
             g.month_end_reporting_pct = g.month_end_total_ccp_sum > 0 ? (g.month_end_reporting_count_sum / g.month_end_total_ccp_sum) * 100 : 0;
             g.month_end_reporting_count = g.month_end_reporting_count_sum;
             g.month_end_total_ccp = g.month_end_total_ccp_sum;
             
             g.month_end_stock_reported = g.valid_reporting_count > 0 ? g.month_end_stock_reported_sum : null;
-            g.opening_stock_crude_method = g.opening_stock_crude_method_sum;
+            
+            g.estimation_model = g.month_end_reporting_pct === 100 ? 'Reported Value Method' : 'Crude Method';
+            g.opening_stock = g.estimation_model === 'Reported Value Method' ? g.month_end_stock_reported : g.opening_stock_crude_method;
+            
+            const consumedCurrent = Math.round(g.vaccinations * 1.01);
+            g.estimated_stock_balance = Math.max(0, g.opening_stock + g.vaccine_received - consumedCurrent);
+            
+            g.stock_availability_pct = g.annual_requirement > 0 ? (g.opening_stock / g.annual_requirement) * 100 : 0;
+            if (g.stock_availability_pct > 0) {
+                if (g.stock_availability_pct < 10) g.action_required = 'Critical';
+                else if (g.stock_availability_pct < 25) g.action_required = 'Re-order Stock';
+            }
+            
             g.vaccine_received_last_12_months = g.vaccine_received_last_12_months_sum;
             g.vaccinations_last_12_months = g.vaccinations_last_12_months_sum;
-            g.estimation_model = g.month_end_reporting_pct === 100 ? 'Reported Value Method' : 'Crude Method';
             
             return g;
         });
