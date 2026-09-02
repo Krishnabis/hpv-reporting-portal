@@ -97,19 +97,40 @@ export const VaccineStockMonitoringReport: React.FC<{
       received: 0, vaccinations: 0, closing: 0,
       reporting_count: 0, total_ccp: 0, stock_reported: 0
     };
+    let received_12m_sum = 0;
+    let vax_12m_sum = 0;
+
     data.forEach(d => {
       totals.annual_req += d.annual_requirement || 0;
-      totals.opening_crude += d.opening_stock_crude_method || 0;
-      totals.opening += d.opening_stock || 0;
       totals.received += d.vaccine_received || 0;
       totals.vaccinations += d.vaccinations || 0;
-      totals.closing += d.estimated_stock_balance || 0;
       totals.reporting_count += d.month_end_reporting_count || 0;
       totals.total_ccp += d.month_end_total_ccp || 0;
       totals.stock_reported += d.month_end_stock_reported || 0;
+
+      if (reportLevel === 'BLOCK') {
+          if (d.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE') {
+              received_12m_sum += d.vaccine_received_last_12_months || 0;
+          } else {
+              vax_12m_sum += d.vaccinations_last_12_months || 0;
+          }
+      } else {
+          totals.opening_crude += d.opening_stock_crude_method || 0;
+          totals.opening += d.opening_stock || 0;
+          totals.closing += d.estimated_stock_balance || 0;
+      }
     });
+
+    if (reportLevel === 'BLOCK') {
+        const consumed_12m = Math.round(vax_12m_sum * 1.01);
+        totals.opening_crude = Math.max(0, received_12m_sum - consumed_12m);
+        totals.opening = (totals.reporting_count === totals.total_ccp && totals.total_ccp > 0) ? totals.stock_reported : totals.opening_crude;
+        const consumed_curr = Math.round(totals.vaccinations * 1.01);
+        totals.closing = Math.max(0, totals.opening + totals.received - consumed_curr);
+    }
+
     return totals;
-  }, [data]);
+  }, [data, reportLevel]);
 
   const overallAvailability = aggregateTotals.annual_req > 0 ? (aggregateTotals.opening / aggregateTotals.annual_req) * 100 : 0;
   const overallReportingPct = aggregateTotals.total_ccp > 0 ? (aggregateTotals.reporting_count / aggregateTotals.total_ccp) * 100 : 0;
