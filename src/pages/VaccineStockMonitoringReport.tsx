@@ -229,14 +229,6 @@ export const VaccineStockMonitoringReport: React.FC<{ adminUser: any }> = ({ adm
       }
       
       let numMonths = 1;
-      if (filterFromMonth && filterToMonth) {
-        const fromDate = new Date(filterFromMonth + '-01');
-        const toDate = new Date(filterToMonth + '-01');
-        if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime())) {
-          numMonths = (toDate.getFullYear() - fromDate.getFullYear()) * 12 + (toDate.getMonth() - fromDate.getMonth()) + 1;
-          if (numMonths < 1) numMonths = 1;
-        }
-      }
 
       const fetchedRows = data.rows || [];
       const correctedRows = fetchedRows.map((r: any) => {
