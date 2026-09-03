@@ -1855,14 +1855,15 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
     const filterDist = userDistrictId || req.query.district_id || req.query.districtId || req.query.location_id;
     if (targetStateId) bQuery = bQuery.eq('districts.state_id', targetStateId);
     
-    if (filterDist && filterDist !== 'ALL') {
-      if (filterDist.toUpperCase() === 'KUMAON' || filterDist.toUpperCase() === 'GARHWAL') {
+    if (filterDist && String(filterDist).toUpperCase() !== 'ALL') {
+      const distStr = String(filterDist).toUpperCase();
+      if (distStr === 'KUMAON' || distStr === 'GARHWAL') {
         const kumaonDists = ['almora', 'bageshwar', 'champawat', 'nainital', 'pithoragarh', 'udham singh nagar'];
         const garhwalDists = ['chamoli', 'dehradun', 'haridwar', 'pauri garhwal', 'tehri garhwal', 'uttarkashi', 'rudraprayag'];
-        const targetNames = filterDist.toUpperCase() === 'KUMAON' ? kumaonDists : garhwalDists;
+        const targetNames = distStr === 'KUMAON' ? kumaonDists : garhwalDists;
         const { data: matchedDists } = await supabase.from('districts').select('id, name, divisions(name)');
         const filteredIds = (matchedDists || [])
-          .filter(d => targetNames.includes((d.name || '').toLowerCase()) || (d.divisions?.name || '').toUpperCase().includes(filterDist.toUpperCase()))
+          .filter(d => targetNames.includes((d.name || '').toLowerCase()) || (d.divisions?.name || '').toUpperCase().includes(distStr))
           .map(d => d.id);
         if (filteredIds.length > 0) {
           bQuery = bQuery.in('district_id', filteredIds);
@@ -2123,14 +2124,15 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
       bQuery = bQuery.eq('districts.state_id', targetStateId);
     }
     
-    if (effectiveDistrictId) {
-      if (effectiveDistrictId.toUpperCase() === 'KUMAON' || effectiveDistrictId.toUpperCase() === 'GARHWAL') {
+    if (effectiveDistrictId && String(effectiveDistrictId).toUpperCase() !== 'ALL') {
+      const distStr = String(effectiveDistrictId).toUpperCase();
+      if (distStr === 'KUMAON' || distStr === 'GARHWAL') {
         const kumaonDists = ['almora', 'bageshwar', 'champawat', 'nainital', 'pithoragarh', 'udham singh nagar'];
         const garhwalDists = ['chamoli', 'dehradun', 'haridwar', 'pauri garhwal', 'tehri garhwal', 'uttarkashi', 'rudraprayag'];
-        const targetNames = effectiveDistrictId.toUpperCase() === 'KUMAON' ? kumaonDists : garhwalDists;
+        const targetNames = distStr === 'KUMAON' ? kumaonDists : garhwalDists;
         const { data: matchedDists } = await supabase.from('districts').select('id, name, divisions(name)');
         const filteredIds = (matchedDists || [])
-          .filter(d => targetNames.includes((d.name || '').toLowerCase()) || (d.divisions?.name || '').toUpperCase().includes(effectiveDistrictId.toUpperCase()))
+          .filter(d => targetNames.includes((d.name || '').toLowerCase()) || (d.divisions?.name || '').toUpperCase().includes(distStr))
           .map(d => d.id);
         if (filteredIds.length > 0) {
           bQuery = bQuery.in('district_id', filteredIds);
