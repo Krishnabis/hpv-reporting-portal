@@ -2623,7 +2623,8 @@ export const AdminDashboard: React.FC = () => {
             <VaccineStockMonitoringReport 
               adminUser={adminUser} 
               divisions={divisionsList}
-              districts={allDistrictsList}
+              allDistricts={allDistrictsList}
+              masterBlocks={masterBlocks}
               states={statesList}
             />
           </div>
