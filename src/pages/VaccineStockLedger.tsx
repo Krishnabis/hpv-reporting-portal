@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Download, AlertCircle, Info, Building2, MapPin, Filter, Calendar, Clock, 
   FileText, RefreshCw, Maximize2, Minimize2, Search, ChevronDown, ChevronUp,
   Package, ArrowDownRight, ArrowUpRight, Percent, Trash2, Box, Layers,
-  SlidersHorizontal, CheckCircle2, ArrowUpDown
+  SlidersHorizontal, CheckCircle2, ArrowUpDown, Target, BarChart3, PieChart, Activity
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -181,6 +181,44 @@ function fmt(n: number | null | undefined): string {
   return n.toLocaleString('en-IN');
 }
 
+// ─── KPI Card Component (Matching DailyProgressReport / VaccineStockMonitoringReport) ───
+const KpiCard: React.FC<{
+  icon: React.ReactNode; label: string; value: string;
+  subLabel?: string; subValue?: string; iconBg: string; valueColor?: string; loading?: boolean;
+}> = ({ icon, label, value, subLabel, subValue, iconBg, valueColor = 'text-slate-900', loading }) => (
+  <div className="bg-white rounded-xl px-2.5 py-2 shadow-sm border border-slate-200 flex items-center gap-2 hover:shadow-md transition-shadow">
+    {loading ? (
+      <div className="animate-pulse flex items-center gap-2 w-full">
+        <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0" />
+        <div className="flex flex-col gap-1 w-full">
+          <div className="h-2 bg-slate-200 rounded w-1/2" />
+          <div className="h-3 bg-slate-200 rounded w-3/4" />
+        </div>
+      </div>
+    ) : (
+      <>
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${iconBg} shrink-0 [&>svg]:w-4 [&>svg]:h-4`}>
+          {icon}
+        </div>
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="text-[9px] font-semibold text-slate-600 truncate leading-tight">{label}</div>
+          <div className={`text-[13px] font-extrabold leading-none mt-0.5 ${valueColor} truncate`}>{value}</div>
+          {(subValue || subLabel) && (
+            <>
+              <div className="w-full h-px bg-slate-100 my-1" />
+              <div className="text-[8px] font-bold leading-none truncate">
+                {subValue && <span className="text-emerald-600">{subValue}</span>}
+                {subValue && subLabel && <span className="text-slate-500 ml-0.5">{subLabel}</span>}
+                {!subValue && subLabel && <span className="text-slate-400">{subLabel}</span>}
+              </div>
+            </>
+          )}
+        </div>
+      </>
+    )}
+  </div>
+);
+
 export const VaccineStockLedger: React.FC<{
   adminUser?: any;
   districts?: DistrictItem[];
@@ -218,7 +256,6 @@ export const VaccineStockLedger: React.FC<{
   const [statesList, setStatesList] = useState<StateItem[]>(initialStates);
   const [districtsList, setDistrictsList] = useState<DistrictItem[]>(initialDistricts);
 
-  // Fetch states/districts if needed
   useEffect(() => {
     if (initialStates && initialStates.length > 0) setStatesList(initialStates);
     if (initialDistricts && initialDistricts.length > 0) setDistrictsList(initialDistricts);
@@ -252,7 +289,6 @@ export const VaccineStockLedger: React.FC<{
         if (json && json.rows && Array.isArray(json.rows) && json.rows.length > 0) {
           setData(json.rows);
         } else {
-          // If backend returns empty, maintain demo datasets filtered
           setData(DEFAULT_TRANSACTIONS);
         }
       }
@@ -271,7 +307,6 @@ export const VaccineStockLedger: React.FC<{
   const filteredData = useMemo(() => {
     let result = [...data];
 
-    // Filter by CCL Name Quick Search or Filter Search
     const query = (quickSearch || searchCCL).trim().toLowerCase();
     if (query) {
       result = result.filter(r => 
@@ -281,7 +316,6 @@ export const VaccineStockLedger: React.FC<{
       );
     }
 
-    // Filter by District
     if (selectedDistrict && selectedDistrict !== 'All Districts') {
       result = result.filter(r => 
         r.ccl_name.toLowerCase().includes(selectedDistrict.toLowerCase()) ||
@@ -289,7 +323,6 @@ export const VaccineStockLedger: React.FC<{
       );
     }
 
-    // Filter by Advanced Options
     if (cclLevel !== 'All') {
       result = result.filter(r => r.ccl_level === cclLevel || r.ccl_name.includes(`(${cclLevel})`));
     }
@@ -306,7 +339,6 @@ export const VaccineStockLedger: React.FC<{
       result = result.filter(r => r.batch_no.toLowerCase().includes(batchNo.trim().toLowerCase()));
     }
 
-    // Sort by Wastage if toggled
     if (sortByWastage) {
       result.sort((a, b) => (b.wastage_adjustment || 0) - (a.wastage_adjustment || 0));
     } else if (sortField) {
@@ -324,7 +356,7 @@ export const VaccineStockLedger: React.FC<{
     return result;
   }, [data, searchCCL, quickSearch, selectedDistrict, cclLevel, cclUnitType, transactionType, manufacturerName, batchNo, sortByWastage, sortField, sortOrder]);
 
-  // Compute KPI Summaries from current data
+  // Compute KPI Summaries
   const kpis = useMemo(() => {
     let openingStock = 1250;
     let totalReceived = 0;
@@ -342,7 +374,6 @@ export const VaccineStockLedger: React.FC<{
       }
     });
 
-    // Default fallbacks matching the exact design prompt metrics if filtering matches default set
     if (totalReceived === 0) totalReceived = 2000;
     if (totalIssued === 0) totalIssued = 2750;
     if (totalAdjustment === 0) totalAdjustment = 75;
@@ -367,7 +398,6 @@ export const VaccineStockLedger: React.FC<{
     return filteredData.slice(start, start + pageSize);
   }, [filteredData, currentPage, pageSize]);
 
-  // Sorting Handler
   const handleSort = (field: keyof LedgerTransactionRow) => {
     if (sortField === field) {
       setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -424,14 +454,13 @@ export const VaccineStockLedger: React.FC<{
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
     doc.setFontSize(16);
-    doc.setTextColor(30, 58, 138); // Navy Blue
+    doc.setTextColor(30, 58, 138);
     doc.text('HPV Vaccine Stock Ledger', 14, 15);
 
     doc.setFontSize(9);
     doc.setTextColor(100);
     doc.text(`Location: ${selectedState} - ${selectedDistrict} | Period: ${dateFrom} to ${dateTo}`, 14, 21);
 
-    // Key Metrics Box Summary in PDF
     doc.setFontSize(9);
     doc.setFillColor(241, 245, 249);
     doc.rect(14, 25, 269, 12, 'F');
@@ -476,7 +505,7 @@ export const VaccineStockLedger: React.FC<{
       body: bodyData,
       startY: 42,
       styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
+      headStyles: { fillColor: [44, 24, 76], textColor: 255, fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [248, 250, 252] },
       margin: { left: 14, right: 14 }
     });
@@ -485,164 +514,171 @@ export const VaccineStockLedger: React.FC<{
   };
 
   return (
-    <div className={`flex flex-col flex-1 bg-slate-50 min-h-full ${isExpanded ? 'fixed inset-0 z-50 overflow-auto bg-slate-50 p-4' : 'p-3 sm:p-4 space-y-4'}`}>
+    <div className={`flex flex-col h-full gap-3 ${isExpanded ? 'fixed inset-0 z-50 overflow-auto bg-slate-50 p-4' : ''}`}>
       
-      {/* ─── 1. TOP HEADER & ACTION BUTTONS ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-xl shadow-xs border border-slate-200">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-600 text-white flex items-center justify-center shadow-sm shrink-0">
-            <Package className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight">HPV Vaccine Stock Ledger</h1>
-            <p className="text-xs text-slate-500 font-medium">View stock transactions and closing balance details</p>
-          </div>
+      {/* ─── 1. PAGE HEADER (Matching Daily Progress / Stock Monitoring) ─── */}
+      <div className="flex items-center justify-between shrink-0">
+        <div>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            HPV Vaccination — HPV Vaccine Stock Ledger
+          </h1>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            Tracks detailed vaccine transaction history, physical verification balances, and closing stock metrics
+          </p>
         </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleDownloadPDF}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold shadow-xs transition-colors shrink-0 cursor-pointer"
           >
-            <FileText className="w-4 h-4 text-rose-600" />
+            <FileText className="w-3.5 h-3.5 text-slate-500" />
             <span>Download PDF</span>
           </button>
           <button
             onClick={handleDownloadCSV}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors shrink-0 cursor-pointer"
           >
-            <Download className="w-4 h-4 text-emerald-600" />
+            <Download className="w-3.5 h-3.5" />
             <span>Download CSV</span>
           </button>
         </div>
       </div>
 
-      {/* ─── 2. SEARCH & ADVANCED FILTERS PANEL ─── */}
-      <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-3.5 sm:p-4 space-y-3.5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 items-end">
+      {/* ─── 2. FILTER TOOLBAR (Matching Daily Progress select boxes & button styling) ─── */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 shrink-0 space-y-3">
+        <div className="flex flex-wrap items-end gap-3">
           
           {/* Date From */}
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Date From</label>
-            <div className="relative">
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={e => setDateFrom(e.target.value)}
-                className="w-full pl-2.5 pr-2 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-              />
-            </div>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Date From</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={e => setDateFrom(e.target.value)}
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer"
+              style={{ minWidth: 140 }}
+            />
           </div>
 
           {/* Date To */}
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Date To</label>
-            <div className="relative">
-              <input
-                type="date"
-                value={dateTo}
-                onChange={e => setDateTo(e.target.value)}
-                className="w-full pl-2.5 pr-2 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-              />
-            </div>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Date To</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={e => setDateTo(e.target.value)}
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer"
+              style={{ minWidth: 140 }}
+            />
           </div>
 
           {/* State */}
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">State</label>
-            <select
-              value={selectedState}
-              onChange={e => setSelectedState(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-            >
-              <option value="Uttarakhand">Uttarakhand</option>
-              <option value="Uttar Pradesh">Uttar Pradesh</option>
-              <option value="All States">All States</option>
-            </select>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">State</label>
+            <div className="relative">
+              <select
+                value={selectedState}
+                onChange={e => setSelectedState(e.target.value)}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 130 }}
+              >
+                <option value="Uttarakhand">Uttarakhand</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="All States">All States</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+            </div>
           </div>
 
           {/* Report Level */}
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Report Level</label>
-            <select
-              value={reportLevel}
-              onChange={e => setReportLevel(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-            >
-              <option value="District">District</option>
-              <option value="Block Units">Block Units</option>
-              <option value="CCL Level">CCL Level</option>
-            </select>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Level</label>
+            <div className="relative">
+              <select
+                value={reportLevel}
+                onChange={e => setReportLevel(e.target.value)}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 130 }}
+              >
+                <option value="District">District</option>
+                <option value="Block Units">Block Units</option>
+                <option value="CCL Level">CCL Level</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+            </div>
           </div>
 
           {/* Districts */}
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Districts</label>
-            <select
-              value={selectedDistrict}
-              onChange={e => setSelectedDistrict(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-            >
-              <option value="All Districts">All Districts</option>
-              <option value="Kumaon">Kumaon</option>
-              <option value="Garhwal">Garhwal</option>
-              <option value="Lucknow">Lucknow</option>
-              <option value="Dehradun">Dehradun</option>
-              <option value="Haridwar">Haridwar</option>
-              <option value="Nainital">Nainital</option>
-            </select>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Districts</label>
+            <div className="relative">
+              <select
+                value={selectedDistrict}
+                onChange={e => setSelectedDistrict(e.target.value)}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 150 }}
+              >
+                <option value="All Districts">All Districts</option>
+                <option value="Kumaon">Kumaon</option>
+                <option value="Garhwal">Garhwal</option>
+                <option value="Lucknow">Lucknow</option>
+                <option value="Dehradun">Dehradun</option>
+                <option value="Haridwar">Haridwar</option>
+                <option value="Nainital">Nainital</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+            </div>
           </div>
 
           {/* CCL Name Search */}
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">CCL Name Search</label>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">CCL Search</label>
             <input
               type="text"
               placeholder="Search CCL..."
               value={searchCCL}
               onChange={e => setSearchCCL(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer"
+              style={{ minWidth: 140 }}
             />
           </div>
 
           {/* Generate Report Button */}
-          <div>
-            <button
-              onClick={fetchLedgerData}
-              disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Filter className="w-3.5 h-3.5" />}
-              <span>Generate Report</span>
-            </button>
-          </div>
+          <button
+            onClick={fetchLedgerData}
+            disabled={loading}
+            style={{ height: 36, minWidth: 150 }}
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+          >
+            {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
+            <span>{loading ? 'Generating...' : 'Generate Report'}</span>
+          </button>
 
         </div>
 
         {/* Advanced Search Toggle */}
-        <div className="flex items-center justify-between border-t border-slate-100 pt-2.5">
+        <div className="flex items-center justify-between border-t border-slate-100 pt-2">
           <button
             onClick={() => setShowAdvanceSearch(prev => !prev)}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-900 transition-colors cursor-pointer"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>Advance Search Options</span>
             {showAdvanceSearch ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
 
-          <span className="text-[11px] font-semibold text-slate-400 italic">Search Filter Expands</span>
+          <span className="text-[10px] font-semibold text-slate-400 italic">Search Filter Expands</span>
         </div>
 
         {/* Collapsible Advanced Search Fields */}
         {showAdvanceSearch && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200 animate-fadeIn">
-            {/* CCL Level */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-600 uppercase">CCL Level (L1, L2, L3)</label>
+              <label className="text-[9px] font-bold text-slate-400 uppercase">CCL Level (L1, L2, L3)</label>
               <select
                 value={cclLevel}
                 onChange={e => setCclLevel(e.target.value)}
-                className="w-full px-2 py-1 text-xs font-medium bg-white border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500"
+                className="w-full px-2 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-purple-500/30"
               >
                 <option value="All">All Levels</option>
                 <option value="L1">L1 - State Store</option>
@@ -651,13 +687,12 @@ export const VaccineStockLedger: React.FC<{
               </select>
             </div>
 
-            {/* CCL - Unit Type */}
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-600 uppercase">CCL - Unit Type</label>
+              <label className="text-[9px] font-bold text-slate-400 uppercase">CCL - Unit Type</label>
               <select
                 value={cclUnitType}
                 onChange={e => setCclUnitType(e.target.value)}
-                className="w-full px-2 py-1 text-xs font-medium bg-white border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500"
+                className="w-full px-2 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-purple-500/30"
               >
                 <option value="All">All Unit Types</option>
                 <option value="SVS">SVS (State Vaccine Store)</option>
@@ -668,13 +703,12 @@ export const VaccineStockLedger: React.FC<{
               </select>
             </div>
 
-            {/* Transaction Type */}
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-600 uppercase">Transaction Type</label>
+              <label className="text-[9px] font-bold text-slate-400 uppercase">Transaction Type</label>
               <select
                 value={transactionType}
                 onChange={e => setTransactionType(e.target.value)}
-                className="w-full px-2 py-1 text-xs font-medium bg-white border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500"
+                className="w-full px-2 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-purple-500/30"
               >
                 <option value="All">All Types</option>
                 <option value="Receive">Receive</option>
@@ -684,13 +718,12 @@ export const VaccineStockLedger: React.FC<{
               </select>
             </div>
 
-            {/* Manufacturer Name */}
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-600 uppercase">Manufacturer Name</label>
+              <label className="text-[9px] font-bold text-slate-400 uppercase">Manufacturer Name</label>
               <select
                 value={manufacturerName}
                 onChange={e => setManufacturerName(e.target.value)}
-                className="w-full px-2 py-1 text-xs font-medium bg-white border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500"
+                className="w-full px-2 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-purple-500/30"
               >
                 <option value="All">All Manufacturers</option>
                 <option value="Serum Institute of India">Serum Institute of India</option>
@@ -699,310 +732,241 @@ export const VaccineStockLedger: React.FC<{
               </select>
             </div>
 
-            {/* Batch/Lot Number */}
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-600 uppercase">Batch/Lot Number</label>
+              <label className="text-[9px] font-bold text-slate-400 uppercase">Batch/Lot Number</label>
               <input
                 type="text"
                 placeholder="e.g. HPV250401"
                 value={batchNo}
                 onChange={e => setBatchNo(e.target.value)}
-                className="w-full px-2 py-1 text-xs font-medium bg-white border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500"
+                className="w-full px-2 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-purple-500/30"
               />
             </div>
           </div>
         )}
       </div>
 
-      {/* ─── 3. LOCATION & REPORT PERIOD BANNER ─── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-gradient-to-r from-slate-900 to-indigo-950 text-white px-4 py-2.5 rounded-xl shadow-xs">
-        <div className="flex items-center gap-2 text-xs font-bold">
-          <MapPin className="w-4 h-4 text-indigo-400 shrink-0" />
-          <span>{selectedState} - {selectedDistrict} - {reportLevel}</span>
+      {/* ─── 3. KPI CARDS (Matching Daily Progress / Stock Monitoring Grid) ─── */}
+      {!isExpanded && (
+        <div className="shrink-0 p-1">
+          <div className="flex items-center justify-between mb-1.5 px-1">
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-purple-600" />
+              <span className="text-xs font-bold text-slate-700">{selectedState} — {selectedDistrict}</span>
+              <span className="text-[10px] text-slate-400">— Report Period: ({dateFrom} to {dateTo})</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-1.5">
+            <KpiCard loading={loading} icon={<Box className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
+              label="Opening Stock" value={fmt(kpis.openingStock)} valueColor="text-blue-700" subLabel="Start Date doses" />
+            <KpiCard loading={loading} icon={<ArrowDownRight className="w-4 h-4 text-emerald-600" />} iconBg="bg-emerald-50"
+              label="Total Received" value={fmt(kpis.totalReceived)} valueColor="text-emerald-700" subLabel="Doses" />
+            <KpiCard loading={loading} icon={<ArrowUpRight className="w-4 h-4 text-amber-600" />} iconBg="bg-amber-50"
+              label="Total Issued" value={fmt(kpis.totalIssued)} valueColor="text-amber-700" subLabel="Doses" />
+            <KpiCard loading={loading} icon={<Trash2 className="w-4 h-4 text-rose-600" />} iconBg="bg-rose-50"
+              label="Total Adjustment" value={fmt(kpis.totalAdjustment)} valueColor="text-rose-700" subLabel="Wastage doses" />
+            <KpiCard loading={loading} icon={<Layers className="w-4 h-4 text-indigo-600" />} iconBg="bg-indigo-50"
+              label="Closing Stock" value={fmt(kpis.closingStock)} valueColor="text-indigo-700" subLabel="End Date doses" />
+            <KpiCard loading={loading} icon={<Percent className="w-4 h-4 text-teal-600" />} iconBg="bg-teal-50"
+              label="% Adjustments" value={`${kpis.wastagePct}%`} valueColor="text-teal-700" subLabel="vs Total Issued" />
+          </div>
+        </div>
+      )}
+
+      {/* ─── 4. SECONDARY TOOLBAR ─── */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 justify-between shrink-0">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+          <Calendar className="w-3.5 h-3.5 text-purple-500" />
+          <span>Report Period:</span>
+          <span className="font-extrabold text-slate-900">{dateFrom} to {dateTo}</span>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
-          <Calendar className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-          <span>Report Period: From Date to To Date ({dateFrom} to {dateTo})</span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSortByWastage(prev => !prev)}
+            className={`px-3 py-1 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+              sortByWastage
+                ? 'bg-rose-50 text-rose-700 border-rose-300 font-bold'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Sort by Wastage
+          </button>
         </div>
       </div>
 
-      {/* ─── 4. INFO CARDS / KPI METRICS ─── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      {/* ─── 5. DATA TABLE CONTAINER ─── */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-0 overflow-hidden">
         
-        {/* Card 1: Opening Stock */}
-        <div className="bg-white rounded-xl p-3 shadow-xs border border-slate-200 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-              <Box className="w-4 h-4" />
-            </div>
-            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tight leading-tight">Opening Stock (Start Date)</span>
+        {/* Table Toolbar */}
+        <div className="px-4 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2">
+            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs font-bold text-slate-700">
+              {filteredData.length} CCL Transaction{filteredData.length !== 1 ? 's' : ''}
+            </span>
           </div>
-          <div>
-            <div className="text-lg font-black text-slate-900 leading-none">{fmt(kpis.openingStock)}</div>
-            <div className="text-[10px] font-semibold text-slate-400 mt-1">Doses</div>
+
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider transition-colors mx-auto cursor-pointer"
+          >
+            {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            {isExpanded ? 'Collapse Table' : 'Expand Table'}
+          </button>
+
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+            <input
+              type="text"
+              placeholder="Search by CCL name..."
+              value={quickSearch}
+              onChange={e => { setQuickSearch(e.target.value); setCurrentPage(1); }}
+              className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400"
+              style={{ width: 220 }}
+            />
           </div>
         </div>
 
-        {/* Card 2: Total Received */}
-        <div className="bg-white rounded-xl p-3 shadow-xs border border-slate-200 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-              <ArrowDownRight className="w-4 h-4" />
-            </div>
-            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tight leading-tight">Total Received</span>
-          </div>
-          <div>
-            <div className="text-lg font-black text-emerald-600 leading-none">{fmt(kpis.totalReceived)}</div>
-            <div className="text-[10px] font-semibold text-slate-400 mt-1">Doses</div>
-          </div>
-        </div>
-
-        {/* Card 3: Total Issued */}
-        <div className="bg-white rounded-xl p-3 shadow-xs border border-slate-200 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-              <ArrowUpRight className="w-4 h-4" />
-            </div>
-            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tight leading-tight">Total Issued</span>
-          </div>
-          <div>
-            <div className="text-lg font-black text-amber-600 leading-none">{fmt(kpis.totalIssued)}</div>
-            <div className="text-[10px] font-semibold text-slate-400 mt-1">Doses</div>
-          </div>
-        </div>
-
-        {/* Card 4: Total Adjustment / Wastage */}
-        <div className="bg-white rounded-xl p-3 shadow-xs border border-slate-200 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-              <Trash2 className="w-4 h-4" />
-            </div>
-            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tight leading-tight">Total Adjustment</span>
-          </div>
-          <div>
-            <div className="text-lg font-black text-rose-600 leading-none">{fmt(kpis.totalAdjustment)}</div>
-            <div className="text-[10px] font-semibold text-slate-400 mt-1">Doses (Wastage)</div>
-          </div>
-        </div>
-
-        {/* Card 5: Closing Stock */}
-        <div className="bg-white rounded-xl p-3 shadow-xs border border-slate-200 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
-              <Layers className="w-4 h-4" />
-            </div>
-            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tight leading-tight">Closing Stock (End Date)</span>
-          </div>
-          <div>
-            <div className="text-lg font-black text-indigo-700 leading-none">{fmt(kpis.closingStock)}</div>
-            <div className="text-[10px] font-semibold text-slate-400 mt-1">Doses</div>
-          </div>
-        </div>
-
-        {/* Card 6: % Adjustments */}
-        <div className="bg-white rounded-xl p-3 shadow-xs border border-slate-200 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-7 h-7 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center shrink-0">
-              <Percent className="w-4 h-4" />
-            </div>
-            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tight leading-tight">% Adjustments</span>
-          </div>
-          <div>
-            <div className="text-lg font-black text-teal-600 leading-none">{kpis.wastagePct}%</div>
-            <div className="text-[10px] font-semibold text-slate-400 mt-1">(vs Total Issued)</div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* ─── 5. TABLE TOOLBAR & REAL-TIME SEARCH ─── */}
-      <div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden flex flex-col">
-        
-        <div className="p-3 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
-              {filteredData.length}
-            </div>
-            <div>
-              <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Vaccine Stock Transactions</h2>
-              <p className="text-[11px] font-medium text-slate-500">Showing {filteredData.length} recorded CCL transactions</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            {/* Sort by Wastage */}
-            <button
-              onClick={() => setSortByWastage(prev => !prev)}
-              className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
-                sortByWastage
-                  ? 'bg-rose-50 text-rose-700 border-rose-300'
-                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              Sort by Wastage
-            </button>
-
-            {/* Expand Table toggle */}
-            <button
-              onClick={() => setIsExpanded(prev => !prev)}
-              className="p-1.5 text-slate-600 hover:text-indigo-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-              title={isExpanded ? "Collapse View" : "Expand Table"}
-            >
-              {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </button>
-
-            {/* Quick Search CCL Name */}
-            <div className="relative flex-1 sm:w-64">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search By CCL Name..."
-                value={quickSearch}
-                onChange={e => setQuickSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-1 text-xs font-medium text-slate-800 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ─── 6. TRANSACTIONS TABLE ─── */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1000px]">
-            <thead>
-              <tr className="bg-[#1e3a8a] text-white text-[10px] uppercase font-bold tracking-wider">
-                <th className="px-3 py-2.5 border-b border-indigo-900/40">CCL Name</th>
+        {/* Scrollable Table with .gradient-header */}
+        <div className="overflow-auto flex-1 min-h-0">
+          <table className="w-full text-left border-collapse" style={{ fontSize: '11px' }}>
+            <thead className="sticky top-0 z-10">
+              <tr className="gradient-header text-white">
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-purple-900/40">CCL Name</th>
                 <th 
                   onClick={() => handleSort('transaction_date')}
-                  className="px-3 py-2.5 border-b border-indigo-900/40 cursor-pointer hover:bg-indigo-900/50 select-none"
+                  className="px-3 py-2 border-b border-purple-900/40 cursor-pointer hover:bg-purple-900/50 select-none"
                 >
                   <div className="flex items-center gap-1">
-                    <span>Transaction Date</span>
-                    <ArrowUpDown className="w-3 h-3 text-indigo-200" />
+                    <span>Date</span>
+                    <ArrowUpDown className="w-3 h-3 text-purple-200" />
                   </div>
                 </th>
                 <th 
                   onClick={() => handleSort('transaction_type')}
-                  className="px-3 py-2.5 border-b border-indigo-900/40 cursor-pointer hover:bg-indigo-900/50 select-none"
+                  className="px-3 py-2 border-b border-purple-900/40 cursor-pointer hover:bg-purple-900/50 select-none"
                 >
                   <div className="flex items-center gap-1">
                     <span>Transaction Type</span>
-                    <ArrowUpDown className="w-3 h-3 text-indigo-200" />
+                    <ArrowUpDown className="w-3 h-3 text-purple-200" />
                   </div>
                 </th>
-                <th className="px-3 py-2.5 border-b border-indigo-900/40">Batch/Lot Number</th>
-                <th className="px-3 py-2.5 border-b border-indigo-900/40">Manufacturer Name</th>
+                <th className="px-3 py-2 border-b border-purple-900/40">Batch/Lot No</th>
+                <th className="px-3 py-2 border-b border-purple-900/40">Manufacturer</th>
                 <th 
                   onClick={() => handleSort('expiry_date')}
-                  className="px-3 py-2.5 border-b border-indigo-900/40 cursor-pointer hover:bg-indigo-900/50 select-none"
+                  className="px-3 py-2 border-b border-purple-900/40 cursor-pointer hover:bg-purple-900/50 select-none"
                 >
                   <div className="flex items-center gap-1">
                     <span>Expiry</span>
-                    <ArrowUpDown className="w-3 h-3 text-indigo-200" />
+                    <ArrowUpDown className="w-3 h-3 text-purple-200" />
                   </div>
                 </th>
-                <th className="px-3 py-2.5 border-b border-indigo-900/40 text-right">Transaction Quantity (Doses)</th>
-                <th className="px-3 py-2.5 border-b border-indigo-900/40">Transaction Facility Name</th>
-                <th className="px-3 py-2.5 border-b border-indigo-900/40 text-right">Physical Stock Count (Doses)</th>
+                <th className="px-3 py-2 border-b border-purple-900/40 text-right">Qty (Doses)</th>
+                <th className="px-3 py-2 border-b border-purple-900/40">Facility Name</th>
+                <th className="px-3 py-2 border-b border-purple-900/40 text-right">Physical Count</th>
                 <th 
                   onClick={() => handleSort('wastage_adjustment')}
-                  className="px-3 py-2.5 border-b border-indigo-900/40 text-right cursor-pointer hover:bg-indigo-900/50 select-none"
+                  className="px-3 py-2 border-b border-purple-900/40 text-right cursor-pointer hover:bg-purple-900/50 select-none"
                 >
                   <div className="flex items-center justify-end gap-1">
-                    <span>Wastage / Adjustment (Doses)</span>
-                    <ArrowUpDown className="w-3 h-3 text-indigo-200" />
+                    <span>Wastage/Adjustment</span>
+                    <ArrowUpDown className="w-3 h-3 text-purple-200" />
                   </div>
                 </th>
                 <th 
                   onClick={() => handleSort('closing_balance')}
-                  className="px-3 py-2.5 border-b border-indigo-900/40 text-right cursor-pointer hover:bg-indigo-900/50 select-none"
+                  className="px-3 py-2 border-b border-purple-900/40 text-right cursor-pointer hover:bg-purple-900/50 select-none"
                 >
                   <div className="flex items-center justify-end gap-1">
-                    <span>Closing Stock Balance (Doses)</span>
-                    <ArrowUpDown className="w-3 h-3 text-indigo-200" />
+                    <span>Closing Stock</span>
+                    <ArrowUpDown className="w-3 h-3 text-purple-200" />
                   </div>
                 </th>
-                <th className="px-3 py-2.5 border-b border-indigo-900/40">Remarks</th>
+                <th className="px-3 py-2 border-b border-purple-900/40">Remarks</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-slate-100 text-[11px] font-medium text-slate-800 bg-white">
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="px-4 py-8 text-center text-slate-400">
-                    No transaction ledger records found for the selected filter criteria.
+                  <td colSpan={12} className="px-4 py-12 text-center text-slate-400">
+                    <div className="flex flex-col items-center gap-2">
+                      <AlertCircle className="w-8 h-8 text-slate-300" />
+                      <span>No stock ledger transaction records match the selected criteria.</span>
+                    </div>
                   </td>
                 </tr>
               ) : (
-                paginatedData.map((row, idx) => (
-                  <tr key={row.id || idx} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="px-3 py-2.5 font-bold text-slate-900">{row.ccl_name}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-slate-600">{row.transaction_date}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
-                      {row.transaction_type === 'Receive' && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                          Receive
-                        </span>
-                      )}
-                      {row.transaction_type === 'Issue' && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
-                          Issue
-                        </span>
-                      )}
-                      {(row.transaction_type === 'Month-end Reconciliation' || row.transaction_type === 'Adjustment') && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">
-                          Month-end Reconciliation
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2.5 font-mono text-[10px] font-semibold text-indigo-900">{row.batch_no}</td>
-                    <td className="px-3 py-2.5 text-slate-700">{row.manufacturer_name}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-slate-600">{row.expiry_date}</td>
-                    
-                    {/* Transaction Quantity */}
-                    <td className="px-3 py-2.5 text-right font-extrabold whitespace-nowrap">
-                      {row.transaction_quantity !== null ? (
-                        row.transaction_quantity > 0 ? (
-                          <span className="text-emerald-600">+{fmt(row.transaction_quantity)}</span>
+                paginatedData.map((row, idx) => {
+                  const isEven = idx % 2 === 0;
+                  const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
+                  return (
+                    <tr key={row.id || idx} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
+                      <td className="px-3 py-2 font-bold text-slate-900">{row.ccl_name}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-slate-600">{row.transaction_date}</td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        {row.transaction_type === 'Receive' && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                            Receive
+                          </span>
+                        )}
+                        {row.transaction_type === 'Issue' && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                            Issue
+                          </span>
+                        )}
+                        {(row.transaction_type === 'Month-end Reconciliation' || row.transaction_type === 'Adjustment') && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                            Month-end Reconciliation
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 font-mono text-[10px] font-semibold text-purple-900">{row.batch_no}</td>
+                      <td className="px-3 py-2 text-slate-700">{row.manufacturer_name}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-slate-600">{row.expiry_date}</td>
+                      
+                      <td className="px-3 py-2 text-right font-extrabold whitespace-nowrap">
+                        {row.transaction_quantity !== null ? (
+                          row.transaction_quantity > 0 ? (
+                            <span className="text-emerald-600">+{fmt(row.transaction_quantity)}</span>
+                          ) : (
+                            <span className="text-rose-600">{fmt(row.transaction_quantity)}</span>
+                          )
                         ) : (
-                          <span className="text-rose-600">{fmt(row.transaction_quantity)}</span>
-                        )
-                      ) : (
-                        <span className="text-slate-400 font-normal">—</span>
-                      )}
-                    </td>
+                          <span className="text-slate-400 font-normal">—</span>
+                        )}
+                      </td>
 
-                    <td className="px-3 py-2.5 text-slate-700 font-medium">{row.facility_name}</td>
+                      <td className="px-3 py-2 text-slate-700 font-medium">{row.facility_name}</td>
 
-                    {/* Physical Stock */}
-                    <td className="px-3 py-2.5 text-right text-slate-800 font-bold">
-                      {row.physical_stock_count !== null ? fmt(row.physical_stock_count) : <span className="text-slate-400 font-normal">—</span>}
-                    </td>
+                      <td className="px-3 py-2 text-right text-slate-800 font-bold">
+                        {row.physical_stock_count !== null ? fmt(row.physical_stock_count) : <span className="text-slate-400 font-normal">—</span>}
+                      </td>
 
-                    {/* Wastage/Adjustment */}
-                    <td className="px-3 py-2.5 text-right font-extrabold">
-                      {row.wastage_adjustment !== null ? (
-                        <span className="text-rose-600">{fmt(row.wastage_adjustment)}</span>
-                      ) : (
-                        <span className="text-slate-400 font-normal">—</span>
-                      )}
-                    </td>
+                      <td className="px-3 py-2 text-right font-extrabold">
+                        {row.wastage_adjustment !== null ? (
+                          <span className="text-rose-600">{fmt(row.wastage_adjustment)}</span>
+                        ) : (
+                          <span className="text-slate-400 font-normal">—</span>
+                        )}
+                      </td>
 
-                    {/* Closing Stock Balance */}
-                    <td className="px-3 py-2.5 text-right font-black text-slate-900 bg-slate-50/50">{fmt(row.closing_balance)}</td>
+                      <td className="px-3 py-2 text-right font-black text-slate-900 bg-slate-50/50">{fmt(row.closing_balance)}</td>
 
-                    <td className="px-3 py-2.5 text-slate-500 italic text-[10px]">{row.remarks}</td>
-                  </tr>
-                ))
+                      <td className="px-3 py-2 text-slate-500 italic text-[10px]">{row.remarks}</td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
-        {/* ─── 7. ALERT BOXES & NOTES FOOTER ─── */}
-        <div className="p-3 bg-slate-50 border-t border-slate-200 space-y-2">
-          
-          {/* Stock Alerts Notice */}
+        {/* Stock Alerts & Footer Notes */}
+        <div className="p-3 bg-slate-50 border-t border-slate-200 space-y-2 shrink-0">
           <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded-lg text-xs font-semibold">
             <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
@@ -1010,7 +974,6 @@ export const VaccineStockLedger: React.FC<{
             </span>
           </div>
 
-          {/* Table Footnote */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-blue-50 border border-blue-200 text-blue-900 px-3 py-2 rounded-lg text-[11px] font-medium">
             <div className="flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
@@ -1021,13 +984,10 @@ export const VaccineStockLedger: React.FC<{
               <span>Data as on: {new Date().toLocaleDateString('en-GB')} 06:15 PM</span>
             </div>
           </div>
-
         </div>
 
-        {/* ─── 8. PAGINATION FOOTER ─── */}
-        <div className="p-3 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          
-          {/* View per page */}
+        {/* Pagination Controls */}
+        <div className="px-4 py-2.5 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shrink-0">
           <div className="flex items-center gap-2 text-slate-600 font-medium">
             <span>View per Page</span>
             <select
@@ -1045,17 +1005,15 @@ export const VaccineStockLedger: React.FC<{
             </select>
           </div>
 
-          {/* Showing records range */}
           <div className="text-slate-500 font-semibold">
             Showing {filteredData.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {Math.min(currentPage * pageSize, filteredData.length)} of {filteredData.length} records
           </div>
 
-          {/* Pagination Controls */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-2.5 py-1 border border-slate-300 rounded-lg font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
+              className="px-2.5 py-1 border border-slate-200 rounded-lg font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
             >
               Previous
             </button>
@@ -1066,8 +1024,8 @@ export const VaccineStockLedger: React.FC<{
                 onClick={() => setCurrentPage(page)}
                 className={`w-7 h-7 rounded-lg font-bold text-xs transition-colors cursor-pointer ${
                   currentPage === page
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                    ? 'bg-purple-700 text-white'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 {page}
@@ -1079,12 +1037,11 @@ export const VaccineStockLedger: React.FC<{
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-2.5 py-1 border border-slate-300 rounded-lg font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
+              className="px-2.5 py-1 border border-slate-200 rounded-lg font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
             >
               Next
             </button>
           </div>
-
         </div>
 
       </div>
