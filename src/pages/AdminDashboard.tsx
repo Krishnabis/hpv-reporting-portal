@@ -954,7 +954,7 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="h-[100dvh] w-full bg-[#05050A] flex flex-col lg:flex-row font-sans overflow-hidden relative text-slate-800">
+    <div className="h-[100dvh] w-full bg-[#05050A] flex flex-col lg:flex-row font-sans overflow-hidden relative text-slate-200">
       {/* Dynamic Animated Background Blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-cyan-600/20 blur-[100px] animate-float mix-blend-screen"></div>
@@ -963,13 +963,13 @@ export const AdminDashboard: React.FC = () => {
       </div>
       
       {/* Mobile Topbar */}
-      <div className="lg:hidden vr-glass-panel border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-40 relative">
-        <div className="bg-slate-100 rounded-[2rem] px-3 py-1 flex items-center justify-center shadow-sm shrink-0 border border-slate-200 backdrop-blur-md">
+      <div className="lg:hidden vr-glass-panel border-b border-white/10 p-4 flex items-center justify-between sticky top-0 z-40 relative">
+        <div className="bg-white/10 rounded-[2rem] px-3 py-1 flex items-center justify-center shadow-sm shrink-0 border border-white/10 backdrop-blur-md">
           <img src="/headinglogo.png" alt="HPV Kavach Login Logo" className="h-10 w-auto object-contain brightness-0 invert" />
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-lg bg-slate-50 text-slate-700 hover:text-white hover:bg-slate-100 transition-colors"
+          className="p-2 rounded-lg bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -984,7 +984,7 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-50 vr-glass-panel text-slate-700 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-[100dvh] lg:shrink-0 ${
+      <aside className={`fixed inset-y-0 left-0 z-50 vr-glass-panel text-slate-300 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-[100dvh] lg:shrink-0 ${
         mobileMenuOpen ? 'translate-x-0 w-64 shadow-2xl' : '-translate-x-full w-64'
       } ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} lg:translate-x-0 relative`}>
         <div className="flex flex-col flex-1 min-h-0">
@@ -1013,10 +1013,10 @@ export const AdminDashboard: React.FC = () => {
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'dashboard'
                   ? 'bg-cyan-500/20 text-cyan-400 font-bold shadow-[0_0_15px_rgba(6,182,212,0.3)] border border-cyan-500/50'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
               }`}
             >
-              <LayoutDashboard className={`w-5 h-5 shrink-0 ${activeTab === 'dashboard' ? 'text-emerald-600' : 'text-slate-600'}`} />
+              <LayoutDashboard className={`w-5 h-5 shrink-0 ${activeTab === 'dashboard' ? 'text-emerald-600' : 'text-slate-400'}`} />
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Dashboard</span>
             </button>
 
@@ -1027,10 +1027,10 @@ export const AdminDashboard: React.FC = () => {
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'monitoring'
                   ? 'bg-cyan-500/20 text-cyan-400 font-bold shadow-[0_0_15px_rgba(6,182,212,0.3)] border border-cyan-500/50'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
               }`}
             >
-              <Activity className={`w-5 h-5 shrink-0 ${activeTab === 'monitoring' ? 'text-emerald-600' : 'text-slate-600'}`} />
+              <Activity className={`w-5 h-5 shrink-0 ${activeTab === 'monitoring' ? 'text-emerald-600' : 'text-slate-400'}`} />
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Monitoring</span>
             </button>
 
@@ -1038,7 +1038,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="pt-2">
               <button 
                 onClick={() => { if (!sidebarCollapsed) setProgramMgmtOpen(!programMgmtOpen) }}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-600 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
                 title="Program Management"
               >
                 <span className={sidebarCollapsed ? 'hidden' : ''}>Program Management</span>
@@ -1054,10 +1054,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('locations')}
                     title="Block Units"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'locations' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                      activeTab === 'locations' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                     }`}
                   >
-                    <Building2 className={`w-4 h-4 shrink-0 ${activeTab === 'locations' ? 'text-emerald-600' : 'text-slate-600'}`} />
+                    <Building2 className={`w-4 h-4 shrink-0 ${activeTab === 'locations' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Block Units</span>
                   </button>
 
@@ -1066,10 +1066,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('daily-progress')}
                     title="Daily Progress"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'daily-progress' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                      activeTab === 'daily-progress' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                     }`}
                   >
-                    <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'daily-progress' ? 'text-emerald-600' : 'text-slate-600'}`} />
+                    <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'daily-progress' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Daily Progress</span>
                   </button>
 
@@ -1078,10 +1078,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('due-list-report')}
                     title="Due List Report"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'due-list-report' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                      activeTab === 'due-list-report' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                     }`}
                   >
-                    <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'due-list-report' ? 'text-emerald-600' : 'text-slate-600'}`} />
+                    <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'due-list-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Due List Report</span>
                   </button>
 
@@ -1090,10 +1090,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('completeness-report')}
                     title="Reporting (%)"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'completeness-report' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                      activeTab === 'completeness-report' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                     }`}
                   >
-                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'completeness-report' ? 'text-emerald-600' : 'text-slate-600'}`} />
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'completeness-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Reporting (%)</span>
                   </button>
 
@@ -1102,10 +1102,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-monitoring')}
                     title="Stock Availability (%)"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-monitoring' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                      activeTab === 'stock-monitoring' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                     }`}
                   >
-                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-emerald-600' : 'text-slate-600'}`} />
+                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm whitespace-nowrap'}>Stock Availability (%)</span>
                   </button>
 
@@ -1114,10 +1114,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('trend')}
                     title="Trends"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'trend' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                      activeTab === 'trend' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                     }`}
                   >
-                    <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-600'}`} />
+                    <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Trends</span>
                   </button>
                 </div>
@@ -1128,7 +1128,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="pt-2">
               <button 
                 onClick={() => { if (!sidebarCollapsed) setVaccineMgmtOpen(!vaccineMgmtOpen) }}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-600 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
                 title="Vaccine Management"
               >
                 <span className={sidebarCollapsed ? 'hidden' : ''}>Vaccine Management</span>
@@ -1144,10 +1144,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('cold-chain-locations')}
                     title="Cold Chain Locations"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'cold-chain-locations' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                      activeTab === 'cold-chain-locations' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                     }`}
                   >
-                    <MapPin className={`w-4 h-4 shrink-0 ${activeTab === 'cold-chain-locations' ? 'text-pink-600' : 'text-slate-600'}`} />
+                    <MapPin className={`w-4 h-4 shrink-0 ${activeTab === 'cold-chain-locations' ? 'text-pink-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm whitespace-nowrap'}>Cold Chain Locations</span>
                   </button>
 
@@ -1157,10 +1157,10 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('stock-receiving')}
                       title="Stock Receipt"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'stock-receiving' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                        activeTab === 'stock-receiving' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                       }`}
                     >
-                      <FileSpreadsheet className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-pink-600' : 'text-slate-600'}`} />
+                      <FileSpreadsheet className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-pink-600' : 'text-slate-400'}`} />
                       <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Receipt</span>
                     </button>
                   )}
@@ -1170,10 +1170,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-issuing')}
                     title="Stock Issue"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-issuing' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                      activeTab === 'stock-issuing' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                     }`}
                   >
-                    <Syringe className={`w-4 h-4 shrink-0 ${activeTab === 'stock-issuing' ? 'text-pink-600' : 'text-slate-600'}`} />
+                    <Syringe className={`w-4 h-4 shrink-0 ${activeTab === 'stock-issuing' ? 'text-pink-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Issue</span>
                   </button>
 
@@ -1182,10 +1182,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('month-end-balance')}
                     title="Month-End Balance"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'month-end-balance' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                      activeTab === 'month-end-balance' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                     }`}
                   >
-                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-pink-600' : 'text-slate-600'}`} />
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-pink-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Month-End Balance</span>
                   </button>
 
@@ -1194,10 +1194,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-ledger')}
                     title="Stock Ledger"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-ledger' ? 'bg-indigo-500/20 text-indigo-400 font-bold border border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                      activeTab === 'stock-ledger' ? 'bg-indigo-500/20 text-indigo-400 font-bold border border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                     }`}
                   >
-                    <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'stock-ledger' ? 'text-indigo-600' : 'text-slate-600'}`} />
+                    <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'stock-ledger' ? 'text-indigo-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Ledger</span>
                   </button>
 
@@ -1210,7 +1210,7 @@ export const AdminDashboard: React.FC = () => {
               <div className="pt-2">
                 <button 
                   onClick={() => { if (!sidebarCollapsed) setUsersOpen(!usersOpen) }}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-600 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
                   title="User Management"
                 >
                   <span className={sidebarCollapsed ? 'hidden' : ''}>User Management</span>
@@ -1225,20 +1225,20 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('users')}
                       title="Admin Users"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'users' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                        activeTab === 'users' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                       }`}
                     >
-                      <UsersIcon className={`w-4 h-4 shrink-0 ${activeTab === 'users' ? 'text-emerald-600' : 'text-slate-600'}`} />
+                      <UsersIcon className={`w-4 h-4 shrink-0 ${activeTab === 'users' ? 'text-emerald-600' : 'text-slate-400'}`} />
                       <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Admin Users</span>
                     </button>
                     <button
                       onClick={() => handleTabChange('activity')}
                       title="Activity"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'activity' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                        activeTab === 'activity' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                       }`}
                     >
-                      <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'activity' ? 'text-emerald-600' : 'text-slate-600'}`} />
+                      <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'activity' ? 'text-emerald-600' : 'text-slate-400'}`} />
                       <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Activity</span>
                     </button>
                   </div>
@@ -1250,7 +1250,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="pt-2">
               <button 
                 onClick={() => { if (!sidebarCollapsed) setSettingsOpen(!settingsOpen) }}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-600 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
                 title="Settings"
               >
                 <span className={sidebarCollapsed ? 'hidden' : ''}>Settings</span>
@@ -1267,10 +1267,10 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('upload')}
                       title="Upload CSV"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'upload' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                        activeTab === 'upload' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                       }`}
                     >
-                      <UploadCloud className={`w-4 h-4 shrink-0 ${activeTab === 'upload' ? 'text-emerald-600' : 'text-slate-600'}`} />
+                      <UploadCloud className={`w-4 h-4 shrink-0 ${activeTab === 'upload' ? 'text-emerald-600' : 'text-slate-400'}`} />
                       <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Upload CSV</span>
                     </button>
                   )}
@@ -1280,10 +1280,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('settings')}
                     title="Update Password"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'settings' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                      activeTab === 'settings' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
                     }`}
                   >
-                    <SettingsIcon className={`w-4 h-4 shrink-0 ${activeTab === 'settings' ? 'text-emerald-600' : 'text-slate-600'}`} />
+                    <SettingsIcon className={`w-4 h-4 shrink-0 ${activeTab === 'settings' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Update Password</span>
                   </button>
                 </div>
@@ -1297,10 +1297,10 @@ export const AdminDashboard: React.FC = () => {
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'feedback'
                   ? 'bg-cyan-500/20 text-cyan-400 font-bold shadow-[0_0_15px_rgba(6,182,212,0.3)] border border-cyan-500/50'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-white transition-all'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
               }`}
             >
-              <HeartPulse className={`w-5 h-5 shrink-0 ${activeTab === 'feedback' ? 'text-emerald-600' : 'text-slate-600'}`} />
+              <HeartPulse className={`w-5 h-5 shrink-0 ${activeTab === 'feedback' ? 'text-emerald-600' : 'text-slate-400'}`} />
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Feedback</span>
             </button>
           </nav>
@@ -1329,18 +1329,18 @@ export const AdminDashboard: React.FC = () => {
               <span className="text-[10px] text-slate-500 font-mono">@{adminUser?.username || 'UKHPV2026'}</span>
             </div>
           </div>
-          <LogOut className={`w-4 h-4 text-slate-600 group-hover:text-rose-500 transition-colors shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`} />
+          <LogOut className={`w-4 h-4 text-slate-400 group-hover:text-rose-500 transition-colors shrink-0 ${sidebarCollapsed ? 'hidden' : 'block'}`} />
         </div>
 
         {/* Footer Branding */}
         <div className={`mx-3 mb-4 flex flex-col gap-2 ${sidebarCollapsed ? 'items-center' : ''}`}>
           {!sidebarCollapsed && (
-            <div className="text-center font-medium text-[10px] text-slate-600 px-1 leading-snug">
+            <div className="text-center font-medium text-[10px] text-slate-400 px-1 leading-snug">
               HPV Vaccination Monitoring Portal<br/>Version: 1.0 • UK 2026
             </div>
           )}
           <div className="flex items-center justify-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity cursor-pointer">
-            {!sidebarCollapsed && <span className="text-[10px] font-bold text-slate-600">Powered by:</span>}
+            {!sidebarCollapsed && <span className="text-[10px] font-bold text-slate-400">Powered by:</span>}
             <img src="/impactcode.png" alt="ImpactCode" className="h-3 object-contain" />
           </div>
         </div>
@@ -1389,7 +1389,7 @@ export const AdminDashboard: React.FC = () => {
                       </span>
                     )}
                   </h1>
-                  <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0 relative">
+                  <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0 relative">
                     <span className="text-xs font-bold italic font-serif">i</span>
                     <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-max max-w-[200px] bg-slate-800 text-white text-[10px] p-2 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 font-medium">
                       (Track progress and performance for timely action.)
@@ -1413,7 +1413,7 @@ export const AdminDashboard: React.FC = () => {
                     onChange={e => setFilterDate(e.target.value)}
                     className="px-3 py-1.5 pl-8 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors w-[140px]"
                   />
-                  <Calendar className="w-3.5 h-3.5 text-slate-600 absolute left-2.5 top-2" />
+                  <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
                 </div>
               </div>
             </div>
@@ -1421,62 +1421,61 @@ export const AdminDashboard: React.FC = () => {
             {/* KPI Cards Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 {/* Card 1: Total Population */}
-                <div className="vr-glass-card p-3 rounded-xl relative border-t-4 border-t-cyan-500 hover:shadow-[0_0_25px_rgba(6,182,212,0.4)] group overflow-hidden flex flex-col justify-between">
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="flex gap-3 relative z-10">
-                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/50 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                      <img src="/target_icon.svg" alt="Target" className="w-6 h-6 hue-rotate-[180deg] brightness-200 drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]" />
+                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative border-t-4 border-t-blue-500 flex flex-col justify-between">
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                      <img src="/target_icon.svg" alt="Target" className="w-6 h-6 invert brightness-0" />
                     </div>
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-1">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-200/70 truncate">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
                           HPV VACC. TARGET
                         </span>
-                        <div className="w-3 h-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 cursor-help hover:bg-cyan-500/30 hover:text-cyan-300 transition-colors shrink-0 group/tooltip relative">
+                        <div className="w-3 h-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0 group relative">
                           <span className="text-[8px] font-bold italic font-serif">i</span>
-                          <div className="absolute left-1/2 top-full mt-1.5 -translate-x-1/2 w-max bg-slate-800 text-white text-[9px] p-2 rounded-md opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-[100] font-medium shadow-lg border border-slate-200">
+                          <div className="absolute left-1/2 top-full mt-1.5 -translate-x-1/2 w-max bg-slate-800 text-white text-[9px] p-2 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-lg">
                             HPV Target Population = 1% of total population
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-b-[4px] border-b-slate-800" />
                           </div>
                         </div>
                       </div>
-                      <span className="text-2xl font-extrabold font-mono text-slate-900 vr-neon-text leading-none mt-1">
+                      <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none mt-1">
                         {kpis?.total_target?.toLocaleString('en-IN') || '—'}
                       </span>
                     </div>
                   </div>
-                  <div className="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between z-10 relative">
-                    <span className="text-[9px] text-slate-600">Total population</span>
-                    <span className="text-[10px] font-bold font-mono text-cyan-300 bg-cyan-900/40 border border-cyan-500/30 px-1.5 py-0.5 rounded">
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between z-10 relative">
+                    <span className="text-[9px] text-slate-400">Total population</span>
+                    <span className="text-[10px] font-bold font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
                       {kpis?.total_population ? kpis.total_population.toLocaleString('en-IN') : '—'}
                     </span>
                   </div>
                 </div>
 
                 {/* Card 2: Reporting Today */}
-                <div className="vr-glass-card p-3 rounded-xl relative overflow-hidden border-t-4 border-t-purple-500 hover:shadow-[0_0_25px_rgba(168,85,247,0.4)] group flex flex-col justify-between">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="flex gap-3 relative z-10">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/50 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-                      <Building2 className="w-5 h-5 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-purple-500 flex flex-col justify-between">
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                      <Building2 className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-purple-200/70 truncate">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
                         REPORTING SITES
                       </span>
                       <div className="flex items-baseline gap-1.5 mt-1">
-                        <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+                        <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none">
                           {kpis ? kpis.total_blocks : '—'}
                         </span>
-                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                           Blocks/Cities
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between gap-2 relative z-10">
-                    <span className="text-[9px] text-slate-600">Reporting today</span>
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <span className="text-[9px] text-slate-400">Reporting today</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold text-purple-300 bg-purple-900/40 border border-purple-500/30 px-1.5 py-0.5 rounded font-mono">
+                      <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded font-mono">
                         {kpis ? ((kpis.reporting_today / (kpis.total_blocks || 1)) * 100).toFixed(1) : '0'}%
                       </span>
                       <span className="text-[10px] font-bold font-mono text-slate-700">{kpis ? kpis.reporting_today : '0'}</span>
@@ -1485,46 +1484,44 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Card 3: Total Line List */}
-                <div className="vr-glass-card p-3 rounded-xl relative overflow-hidden border-t-4 border-t-emerald-500 hover:shadow-[0_0_25px_rgba(16,185,129,0.4)] group flex flex-col justify-between">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="flex gap-3 relative z-10">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                      <FileSpreadsheet className="w-5 h-5 text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-emerald-500 flex flex-col justify-between">
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                      <FileSpreadsheet className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-200/70 truncate">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
                         GIRLS LINE LISTED
                       </span>
-                      <span className="text-2xl font-extrabold font-mono text-emerald-400 leading-none mt-1 drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]">
+                      <span className="text-2xl font-extrabold font-mono text-emerald-600 leading-none mt-1">
                         {kpis ? kpis.overall_linelist_pct : 0}%
                       </span>
                     </div>
                   </div>
-                  <div className="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between gap-2 relative z-10">
-                    <span className="text-[9px] text-slate-600">Count:</span>
-                    <span className="text-[10px] font-bold font-mono text-emerald-300 bg-emerald-900/40 border border-emerald-500/30 px-1.5 py-0.5 rounded">{kpis?.total_line_list?.toLocaleString('en-IN') || '—'}</span>
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <span className="text-[9px] text-slate-400">Count:</span>
+                    <span className="text-[10px] font-bold font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{kpis?.total_line_list?.toLocaleString('en-IN') || '—'}</span>
                   </div>
                 </div>
 
                 {/* Card 4: Total Vaccinated */}
-                <div className="vr-glass-card p-3 rounded-xl relative overflow-hidden border-t-4 border-t-fuchsia-500 hover:shadow-[0_0_25px_rgba(217,70,239,0.4)] group flex flex-col justify-between">
-                  <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="flex gap-3 relative z-10">
-                    <div className="w-10 h-10 rounded-xl bg-fuchsia-500/20 border border-fuchsia-500/50 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(217,70,239,0.3)]">
-                      <ShieldCheck className="w-5 h-5 text-fuchsia-400 drop-shadow-[0_0_8px_rgba(217,70,239,0.8)]" />
+                <div className="bg-[#fff0f5] p-3 rounded-xl border border-pink-200 shadow-sm relative overflow-hidden border-t-4 border-t-pink-500 flex flex-col justify-between">
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-pink-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
+                      <ShieldCheck className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-fuchsia-200/70 truncate">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
                         GIRLS VACCINATED
                       </span>
-                      <span className="text-2xl font-extrabold font-mono text-fuchsia-400 leading-none mt-1 drop-shadow-[0_0_10px_rgba(217,70,239,0.5)]">
+                      <span className="text-2xl font-extrabold font-mono text-pink-600 leading-none mt-1">
                         {kpis ? kpis.overall_coverage_pct : 0}%
                       </span>
                     </div>
                   </div>
-                  <div className="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between gap-2 relative z-10">
-                    <span className="text-[9px] text-slate-600">Count:</span>
-                    <span className="text-[10px] font-bold font-mono text-fuchsia-300 bg-fuchsia-900/40 border border-fuchsia-500/30 px-1.5 py-0.5 rounded">{kpis?.total_vaccinated?.toLocaleString('en-IN') || '—'}</span>
+                  <div className="mt-3 pt-2 border-t border-pink-200/60 flex items-center justify-between gap-2">
+                    <span className="text-[9px] text-slate-500">Count:</span>
+                    <span className="text-[10px] font-bold font-mono text-pink-700 bg-pink-100 px-1.5 py-0.5 rounded">{kpis?.total_vaccinated?.toLocaleString('en-IN') || '—'}</span>
                   </div>
                 </div>
               </div>
@@ -1535,7 +1532,7 @@ export const AdminDashboard: React.FC = () => {
               {/* Left Column: District Ranking + Banner */}
               <div className="lg:col-span-1 flex flex-col gap-2 lg:min-h-0">
                 {/* District Ranking */}
-                <div className="vr-glass-panel p-2 lg:p-3 rounded-xl border border-slate-200 shadow-lg flex flex-col flex-1 lg:overflow-hidden min-h-[400px] lg:min-h-0">
+                <div className="bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col flex-1 lg:overflow-hidden min-h-[400px] lg:min-h-0">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                     <img src="/favicon.jpg" className="w-5 h-5 object-contain" alt="Ranking" />
@@ -1591,7 +1588,7 @@ export const AdminDashboard: React.FC = () => {
                     </>
                   )}
                   <div title="Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator). Legend: Aspirational <30%, Progressing 30-70%, High Performing 70-90%, Champions >90%" className="cursor-help inline-flex items-center">
-                    <Info className="w-4 h-4 text-slate-600 hover:text-slate-600 transition-colors" />
+                    <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
                   </div>
                 </div>
 
@@ -1627,7 +1624,7 @@ export const AdminDashboard: React.FC = () => {
                             }}
                             className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${(!isBlock && (adminUser?.role !== 'DISTRICT_ADMIN' || d.district === adminUser.district_name)) ? 'cursor-pointer hover:bg-blue-50/50' : ''} ${(!isBlock && adminUser?.role === 'DISTRICT_ADMIN' && d.district !== adminUser.district_name) ? 'opacity-70 grayscale' : ''}`}
                           >
-                            <span className="text-[10px] font-bold text-slate-600 w-4 shrink-0 text-center">{idx + 1}</span>
+                            <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
                             <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
                               <span className="text-[11px] font-bold text-slate-800 truncate">
                                 {rowName}
@@ -1635,12 +1632,12 @@ export const AdminDashboard: React.FC = () => {
                                   <span title="Vaccine Active"><Syringe className="w-3 h-3 text-pink-500 inline-block ml-1 -mt-0.5" /></span>
                                 )}
                                 {isBlock && d.is_urban && (
-                                  <span className="text-slate-600 font-medium ml-1">
+                                  <span className="text-slate-400 font-medium ml-1">
                                     Urban
                                   </span>
                                 )}
                               </span>
-                              <span className="text-[9px] font-semibold text-slate-600 shrink-0 flex items-center gap-0.5">
+                              <span className="text-[9px] font-semibold text-slate-400 shrink-0 flex items-center gap-0.5">
                                 (<Target className="w-2.5 h-2.5 inline-block" /> {d.target.toLocaleString('en-IN')})
                               </span>
                               {(selectedKpi === 'linelist' ? d.deltaLineList : d.deltaVaccinated) > 0 && (
@@ -1670,14 +1667,14 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="py-8 text-center text-[10px] text-slate-600">
+                  <div className="py-8 text-center text-[10px] text-slate-400">
                     {selectedDistrict ? `No block data available for ${selectedDistrict}.` : 'No district data — blocks need population setup.'}
                   </div>
                 )}
               </div>
 
               {/* Bottom Banner - Global Strategy */}
-              <div className="vr-glass-panel rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2 border border-slate-200">
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2 border border-slate-200">
                 <div className="p-2 sm:p-2.5 bg-[#14233c] border-b border-slate-200 flex items-center justify-center gap-2">
                   <HeartPulse className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400 shrink-0" />
                   <h3 className="text-[12px] sm:text-sm font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
@@ -1728,7 +1725,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
               {/* Right: Uttarakhand Interactive Map */}
-              <div className="lg:col-span-1 vr-glass-panel p-2 lg:p-3 rounded-xl border border-slate-200 shadow-lg flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
+              <div className="lg:col-span-1 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     <MapPin className="w-4 h-4 text-blue-500" /> {adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || (adminUser?.state_id ? statesList.find(s => String(s.id) === String(adminUser.state_id))?.name : '') || 'State')} Overview
@@ -1741,17 +1738,17 @@ export const AdminDashboard: React.FC = () => {
                   {selectedKpi === 'coverage' || selectedKpi === 'both' ? (
                     <div className="flex items-center gap-1 group relative">
                       <span className="text-purple-900 font-semibold">Vaccination Coverage (%)</span>
-                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
+                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
                         <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-semibold text-slate-800">Vaccination Coverage (%) =</span>
+                            <span className="text-[10px] font-semibold text-slate-200">Vaccination Coverage (%) =</span>
                             <div className="flex flex-col items-center">
                               <span className="text-[9px]">Beneficiaries Vaccinated</span>
                               <div className="w-full h-px bg-slate-500 my-1"></div>
                               <span className="text-[9px]">HPV Target</span>
                             </div>
-                            <span className="text-[10px] font-semibold text-slate-800">× 100</span>
+                            <span className="text-[10px] font-semibold text-slate-200">× 100</span>
                           </div>
                           <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
                         </div>
@@ -1760,17 +1757,17 @@ export const AdminDashboard: React.FC = () => {
                   ) : (
                     <div className="flex items-center gap-1 group relative">
                       <span className="text-purple-900 font-semibold">Line Listed (%)</span>
-                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
+                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
                         <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-semibold text-slate-800">Line Listed (%) =</span>
+                            <span className="text-[10px] font-semibold text-slate-200">Line Listed (%) =</span>
                             <div className="flex flex-col items-center">
                               <span className="text-[9px]">Beneficiaries Line Listed</span>
                               <div className="w-full h-px bg-slate-500 my-1"></div>
                               <span className="text-[9px]">HPV Target</span>
                             </div>
-                            <span className="text-[10px] font-semibold text-slate-800">× 100</span>
+                            <span className="text-[10px] font-semibold text-slate-200">× 100</span>
                           </div>
                           <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
                         </div>
@@ -1861,7 +1858,7 @@ export const AdminDashboard: React.FC = () => {
 
             {loadingVaccDashboard && !vaccDashboard ? (
               <div className="flex-1 flex items-center justify-center">
-                <div className="text-sm font-semibold text-slate-600 animate-pulse">Loading vaccine dashboard...</div>
+                <div className="text-sm font-semibold text-slate-400 animate-pulse">Loading vaccine dashboard...</div>
               </div>
             ) : (
               <>
@@ -1875,24 +1872,24 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex items-stretch gap-0 mb-2">
                       <div className="flex-1 pr-2">
-                        <span className="text-[9px] text-slate-600 block">Vaccine Received</span>
+                        <span className="text-[9px] text-slate-400 block">Vaccine Received</span>
                         <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.state?.received || 0).toLocaleString('en-IN')}</span>
-                        <span className="text-[9px] text-slate-600 ml-1">doses</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
                       </div>
                       <div className="w-px bg-slate-200 self-stretch mx-1"></div>
                       <div className="flex-1 pl-2">
-                        <span className="text-[9px] text-slate-600 block">Stock Balance</span>
+                        <span className="text-[9px] text-slate-400 block">Stock Balance</span>
                         <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.state?.stockBalance || 0).toLocaleString('en-IN')}</span>
-                        <span className="text-[9px] text-slate-600 ml-1">doses</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
                       </div>
                     </div>
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                       <div>
-                        <span className="text-[8px] text-slate-600 block">Month End Balance</span>
+                        <span className="text-[8px] text-slate-400 block">Month End Balance</span>
                         <span className="text-[10px] font-bold font-mono text-blue-700">{(vaccDashboard?.state?.monthEndBalance || 0).toLocaleString('en-IN')}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[8px] text-slate-600 block">VWF</span>
+                        <span className="text-[8px] text-slate-400 block">VWF</span>
                         <span className="text-[10px] font-bold font-mono text-blue-700">{vaccDashboard?.state?.vwf?.toFixed(2) || '0.00'}</span>
                       </div>
                     </div>
@@ -1906,24 +1903,24 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex items-stretch gap-0 mb-2">
                       <div className="flex-1 pr-2">
-                        <span className="text-[9px] text-slate-600 block">Vaccine Issued</span>
+                        <span className="text-[9px] text-slate-400 block">Vaccine Issued</span>
                         <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.district?.issued || 0).toLocaleString('en-IN')}</span>
-                        <span className="text-[9px] text-slate-600 ml-1">doses</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
                       </div>
                       <div className="w-px bg-slate-200 self-stretch mx-1"></div>
                       <div className="flex-1 pl-2">
-                        <span className="text-[9px] text-slate-600 block">Stock Balance</span>
+                        <span className="text-[9px] text-slate-400 block">Stock Balance</span>
                         <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.district?.stockBalance || 0).toLocaleString('en-IN')}</span>
-                        <span className="text-[9px] text-slate-600 ml-1">doses</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
                       </div>
                     </div>
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                       <div>
-                        <span className="text-[8px] text-slate-600 block">Month End Balance</span>
+                        <span className="text-[8px] text-slate-400 block">Month End Balance</span>
                         <span className="text-[10px] font-bold font-mono text-purple-700">{(vaccDashboard?.district?.monthEndBalance || 0).toLocaleString('en-IN')}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[8px] text-slate-600 block">VWF</span>
+                        <span className="text-[8px] text-slate-400 block">VWF</span>
                         <span className="text-[10px] font-bold font-mono text-purple-700">{vaccDashboard?.district?.vwf?.toFixed(2) || '0.00'}</span>
                       </div>
                     </div>
@@ -1937,24 +1934,24 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex items-stretch gap-0 mb-2">
                       <div className="flex-1 pr-2">
-                        <span className="text-[9px] text-slate-600 block">Vaccine Received</span>
+                        <span className="text-[9px] text-slate-400 block">Vaccine Received</span>
                         <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.block?.received || 0).toLocaleString('en-IN')}</span>
-                        <span className="text-[9px] text-slate-600 ml-1">doses</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
                       </div>
                       <div className="w-px bg-slate-200 self-stretch mx-1"></div>
                       <div className="flex-1 pl-2">
-                        <span className="text-[9px] text-slate-600 block">Stock Balance</span>
+                        <span className="text-[9px] text-slate-400 block">Stock Balance</span>
                         <span className="text-lg font-extrabold font-mono text-slate-900 leading-tight">{(vaccDashboard?.block?.stockBalance || 0).toLocaleString('en-IN')}</span>
-                        <span className="text-[9px] text-slate-600 ml-1">doses</span>
+                        <span className="text-[9px] text-slate-400 ml-1">doses</span>
                       </div>
                     </div>
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                       <div>
-                        <span className="text-[8px] text-slate-600 block">Month End Balance</span>
+                        <span className="text-[8px] text-slate-400 block">Month End Balance</span>
                         <span className="text-[10px] font-bold font-mono text-emerald-700">{(vaccDashboard?.block?.monthEndBalance || 0).toLocaleString('en-IN')}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[8px] text-slate-600 block">VWF</span>
+                        <span className="text-[8px] text-slate-400 block">VWF</span>
                         <span className="text-[10px] font-bold font-mono text-emerald-700">{vaccDashboard?.block?.vwf?.toFixed(2) || '0.00'}</span>
                       </div>
                     </div>
@@ -1966,7 +1963,7 @@ export const AdminDashboard: React.FC = () => {
                     <span className="text-4xl font-extrabold font-mono text-pink-600 leading-none">
                       {vaccDashboard?.utilization?.toFixed(1) || '0.0'}%
                     </span>
-                    <div className="flex items-center gap-1.5 mt-2 text-slate-600">
+                    <div className="flex items-center gap-1.5 mt-2 text-slate-400">
                       <div className="flex flex-col items-center">
                         <span className="text-[8px] leading-tight text-center font-medium">Total Beneficiaries Vaccinated</span>
                         <div className="w-full h-px bg-slate-300 my-0.5"></div>
@@ -2014,7 +2011,7 @@ export const AdminDashboard: React.FC = () => {
                           ({selectedDistrict ? (vaccDashboard?.districtUtilization.find((d: any) => d.district === selectedDistrict)?.utilizationPct?.toFixed(1) || '0.0') : (vaccDashboard?.utilization?.toFixed(1) || '0.0')}%)
                         </span>
                         <div title="Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator). Legend: Aspirational <30%, Progressing 30-70%, High Performing 70-90%, Champions >90%" className="cursor-help inline-flex items-center">
-                          <Info className="w-4 h-4 text-slate-600 hover:text-slate-600 transition-colors" />
+                          <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
                         </div>
                       </div>
 
@@ -2043,7 +2040,7 @@ export const AdminDashboard: React.FC = () => {
                                   }}
                                   className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${(!isBlock && (adminUser?.role !== 'DISTRICT_ADMIN' || d.district === adminUser.district_name)) ? 'cursor-pointer hover:bg-blue-50/50' : ''} ${(!isBlock && adminUser?.role === 'DISTRICT_ADMIN' && d.district !== adminUser.district_name) ? 'opacity-70 grayscale' : ''}`}
                                 >
-                                  <span className="text-[10px] font-bold text-slate-600 w-4 shrink-0 text-center">{idx + 1}</span>
+                                  <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
                                   <div className="flex-1 min-w-0 flex items-center gap-1.5 truncate">
                                     <span className={`text-[11px] font-bold truncate shrink-0 ${isCrit ? 'text-red-700 bg-red-100 px-1 rounded' : isLow ? 'text-orange-600' : 'text-slate-800'}`}>
                                       {rowName}
@@ -2051,7 +2048,7 @@ export const AdminDashboard: React.FC = () => {
                                         <span title="Vaccine Active"><Syringe className="w-3 h-3 text-pink-500 inline-block ml-1 -mt-0.5" /></span>
                                       )}
                                       {isBlock && d.is_urban && (
-                                        <span className="text-slate-600 font-medium ml-1">Urban</span>
+                                        <span className="text-slate-400 font-medium ml-1">Urban</span>
                                       )}
                                     </span>
                                     
@@ -2063,7 +2060,7 @@ export const AdminDashboard: React.FC = () => {
                                         <span className="text-[9px] font-bold text-slate-700">{d.issued?.toLocaleString('en-IN') || 0}</span>
                                       </div>
                                       <div className="flex items-center gap-1" title="Estimated Stock Balance">
-                                        <span className="text-[8px] font-semibold text-slate-600 uppercase tracking-wider">Est. Bal:</span>
+                                        <span className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider">Est. Bal:</span>
                                         <span className={`text-[10px] font-bold ${isCrit ? 'text-red-600' : isLow ? 'text-orange-500' : 'text-emerald-600'}`}>
                                           {d.stockBalance?.toLocaleString('en-IN') || 0}
                                         </span>
@@ -2081,14 +2078,14 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                         </div>
                       ) : (
-                        <div className="py-8 text-center text-[10px] text-slate-600">
+                        <div className="py-8 text-center text-[10px] text-slate-400">
                           No utilization data available for this selection.
                         </div>
                       )}
                     </div>
 
                     {/* Bottom Banner - Global Strategy */}
-                    <div className="vr-glass-panel rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2 border border-slate-200">
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2 border border-slate-200">
                       <div className="p-2 sm:p-2.5 bg-[#14233c] border-b border-slate-200 flex items-center justify-center gap-2">
                         <HeartPulse className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400 shrink-0" />
                         <h3 className="text-[12px] sm:text-sm font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
@@ -2139,7 +2136,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
 
                   {/* Right: Uttarakhand Interactive Map */}
-                  <div className="lg:col-span-1 vr-glass-panel p-2 lg:p-3 rounded-xl border border-slate-200 shadow-lg flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
+                  <div className="lg:col-span-1 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                         <MapPin className="w-4 h-4 text-blue-500" /> {adminUser?.role === 'SUPER_ADMIN' ? (dashboardStateId ? statesList.find(s => String(s.id) === dashboardStateId)?.name || 'India' : 'India') : (adminUser?.state_name || 'State')} Overview
@@ -2151,17 +2148,17 @@ export const AdminDashboard: React.FC = () => {
                       <span className="font-bold bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded">Showing:</span>
                       <div className="flex items-center gap-1 group relative">
                         <span className="text-purple-900 font-semibold">Vaccine Utilization (%)</span>
-                        <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
+                        <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
                           <span className="text-[9px] font-bold italic font-serif">i</span>
                           <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-semibold text-slate-800">Vaccine Utilization (%) =</span>
+                              <span className="text-[10px] font-semibold text-slate-200">Vaccine Utilization (%) =</span>
                               <div className="flex flex-col items-center">
                                 <span className="text-[9px]">Total Beneficiaries Vaccinated</span>
                                 <div className="w-full h-px bg-slate-500 my-1"></div>
                                 <span className="text-[9px]">Total Vaccines Issued <strong>TO</strong> District</span>
                               </div>
-                              <span className="text-[10px] font-semibold text-slate-800">× 100</span>
+                              <span className="text-[10px] font-semibold text-slate-200">× 100</span>
                             </div>
                             <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
                           </div>
@@ -2215,7 +2212,7 @@ export const AdminDashboard: React.FC = () => {
                 {stockMsg.text}
               </div>
             )}
-            <div className="vr-glass-panel p-6 rounded-2xl border border-slate-200 shadow-lg space-y-4">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Date Received</label>
                 <input type="date" value={stockDate} onChange={e => setStockDate(e.target.value)}
@@ -2299,7 +2296,7 @@ export const AdminDashboard: React.FC = () => {
                 {stockMsg.text}
               </div>
             )}
-            <div className="vr-glass-panel p-6 rounded-2xl border border-slate-200 shadow-lg space-y-4">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Date of Issue</label>
                 <input type="date" value={stockDate} onChange={e => setStockDate(e.target.value)}
@@ -2408,7 +2405,7 @@ export const AdminDashboard: React.FC = () => {
                 {stockMsg.text}
               </div>
             )}
-            <div className="vr-glass-panel p-6 rounded-2xl border border-slate-200 shadow-lg space-y-4">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Reporting Month</label>
                 <input type="month" value={monthEndMonth} onChange={e => setMonthEndMonth(e.target.value)}
@@ -2476,7 +2473,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
             {/* Recent month-end balances */}
             {stockHistory.filter(t => t.transaction_type === 'MONTH_END_BALANCE').length > 0 && (
-              <div className="vr-glass-panel p-4 rounded-2xl border border-slate-200 shadow-lg">
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-700 mb-3">Recent Month End Balances</h3>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {stockHistory.filter(t => t.transaction_type === 'MONTH_END_BALANCE' || t.display_type === 'MONTH_END_BALANCE').slice(0, 10).map((t: any) => (
@@ -2526,7 +2523,7 @@ export const AdminDashboard: React.FC = () => {
             )}
 
             {reportMonth && ccpStatusList.length > 0 && (
-              <div className="vr-glass-panel rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200">
@@ -2679,7 +2676,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Filter Form Card */}
-            <div className="vr-glass-panel p-2.5 lg:px-4 lg:py-2.5 rounded-2xl border border-slate-200 shadow-lg flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 mb-2">
+            <div className="bg-white p-2.5 lg:px-4 lg:py-2.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 mb-2">
               <div className="flex items-center gap-2 text-sm font-bold text-slate-800 pb-2 lg:pb-0 shrink-0 border-b lg:border-b-0 lg:border-r border-slate-100 lg:pr-4">
                 <Filter className="w-4 h-4 text-emerald-600" /> Filters
               </div>
@@ -2865,7 +2862,7 @@ export const AdminDashboard: React.FC = () => {
                               <td className="px-2 py-1 font-sans font-bold text-slate-900">
                                 {row.name}
                                 {row.district_name && (
-                                  <span className="block text-[10px] text-slate-600 font-normal">
+                                  <span className="block text-[10px] text-slate-400 font-normal">
                                     {row.district_name} District
                                   </span>
                                 )}
@@ -2962,7 +2959,7 @@ export const AdminDashboard: React.FC = () => {
                               page === currentPage - 2 ||
                               page === currentPage + 2
                             ) {
-                              return <span key={page} className="text-xs text-slate-600 px-1">...</span>;
+                              return <span key={page} className="text-xs text-slate-400 px-1">...</span>;
                             }
                             return null;
                           })}
@@ -2979,7 +2976,7 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                   </>
               ) : (
-                <div className="py-12 text-center text-xs text-slate-600">
+                <div className="py-12 text-center text-xs text-slate-400">
                   No records match selected filter criteria.
                 </div>
               )}
@@ -3099,7 +3096,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Admin list */}
-            <div className="vr-glass-panel rounded-2xl border border-slate-200 shadow-lg overflow-hidden lg:flex-1 lg:min-h-0 flex flex-col">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden lg:flex-1 lg:min-h-0 flex flex-col">
               <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-700">Authorized System Administrators</span>
                 <button onClick={fetchAdminUsers} className="text-[10px] text-blue-500 font-bold hover:underline">↻ Refresh</button>
@@ -3120,7 +3117,7 @@ export const AdminDashboard: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {adminUsers.length === 0 ? (
-                    <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-600">Loading admins...</td></tr>
+                    <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">Loading admins...</td></tr>
                   ) : adminUsers.map(u => (
                     <tr key={u.id} className="hover:bg-slate-50">
                       <td className="px-4 py-2.5 font-bold text-slate-900">{u.name}</td>
@@ -3149,7 +3146,7 @@ export const AdminDashboard: React.FC = () => {
                           {u.status || (u.is_active ? 'Active' : 'Disabled')}
                         </button>
                       </td>
-                      <td className="px-4 py-2.5 text-slate-600 text-[10px]">
+                      <td className="px-4 py-2.5 text-slate-400 text-[10px]">
                         {u.last_login_at ? new Date(u.last_login_at).toLocaleString('en-IN') : 'Never'}
                       </td>
                       <td className="px-4 py-2.5">
@@ -3255,7 +3252,7 @@ export const AdminDashboard: React.FC = () => {
               <p className="text-xs text-slate-500 mt-1">Manage your account security</p>
             </div>
 
-            <div className="vr-glass-panel p-6 rounded-2xl border border-slate-200 shadow-lg max-w-md">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-md">
               <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <span className="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center">🔐</span>
                 Reset My Password
@@ -3374,8 +3371,8 @@ export const AdminDashboard: React.FC = () => {
                           )}
                         </td>
                         <td className="p-3 text-slate-600">{log.entity_type}</td>
-                        <td className="p-3 text-slate-600 max-w-[200px] truncate" title={log.device_info || 'Unknown'}>{log.device_info || '-'}</td>
-                        <td className="p-3 text-slate-600">{log.ip_address || '127.0.0.1'}</td>
+                        <td className="p-3 text-slate-400 max-w-[200px] truncate" title={log.device_info || 'Unknown'}>{log.device_info || '-'}</td>
+                        <td className="p-3 text-slate-400">{log.ip_address || '127.0.0.1'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -3539,7 +3536,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
               <div className="relative">
 
-                <SearchIcon className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 -translate-y-1/2" />
+                <SearchIcon className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input 
                   type="text" 
                   placeholder="Search facility name or CCL ID..."
@@ -3599,7 +3596,7 @@ export const AdminDashboard: React.FC = () => {
                         c.ccl_id?.toLowerCase().includes(cclSearchTerm.toLowerCase())
                       ).map((c: any, index: number) => (
                         <tr key={c.id} className="hover:bg-slate-50 transition-colors group">
-                          <td className="px-4 py-3 text-center text-slate-600 text-xs font-mono">{index + 1}</td>
+                          <td className="px-4 py-3 text-center text-slate-400 text-xs font-mono">{index + 1}</td>
                           <td className="px-4 py-3 text-slate-700">{c.districts?.name || c.district_id || '-'}</td>
                           <td className="px-4 py-3 text-slate-700">{c.blocks?.name || c.block_id || '-'}</td>
                           <td className="px-4 py-3 font-bold text-slate-900">{c.facility_name}</td>
@@ -3624,10 +3621,10 @@ export const AdminDashboard: React.FC = () => {
                           </td>
                           <td className="px-4 py-3 text-right sticky right-0 bg-white group-hover:bg-slate-50 border-l border-slate-100 transition-colors">
                             <div className="flex items-center justify-end gap-1">
-                              <button onClick={() => { setEditingCcl(c); setCclEditModalOpen(true); }} className="p-1.5 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors" title="Edit">
+                              <button onClick={() => { setEditingCcl(c); setCclEditModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors" title="Edit">
                                 <Edit2 className="w-4 h-4" />
                               </button>
-                              <button onClick={() => handleDeleteCcl(c.id)} className="p-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors" title="Delete">
+                              <button onClick={() => handleDeleteCcl(c.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors" title="Delete">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -3649,7 +3646,7 @@ export const AdminDashboard: React.FC = () => {
                       <h3 className="font-extrabold text-xl text-slate-900">Edit Facility Details</h3>
                       <p className="text-slate-500 text-sm mt-1">Modify any database field for this Cold Chain Point.</p>
                     </div>
-                    <button onClick={() => setCclEditModalOpen(false)} className="text-slate-600 hover:text-slate-700 bg-white p-2 rounded-full shadow-sm hover:shadow transition-all">
+                    <button onClick={() => setCclEditModalOpen(false)} className="text-slate-400 hover:text-slate-700 bg-white p-2 rounded-full shadow-sm hover:shadow transition-all">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
