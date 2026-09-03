@@ -243,27 +243,24 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
         </div>
       </div>
 
-      <div className="bg-white p-2.5 lg:px-4 lg:py-2.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 mb-2">
-        <div className="flex items-center gap-2 text-sm font-bold text-slate-800 pb-2 lg:pb-0 shrink-0 border-b lg:border-b-0 lg:border-r border-slate-100 lg:pr-4">
+      <div className="bg-white p-3 lg:px-4 lg:py-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 mb-2">
+        <div className="flex items-center gap-2 text-sm font-bold text-slate-800 pb-2 sm:pb-3 shrink-0 border-b sm:border-b-0 sm:border-r border-slate-100 sm:pr-4 sm:mb-0.5">
           <Filter className="w-4 h-4 text-emerald-600" /> Filters
         </div>
 
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 w-full items-end">
           {/* 1. State */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State</label>
-            <SearchableSelect 
-              label="State"
-              options={stateOptions} 
-              value={stateOptions.find(o => o.id === filterStateId) || (stateOptions.length > 0 ? stateOptions[0] : null)} 
-              onChange={(opt) => opt && setFilterStateId(opt.id.toString())} 
-              placeholder="Select State..." 
-            />
-          </div>
+          <SearchableSelect 
+            label="STATE"
+            options={stateOptions} 
+            value={stateOptions.find(o => o.id === filterStateId) || (stateOptions.length > 0 ? stateOptions[0] : null)} 
+            onChange={(opt) => opt && setFilterStateId(opt.id.toString())} 
+            placeholder="Select State..." 
+          />
 
           {/* 2. Report Level */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Report Level</label>
+          <div className="flex flex-col gap-1.5 w-full">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700">REPORT LEVEL</label>
             <select 
               value={filterLevel === 'Block' ? 'Block Units' : 'District'} 
               onChange={e => {
@@ -274,7 +271,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
                   setFilterLevel('District');
                 }
               }} 
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold focus:border-emerald-500 focus:outline-none h-[38px]"
+              className="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:border-emerald-500 focus:outline-none h-[46px]"
             >
               <option value="District">District</option>
               <option value="Block Units">Block Units</option>
@@ -283,32 +280,30 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
 
           {/* 3. Districts / Block Units */}
           {filterLevel === 'Block' ? (
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Block Units</label>
-              <SearchableSelect 
-                label="Block Units"
-                options={blockOptions} 
-                value={blockOptions.find(o => o.id === filterBlockId) || null} 
-                onChange={(opt) => opt && setFilterBlockId(opt.id.toString())} 
-                placeholder="Select Block..." 
-              />
-            </div>
+            <SearchableSelect 
+              label="BLOCK UNITS"
+              options={blockOptions} 
+              value={blockOptions.find(o => o.id === filterBlockId) || null} 
+              onChange={(opt) => opt && setFilterBlockId(opt.id.toString())} 
+              placeholder="Select Block..." 
+            />
           ) : (
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Districts</label>
-              <SearchableSelect 
-                label="Districts"
-                options={districtOptions} 
-                value={districtOptions.find(o => o.id === filterDistrictId) || null} 
-                onChange={(opt) => opt && setFilterDistrictId(opt.id.toString())} 
-                placeholder="Select District / Division..." 
-              />
-            </div>
+            <SearchableSelect 
+              label="DISTRICTS"
+              options={districtOptions} 
+              value={districtOptions.find(o => o.id === filterDistrictId) || null} 
+              onChange={(opt) => opt && setFilterDistrictId(opt.id.toString())} 
+              placeholder="Select District / Division..." 
+            />
           )}
         </div>
 
-        <div className="pt-2 lg:pt-0 lg:pl-4 border-t lg:border-t-0 lg:border-l border-slate-100 shrink-0">
-          <button onClick={handleGenerate} disabled={loading} className="w-full lg:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50">
+        <div className="shrink-0 flex items-end">
+          <button 
+            onClick={handleGenerate} 
+            disabled={loading} 
+            className="w-full sm:w-auto h-[46px] px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+          >
             {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
             GENERATE TREND
           </button>
