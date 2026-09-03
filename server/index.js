@@ -3009,18 +3009,18 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
          }
       });
 
-      // ── Step 3: Build Raw Transaction Log ──
+       // ── Step 3: Build Raw Transaction Log ──
       const rawRows = (txData || []).map(t => {
          const isRecv = t.transaction_type === 'RECEIVED';
          const srcId = isRecv ? null : (t.source_ccl_id || t.facility_id);
          const srcCcp = ccpMap[srcId] || {};
          const srcName = isRecv ? 'External Supplier' : (t.source_ccl_name || srcCcp.facility_name || 'Source CCL');
-         const srcDist = isRecv ? '—' : (srcCcp.districts?.name || '—');
+         const srcDist = isRecv ? '—' : (srcCcp.districts?.name || distMap[srcCcp.district_id] || distMap[t.district_id] || '—');
          
          const destId = isRecv ? (t.facility_id || t.destination_ccl_id) : t.destination_ccl_id;
          const destCcp = ccpMap[destId] || {};
          const destName = t.destination_ccl_name || destCcp.facility_name || 'Destination CCL';
-         const destDist = destCcp.districts?.name || '—';
+         const destDist = destCcp.districts?.name || distMap[destCcp.district_id] || '—';
          
          return {
             id: t.id,
