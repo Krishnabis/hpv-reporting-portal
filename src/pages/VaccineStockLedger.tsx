@@ -368,7 +368,6 @@ export const VaccineStockLedger: React.FC<{
                 <tr className="text-left text-[11px] font-medium tracking-wide">
                   <th className="px-3 py-3 border-r border-blue-800/50">CCL Name</th>
                   <th className="px-3 py-3 border-r border-blue-800/50">CCL ID</th>
-                  <th className="px-3 py-3 border-r border-blue-800/50">District</th>
                   <th className="px-3 py-3 border-r border-blue-800/50">
                     <div className="flex items-center justify-between">Transaction Date <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
                   </th>
@@ -408,39 +407,49 @@ export const VaccineStockLedger: React.FC<{
                     </td>
                   </tr>
                 ) : paginatedTransactions.map((row: any) => {
-                  let cclName = row.from_ccl;
+                  const formatName = (dist: string, name: string) => dist && dist !== '—' && dist !== '-' ? `${dist} - ${name || 'Unknown'}` : name || 'Unknown';
+                  
+                  let rawCclName = row.from_ccl;
+                  let rawFacilityName = row.to_ccl;
                   let cclId = row.from_ccl_id || '—';
-                  let district = row.from_district || '—';
-                  let facilityName = row.to_ccl;
+                  let cclDistrict = row.from_district || '—';
+                  let facilityDistrict = row.to_district || '—';
                   let txType = row.transaction_type;
                   
                   if (matchedCcl) {
                     if (row.to_ccl_id === matchedCcl.ccl_id) {
-                        cclName = row.to_ccl;
+                        rawCclName = row.to_ccl;
                         cclId = row.to_ccl_id || '—';
-                        district = row.to_district || '—';
-                        facilityName = row.from_ccl;
+                        cclDistrict = row.to_district || '—';
+                        rawFacilityName = row.from_ccl;
+                        facilityDistrict = row.from_district || '—';
                         txType = 'Receive';
                     } else if (row.from_ccl_id === matchedCcl.ccl_id) {
-                        cclName = row.from_ccl;
+                        rawCclName = row.from_ccl;
                         cclId = row.from_ccl_id || '—';
-                        district = row.from_district || '—';
-                        facilityName = row.to_ccl;
+                        cclDistrict = row.from_district || '—';
+                        rawFacilityName = row.to_ccl;
+                        facilityDistrict = row.to_district || '—';
                         txType = 'Issue';
                     }
                   } else {
                     if (row.transaction_type === 'Receive' || !row.from_ccl_id) {
-                        cclName = row.to_ccl;
+                        rawCclName = row.to_ccl;
                         cclId = row.to_ccl_id || '—';
-                        district = row.to_district || '—';
-                        facilityName = row.from_ccl;
+                        cclDistrict = row.to_district || '—';
+                        rawFacilityName = row.from_ccl;
+                        facilityDistrict = row.from_district || '—';
                     } else {
-                        cclName = row.from_ccl;
+                        rawCclName = row.from_ccl;
                         cclId = row.from_ccl_id || '—';
-                        district = row.from_district || '—';
-                        facilityName = row.to_ccl;
+                        cclDistrict = row.from_district || '—';
+                        rawFacilityName = row.to_ccl;
+                        facilityDistrict = row.to_district || '—';
                     }
                   }
+
+                  const cclName = formatName(cclDistrict, rawCclName);
+                  const facilityName = formatName(facilityDistrict, rawFacilityName);
 
                   return (
                     <tr key={row.id} className="hover:bg-slate-50 transition-colors group">
@@ -449,9 +458,6 @@ export const VaccineStockLedger: React.FC<{
                       </td>
                       <td className="px-3 py-2.5 text-[11px] font-medium text-slate-500 border-r border-slate-200 break-words">
                         {cclId}
-                      </td>
-                      <td className="px-3 py-2.5 text-[11px] font-medium text-slate-500 border-r border-slate-200 break-words">
-                        {district}
                       </td>
                       <td className="px-3 py-2.5 text-[11px] font-semibold text-slate-600 border-r border-slate-200 whitespace-nowrap">
                         {new Date(row.transaction_date).toLocaleDateString('en-GB')}
