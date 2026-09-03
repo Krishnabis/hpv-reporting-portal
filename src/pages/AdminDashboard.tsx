@@ -5,7 +5,7 @@ import {
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
   Building2, Edit2, Trash2, ClipboardList, FileSpreadsheet, Target, Bell,
-  Syringe, SearchIcon, HeartPulse, UploadCloud, Activity, UsersIcon, Info, Clock, ShoppingCart, AlertTriangle
+  Syringe, SearchIcon, HeartPulse, UploadCloud, Activity, UsersIcon, Info, Clock, ShoppingCart, AlertTriangle, Zap
 } from '../components/icons';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
@@ -1729,50 +1729,28 @@ export const AdminDashboard: React.FC = () => {
                     </div>
 
                     {/* Middle: Critical */}
-                    <div className="bg-red-50/50 rounded-xl border border-red-100 p-2 flex flex-col justify-center shadow-sm h-full flex-[1.5]">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
-                          <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-[11px] font-extrabold text-red-600">Critical</span>
-                          <span className="text-[8px] font-bold text-red-500 bg-red-100/80 px-1.5 py-0.5 rounded-full">Replenish Now</span>
-                        </div>
+                    <div className="bg-white rounded-xl border border-slate-200 p-3 flex items-center gap-3 shadow-sm h-full flex-[1.5]">
+                      <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
                       </div>
-                      <div className="flex items-center justify-around mt-1">
-                        <div className="flex flex-col items-center">
-                          <span className="text-lg font-bold text-red-600 leading-none">{Object.keys(vaccDashboard?.districtCriticalStock || {}).length}</span>
-                          <span className="text-[9px] text-red-500 font-medium">Districts</span>
-                        </div>
-                        <div className="w-px h-5 bg-red-200"></div>
-                        <div className="flex flex-col items-center">
-                          <span className="text-lg font-bold text-red-600 leading-none">{(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isCriticalStock).length}</span>
-                          <span className="text-[9px] text-red-500 font-medium">Blocks</span>
-                        </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold text-slate-600">Critical Stock</span>
+                        <span className="text-base font-bold text-red-800 leading-tight truncate">
+                          {Object.keys(vaccDashboard?.districtCriticalStock || {}).length} Dist / {(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isCriticalStock).length} Blk
+                        </span>
                       </div>
                     </div>
 
                     {/* Right: Re-Order */}
-                    <div className="bg-orange-50/50 rounded-xl border border-orange-100 p-2 flex flex-col justify-center shadow-sm h-full flex-[1.5]">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center">
-                          <ShoppingCart className="w-3.5 h-3.5 text-orange-500" />
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-[11px] font-extrabold text-orange-600">Re-Order</span>
-                          <span className="text-[8px] font-bold text-orange-500 bg-orange-100/80 px-1.5 py-0.5 rounded-full">Re-order stock</span>
-                        </div>
+                    <div className="bg-white rounded-xl border border-slate-200 p-3 flex items-center gap-3 shadow-sm h-full flex-[1.5]">
+                      <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                        <Zap className="w-5 h-5 text-orange-600" />
                       </div>
-                      <div className="flex items-center justify-around mt-1">
-                        <div className="flex flex-col items-center">
-                          <span className="text-lg font-bold text-orange-600 leading-none">{Object.keys(vaccDashboard?.districtLowStock || {}).length}</span>
-                          <span className="text-[9px] text-orange-500 font-medium">Districts</span>
-                        </div>
-                        <div className="w-px h-5 bg-orange-200"></div>
-                        <div className="flex flex-col items-center">
-                          <span className="text-lg font-bold text-orange-600 leading-none">{(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isLowStock).length}</span>
-                          <span className="text-[9px] text-orange-500 font-medium">Blocks</span>
-                        </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold text-slate-600">Re-Order Stock</span>
+                        <span className="text-base font-bold text-orange-800 leading-tight truncate">
+                          {Object.keys(vaccDashboard?.districtLowStock || {}).length} Dist / {(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isLowStock).length} Blk
+                        </span>
                       </div>
                     </div>
                   </div>
