@@ -452,9 +452,6 @@ export const VaccineStockMonitoringReport: React.FC<{
                 <span>Current Date: <strong className="text-slate-900">{currentDateFormatted}</strong></span>
               </div>
             </div>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              District-wise monthly vaccine stock estimation and availability calculations
-            </p>
           </div>
 
           <div className="flex items-center gap-2.5">
