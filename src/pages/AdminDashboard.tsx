@@ -17,6 +17,7 @@ import { LocationMaster } from '../components/LocationMaster';
 import { DailyProgressReport } from './DailyProgressReport';
 import { ReportingCompleteness } from './ReportingCompleteness';
 import { VaccineStockMonitoringReport } from './VaccineStockMonitoringReport';
+import { VaccineStockLedger } from './VaccineStockLedger';
 import { ColdChainLocations } from './ColdChainLocations';
 import { getDefaultLocationForUser } from '../utils/userLocation';
 
@@ -2607,12 +2608,15 @@ export const AdminDashboard: React.FC = () => {
           />
         </div>
 
-        {/* TAB: STOCK LEDGER (COMING SOON) */}
+        {/* TAB: STOCK LEDGER */}
         <div className={activeTab === 'stock-ledger' ? 'contents' : 'hidden'}>
-          <ComingSoonCard 
-            title="Stock Ledger" 
-            description="Detailed vaccine transaction ledger and audit history — layout will be configured in the next update." 
-          />
+          <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
+            <VaccineStockLedger 
+              adminUser={adminUser}
+              districts={allDistrictsList}
+              states={statesList}
+            />
+          </div>
         </div>
 
         {/* TAB: DAILY PROGRESS REPORT */}
