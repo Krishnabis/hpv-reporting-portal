@@ -981,7 +981,8 @@ export const VaccineStockLedger: React.FC<{
                   </th>
                 )}
                 <th className="px-3 py-2 border-b border-purple-900/40 text-right">Qty (Doses)</th>
-                <th className="px-3 py-2 border-b border-purple-900/40">Facility Name</th>
+                <th className="px-3 py-2 border-b border-purple-900/40">From</th>
+                <th className="px-3 py-2 border-b border-purple-900/40">To</th>
                 <th className="px-3 py-2 border-b border-purple-900/40 text-right">Physical Count</th>
                 <th 
                   onClick={() => handleSort('wastage_adjustment')}
@@ -1056,7 +1057,12 @@ export const VaccineStockLedger: React.FC<{
                         )}
                       </td>
 
-                      <td className="px-3 py-2 text-slate-700 font-medium">{row.facility_name}</td>
+                      <td className="px-3 py-2 text-slate-600 font-medium text-[10px]">
+                        {(row as any).from_ccl || row.facility_name || '—'}
+                      </td>
+                      <td className="px-3 py-2 text-slate-600 font-medium text-[10px]">
+                        {(row as any).to_ccl || row.ccl_name || '—'}
+                      </td>
 
                       <td className="px-3 py-2 text-right text-slate-800 font-bold">
                         {row.physical_stock_count !== null ? fmt(row.physical_stock_count) : <span className="text-slate-400 font-normal">—</span>}

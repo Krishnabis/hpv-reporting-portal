@@ -10,27 +10,50 @@ import { ensureMonthlyLedger } from './stockLedger.js';
 
 dotenv.config();
 
-// Helper to get batch inventory from vaccine_stock_transactions
-async function getBatchInventory(batch_no, level, state_id, district_id, facility_id) {
-  if (!batch_no || !level) return 0;
-  
-  // To get the balance, we sum RECEIVED and subtract ISSUED for this batch at this level
-  let query = supabase.from('vaccine_stock_transactions').select('quantity_doses, transaction_type').eq('batch_no', batch_no).eq('level', String(level));
+// Helper to get batch inventory for a given CCL under the new single-record model.
+// New model: RECEIVE = only external (source_ccl_id IS NULL)
+//            ISSUE   = one record with source + destination; balance derived as:
+//              +RECEIVED where facility_id = this CCL
+//              +ISSUED   where destination_ccl_id = this CCL's ccl_id  (received internally)
+//              -ISSUED   where facility_id         = this CCL's db id  (sent out)
+async function getBatchInventory(batch_no, level, state_id, district_id, facility_id, ccl_id = null) {
+  if (!batch_no) return 0;
+
+  let query = supabase
+    .from('vaccine_stock_transactions')
+    .select('quantity_doses, transaction_type, facility_id, destination_ccl_id, source_ccl_id')
+    .eq('batch_no', batch_no);
+
   if (state_id) query = query.eq('state_id', state_id);
-  if (district_id) query = query.eq('district_id', district_id);
-  if (facility_id) query = query.eq('facility_id', facility_id);
-  
+
   const { data } = await query;
   if (!data) return 0;
-  
+
   let balance = 0;
+
   for (const tx of data) {
-    if (tx.transaction_type === 'RECEIVED') balance += Number(tx.quantity_doses || 0);
-    else if (tx.transaction_type === 'ISSUED') balance -= Number(tx.quantity_doses || 0);
+    const qty = Number(tx.quantity_doses || 0);
+
+    if (tx.transaction_type === 'RECEIVED') {
+      // Only count external receipts (no internal source) at this CCL
+      const isThisCCL = facility_id
+        ? String(tx.facility_id) === String(facility_id)
+        : (String(tx.level || '') === String(level));
+      if (isThisCCL && !tx.source_ccl_id) balance += qty;
+
+    } else if (tx.transaction_type === 'ISSUED') {
+      // Outflow: this CCL issued the doses
+      const isSource = facility_id
+        ? String(tx.facility_id) === String(facility_id)
+        : (String(tx.level || '') === String(level) &&
+           (district_id ? String(tx.district_id) === String(district_id) : !tx.district_id));
+      if (isSource) balance -= qty;
+
+      // Inflow: doses were issued TO this CCL
+      if (ccl_id && tx.destination_ccl_id === ccl_id) balance += qty;
+    }
   }
-  
-  // We also need to subtract vaccinations done from this batch (if tracked) or block-level vaccinations.
-  // Currently block vaccinations don't track batch_no, so this mostly applies to stock movement.
+
   return balance;
 }
 
@@ -1224,22 +1247,24 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
       return balances.length > 0 ? Number(balances[0].quantity_doses) : 0;
     };
 
-    // State Calculations
-    const stateReceived = tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '1').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
+    // State Calculations (new model: RECEIVED=external only, no source_ccl_id)
+    const stateReceived = tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '1' && !t.source_ccl_id).reduce((sum, t) => sum + Number(t.quantity_doses), 0);
     const stateIssued = tx.filter(t => t.transaction_type === 'ISSUED' && String(t.level) === '1').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
     const stateStock = stateReceived - stateIssued;
     const stateMonthEnd = getMonthEnd('1');
     const stateVWF = (stateIssued + stateStock) > 0 ? (stateReceived / (stateIssued + stateStock)) : 0;
 
-    // District Calculations
-    const distReceived = tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '2').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
-    const distIssued = tx.filter(t => t.transaction_type === 'ISSUED' && String(t.level) === '2').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
+    // District Calculations (new model: district receives via ISSUED where destination matches their CCL)
+    const distIssuedIn = tx.filter(t => t.transaction_type === 'ISSUED' && String(t.destination_level) === '2').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
+    const distIssuedOut = tx.filter(t => t.transaction_type === 'ISSUED' && String(t.level) === '2').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
+    const distReceived = distIssuedIn; // inflow at district = doses issued to them
+    const distIssued = distIssuedOut;
     const distStock = distReceived - distIssued;
     const distMonthEnd = getMonthEnd('2');
     const distVWF = (distIssued + distStock) > 0 ? (distReceived / (distIssued + distStock)) : 0;
 
-    // Block Calculations
-    const blockReceived = tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '3').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
+    // Block Calculations (new model: block receives via ISSUED where destination_level = 3)
+    const blockReceived = tx.filter(t => t.transaction_type === 'ISSUED' && String(t.destination_level) === '3').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
     
     // For Block Vaccinated, we need the existing vaccination data
     let reportQuery = supabase.from('daily_reports').select('block_id, beneficiaries_vaccinated, reporting_date, blocks(district_id, districts(state_id))').order('reporting_date', { ascending: false });
@@ -1510,21 +1535,29 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
        return res.status(403).json({ error: 'Cannot issue to a facility outside your district' });
     }
 
-    // Check available stock for THIS BATCH at current level
-    const availableStock = await getBatchInventory(batch_no, currentLevel, req.user.state_id, req.user.district_id, null);
-
-    if (availableStock < qty) {
-      return res.status(400).json({ error: `Insufficient stock for batch ${batch_no}. Available: ${availableStock}` });
-    }
-
-    // Fetch sender facility details
+    // Fetch sender facility details FIRST (needed for inventory check + insert)
     let senderFacility = null;
     if (req.user.ccl_id) {
        const { data: sFacility } = await supabase.from('vaccine_ccp').select('*').eq('ccl_id', req.user.ccl_id).maybeSingle();
        if (sFacility) senderFacility = sFacility;
     }
 
-    // Insert ISSUE transaction for source
+    // Check available stock for THIS BATCH at issuing CCL
+    const senderCclId = req.user.ccl_id || null;
+    const availableStock = await getBatchInventory(
+      batch_no,
+      currentLevel,
+      req.user.state_id,
+      req.user.district_id,
+      senderFacility ? senderFacility.id : null,
+      senderCclId
+    );
+
+    if (availableStock < qty) {
+      return res.status(400).json({ error: `Insufficient stock for batch ${batch_no}. Available: ${availableStock}` });
+    }
+
+    // Insert ONE ISSUED transaction capturing both source and destination
     const { data: issueTx, error: issueErr } = await supabase.from('vaccine_stock_transactions').insert([{
       vaccine_type: 'HPV Vaccine',
       transaction_type: 'ISSUED',
@@ -1534,6 +1567,10 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       level: String(currentLevel),
       source_level: String(currentLevel),
       destination_level: String(destLvl),
+      // Source CCL (who is issuing)
+      source_ccl_id: senderFacility ? (senderFacility.ccl_id || null) : (req.user.ccl_id || null),
+      source_ccl_name: senderFacility ? senderFacility.facility_name : (req.user.ccl_facility_name || null),
+      // Destination CCL (who will receive)
       destination_ccl_name: destFacility.facility_name,
       destination_ccl_id: destFacility.ccl_id,
       remarks: [notes, `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
@@ -1546,32 +1583,11 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
 
     if (issueErr) throw issueErr;
 
-    // Insert downstream RECEIVED transaction
-    const { error: recvErr } = await supabase.from('vaccine_stock_transactions').insert([{
-      vaccine_type: 'HPV Vaccine',
-      transaction_type: 'RECEIVED',
-      transaction_date: date,
-      quantity_doses: qty,
-      batch_no: batch_no,
-      level: String(destLvl),
-      source_level: String(currentLevel),
-      destination_level: String(destLvl),
-      destination_ccl_name: destFacility.facility_name,
-      destination_ccl_id: destFacility.ccl_id,
-      remarks: [notes, `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
-      state_id: destFacility.state_id,
-      district_id: destFacility.district_id,
-      block_id: destFacility.block_id,
-      facility_id: destFacility.id,
-      created_by: getValidUuid(req.user.id)
-    }]);
+    // NOTE: No downstream RECEIVED record is created.
+    // Under the new model, RECEIVED is only for external (supplier) receipts.
+    // Internal transfers are tracked solely via the ISSUED record (source → destination).
 
-    if (recvErr) {
-       console.error("Failed to create downstream receive record:", recvErr);
-       return res.status(500).json({ error: 'Issue recorded, but downstream receipt failed.' });
-    }
-
-    // Keep old block balance math just in case
+    // Keep block balance helper field in sync
     if (destFacility.block_id) {
        const { data: oldBData } = await supabase.from('blocks').select('balance_vaccine').eq('id', destFacility.block_id).single();
        if (oldBData) {
@@ -1581,6 +1597,54 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
 
     res.json({ success: true, transaction: issueTx });
   } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
+});
+
+// ─── One-time cleanup: delete internally-generated duplicate RECEIVED records ──────
+// These are RECEIVED records with a non-null source_ccl_id, meaning they were auto-
+// created by the old issue flow (not real external supplier receipts).
+app.post('/api/admin/cleanup-duplicate-received', authenticateToken, async (req, res) => {
+  try {
+    if (!useSupabase) return res.status(500).json({ error: 'Requires Supabase' });
+    if (!['SUPER_ADMIN', 'STATE_ADMIN'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Super Admin or State Admin only' });
+    }
+
+    const dryRun = req.query.dryRun !== 'false'; // default is dry run
+
+    // Find duplicates: RECEIVED records with a source_ccl_id set (internal transfers)
+    const { data: dupes, error: findErr } = await supabase
+      .from('vaccine_stock_transactions')
+      .select('id, transaction_date, quantity_doses, batch_no, destination_ccl_name, source_ccl_name')
+      .eq('transaction_type', 'RECEIVED')
+      .not('source_ccl_id', 'is', null);
+
+    if (findErr) throw findErr;
+
+    if (dryRun) {
+      return res.json({
+        dryRun: true,
+        message: `Found ${dupes?.length || 0} duplicate internally-generated RECEIVED records. POST with ?dryRun=false to delete them.`,
+        records: dupes || []
+      });
+    }
+
+    // Actually delete
+    const { error: delErr } = await supabase
+      .from('vaccine_stock_transactions')
+      .delete()
+      .eq('transaction_type', 'RECEIVED')
+      .not('source_ccl_id', 'is', null);
+
+    if (delErr) throw delErr;
+
+    res.json({
+      success: true,
+      deleted: dupes?.length || 0,
+      message: `Successfully deleted ${dupes?.length || 0} duplicate RECEIVED records.`
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => {
@@ -2881,63 +2945,120 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
         return 0;
       });
 
-      // ── Step 2: build per-CCL running balance starting from 0 ──
-      const runningBalanceMap = {}; // key → current balance (starts at 0, not 1250)
-      const cclMetaMap = {};        // key → { cclName, levelLabel, unitTypeStr }
+      // ── Step 2: build per-CCL running balance using new single-record model ──
+      //   RECEIVED: only external receipts → +qty at destination CCL (facility_id)
+      //   ISSUED:   single record with source + destination
+      //             → -qty at source CCL (facility_id)
+      //             → +qty at destination CCL (destination_ccl_id → lookup)
+      const runningBalanceMap = {}; // cclKey → current balance
+      const cclMetaMap = {};        // cclKey → { cclName, levelLabel, unitTypeStr }
       const liveRows = [];
 
-      sortedTx.forEach((t, idx) => {
-        const fac = ccpMap[t.facility_id] || ccpMap[t.destination_ccl_id] || {};
-        const distName = t.district_id ? distMap[t.district_id] : (fac.districts?.name || '');
-
-        const cclNameText = fac.facility_name || t.destination_ccl_name || (distName ? `District Vaccine Store ${distName} (L2)` : 'Unknown CCL');
-        const levelStr = String(t.level || fac.unit_level || '2');
-        const levelLabel = levelStr === '1' ? 'L1' : (levelStr === '2' ? 'L2' : 'L3');
-        const unitTypeStr = fac.unit_type || (levelStr === '1' ? 'SVS' : (levelStr === '2' ? 'DVS' : 'CCP-B'));
-
-        // Each CCL is identified by its facility_id; start at 0
-        const key = String(t.facility_id || cclNameText);
+      const initCcl = (key, cclName, levelLabel, unitTypeStr) => {
         if (runningBalanceMap[key] === undefined) {
           runningBalanceMap[key] = 0;
-          cclMetaMap[key] = { cclName: cclNameText, levelLabel, unitTypeStr };
+          cclMetaMap[key] = { cclName, levelLabel, unitTypeStr };
         }
+      };
 
+      sortedTx.forEach((t, idx) => {
         const qty = Number(t.quantity_doses || 0);
         const isRecv = t.transaction_type === 'RECEIVED';
-        // RECEIVED → stock increases; ISSUED → stock decreases
-        const transQty = isRecv ? qty : -qty;
-        runningBalanceMap[key] += transQty;
 
-        liveRows.push({
-          id: t.id || `tx-${idx}`,
-          ccl_name: cclNameText,
-          ccl_key: key,
-          transaction_date: t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB') : '',
-          raw_date: t.transaction_date || t.created_at,
-          transaction_type: isRecv ? 'Receive' : 'Issue',
-          batch_no: t.batch_no || '—',
-          manufacturer_name: t.manufacture_name || '—',
-          expiry_date: t.batch_expiry_date ? new Date(t.batch_expiry_date).toLocaleDateString('en-GB') : '—',
-          transaction_quantity: transQty,
-          // from_ccl: who dispatched the doses
-          from_ccl: isRecv
-            ? (t.destination_ccl_name && !isRecv ? t.destination_ccl_name : (distName ? `State Vaccine Store ${distName} (L1)` : 'External Source'))
-            : cclNameText,
-          // to_ccl: who received the doses
-          to_ccl: isRecv
-            ? cclNameText
-            : (t.destination_ccl_name || 'Destination CCL'),
-          facility_name: isRecv
-            ? (t.destination_ccl_name || (distName ? `State Vaccine Store ${distName} (L1)` : 'Source CCL'))
-            : (t.destination_ccl_name || 'Destination CCL'),
-          physical_stock_count: null,
-          wastage_adjustment: null,
-          closing_balance: runningBalanceMap[key],
-          remarks: t.remarks || (isRecv ? 'Receipt' : 'Routine issue'),
-          ccl_level: levelLabel,
-          unit_type: unitTypeStr,
-          district_name: distName
-        });
+        if (isRecv) {
+          // ── External receipt: +qty at the receiving CCL (facility_id) ──
+          const fac = ccpMap[t.facility_id] || ccpMap[t.destination_ccl_id] || {};
+          const distName = t.district_id ? distMap[t.district_id] : (fac.districts?.name || '');
+          const cclNameText = fac.facility_name || t.destination_ccl_name || (distName ? `Vaccine Store ${distName}` : 'Unknown CCL');
+          const levelStr = String(t.level || fac.unit_level || '1');
+          const levelLabel = levelStr === '1' ? 'L1' : (levelStr === '2' ? 'L2' : 'L3');
+          const unitTypeStr = fac.unit_type || (levelStr === '1' ? 'SVS' : (levelStr === '2' ? 'DVS' : 'CCP-B'));
+          const key = String(t.facility_id || t.destination_ccl_id || cclNameText);
+
+          initCcl(key, cclNameText, levelLabel, unitTypeStr);
+          runningBalanceMap[key] += qty;
+
+          liveRows.push({
+            id: t.id || `tx-${idx}`,
+            ccl_name: cclNameText, ccl_key: key,
+            transaction_date: t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB') : '',
+            raw_date: t.transaction_date || t.created_at,
+            transaction_type: 'Receive',
+            batch_no: t.batch_no || '—',
+            manufacturer_name: t.manufacture_name || '—',
+            expiry_date: t.batch_expiry_date ? new Date(t.batch_expiry_date).toLocaleDateString('en-GB') : '—',
+            transaction_quantity: qty,
+            from_ccl: 'External Supplier',
+            to_ccl: cclNameText,
+            physical_stock_count: null, wastage_adjustment: null,
+            closing_balance: runningBalanceMap[key],
+            remarks: t.remarks || 'Receipt from supplier',
+            ccl_level: levelLabel, unit_type: unitTypeStr, district_name: distName
+          });
+
+        } else {
+          // ── Internal transfer: ONE ISSUED record → two balance impacts ──
+          const srcFac = ccpMap[t.facility_id] || {};
+          const srcDistName = t.district_id ? distMap[t.district_id] : (srcFac.districts?.name || '');
+          const srcCclName = srcFac.facility_name || t.source_ccl_name || (srcDistName ? `Vaccine Store ${srcDistName}` : 'Source CCL');
+          const srcLevelStr = String(t.level || srcFac.unit_level || '2');
+          const srcLevelLabel = srcLevelStr === '1' ? 'L1' : (srcLevelStr === '2' ? 'L2' : 'L3');
+          const srcUnitType = srcFac.unit_type || (srcLevelStr === '1' ? 'SVS' : (srcLevelStr === '2' ? 'DVS' : 'CCP-B'));
+          const srcKey = String(t.facility_id || t.source_ccl_id || srcCclName);
+
+          const dstFac = ccpMap[t.destination_ccl_id] || {};
+          const dstDistName = dstFac.district_id ? distMap[dstFac.district_id] : (dstFac.districts?.name || srcDistName);
+          const dstCclName = dstFac.facility_name || t.destination_ccl_name || 'Destination CCL';
+          const dstLevelStr = String(t.destination_level || dstFac.unit_level || '2');
+          const dstLevelLabel = dstLevelStr === '1' ? 'L1' : (dstLevelStr === '2' ? 'L2' : 'L3');
+          const dstUnitType = dstFac.unit_type || (dstLevelStr === '1' ? 'SVS' : (dstLevelStr === '2' ? 'DVS' : 'CCP-B'));
+          const dstKey = String(t.destination_ccl_id || dstCclName);
+
+          initCcl(srcKey, srcCclName, srcLevelLabel, srcUnitType);
+          initCcl(dstKey, dstCclName, dstLevelLabel, dstUnitType);
+
+          // Source loses stock
+          runningBalanceMap[srcKey] -= qty;
+          // Destination gains stock
+          runningBalanceMap[dstKey] += qty;
+
+          const txDate = t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB') : '';
+          const rawDate = t.transaction_date || t.created_at;
+          const batchNo = t.batch_no || '—';
+          const mfg = t.manufacture_name || '—';
+          const expiry = t.batch_expiry_date ? new Date(t.batch_expiry_date).toLocaleDateString('en-GB') : '—';
+          const remarks = t.remarks || 'Internal transfer';
+
+          // Source row: outflow
+          liveRows.push({
+            id: `${t.id || idx}-out`,
+            ccl_name: srcCclName, ccl_key: srcKey,
+            transaction_date: txDate, raw_date: rawDate,
+            transaction_type: 'Issue',
+            batch_no: batchNo, manufacturer_name: mfg, expiry_date: expiry,
+            transaction_quantity: -qty,
+            from_ccl: srcCclName, to_ccl: dstCclName,
+            physical_stock_count: null, wastage_adjustment: null,
+            closing_balance: runningBalanceMap[srcKey],
+            remarks,
+            ccl_level: srcLevelLabel, unit_type: srcUnitType, district_name: srcDistName
+          });
+
+          // Destination row: inflow
+          liveRows.push({
+            id: `${t.id || idx}-in`,
+            ccl_name: dstCclName, ccl_key: dstKey,
+            transaction_date: txDate, raw_date: rawDate,
+            transaction_type: 'Receive',
+            batch_no: batchNo, manufacturer_name: mfg, expiry_date: expiry,
+            transaction_quantity: qty,
+            from_ccl: srcCclName, to_ccl: dstCclName,
+            physical_stock_count: null, wastage_adjustment: null,
+            closing_balance: runningBalanceMap[dstKey],
+            remarks,
+            ccl_level: dstLevelLabel, unit_type: dstUnitType, district_name: dstDistName
+          });
+        }
       });
 
       if (liveRows.length > 0) {
