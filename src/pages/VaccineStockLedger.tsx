@@ -356,6 +356,8 @@ export const VaccineStockLedger: React.FC<{
               <thead className="bg-[#1e3a8a] text-white sticky top-0 z-10">
                 <tr className="text-left text-[11px] font-medium tracking-wide">
                   <th className="px-3 py-3 border-r border-blue-800/50">CCL Name</th>
+                  <th className="px-3 py-3 border-r border-blue-800/50">CCL ID</th>
+                  <th className="px-3 py-3 border-r border-blue-800/50">District</th>
                   <th className="px-3 py-3 border-r border-blue-800/50">
                     <div className="flex items-center justify-between">Transaction Date <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
                   </th>
@@ -386,7 +388,7 @@ export const VaccineStockLedger: React.FC<{
               <tbody className="divide-y divide-slate-200 bg-white">
                 {transactionsWithBalance.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="p-12 text-center text-slate-500 border-x border-b border-slate-200">
+                    <td colSpan={14} className="p-12 text-center text-slate-500 border-x border-b border-slate-200">
                       <div className="flex flex-col items-center justify-center">
                         <FileText className="w-12 h-12 text-slate-300 mb-3" />
                         <p className="text-base font-bold text-slate-700">No transactions found</p>
@@ -396,25 +398,35 @@ export const VaccineStockLedger: React.FC<{
                   </tr>
                 ) : transactionsWithBalance.map((row: any) => {
                   let cclName = row.from_ccl;
+                  let cclId = row.from_ccl_id || '—';
+                  let district = row.from_district || '—';
                   let facilityName = row.to_ccl;
                   let txType = row.transaction_type;
                   
                   if (matchedCcl) {
                     if (row.to_ccl_id === matchedCcl.ccl_id) {
                         cclName = row.to_ccl;
+                        cclId = row.to_ccl_id || '—';
+                        district = row.to_district || '—';
                         facilityName = row.from_ccl;
                         txType = 'Receive';
                     } else if (row.from_ccl_id === matchedCcl.ccl_id) {
                         cclName = row.from_ccl;
+                        cclId = row.from_ccl_id || '—';
+                        district = row.from_district || '—';
                         facilityName = row.to_ccl;
                         txType = 'Issue';
                     }
                   } else {
                     if (row.transaction_type === 'Receive' || !row.from_ccl_id) {
                         cclName = row.to_ccl;
+                        cclId = row.to_ccl_id || '—';
+                        district = row.to_district || '—';
                         facilityName = row.from_ccl;
                     } else {
                         cclName = row.from_ccl;
+                        cclId = row.from_ccl_id || '—';
+                        district = row.from_district || '—';
                         facilityName = row.to_ccl;
                     }
                   }
@@ -423,6 +435,12 @@ export const VaccineStockLedger: React.FC<{
                     <tr key={row.id} className="hover:bg-slate-50 transition-colors group">
                       <td className="px-3 py-2.5 text-[11px] font-bold text-slate-700 border-x border-slate-200 whitespace-nowrap">
                         {cclName}
+                      </td>
+                      <td className="px-3 py-2.5 text-[11px] font-medium text-slate-500 border-r border-slate-200 whitespace-nowrap">
+                        {cclId}
+                      </td>
+                      <td className="px-3 py-2.5 text-[11px] font-medium text-slate-500 border-r border-slate-200 whitespace-nowrap">
+                        {district}
                       </td>
                       <td className="px-3 py-2.5 text-[11px] font-semibold text-slate-600 border-r border-slate-200 whitespace-nowrap">
                         {new Date(row.transaction_date).toLocaleDateString('en-GB')}
