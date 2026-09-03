@@ -488,7 +488,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
                   setFilterStateId(e.target.value);
                   setFilterDistrictId('ALL');
                 }}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 160 }}
               >
                 {statesList.length > 0 ? (
@@ -510,7 +510,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
               <select
                 value={reportLevel}
                 onChange={e => setReportLevel(e.target.value as any)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 130 }}
               >
                 <option value="District">District</option>
@@ -527,7 +527,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
               <select
                 value={filterDistrictId}
                 onChange={e => setFilterDistrictId(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 160 }}
               >
                 <option value="ALL">All Districts</option>
@@ -549,7 +549,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
               value={filterDate}
               max={today}
               onChange={e => setFilterDate(e.target.value)}
-              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer"
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple cursor-pointer"
               style={{ minWidth: 148 }}
             />
           </div>
@@ -559,7 +559,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
             onClick={handleGenerate}
             disabled={loading}
             style={{ height: 36, borderRadius: 8, minWidth: 160 }}
-            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-hpv-purple/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
           >
             {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
             {loading ? 'Generating...' : 'Generate Report'}
@@ -589,7 +589,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
             <div className="shrink-0 p-1">
               <div className="flex items-center justify-between mb-1.5 px-1">
             <div className="flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-purple-600" />
+              <MapPin className="w-3.5 h-3.5 text-hpv-purple" />
               <span className="text-xs font-bold text-slate-700">{locationLabel}</span>
               <span className="text-[10px] text-slate-400">— {reportLevel === 'District' ? 'Districts inside State' : 'Blocks inside District'}</span>
             </div>
@@ -599,8 +599,8 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-1.5">
-          <KpiCard loading={loading} icon={<Users className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
-            label="Total Population" value={fmt(kpis.totalPop)} valueColor="text-purple-700" />
+          <KpiCard loading={loading} icon={<Users className="w-4 h-4 text-hpv-purple" />} iconBg="bg-hpv-purple-soft"
+            label="Total Population" value={fmt(kpis.totalPop)} valueColor="text-hpv-purple" />
           <KpiCard loading={loading} icon={<Target className="w-4 h-4 text-green-600" />} iconBg="bg-green-50"
             label="Goal" value={fmt(kpis.totalTarget)} valueColor="text-green-700"
             subLabel="0.8% of total population" />
@@ -626,7 +626,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
       {/* ── Second Toolbar (below cards) ───────────────────────────── */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 justify-between shrink-0">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-          <Calendar className="w-3.5 h-3.5 text-purple-500" />
+          <Calendar className="w-3.5 h-3.5 text-hpv-purple" />
           <span>Report Date:</span>
           <span className="font-extrabold text-slate-900">{fmtDate(reportDateLabel || today)}</span>
         </div>
@@ -637,11 +637,11 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
             <label key={val} className="flex items-center gap-1.5 cursor-pointer select-none">
               <div
                 onClick={() => setSortDir(val)}
-                className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${sortDir === val ? 'border-purple-600' : 'border-slate-300'}`}
+                className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${sortDir === val ? 'border-hpv-purple' : 'border-slate-300'}`}
               >
-                {sortDir === val && <div className="w-1.5 h-1.5 rounded-full bg-purple-600" />}
+                {sortDir === val && <div className="w-1.5 h-1.5 rounded-full bg-hpv-purple" />}
               </div>
-              <span className={`text-xs font-semibold cursor-pointer ${sortDir === val ? 'text-purple-700' : 'text-slate-500'}`}
+              <span className={`text-xs font-semibold cursor-pointer ${sortDir === val ? 'text-hpv-purple' : 'text-slate-500'}`}
                 onClick={() => setSortDir(val)}>
                 {val === 'best' ? 'Best on Top' : 'Worst on Top'}
               </span>
@@ -654,7 +654,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Ranked By</span>
           <div className="relative">
             <select value={rankBy} onChange={e => setRankBy(e.target.value as RankBy)}
-              className="pl-2.5 pr-7 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer">
+              className="pl-2.5 pr-7 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer">
               <option value="vaccination_coverage_pct">Coverage (%)</option>
               <option value="sessions_held_cumulative">Sessions Held</option>
               <option value="beneficiaries_vaccinated">Vaccinations</option>
@@ -693,7 +693,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
             <input type="text" placeholder="Search by name..." value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-              className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400" style={{ width: 200 }} />
+              className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple" style={{ width: 200 }} />
           </div>
         </div>
 
@@ -736,10 +736,10 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
                 const rankBadge = rankNum === 1 ? '🥇' : rankNum === 2 ? '🥈' : rankNum === 3 ? '🥉' : `#${rankNum}`;
                 const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
                 return (
-                  <tr key={row.id} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
-                    <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>
+                  <tr key={row.id} className={`border-b border-slate-100 hover:bg-hpv-purple-soft/30 transition-colors group ${rowBg}`}>
+                    <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-hpv-purple-soft/30`}>
                       {row.name}
-                      {row.is_urban && <span className="ml-1.5 text-[8px] font-bold text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded uppercase tracking-wider">Urban</span>}
+                      {row.is_urban && <span className="ml-1.5 text-[8px] font-bold text-hpv-purple bg-hpv-purple-soft px-1.5 py-0.5 rounded uppercase tracking-wider">Urban</span>}
                     </td>
                     <td className="px-2 py-1.5 text-center">
                       {row.has_report
@@ -814,7 +814,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
                   const page = totalPages <= 7 ? i + 1 : currentPage <= 4 ? i + 1 : currentPage >= totalPages - 3 ? totalPages - 6 + i : currentPage - 3 + i;
                   return (
                     <button key={page} onClick={() => setCurrentPage(page)}
-                      className={`w-7 h-7 rounded-lg text-[10px] font-bold transition-colors ${currentPage === page ? 'bg-purple-700 text-white' : 'border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                      className={`w-7 h-7 rounded-lg text-[10px] font-bold transition-colors ${currentPage === page ? 'bg-hpv-purple text-white' : 'border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
                       {page}
                     </button>
                   );

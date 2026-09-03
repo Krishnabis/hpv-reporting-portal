@@ -330,11 +330,11 @@ export const SuperAdminUpload: React.FC = () => {
         {/* Population Data */}
         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
-            <UsersIcon className="w-5 h-5 text-indigo-600" />
+            <UsersIcon className="w-5 h-5 text-hpv-purple" />
             <h2 className="text-base font-bold text-slate-800">Upload Population Data</h2>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            {renderSection('Population', 'Upload Population', 'population', '/api/superadmin/upload-population', 'border-indigo-100')}
+            {renderSection('Population', 'Upload Population', 'population', '/api/superadmin/upload-population', 'border-hpv-purple-soft')}
           </div>
         </div>
 
@@ -385,21 +385,21 @@ export const SuperAdminUpload: React.FC = () => {
         {/* Stock Issue Data */}
         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-purple-600"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-hpv-purple"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
             <h2 className="text-base font-bold text-slate-800">Upload Stock Issue</h2>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            {renderSection('Stock Issue', 'Upload Stock Issue', 'stock_issue', '/api/superadmin/upload-stock-issue', 'border-purple-100')}
+            {renderSection('Stock Issue', 'Upload Stock Issue', 'stock_issue', '/api/superadmin/upload-stock-issue', 'border-hpv-purple-soft')}
           </div>
         </div>
 
         {/* Custom Database Table Export */}
         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 md:col-span-2 lg:col-span-3">
           <div className="flex items-center gap-2 mb-4">
-            <Database className="w-5 h-5 text-indigo-600" />
+            <Database className="w-5 h-5 text-hpv-purple" />
             <h2 className="text-base font-bold text-slate-800">Export Database Tables (Admin Only)</h2>
           </div>
-          <div className="p-4 rounded-xl border border-indigo-100 bg-white flex flex-col gap-3 justify-between shadow-sm">
+          <div className="p-4 rounded-xl border border-hpv-purple-soft bg-white flex flex-col gap-3 justify-between shadow-sm">
             <div>
               <p className="text-[10px] text-slate-500 mb-3">Select any database table to download its full contents as CSV. This is a temporary feature for data extraction.</p>
             </div>
@@ -407,7 +407,7 @@ export const SuperAdminUpload: React.FC = () => {
               <select 
                 value={selectedExportTable}
                 onChange={(e) => setSelectedExportTable(e.target.value)}
-                className="flex-1 py-1.5 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 py-1.5 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-hpv-purple"
               >
                 <option value="admin_users">admin_users</option>
                 <option value="audit_logs">audit_logs</option>
@@ -426,7 +426,7 @@ export const SuperAdminUpload: React.FC = () => {
               </select>
               <button 
                 onClick={handleCustomTableDownload}
-                className="flex items-center justify-center gap-1.5 py-1.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors"
+                className="flex items-center justify-center gap-1.5 py-1.5 px-4 rounded-lg bg-hpv-purple hover:bg-hpv-purple text-white text-xs font-bold transition-colors"
               >
                 <FileSpreadsheet className="w-4 h-4" />
                 Download Table CSV

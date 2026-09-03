@@ -115,7 +115,7 @@ export const VaccineStockLedger: React.FC<{
   const [dateFrom, setDateFrom] = useState('2026-01-01');
   const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0]);
   const [selectedState, setSelectedState] = useState(adminUser?.state_id ? String(adminUser.state_id) : 'All States');
-  const [selectedDistrict, setSelectedDistrict] = useState(adminUser?.district_id ? String(initialDistricts.find(d => String(d.id) === String(adminUser.district_id))?.name || '') : 'All Districts');
+  const [selectedDistrict, setSelectedDistrict] = useState(adminUser?.district_id ? (adminUser.district_name || String(initialDistricts.find(d => String(d.id) === String(adminUser.district_id))?.name || '')) : 'All Districts');
   const [reportLevel, setReportLevel] = useState('District');
   const [transactionType, setTransactionType] = useState('All');
 
@@ -228,7 +228,7 @@ export const VaccineStockLedger: React.FC<{
       <div className="flex items-center justify-between shrink-0">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight flex items-center gap-2">
-            <Package className="w-6 h-6 text-indigo-600" />
+            <Package className="w-6 h-6 text-hpv-purple" />
             Vaccine Stock Ledger
           </h1>
           <p className="text-[11px] text-slate-500 mt-0.5">End-to-end trace of HPV vaccine movements and inventory balances.</p>
@@ -263,7 +263,7 @@ export const VaccineStockLedger: React.FC<{
           
           <div className="relative">
             <select value={selectedState} onChange={e => setSelectedState(e.target.value)} disabled={!!adminUser?.state_id}
-              className="appearance-none h-9 pl-3 pr-8 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm disabled:opacity-60">
+              className="appearance-none h-9 pl-3 pr-8 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-hpv-purple shadow-sm disabled:opacity-60">
               <option value="All States">All States</option>
               <option value="Uttarakhand">Uttarakhand</option>
             </select>
@@ -272,7 +272,7 @@ export const VaccineStockLedger: React.FC<{
 
           <div className="relative">
             <select value={selectedDistrict} onChange={e => setSelectedDistrict(e.target.value)} disabled={!!adminUser?.district_id}
-              className="appearance-none h-9 pl-3 pr-8 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm disabled:opacity-60">
+              className="appearance-none h-9 pl-3 pr-8 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-hpv-purple shadow-sm disabled:opacity-60">
               <option value="All Districts">All Districts</option>
               {initialDistricts.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
             </select>
@@ -281,7 +281,7 @@ export const VaccineStockLedger: React.FC<{
 
           <button onClick={fetchLedgerData} disabled={loading}
             style={{ height: 36, borderRadius: 8, minWidth: 160 }}
-            className="ml-auto flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer">
+            className="ml-auto flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-hpv-purple/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer">
             {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
             {loading ? 'Generating...' : 'Generate Ledger'}
           </button>
@@ -305,8 +305,8 @@ export const VaccineStockLedger: React.FC<{
             value={fmt(kpis.totalDistrictBalance)} valueColor="text-amber-700" subLabel="Current L2 Balance" loading={loading}
           />
           <KpiCard 
-            icon={<ArrowUpRight />} iconBg="bg-purple-100 text-purple-700" label="Dispatched to Blocks" 
-            value={fmt(kpis.totalIssuedToBlocks)} valueColor="text-purple-700" subLabel="Total sent to L3" loading={loading}
+            icon={<ArrowUpRight />} iconBg="bg-hpv-purple-soft text-hpv-purple" label="Dispatched to Blocks" 
+            value={fmt(kpis.totalIssuedToBlocks)} valueColor="text-hpv-purple" subLabel="Total sent to L3" loading={loading}
           />
         </div>
 
@@ -316,7 +316,7 @@ export const VaccineStockLedger: React.FC<{
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-[500px]">
           <div className="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4 bg-slate-50/50">
             <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-indigo-600" />
+              <Filter className="w-5 h-5 text-hpv-purple" />
               <h2 className="text-[13px] font-bold text-slate-700 uppercase tracking-wider">Transaction History Log</h2>
               <span className="text-xs text-slate-500 font-medium ml-2">({filteredTransactions.length} Records)</span>
             </div>
@@ -329,12 +329,12 @@ export const VaccineStockLedger: React.FC<{
                   placeholder="Search Batch, Source, Dest..."
                   value={quickSearch}
                   onChange={e => setQuickSearch(e.target.value)}
-                  className="pl-9 pr-4 py-1.5 h-9 w-64 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
+                  className="pl-9 pr-4 py-1.5 h-9 w-64 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-hpv-purple focus:border-hpv-purple transition-all shadow-sm"
                 />
               </div>
 
               {matchedCcl && (
-                <div className="px-3 py-1.5 h-9 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-lg text-xs font-bold flex items-center shadow-sm">
+                <div className="px-3 py-1.5 h-9 bg-hpv-purple-soft border border-hpv-purple-soft text-hpv-purple rounded-lg text-xs font-bold flex items-center shadow-sm">
                   Showing Running Balance for: {matchedCcl.ccl_name}
                 </div>
               )}
@@ -349,11 +349,11 @@ export const VaccineStockLedger: React.FC<{
                 {showColMenu && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 p-2 z-50">
                     <label className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer text-sm font-semibold text-slate-700">
-                      <input type="checkbox" checked={showManufacturer} onChange={e => setShowManufacturer(e.target.checked)} className="rounded border-slate-300 text-indigo-600" />
+                      <input type="checkbox" checked={showManufacturer} onChange={e => setShowManufacturer(e.target.checked)} className="rounded border-slate-300 text-hpv-purple" />
                       Manufacturer
                     </label>
                     <label className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer text-sm font-semibold text-slate-700">
-                      <input type="checkbox" checked={showExpiry} onChange={e => setShowExpiry(e.target.checked)} className="rounded border-slate-300 text-indigo-600" />
+                      <input type="checkbox" checked={showExpiry} onChange={e => setShowExpiry(e.target.checked)} className="rounded border-slate-300 text-hpv-purple" />
                       Expiry Date
                     </label>
                   </div>
@@ -469,7 +469,7 @@ export const VaccineStockLedger: React.FC<{
                           {txType}
                         </span>
                       </td>
-                      <td className="px-3 py-2.5 text-[11px] font-bold text-indigo-700 border-r border-slate-200 whitespace-nowrap">
+                      <td className="px-3 py-2.5 text-[11px] font-bold text-hpv-purple border-r border-slate-200 whitespace-nowrap">
                         {row.batch_no}
                       </td>
                       {showManufacturer && (
@@ -498,7 +498,7 @@ export const VaccineStockLedger: React.FC<{
                       <td className="px-3 py-2.5 text-[11px] text-right font-medium text-slate-400 border-r border-slate-200">
                         —
                       </td>
-                      <td className={`px-3 py-2.5 text-[11px] text-right border-r border-slate-200 ${matchedCcl ? 'bg-indigo-50/30' : ''}`}>
+                      <td className={`px-3 py-2.5 text-[11px] text-right border-r border-slate-200 ${matchedCcl ? 'bg-hpv-purple-soft/30' : ''}`}>
                         <span className={`font-extrabold ${
                           row.computed_balance > 0 ? 'text-emerald-700' : row.computed_balance < 0 ? 'text-rose-700' : 'text-slate-500'
                         }`}>
@@ -525,7 +525,7 @@ export const VaccineStockLedger: React.FC<{
                 <button 
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
+                  className="p-1.5 text-slate-500 hover:text-hpv-purple hover:bg-hpv-purple-soft rounded transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -543,7 +543,7 @@ export const VaccineStockLedger: React.FC<{
                         onClick={() => setCurrentPage(pageNum)}
                         className={`w-8 h-8 flex items-center justify-center rounded text-sm font-bold transition-colors ${
                           currentPage === pageNum 
-                            ? 'bg-indigo-600 text-white shadow-sm' 
+                            ? 'bg-hpv-purple text-white shadow-sm' 
                             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                         }`}
                       >
@@ -555,7 +555,7 @@ export const VaccineStockLedger: React.FC<{
                 <button 
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
+                  className="p-1.5 text-slate-500 hover:text-hpv-purple hover:bg-hpv-purple-soft rounded transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>

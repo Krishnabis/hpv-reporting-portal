@@ -2321,10 +2321,15 @@ export const AdminDashboard: React.FC = () => {
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Select Batch</label>
                 <select value={issueBatchNo} onChange={e => setIssueBatchNo(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-hpv-purple">
                   <option value="">-- Select a Batch --</option>
                   {availableBatches.map((b: any) => (
-                    <option key={b.id} value={b.batch_no}>{b.batch_no} (Available: {b.quantity})</option>
+                    <option key={b.batch_no} value={b.batch_no}>
+                      {b.batch_no}
+                      {b.manufacture_name ? ` | ${b.manufacture_name}` : ''}
+                      {b.batch_expiry_date ? ` | Exp: ${new Date(b.batch_expiry_date).toLocaleDateString('en-GB')}` : ''}
+                      {` | Available: ${Number(b.quantity).toLocaleString('en-IN')} doses`}
+                    </option>
                   ))}
                 </select>
               </div>

@@ -180,7 +180,7 @@ const TrendContent: React.FC = () => {
                   labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }}
                 />
                 <Legend verticalAlign="bottom" height={30} wrapperStyle={{ fontSize: '11px', fontWeight: 600, paddingTop: '8px' }} />
-                <ReferenceLine y={90} label={{ position: 'top', value: `Goal: ${target ? Math.round(target * 0.9).toLocaleString('en-IN') : 0} (>90%)`, fill: '#6366f1', fontSize: 9, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
+                <ReferenceLine y={90} label={{ position: 'top', value: `Goal: ${target ? Math.round(target * 0.9).toLocaleString('en-IN') : 0} (>90%)`, fill: '#3A0088', fontSize: 9, fontWeight: 'bold' }} stroke="#3A0088" strokeDasharray="3 3" />
                 <Line type="monotone" dataKey="lineListedPct" name="Eligible Girls % Line Listed" stroke="#10b981" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }} />
                 <Line type="monotone" dataKey="vaccinatedPct" name="Eligible Girls Vaccinated %" stroke="#ec4899" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }}>
                   <LabelList dataKey="vaccinatedPct" content={(props: any) => {

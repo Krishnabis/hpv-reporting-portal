@@ -323,7 +323,7 @@ export const ColdChainLocations: React.FC<{
               <select
                 value={selectedStateId}
                 onChange={(e) => setSelectedStateId(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 150 }}
               >
                 {(states || []).map(s => (
@@ -341,7 +341,7 @@ export const ColdChainLocations: React.FC<{
               <select
                 value={reportLevel}
                 onChange={(e) => setReportLevel(e.target.value as any)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 120 }}
               >
                 <option value="District">District</option>
@@ -359,7 +359,7 @@ export const ColdChainLocations: React.FC<{
                 value={selectedDistrictId}
                 disabled={isDistrictUser}
                 onChange={(e) => setSelectedDistrictId(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer disabled:opacity-75"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer disabled:opacity-75"
                 style={{ minWidth: 150 }}
               >
                 <option value="ALL">All Districts</option>
@@ -380,7 +380,7 @@ export const ColdChainLocations: React.FC<{
               <select
                 value={cclLevel}
                 onChange={(e) => setCclLevel(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 140 }}
               >
                 <option value="ALL">All Levels</option>
@@ -399,7 +399,7 @@ export const ColdChainLocations: React.FC<{
               <select
                 value={cclUnitType}
                 onChange={(e) => setCclUnitType(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 140 }}
               >
                 <option value="ALL">All Unit Types</option>
@@ -417,7 +417,7 @@ export const ColdChainLocations: React.FC<{
             onClick={fetchLocations}
             disabled={loading}
             style={{ height: 36, borderRadius: 8, minWidth: 150 }}
-            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-hpv-purple/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
           >
             {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
             {loading ? 'Loading...' : 'Filter Facilities'}
@@ -430,21 +430,21 @@ export const ColdChainLocations: React.FC<{
         <div className="shrink-0 p-1">
           <div className="flex items-center justify-between mb-1.5 px-1">
             <div className="flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-purple-600" />
+              <MapPin className="w-3.5 h-3.5 text-hpv-purple" />
               <span className="text-xs font-bold text-slate-700">{selectedStateName}</span>
               <span className="text-[10px] text-slate-400">— Cold Chain Storage Network</span>
             </div>
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-hpv-purple-soft text-hpv-purple border border-hpv-purple-soft">
               Current Date: {currentDateFormatted}
             </span>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5">
-            <KpiCard loading={loading} icon={<Building2 className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
-              label="Total Cold Chain Points" value={kpis.total.toLocaleString('en-IN')} valueColor="text-purple-700"
+            <KpiCard loading={loading} icon={<Building2 className="w-4 h-4 text-hpv-purple" />} iconBg="bg-hpv-purple-soft"
+              label="Total Cold Chain Points" value={kpis.total.toLocaleString('en-IN')} valueColor="text-hpv-purple"
               subLabel="Active facilities" />
-            <KpiCard loading={loading} icon={<ShieldCheck className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
-              label="Level 1 (SVS / RVS)" value={kpis.l1.toLocaleString('en-IN')} valueColor="text-purple-700"
+            <KpiCard loading={loading} icon={<ShieldCheck className="w-4 h-4 text-hpv-purple" />} iconBg="bg-hpv-purple-soft"
+              label="Level 1 (SVS / RVS)" value={kpis.l1.toLocaleString('en-IN')} valueColor="text-hpv-purple"
               subLabel="State & Regional Stores" />
             <KpiCard loading={loading} icon={<MapPin className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
               label="Level 2 (DVS)" value={kpis.l2.toLocaleString('en-IN')} valueColor="text-blue-700"
@@ -482,7 +482,7 @@ export const ColdChainLocations: React.FC<{
               placeholder="Search CCL ID or facility..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400"
+              className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple"
               style={{ width: 220 }}
             />
           </div>
@@ -493,16 +493,16 @@ export const ColdChainLocations: React.FC<{
           <table className="w-full" style={{ fontSize: '11px' }}>
             <thead className="sticky top-0 z-10">
               <tr className="gradient-header text-white">
-                <th className="px-2.5 py-2 text-center font-bold uppercase tracking-wide w-12 border-b border-purple-900/40">S.No</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-purple-900/40">CCL ID</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-purple-900/40" style={{ minWidth: 180 }}>Name of Facility</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Unit Type</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-purple-900/40">Block / District</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">CCL Block HQ</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-purple-900/40">Incharge</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Level</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-purple-900/40">Health Facility Type</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-purple-900/40">Setting</th>
+                <th className="px-2.5 py-2 text-center font-bold uppercase tracking-wide w-12 border-b border-hpv-purple/40">S.No</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40">CCL ID</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-hpv-purple/40" style={{ minWidth: 180 }}>Name of Facility</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40">Unit Type</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40">Block / District</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40">CCL Block HQ</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40">Incharge</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40">Level</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40">Health Facility Type</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40">Setting</th>
               </tr>
             </thead>
 
@@ -538,23 +538,23 @@ export const ColdChainLocations: React.FC<{
                   const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
 
                   return (
-                    <tr key={row.id || idx} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
+                    <tr key={row.id || idx} className={`border-b border-slate-100 hover:bg-hpv-purple-soft/30 transition-colors group ${rowBg}`}>
                       <td className="px-2.5 py-2 text-center font-bold text-slate-400">{serialNo}</td>
-                      <td className="px-3 py-2 font-bold text-indigo-900 whitespace-nowrap">
-                        <span className="bg-indigo-50 text-indigo-800 px-2 py-0.5 rounded border border-indigo-200 font-mono text-[10px]">
+                      <td className="px-3 py-2 font-bold text-hpv-purple whitespace-nowrap">
+                        <span className="bg-hpv-purple-soft text-hpv-purple px-2 py-0.5 rounded border border-hpv-purple-soft font-mono text-[10px]">
                           {row.ccl_id || '—'}
                         </span>
                       </td>
-                      <td className={`px-3 py-2 font-bold text-slate-900 text-xs sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>
+                      <td className={`px-3 py-2 font-bold text-slate-900 text-xs sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-hpv-purple-soft/30`}>
                         {row.facility_name || '—'}
                       </td>
                       <td className="px-3 py-2 text-center whitespace-nowrap">
                         {row.unit_type === 'SVS' ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-100 text-purple-800 border border-purple-300">SVS</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-hpv-purple-soft text-hpv-purple border border-hpv-purple-soft">SVS</span>
                         ) : row.unit_type === 'RVS' ? (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-100 text-blue-800 border border-blue-300">RVS</span>
                         ) : row.unit_type === 'DVS' ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-100 text-indigo-800 border border-indigo-300">DVS</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-hpv-purple-soft text-hpv-purple border border-hpv-purple-soft">DVS</span>
                         ) : (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">{row.unit_type || 'CCP-B'}</span>
                         )}

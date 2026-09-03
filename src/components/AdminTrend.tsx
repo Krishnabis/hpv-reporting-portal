@@ -413,7 +413,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
                       labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }} 
                     />
                     <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 600, paddingTop: '10px' }} />
-                    <ReferenceLine y={90} label={{ position: 'top', value: `Goal: >90% (>${profile ? Math.round(profile.base_population * 0.01 * 0.9).toLocaleString('en-IN') : 0})`, fill: '#6366f1', fontSize: 10, fontWeight: 'bold' }} stroke="#6366f1" strokeDasharray="3 3" />
+                    <ReferenceLine y={90} label={{ position: 'top', value: `Goal: >90% (>${profile ? Math.round(profile.base_population * 0.01 * 0.9).toLocaleString('en-IN') : 0})`, fill: '#3A0088', fontSize: 10, fontWeight: 'bold' }} stroke="#3A0088" strokeDasharray="3 3" />
                     <Line type="monotone" dataKey="lineListedPct" name="Eligible Girls % Line Listed" stroke="#10b981" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }} />
                     <Line type="monotone" dataKey="vaccinatedPct" name="Eligible Girls Vaccinated %" stroke="#ec4899" strokeWidth={2} dot={{ r: 3, strokeWidth: 2 }} activeDot={{ r: 5 }} label={(props: any) => {
                       const { x, y, value, index } = props;

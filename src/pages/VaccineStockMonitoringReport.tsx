@@ -34,7 +34,7 @@ const KpiCard: React.FC<{
 }> = ({ icon, label, value, subLabel, subValue, iconBg, valueColor = 'text-slate-900', loading, onClick, active }) => (
   <div 
     onClick={onClick}
-    className={`bg-white rounded-xl px-2.5 py-2 shadow-sm border flex items-center gap-2 transition-all ${onClick ? 'cursor-pointer hover:shadow-md' : ''} ${active ? 'border-purple-500 ring-1 ring-purple-500/50 bg-purple-50/10' : 'border-slate-200'}`}
+    className={`bg-white rounded-xl px-2.5 py-2 shadow-sm border flex items-center gap-2 transition-all ${onClick ? 'cursor-pointer hover:shadow-md' : ''} ${active ? 'border-hpv-purple ring-1 ring-hpv-purple/50 bg-hpv-purple-soft/10' : 'border-slate-200'}`}
   >
     {loading ? (
       <div className="animate-pulse flex items-center gap-2 w-full">
@@ -354,7 +354,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                   setFilterStateId(e.target.value);
                   setFilterDistrictId('ALL');
                 }}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 160 }}
               >
                 {statesList.length > 0 ? (
@@ -376,7 +376,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
               <select
                 value={reportLevel}
                 onChange={e => setReportLevel(e.target.value as any)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 130 }}
               >
                 <option value="District">District</option>
@@ -393,7 +393,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
               <select
                 value={filterDistrictId}
                 onChange={e => setFilterDistrictId(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 160 }}
               >
                 <option value="ALL">All Districts</option>
@@ -413,7 +413,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
               value={filterMonth}
               max={todayStr}
               onChange={e => setFilterMonth(e.target.value)}
-              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer"
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple cursor-pointer"
               style={{ minWidth: 148 }}
             />
           </div>
@@ -423,7 +423,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
             onClick={handleGenerate}
             disabled={loading}
             style={{ height: 36, borderRadius: 8, minWidth: 160 }}
-            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-hpv-purple/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
           >
             {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
             {loading ? 'Generating...' : 'Generate Report'}
@@ -437,15 +437,15 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
             <div className="shrink-0 p-1">
               <div className="flex items-center justify-between mb-1.5 px-1">
                 <div className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-purple-600" />
+                  <MapPin className="w-3.5 h-3.5 text-hpv-purple" />
                   <span className="text-xs font-bold text-slate-700">{locationLabel}</span>
                   <span className="text-[10px] text-slate-400">— {reportLevel === 'District' ? 'Districts inside State' : 'Blocks inside District'}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-1.5">
-                <KpiCard loading={loading} icon={<Users className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
-                  label="Total Population" value={fmt(kpis.totalPop)} valueColor="text-purple-700" />
+                <KpiCard loading={loading} icon={<Users className="w-4 h-4 text-hpv-purple" />} iconBg="bg-hpv-purple-soft"
+                  label="Total Population" value={fmt(kpis.totalPop)} valueColor="text-hpv-purple" />
                 <KpiCard loading={loading} icon={<Target className="w-4 h-4 text-green-600" />} iconBg="bg-green-50"
                   label="Annual Requirement" value={fmt(kpis.totalRequirement)} valueColor="text-green-700"
                   subLabel="Doses needed" />
@@ -482,7 +482,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                 {filtered.length} Records
               </span>
               {activeActionFilter !== 'ALL' && (
-                <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full flex items-center gap-1 cursor-pointer hover:bg-purple-200 transition-colors" onClick={() => setActiveActionFilter('ALL')}>
+                <span className="text-[10px] font-bold bg-hpv-purple-soft text-hpv-purple px-2 py-0.5 rounded-full flex items-center gap-1 cursor-pointer hover:bg-hpv-purple-soft transition-colors" onClick={() => setActiveActionFilter('ALL')}>
                   {activeActionFilter} Filter Active <Minimize2 className="w-3 h-3"/>
                 </span>
               )}
@@ -507,7 +507,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
                 <input type="text" placeholder="Search by name..." value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-                className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400" style={{ width: 200 }} />
+                className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple" style={{ width: 200 }} />
             </div>
           </div>
             </div>
@@ -546,12 +546,12 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                 ) : paginated.map((row: any, idx: number) => {
                   const isEven = idx % 2 === 0;
                   const isDistrictStore = row.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE';
-                  const rowClass = isDistrictStore ? 'bg-pink-50/50 hover:bg-pink-100/50' : (isEven ? 'bg-white hover:bg-purple-50/30' : 'bg-slate-50/60 hover:bg-purple-50/30');
+                  const rowClass = isDistrictStore ? 'bg-pink-50/50 hover:bg-pink-100/50' : (isEven ? 'bg-white hover:bg-hpv-purple-soft/30' : 'bg-slate-50/60 hover:bg-hpv-purple-soft/30');
                   return (
                     <tr key={row.id} className={`border-b border-slate-100 transition-colors group ${rowClass}`}>
                       <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowClass}`}>
                         {row.name}
-                        {row.is_urban && <span className="ml-1.5 text-[8px] font-bold text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded uppercase tracking-wider">Urban</span>}
+                        {row.is_urban && <span className="ml-1.5 text-[8px] font-bold text-hpv-purple bg-hpv-purple-soft px-1.5 py-0.5 rounded uppercase tracking-wider">Urban</span>}
                       </td>
                       <td className="px-2 py-1.5 text-right font-semibold text-slate-700">{fmt(row.annual_requirement)}</td>
                       <td className="px-2 py-1.5 text-right font-semibold text-slate-600">{fmt(row.opening_stock)}</td>

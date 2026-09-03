@@ -289,7 +289,7 @@ export const ReportingCompleteness: React.FC<{
                   setFilterStateId(e.target.value);
                   setFilterDistrictId('ALL');
                 }}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 160 }}
               >
                 {statesList.length > 0 ? (
@@ -311,7 +311,7 @@ export const ReportingCompleteness: React.FC<{
               <select
                 value={reportLevel}
                 onChange={e => setReportLevel(e.target.value as any)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 130 }}
               >
                 <option value="District">District</option>
@@ -328,7 +328,7 @@ export const ReportingCompleteness: React.FC<{
               <select
                 value={filterDistrictId}
                 onChange={e => setFilterDistrictId(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 160 }}
               >
                 <option value="ALL">All Districts</option>
@@ -349,7 +349,7 @@ export const ReportingCompleteness: React.FC<{
               <select
                 value={reportType}
                 onChange={e => setReportType(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 180 }}
               >
                 <option value="ALL">All Reports</option>
@@ -368,7 +368,7 @@ export const ReportingCompleteness: React.FC<{
               type="date"
               value={fromDate}
               onChange={e => setFromDate(e.target.value)}
-              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer"
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple cursor-pointer"
               style={{ minWidth: 140 }}
             />
           </div>
@@ -380,7 +380,7 @@ export const ReportingCompleteness: React.FC<{
               type="date"
               value={toDate}
               onChange={e => setToDate(e.target.value)}
-              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer"
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple cursor-pointer"
               style={{ minWidth: 140 }}
             />
           </div>
@@ -390,7 +390,7 @@ export const ReportingCompleteness: React.FC<{
             onClick={fetchReport}
             disabled={loading}
             style={{ height: 36, borderRadius: 8, minWidth: 160 }}
-            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-hpv-purple/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
           >
             {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
             {loading ? 'Generating...' : 'Generate Report'}
@@ -402,30 +402,30 @@ export const ReportingCompleteness: React.FC<{
           <>
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 justify-between shrink-0">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-          <Calendar className="w-3.5 h-3.5 text-purple-500" />
+          <Calendar className="w-3.5 h-3.5 text-hpv-purple" />
           <span>Report Period:</span>
           <span className="font-extrabold text-slate-900">{new Date(fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} to {new Date(toDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
         </div>
 
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1.5 cursor-pointer select-none">
-            <div onClick={() => setOrder('best')} className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${order === 'best' ? 'border-purple-600' : 'border-slate-300'}`}>
-              {order === 'best' && <div className="w-1.5 h-1.5 rounded-full bg-purple-600" />}
+            <div onClick={() => setOrder('best')} className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${order === 'best' ? 'border-hpv-purple' : 'border-slate-300'}`}>
+              {order === 'best' && <div className="w-1.5 h-1.5 rounded-full bg-hpv-purple" />}
             </div>
-            <span className={`text-xs font-semibold cursor-pointer ${order === 'best' ? 'text-purple-700' : 'text-slate-500'}`} onClick={() => setOrder('best')}>Best on Top</span>
+            <span className={`text-xs font-semibold cursor-pointer ${order === 'best' ? 'text-hpv-purple' : 'text-slate-500'}`} onClick={() => setOrder('best')}>Best on Top</span>
           </label>
           <label className="flex items-center gap-1.5 cursor-pointer select-none">
-            <div onClick={() => setOrder('worst')} className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${order === 'worst' ? 'border-purple-600' : 'border-slate-300'}`}>
-              {order === 'worst' && <div className="w-1.5 h-1.5 rounded-full bg-purple-600" />}
+            <div onClick={() => setOrder('worst')} className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${order === 'worst' ? 'border-hpv-purple' : 'border-slate-300'}`}>
+              {order === 'worst' && <div className="w-1.5 h-1.5 rounded-full bg-hpv-purple" />}
             </div>
-            <span className={`text-xs font-semibold cursor-pointer ${order === 'worst' ? 'text-purple-700' : 'text-slate-500'}`} onClick={() => setOrder('worst')}>Worst on Top</span>
+            <span className={`text-xs font-semibold cursor-pointer ${order === 'worst' ? 'text-hpv-purple' : 'text-slate-500'}`} onClick={() => setOrder('worst')}>Worst on Top</span>
           </label>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Ranked By</span>
           <div className="relative">
-            <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="pl-2.5 pr-7 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer">
+            <select value={rankedBy} onChange={e => setRankedBy(e.target.value as any)} className="pl-2.5 pr-7 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer">
               <option value="reporting">Reporting (%) (Default)</option>
               <option value="ontime">On Time (%)</option>
             </select>
@@ -436,7 +436,7 @@ export const ReportingCompleteness: React.FC<{
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
           <div className="bg-white rounded-md shadow-sm border border-slate-200 p-2.5 flex items-center gap-2">
-            <div className="w-8 h-8 bg-purple-50 text-[#3A0088] rounded-md flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 bg-hpv-purple-soft text-[#3A0088] rounded-md flex items-center justify-center shrink-0">
               <BarChart3 className="w-3.5 h-3.5" />
             </div>
             <div>
@@ -497,15 +497,15 @@ export const ReportingCompleteness: React.FC<{
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10">
                 <tr className="gradient-header text-white shadow-sm">
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">Reporting Unit</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">Report Name</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">Frequency</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">Last Reported</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-purple-100 uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 text-center border-r border-purple-900/20" title="Hidden internally but visible here">Reports Expected<br/><span className="text-[9px] font-medium opacity-80">(Hidden)</span></th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 text-center border-r border-purple-900/20">Reports<br/>Submitted</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">Reporting (%)</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 border-r border-purple-900/20">On Time (%)</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-amber-300 uppercase tracking-wider whitespace-nowrap border-b border-purple-900/30 text-center">Current Status<br/><span className="text-[9px] font-medium opacity-80">(Complete / Late / Pending)</span></th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">Reporting Unit</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">Report Name</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">Frequency</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">Last Reported</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-hpv-purple-soft uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 text-center border-r border-hpv-purple/20" title="Hidden internally but visible here">Reports Expected<br/><span className="text-[9px] font-medium opacity-80">(Hidden)</span></th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 text-center border-r border-hpv-purple/20">Reports<br/>Submitted</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">Reporting (%)</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">On Time (%)</th>
+                  <th className="px-2 py-2 text-[10px] font-extrabold text-amber-300 uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 text-center">Current Status<br/><span className="text-[9px] font-medium opacity-80">(Complete / Late / Pending)</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
@@ -522,7 +522,7 @@ export const ReportingCompleteness: React.FC<{
                         <div className="font-bold text-[#3A0088] text-xs flex items-center gap-1.5">
                           {r.unitName}
                           {r.isUrban && (
-                            <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-purple-100 text-purple-700 uppercase tracking-wider">
+                            <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-hpv-purple-soft text-hpv-purple uppercase tracking-wider">
                               Urban
                             </span>
                           )}
@@ -538,7 +538,7 @@ export const ReportingCompleteness: React.FC<{
                         )}
                       </td>
                       <td className="px-2 py-1.5 text-sm font-bold text-slate-700 text-center bg-[#f8fafc] border-r border-slate-200/60">{r.expected}</td>
-                      <td className="px-2 py-1.5 text-sm font-black text-[#3A0088] text-center bg-purple-50/30 border-r border-slate-200/60">{r.submitted}</td>
+                      <td className="px-2 py-1.5 text-sm font-black text-[#3A0088] text-center bg-hpv-purple-soft/30 border-r border-slate-200/60">{r.submitted}</td>
                       <td className="px-2 py-1.5 border-r border-slate-100/50 bg-[#faf9fb] align-top">
                         <div className="flex flex-col gap-1 w-12 mt-0.5">
                           <span className={`text-[11px] leading-none font-bold ${r.reportingPct >= 70 ? 'text-emerald-600' : r.reportingPct >= 30 ? 'text-orange-500' : r.reportingPct > 0 ? 'text-amber-600' : 'text-rose-500'}`}>{r.reportingPct}%</span>
@@ -568,7 +568,7 @@ export const ReportingCompleteness: React.FC<{
           <div className="px-4 py-2 border-t border-slate-100 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3 text-[10px] text-slate-500 font-medium">
               <span>Show</span>
-              <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }} className="bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 font-bold text-slate-700 focus:outline-none focus:border-purple-500">
+              <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }} className="bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 font-bold text-slate-700 focus:outline-none focus:border-hpv-purple">
                 <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
@@ -586,7 +586,7 @@ export const ReportingCompleteness: React.FC<{
               {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
                 const pg = totalPages <= 7 ? i + 1 : page <= 4 ? i + 1 : page >= totalPages - 3 ? totalPages - 6 + i : page - 3 + i;
                 return (
-                  <button key={pg} onClick={() => setPage(pg)} className={`w-7 h-7 rounded-lg text-[10px] font-bold transition-colors ${page === pg ? 'bg-purple-700 text-white' : 'border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                  <button key={pg} onClick={() => setPage(pg)} className={`w-7 h-7 rounded-lg text-[10px] font-bold transition-colors ${page === pg ? 'bg-hpv-purple text-white' : 'border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
                     {pg}
                   </button>
                 );

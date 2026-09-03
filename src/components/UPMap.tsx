@@ -243,7 +243,7 @@ export const UPMap: React.FC<MapProps> = ({ data, selectedKpi, selectedDistrict,
             top: Math.min(tooltipPos.y + 15, (svgRef.current?.clientHeight || 0) - 150) 
           }}
         >
-          <div className="font-semibold text-lg border-b border-slate-700 pb-2 mb-3 tracking-wide text-indigo-200">
+          <div className="font-semibold text-lg border-b border-slate-700 pb-2 mb-3 tracking-wide text-hpv-purple-soft">
             {hoveredDistrict}
           </div>
           {data.find(d => d.district.toLowerCase() === hoveredDistrict.toLowerCase()) ? (() => {

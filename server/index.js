@@ -1532,8 +1532,15 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
 
     const qty = Number(quantity);
     const destLvl = Number(destination_level);
-    const isDistrictAdmin = !!req.user.district_id;
+    const isDistrictAdmin = !!(req.user.district_id || (req.user.role === 'VACCINE_MANAGER' && req.user.ccl_id));
     const currentLevel = isDistrictAdmin ? 2 : 1;
+
+    // Resolve effective district_id for VACCINE_MANAGER if missing
+    let effectiveDistrictId = req.user.district_id;
+    if (req.user.role === 'VACCINE_MANAGER' && req.user.ccl_id && !effectiveDistrictId) {
+       const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', req.user.ccl_id).maybeSingle();
+       if (mgrCcp && mgrCcp.district_id) effectiveDistrictId = mgrCcp.district_id;
+    }
 
     // Validate facility exists
     const { data: destFacility, error: fErr } = await supabase.from('vaccine_ccp').select('*').eq('id', destination_facility_id).single();
@@ -1543,7 +1550,7 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
        return res.status(400).json({ error: 'Facility unit level mismatch' });
     }
 
-    if (isDistrictAdmin && destFacility.district_id !== req.user.district_id) {
+    if (isDistrictAdmin && effectiveDistrictId && destFacility.district_id !== effectiveDistrictId) {
        return res.status(403).json({ error: 'Cannot issue to a facility outside your district' });
     }
 
@@ -1560,7 +1567,7 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       batch_no,
       currentLevel,
       req.user.state_id,
-      req.user.district_id,
+      effectiveDistrictId,
       senderFacility ? senderFacility.id : null,
       senderCclId
     );
@@ -1569,6 +1576,15 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: `Insufficient stock for batch ${batch_no}. Available: ${availableStock}` });
     }
 
+    // Fetch batch metadata (expiry, manufacturer) from existing transactions
+    const { data: batchMeta } = await supabase
+      .from('vaccine_stock_transactions')
+      .select('batch_expiry_date, manufacture_name')
+      .eq('batch_no', batch_no)
+      .not('batch_expiry_date', 'is', null)
+      .limit(1)
+      .maybeSingle();
+
     // Insert ONE ISSUED transaction capturing both source and destination
     const { data: issueTx, error: issueErr } = await supabase.from('vaccine_stock_transactions').insert([{
       vaccine_type: 'HPV Vaccine',
@@ -1576,6 +1592,8 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       transaction_date: date,
       quantity_doses: qty,
       batch_no: batch_no,
+      batch_expiry_date: batchMeta?.batch_expiry_date || null,
+      manufacture_name: batchMeta?.manufacture_name || null,
       level: String(currentLevel),
       source_level: String(currentLevel),
       destination_level: String(destLvl),
@@ -1587,7 +1605,7 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       destination_ccl_id: destFacility.ccl_id,
       remarks: [notes, `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
       state_id: senderFacility ? senderFacility.state_id : req.user.state_id,
-      district_id: senderFacility ? senderFacility.district_id : (req.user.district_id || null),
+      district_id: senderFacility ? senderFacility.district_id : (effectiveDistrictId || null),
       block_id: senderFacility ? senderFacility.block_id : (req.user.block_id || null),
       facility_id: senderFacility ? senderFacility.id : null,
       created_by: getValidUuid(req.user.id)
@@ -4504,57 +4522,94 @@ app.get('/api/superadmin/ccl-list', authenticateToken, async (req, res) => {
 app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
   try {
     const { level, facility_id } = req.query;
-    let query = supabase.from('vaccine_stock_transactions').select('*');
-    
-    let effectiveDistrictId = req.user.district_id;
-    if (req.user.role === 'VACCINE_MANAGER' && req.user.ccl_id && !effectiveDistrictId) {
-       const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', req.user.ccl_id).maybeSingle();
-       if (mgrCcp && mgrCcp.district_id) effectiveDistrictId = mgrCcp.district_id;
+
+    // Resolve effective district for VACCINE_MANAGER
+    let effDistrictId = req.user.district_id;
+    const userCclId = req.user.ccl_id || null;
+    if (req.user.role === 'VACCINE_MANAGER' && userCclId && !effDistrictId) {
+       const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', userCclId).maybeSingle();
+       if (mgrCcp && mgrCcp.district_id) effDistrictId = mgrCcp.district_id;
     }
 
+    // For VACCINE_MANAGER with a ccl_id (district store), compute net balance
+    // from transactions where they are SOURCE or DESTINATION.
+    // RECEIVED transactions from the state level don't carry district_id,
+    // so we can't filter by district_id alone — we must track by ccl_id.
+    if (userCclId) {
+      const [{ data: asSource }, { data: asDest }, { data: stateReceived }] = await Promise.all([
+        supabase.from('vaccine_stock_transactions').select('*').eq('source_ccl_id', userCclId),
+        supabase.from('vaccine_stock_transactions').select('*').eq('destination_ccl_id', userCclId),
+        supabase.from('vaccine_stock_transactions').select('*').eq('transaction_type', 'RECEIVED').eq('state_id', req.user.state_id)
+      ]);
+
+      // Merge all relevant transactions, deduplicating by id
+      const seen = new Set();
+      const txData = [];
+      for (const tx of [...(asSource || []), ...(asDest || []), ...(stateReceived || [])]) {
+        if (!seen.has(tx.id)) { seen.add(tx.id); txData.push(tx); }
+      }
+
+      // Compute net balance per batch from this CCL's perspective
+      const batchMap = {};
+      for (const tx of txData) {
+        const bno = tx.batch_no;
+        if (!bno) continue;
+        if (!batchMap[bno]) {
+          batchMap[bno] = { batch_no: bno, batch_expiry_date: null, manufacture_name: null, quantity: 0 };
+        }
+        if (tx.batch_expiry_date) batchMap[bno].batch_expiry_date = tx.batch_expiry_date;
+        if (tx.manufacture_name) batchMap[bno].manufacture_name = tx.manufacture_name;
+
+        const qty = Number(tx.quantity_doses || 0);
+        if (tx.transaction_type === 'RECEIVED') {
+          // External receipt — only count if this CCL is the destination
+          if (String(tx.destination_ccl_id) === String(userCclId)) {
+            batchMap[bno].quantity += qty;
+          }
+        } else if (tx.transaction_type === 'ISSUED') {
+          if (String(tx.source_ccl_id) === String(userCclId)) batchMap[bno].quantity -= qty;
+          if (String(tx.destination_ccl_id) === String(userCclId)) batchMap[bno].quantity += qty;
+        }
+      }
+
+      return res.json(Object.values(batchMap).filter(b => b.quantity > 0));
+    }
+
+    // --- Standard path for state/block admins (no specific ccl_id) ---
+    let query = supabase.from('vaccine_stock_transactions').select('*');
     if (level) query = query.eq('level', level);
     if (req.user.role === 'BLOCK' || req.user.block_id) {
        query = query.eq('block_id', req.user.block_id);
-    } else if (effectiveDistrictId) {
-       query = query.eq('district_id', effectiveDistrictId);
+    } else if (effDistrictId) {
+       query = query.eq('district_id', effDistrictId);
     } else if (req.user.state_id) {
        query = query.eq('state_id', req.user.state_id);
     }
-    
     if (facility_id) query = query.eq('facility_id', facility_id);
 
     const { data, error } = await query;
     if (error) throw error;
-    
+
     // Aggregate transactions into batches
     const batchMap = {};
     for (const tx of data || []) {
+      if (!tx.batch_no) continue;
       if (!batchMap[tx.batch_no]) {
-        batchMap[tx.batch_no] = {
-          batch_no: tx.batch_no,
-          batch_expiry_date: tx.batch_expiry_date,
-          manufacture_name: tx.manufacture_name,
-          quantity: 0
-        };
+        batchMap[tx.batch_no] = { batch_no: tx.batch_no, batch_expiry_date: tx.batch_expiry_date, manufacture_name: tx.manufacture_name, quantity: 0 };
       }
       if (tx.batch_expiry_date) batchMap[tx.batch_no].batch_expiry_date = tx.batch_expiry_date;
       if (tx.manufacture_name) batchMap[tx.batch_no].manufacture_name = tx.manufacture_name;
-      
-      if (tx.transaction_type === 'RECEIVED') {
-        batchMap[tx.batch_no].quantity += Number(tx.quantity_doses || 0);
-      } else if (tx.transaction_type === 'ISSUED') {
-        batchMap[tx.batch_no].quantity -= Number(tx.quantity_doses || 0);
-      }
+      if (tx.transaction_type === 'RECEIVED') batchMap[tx.batch_no].quantity += Number(tx.quantity_doses || 0);
+      else if (tx.transaction_type === 'ISSUED') batchMap[tx.batch_no].quantity -= Number(tx.quantity_doses || 0);
     }
-    
-    // Fetch global metadata for these batches if missing
+
+    // Enrich with global batch metadata (expiry, manufacturer) if missing
     const batchNos = Object.keys(batchMap);
     if (batchNos.length > 0) {
       const { data: globalBatches } = await supabase.from('vaccine_stock_transactions')
         .select('batch_no, batch_expiry_date, manufacture_name')
         .in('batch_no', batchNos)
         .not('batch_expiry_date', 'is', null);
-        
       if (globalBatches) {
         for (const gb of globalBatches) {
           if (batchMap[gb.batch_no]) {
@@ -4564,9 +4619,8 @@ app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
         }
       }
     }
-    
-    const batches = Object.values(batchMap).filter(b => b.quantity > 0);
-    res.json(batches);
+
+    res.json(Object.values(batchMap).filter(b => b.quantity > 0));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

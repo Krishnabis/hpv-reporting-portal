@@ -393,7 +393,7 @@ export const LocationMaster: React.FC<{
               <select
                 value={selectedStateId}
                 onChange={(e) => setSelectedStateId(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 160 }}
               >
                 {(statesList || []).map(s => (
@@ -411,7 +411,7 @@ export const LocationMaster: React.FC<{
               <select
                 value={reportLevel}
                 onChange={(e) => setReportLevel(e.target.value as any)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
                 style={{ minWidth: 130 }}
               >
                 <option value="District">District</option>
@@ -429,7 +429,7 @@ export const LocationMaster: React.FC<{
                 value={selectedDistrictId}
                 disabled={isDistrictUser}
                 onChange={(e) => setSelectedDistrictId(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer disabled:opacity-75"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer disabled:opacity-75"
                 style={{ minWidth: 160 }}
               >
                 <option value="ALL">All Districts</option>
@@ -448,7 +448,7 @@ export const LocationMaster: React.FC<{
             onClick={fetchLocations}
             disabled={loading}
             style={{ height: 36, borderRadius: 8, minWidth: 160 }}
-            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-hpv-purple/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
           >
             {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
             {loading ? 'Loading...' : 'Filter Units'}
@@ -474,7 +474,7 @@ export const LocationMaster: React.FC<{
               placeholder="Search location..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400"
+              className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple"
               style={{ width: 200 }}
             />
           </div>
@@ -485,16 +485,16 @@ export const LocationMaster: React.FC<{
           <table className="w-full" style={{ fontSize: '11px' }}>
             <thead className="sticky top-0 z-10">
               <tr className="gradient-header text-white">
-                <th className="px-2.5 py-2 text-center font-bold uppercase tracking-wide w-12 border-b border-purple-900/40">S.No</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-purple-900/40 cursor-pointer hover:bg-white/10" style={{ minWidth: 180 }} onClick={() => handleSort('name')}>Location Hierarchy{renderSortArrow('name')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('population')}>Population{renderSortArrow('population')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('annualTarget')}>Annual Target (1%){renderSortArrow('annualTarget')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('hpvTarget')}>HPV Goal{renderSortArrow('hpvTarget')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('sessions')}>Sessions{renderSortArrow('sessions')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('linelisted')}>Line Listed{renderSortArrow('linelisted')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('vaccinated')}>Vaccinated{renderSortArrow('vaccinated')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('reportsCount')}>Reports{renderSortArrow('reportsCount')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('lastReportDate')}>Last Report{renderSortArrow('lastReportDate')}</th>
+                <th className="px-2.5 py-2 text-center font-bold uppercase tracking-wide w-12 border-b border-hpv-purple/40">S.No</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" style={{ minWidth: 180 }} onClick={() => handleSort('name')}>Location Hierarchy{renderSortArrow('name')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('population')}>Population{renderSortArrow('population')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('annualTarget')}>Annual Target (1%){renderSortArrow('annualTarget')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('hpvTarget')}>HPV Goal{renderSortArrow('hpvTarget')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('sessions')}>Sessions{renderSortArrow('sessions')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('linelisted')}>Line Listed{renderSortArrow('linelisted')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('vaccinated')}>Vaccinated{renderSortArrow('vaccinated')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('reportsCount')}>Reports{renderSortArrow('reportsCount')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('lastReportDate')}>Last Report{renderSortArrow('lastReportDate')}</th>
               </tr>
             </thead>
             <tbody>
@@ -518,13 +518,13 @@ export const LocationMaster: React.FC<{
                   const isEven = idx % 2 === 0;
                   const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
                   return (
-                    <tr key={row.id || idx} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
+                    <tr key={row.id || idx} className={`border-b border-slate-100 hover:bg-hpv-purple-soft/30 transition-colors group ${rowBg}`}>
                       <td className="px-2.5 py-2 text-center font-bold text-slate-400">{idx + 1}</td>
-                      <td className={`px-3 py-2 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>
+                      <td className={`px-3 py-2 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-hpv-purple-soft/30`}>
                         <div className="text-slate-900 text-xs font-bold flex items-center gap-1.5">
                           <span>{row.name}</span>
                           {(row.is_urban || (row.name && row.name.toLowerCase().includes('urban'))) && (
-                            <span className="text-[8px] font-bold text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded uppercase tracking-wider border border-purple-200">
+                            <span className="text-[8px] font-bold text-hpv-purple bg-hpv-purple-soft px-1.5 py-0.5 rounded uppercase tracking-wider border border-hpv-purple-soft">
                               Urban
                             </span>
                           )}
@@ -532,8 +532,8 @@ export const LocationMaster: React.FC<{
                         <div className="text-[10px] font-semibold text-slate-400">{row.subtext}</div>
                       </td>
                       <td className="px-3 py-2 text-center font-semibold text-slate-700">{row.population > 0 ? row.population.toLocaleString('en-IN') : '—'}</td>
-                      <td className="px-3 py-2 text-center font-bold text-indigo-900 bg-indigo-50/40">{row.annualTarget > 0 ? row.annualTarget.toLocaleString('en-IN') : '—'}</td>
-                      <td className="px-3 py-2 text-center font-bold text-purple-900 bg-purple-50/40">{row.hpvTarget > 0 ? row.hpvTarget.toLocaleString('en-IN') : '—'}</td>
+                      <td className="px-3 py-2 text-center font-bold text-hpv-purple bg-hpv-purple-soft/40">{row.annualTarget > 0 ? row.annualTarget.toLocaleString('en-IN') : '—'}</td>
+                      <td className="px-3 py-2 text-center font-bold text-hpv-purple bg-hpv-purple-soft/40">{row.hpvTarget > 0 ? row.hpvTarget.toLocaleString('en-IN') : '—'}</td>
                       <td className="px-3 py-2 text-center font-bold text-slate-700">{row.sessions}</td>
                       <td className="px-3 py-2 text-center font-bold text-amber-600">{row.linelisted > 0 ? row.linelisted.toLocaleString('en-IN') : '0'}</td>
                       <td className="px-3 py-2 text-center font-bold text-emerald-600">{row.vaccinated > 0 ? row.vaccinated.toLocaleString('en-IN') : '0'}</td>
@@ -552,8 +552,8 @@ export const LocationMaster: React.FC<{
                     TOTAL ({displayRows.length} Units)
                   </td>
                   <td className="px-3 py-2 text-center">{kpis.totalPop.toLocaleString('en-IN')}</td>
-                  <td className="px-3 py-2 text-center text-indigo-900">{kpis.totalAnnualTarget.toLocaleString('en-IN')}</td>
-                  <td className="px-3 py-2 text-center text-purple-900">{kpis.totalHpvTarget.toLocaleString('en-IN')}</td>
+                  <td className="px-3 py-2 text-center text-hpv-purple">{kpis.totalAnnualTarget.toLocaleString('en-IN')}</td>
+                  <td className="px-3 py-2 text-center text-hpv-purple">{kpis.totalHpvTarget.toLocaleString('en-IN')}</td>
                   <td className="px-3 py-2 text-center text-slate-700">{kpis.totalSessions.toLocaleString('en-IN')}</td>
                   <td className="px-3 py-2 text-center text-amber-600">{kpis.totalLineListed.toLocaleString('en-IN')}</td>
                   <td className="px-3 py-2 text-center text-emerald-600">{kpis.totalVaccinated.toLocaleString('en-IN')}</td>
