@@ -1850,6 +1850,8 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
         districts!inner(id, name, state_id, division_id, divisions(name))
       `).eq('is_active', true);
       
+    const targetStateId = req.user?.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+    const userDistrictId = req.user?.district_id || (req.user?.role === 'DISTRICT_ADMIN' ? req.user.district_id : null);
     const filterDist = userDistrictId || req.query.district_id || req.query.districtId || req.query.location_id;
     if (targetStateId) bQuery = bQuery.eq('districts.state_id', targetStateId);
     

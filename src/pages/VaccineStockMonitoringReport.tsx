@@ -408,19 +408,42 @@ export const VaccineStockMonitoringReport: React.FC<{
   };
 
   // EXPORT PDF HANDLER
-  const downloadPDF = () => {
+  // EXPORT PDF HANDLER
+  const downloadPDF = async () => {
     const doc = new jsPDF('landscape', 'mm', 'a4');
 
-    // PDF Title & Subheader
-    doc.setFontSize(15);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(49, 16, 84);
-    doc.text(`Vaccine Stock & Availability Report - ${selectedStateName}`, 14, 15);
+    // Attempt to load and add logo
+    try {
+      const logoImg = new Image();
+      logoImg.src = '/favicon.jpg';
+      await new Promise((resolve, reject) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = reject;
+      });
+      doc.addImage(logoImg, 'JPEG', 14, 10, 14, 14);
+    } catch (e) {
+      console.warn('Could not load favicon.jpg for PDF');
+    }
 
+    // Title
+    doc.setFontSize(18);
+    doc.setTextColor(15, 23, 42); // slate-900
+    doc.setFont('helvetica', 'bold');
+    doc.text('HPV Vaccination \u2014 Vaccine Stock & Availability Report', 32, 16);
+
+    // Subtitle
     doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139); // slate-500
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 116, 139);
-    doc.text(`Reporting Period: ${formattedMonthPeriod}  |  Generated Date: ${currentDateFormatted}`, 14, 22);
+    doc.text(`State: ${selectedStateName}  |  Reporting Period: ${formattedMonthPeriod}`, 32, 22);
+
+    // Top Right
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.setFont('helvetica', 'normal');
+    const genDateStr = new Date().toLocaleString('en-IN', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true}).replace(/ am| pm/i, m => m.toUpperCase());
+    doc.text(`Report Generated On: ${genDateStr}`, 282, 15, { align: 'right' });
+    doc.text('Page 1 of 1', 282, 20, { align: 'right' });
 
     const tableHeaders = [[
       'Site / District',
@@ -468,7 +491,7 @@ export const VaccineStockMonitoringReport: React.FC<{
     autoTable(doc, {
       head: tableHeaders,
       body: tableRows,
-      startY: 26,
+      startY: 28,
       styles: { fontSize: 8, cellPadding: 2.5, halign: 'center' },
       columnStyles: {
         0: { halign: 'left', fontStyle: 'bold' }
@@ -492,11 +515,6 @@ export const VaccineStockMonitoringReport: React.FC<{
               <h1 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">
                 Vaccine Stock & Availability
               </h1>
-              {/* CURRENT DATE DISPLAY ON TOP */}
-              <div className="ml-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-bold border border-slate-300">
-                <Clock className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Report Date: <strong className="text-slate-900">{currentDateFormatted}</strong></span>
-              </div>
             </div>
           </div>
 

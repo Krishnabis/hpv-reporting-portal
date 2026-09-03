@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Building2, Download, Search, ChevronLeft, ChevronRight,
-  Filter, MapPin, Clock, FileText, Layers, ShieldCheck, Tag
+  Filter, MapPin, Clock, FileText, Layers, ShieldCheck, Tag,
+  Maximize2, Minimize2, ChevronDown, BarChart3, RefreshCw
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -31,6 +32,43 @@ interface CCLKPIs {
   l3: number;
 }
 
+const KpiCard: React.FC<{
+  icon: React.ReactNode; label: string; value: string;
+  subLabel?: string; subValue?: string; iconBg: string; valueColor?: string; loading?: boolean;
+}> = ({ icon, label, value, subLabel, subValue, iconBg, valueColor = 'text-slate-900', loading }) => (
+  <div className="bg-white rounded-xl px-2.5 py-2 shadow-sm border border-slate-200 flex items-center gap-2 hover:shadow-md transition-shadow">
+    {loading ? (
+      <div className="animate-pulse flex items-center gap-2 w-full">
+        <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0" />
+        <div className="flex flex-col gap-1 w-full">
+          <div className="h-2 bg-slate-200 rounded w-1/2" />
+          <div className="h-3 bg-slate-200 rounded w-3/4" />
+        </div>
+      </div>
+    ) : (
+      <>
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${iconBg} shrink-0 [&>svg]:w-4 [&>svg]:h-4`}>
+          {icon}
+        </div>
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="text-[9px] font-semibold text-slate-600 truncate leading-tight">{label}</div>
+          <div className={`text-[13px] font-extrabold leading-none mt-0.5 ${valueColor} truncate`}>{value}</div>
+          {(subValue || subLabel) && (
+            <>
+              <div className="w-full h-px bg-slate-100 my-1" />
+              <div className="text-[8px] font-bold leading-none truncate">
+                {subValue && <span className="text-emerald-600">{subValue}</span>}
+                {subValue && subLabel && <span className="text-slate-500 ml-0.5">{subLabel}</span>}
+                {!subValue && subLabel && <span className="text-slate-400">{subLabel}</span>}
+              </div>
+            </>
+          )}
+        </div>
+      </>
+    )}
+  </div>
+);
+
 export const ColdChainLocations: React.FC<{
   states: any[];
   allDistricts: any[];
@@ -40,6 +78,7 @@ export const ColdChainLocations: React.FC<{
 }> = ({ states, allDistricts, masterBlocks, adminUser }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Filters
   const [selectedStateId, setSelectedStateId] = useState<string>('');
@@ -84,8 +123,8 @@ export const ColdChainLocations: React.FC<{
   }, [states, selectedStateId]);
 
   const currentDateFormatted = useMemo(() => {
-    return new Date().toLocaleDateString('en-US', {
-      day: 'numeric',
+    return new Date().toLocaleDateString('en-IN', {
+      day: '2-digit',
       month: 'short',
       year: 'numeric'
     });
@@ -149,8 +188,8 @@ export const ColdChainLocations: React.FC<{
       list = list.filter(r =>
         (r.facility_name && r.facility_name.toLowerCase().includes(q)) ||
         (r.ccl_id && r.ccl_id.toLowerCase().includes(q)) ||
-        (r.name_of_unit_incharge && r.name_of_unit_incharge.toLowerCase().includes(q)) ||
-        (r.contact_number && r.contact_number.includes(q))
+        (r.districts?.name && r.districts.name.toLowerCase().includes(q)) ||
+        (r.blocks?.name && r.blocks.name.toLowerCase().includes(q))
       );
     }
 
@@ -164,39 +203,28 @@ export const ColdChainLocations: React.FC<{
     return filteredRecords.slice(start, start + pageSize);
   }, [filteredRecords, page, pageSize]);
 
-  // CSV Export Handler
+  // Download CSV Handler
   const downloadCSV = () => {
     const headers = [
-      'S.No',
-      'CCL ID',
-      'Name of Facility',
-      'Unit Type',
-      'Block',
-      'District',
-      'CCL Block HQ (Yes)',
-      'Incharge Name',
-      'Contact Number',
-      'Level',
-      'Health Facility Type',
-      'Setting'
+      'S.No', 'CCL ID', 'Name of Facility', 'Unit Type', 'District', 'Block', 'CCL Block HQ', 'Incharge', 'Contact', 'Level', 'Health Facility Type', 'Setting'
     ];
 
-    const csvRows = filteredRecords.map((r, i) => [
+    const rows = filteredRecords.map((r, i) => [
       i + 1,
-      `"${r.ccl_id || '—'}"`,
-      `"${r.facility_name || '—'}"`,
-      `"${r.unit_type || '—'}"`,
-      `"${r.blocks?.health_block_name || r.blocks?.name || '—'}"`,
-      `"${r.districts?.name || '—'}"`,
-      `"${(r.ccl_block_hq_yes === 'Yes' || r.ccl_block_hq_yes === true || r.ccl_block_hq_yes === 1 || String(r.ccl_block_hq_yes).toLowerCase() === 'yes') ? 'Yes' : 'No'}"`,
-      `"${r.name_of_unit_incharge || '—'}"`,
-      `"${r.contact_number || '—'}"`,
-      `"Level ${r.unit_level || '—'}"`,
-      `"${r.health_facility_type || '—'}"`,
-      `"${r.setting || '—'}"`
+      `"${r.ccl_id || ''}"`,
+      `"${r.facility_name || ''}"`,
+      `"${r.unit_type || ''}"`,
+      `"${r.districts?.name || ''}"`,
+      `"${r.blocks?.name || ''}"`,
+      `"${r.ccl_block_hq_yes === 'Yes' || r.ccl_block_hq_yes === true || r.ccl_block_hq_yes === 1 ? 'Yes' : 'No'}"`,
+      `"${r.name_of_unit_incharge || ''}"`,
+      `"${r.contact_number || ''}"`,
+      `"Level ${r.unit_level || ''}"`,
+      `"${r.health_facility_type || ''}"`,
+      `"${r.setting || ''}"`
     ]);
 
-    const csvContent = [headers.join(','), ...csvRows.map(r => r.join(','))].join('\n');
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -204,31 +232,22 @@ export const ColdChainLocations: React.FC<{
     link.click();
   };
 
-  // PDF Export Handler
+  // Download PDF Handler
   const downloadPDF = () => {
     const doc = new jsPDF('landscape', 'mm', 'a4');
 
     doc.setFontSize(15);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(49, 16, 84);
-    doc.text(`Cold Chain Point Locations Report - ${selectedStateName}`, 14, 15);
+    doc.text(`Cold Chain Locations Registry - ${selectedStateName}`, 14, 15);
 
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 116, 139);
-    doc.text(`Total Locations: ${filteredRecords.length}  |  Generated Date: ${currentDateFormatted}`, 14, 22);
+    doc.text(`Total CCPs: ${filteredRecords.length}  |  Report Level: ${reportLevel}  |  Generated: ${currentDateFormatted}`, 14, 22);
 
     const pdfHeaders = [[
-      'S.No',
-      'CCL ID',
-      'Name of Facility',
-      'Unit Type',
-      'Block / District',
-      'Block HQ',
-      'Incharge & Contact',
-      'Level',
-      'Facility Type',
-      'Setting'
+      'S.No', 'CCL ID', 'Name of Facility', 'Unit Type', 'Block / District', 'Block HQ', 'Incharge', 'Level', 'Facility Type'
     ]];
 
     const pdfRows = filteredRecords.map((r, i) => [
@@ -236,27 +255,27 @@ export const ColdChainLocations: React.FC<{
       r.ccl_id || '—',
       r.facility_name || '—',
       r.unit_type || '—',
-      `${r.blocks?.health_block_name || r.blocks?.name || '—'}\n(${r.districts?.name || '—'})`,
-      (r.ccl_block_hq_yes === 'Yes' || r.ccl_block_hq_yes === true || r.ccl_block_hq_yes === 1 || String(r.ccl_block_hq_yes).toLowerCase() === 'yes') ? 'Yes' : 'No',
+      `${r.blocks?.name || '—'}\n(${r.districts?.name || '—'})`,
+      r.ccl_block_hq_yes === 'Yes' || r.ccl_block_hq_yes === true || r.ccl_block_hq_yes === 1 ? 'Yes' : 'No',
       `${r.name_of_unit_incharge || '—'}${r.contact_number ? `\nPh: ${r.contact_number}` : ''}`,
       `Level ${r.unit_level || '—'}`,
-      r.health_facility_type || '—',
-      r.setting || '—'
+      r.health_facility_type || '—'
     ]);
 
     autoTable(doc, {
       head: pdfHeaders,
       body: pdfRows,
       startY: 26,
-      styles: { fontSize: 8, cellPadding: 2.5 },
+      styles: { fontSize: 8, cellPadding: 2 },
       columnStyles: {
         0: { halign: 'center', fontStyle: 'bold' },
+        1: { fontStyle: 'bold', halign: 'center' },
         2: { fontStyle: 'bold' },
         3: { halign: 'center' },
         5: { halign: 'center' },
-        7: { halign: 'center', fontStyle: 'bold' }
+        7: { halign: 'center' }
       },
-      headStyles: { fillColor: [49, 16, 84], textColor: 255, fontStyle: 'bold', halign: 'center' },
+      headStyles: { fillColor: [44, 24, 76], textColor: 255, fontStyle: 'bold', halign: 'center' },
       alternateRowStyles: { fillColor: [248, 250, 252] },
       theme: 'grid'
     });
@@ -265,95 +284,83 @@ export const ColdChainLocations: React.FC<{
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 relative overflow-hidden">
-      {/* Header Section */}
-      <div className="bg-white border-b border-slate-200 shadow-xs z-20 shrink-0">
-        <div className="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-indigo-600 shrink-0" />
-              <h1 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">
-                Cold Chain Locations
-              </h1>
-              {/* CURRENT DATE DISPLAY */}
-              <div className="ml-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-bold border border-slate-300">
-                <Clock className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Current Date: <strong className="text-slate-900">{currentDateFormatted}</strong></span>
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Comprehensive inventory of vaccine cold chain storage points (SVS, RVS, DVS & Block CCPs)
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            {/* EXPORT PDF BUTTON */}
-            <button
-              onClick={downloadPDF}
-              disabled={filteredRecords.length === 0}
-              className="flex items-center gap-1.5 bg-white border border-slate-300 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-xs hover:bg-slate-50 transition-colors disabled:opacity-50"
-            >
-              <FileText className="w-3.5 h-3.5 text-red-600" />
-              Export PDF
-            </button>
-
-            {/* EXPORT CSV BUTTON */}
-            <button
-              onClick={downloadCSV}
-              disabled={filteredRecords.length === 0}
-              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Export CSV
-            </button>
-          </div>
+    <div className="flex flex-col h-full gap-3">
+      {/* ── Page Header ────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between shrink-0">
+        <div>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            HPV Vaccination — Cold Chain Locations Registry
+          </h1>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            Comprehensive inventory of vaccine cold chain storage points (SVS, RVS, DVS &amp; Block CCPs)
+          </p>
         </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={downloadPDF}
+            disabled={filteredRecords.length === 0}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0 cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5 text-slate-500" /> Download PDF
+          </button>
+          <button
+            onClick={downloadCSV}
+            disabled={filteredRecords.length === 0}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0 cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5" /> Download CSV
+          </button>
+        </div>
+      </div>
 
-        {/* TOP FILTER BAR */}
-        <div className="px-5 py-2.5 bg-slate-100/80 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2.5">
-            
-            {/* 1. State Filter */}
-            <div className="flex items-center gap-1">
-              <span className="text-[11px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                <MapPin className="w-3 h-3 text-indigo-600" /> State:
-              </span>
+      {/* ── Filter Toolbar ─────────────────────────────────────────── */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 shrink-0">
+        <div className="flex flex-wrap gap-2.5 items-end">
+          {/* State */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">State</label>
+            <div className="relative">
               <select
                 value={selectedStateId}
                 onChange={(e) => setSelectedStateId(e.target.value)}
-                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1 shadow-xs focus:ring-2 focus:ring-indigo-500"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 150 }}
               >
                 {(states || []).map(s => (
                   <option key={s.id} value={String(s.id)}>{s.name}</option>
                 ))}
               </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
+          </div>
 
-            {/* 2. Report Level Filter */}
-            <div className="flex items-center gap-1">
-              <span className="text-[11px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                <Layers className="w-3 h-3 text-indigo-600" /> Level:
-              </span>
+          {/* Level */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Level</label>
+            <div className="relative">
               <select
                 value={reportLevel}
                 onChange={(e) => setReportLevel(e.target.value as any)}
-                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1 shadow-xs focus:ring-2 focus:ring-indigo-500"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 120 }}
               >
                 <option value="District">District</option>
                 <option value="Block Units">Block Units</option>
               </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
+          </div>
 
-            {/* 3. District Filter (includes All, Kumaon, Garhwal, and individual districts) */}
-            <div className="flex items-center gap-1">
-              <span className="text-[11px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                <Filter className="w-3 h-3 text-indigo-600" /> District:
-              </span>
+          {/* District */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">District</label>
+            <div className="relative">
               <select
                 value={selectedDistrictId}
                 disabled={isDistrictUser}
                 onChange={(e) => setSelectedDistrictId(e.target.value)}
-                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2 py-1 shadow-xs focus:ring-2 focus:ring-indigo-500 disabled:opacity-75"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer disabled:opacity-75"
+                style={{ minWidth: 150 }}
               >
                 <option value="ALL">All Districts</option>
                 <option value="KUMAON">Kumaon Division</option>
@@ -362,268 +369,239 @@ export const ColdChainLocations: React.FC<{
                   <option key={d.id} value={String(d.id)}>{d.name}</option>
                 ))}
               </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
+          </div>
 
-            {/* 4. CCL Level Filter (L1, L2, L3) */}
-            <div className="flex items-center gap-1">
-              <span className="text-[11px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-indigo-600" /> CCL Level:
-              </span>
+          {/* CCL Level */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">CCL Level</label>
+            <div className="relative">
               <select
                 value={cclLevel}
                 onChange={(e) => setCclLevel(e.target.value)}
-                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2 py-1 shadow-xs focus:ring-2 focus:ring-indigo-500"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 140 }}
               >
                 <option value="ALL">All Levels</option>
                 <option value="1">Level 1 (SVS / RVS)</option>
                 <option value="2">Level 2 (DVS)</option>
                 <option value="3">Level 3 (CCP-B / Block CCP)</option>
               </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
+          </div>
 
-            {/* 5. CCL Unit Type Filter (SVS, RVS, DVS, CCP-B) */}
-            <div className="flex items-center gap-1">
-              <span className="text-[11px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                <Tag className="w-3 h-3 text-indigo-600" /> Unit Type:
-              </span>
+          {/* Unit Type */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Unit Type</label>
+            <div className="relative">
               <select
                 value={cclUnitType}
                 onChange={(e) => setCclUnitType(e.target.value)}
-                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2 py-1 shadow-xs focus:ring-2 focus:ring-indigo-500"
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 140 }}
               >
                 <option value="ALL">All Unit Types</option>
-                <option value="SVS">SVS (State Vaccine Store)</option>
+                <option value="SVS">SVS (State Store)</option>
                 <option value="RVS">RVS (Regional Store)</option>
                 <option value="DVS">DVS (District Store)</option>
-                <option value="CCP-B">CCP-B (Block Cold Chain)</option>
+                <option value="CCP-B">CCP-B (Block CCP)</option>
               </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
-
           </div>
 
-          {/* Search Box */}
-          <div className="relative min-w-[200px] flex-1 sm:flex-none">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          {/* Filter Action */}
+          <button
+            onClick={fetchLocations}
+            disabled={loading}
+            style={{ height: 36, borderRadius: 8, minWidth: 150 }}
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+          >
+            {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
+            {loading ? 'Loading...' : 'Filter Facilities'}
+          </button>
+        </div>
+      </div>
+
+      {/* ── KPI Cards ──────────────────────────────────────────────── */}
+      {!isExpanded && (
+        <div className="shrink-0 p-1">
+          <div className="flex items-center justify-between mb-1.5 px-1">
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-purple-600" />
+              <span className="text-xs font-bold text-slate-700">{selectedStateName}</span>
+              <span className="text-[10px] text-slate-400">— Cold Chain Storage Network</span>
+            </div>
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+              Current Date: {currentDateFormatted}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5">
+            <KpiCard loading={loading} icon={<Building2 className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
+              label="Total Cold Chain Points" value={kpis.total.toLocaleString('en-IN')} valueColor="text-purple-700"
+              subLabel="Active facilities" />
+            <KpiCard loading={loading} icon={<ShieldCheck className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
+              label="Level 1 (SVS / RVS)" value={kpis.l1.toLocaleString('en-IN')} valueColor="text-purple-700"
+              subLabel="State & Regional Stores" />
+            <KpiCard loading={loading} icon={<MapPin className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
+              label="Level 2 (DVS)" value={kpis.l2.toLocaleString('en-IN')} valueColor="text-blue-700"
+              subLabel="District Vaccine Stores" />
+            <KpiCard loading={loading} icon={<Layers className="w-4 h-4 text-emerald-600" />} iconBg="bg-emerald-50"
+              label="Level 3 (CCP-B)" value={kpis.l3.toLocaleString('en-IN')} valueColor="text-emerald-700"
+              subLabel="Block Cold Chain Points" />
+          </div>
+        </div>
+      )}
+
+      {/* ── Data Table Container ───────────────────────────────────── */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-0 overflow-hidden">
+        {/* Table toolbar */}
+        <div className="px-4 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2">
+            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs font-bold text-slate-700">
+              {filteredRecords.length} Cold Chain Facility{filteredRecords.length !== 1 ? 'ies' : ''}
+            </span>
+          </div>
+
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider transition-colors mx-auto cursor-pointer"
+          >
+            {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            {isExpanded ? 'Collapse Table' : 'Expand Table'}
+          </button>
+
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
             <input
               type="text"
               placeholder="Search CCL ID or facility..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500"
+              className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400"
+              style={{ width: 220 }}
             />
           </div>
         </div>
-      </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 p-3 sm:p-4 bg-slate-100 flex flex-col min-h-0 overflow-auto">
-        
-        {/* KPI SUMMARY CARDS */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3 shrink-0">
-          {/* Card 1: Total Locations */}
-          <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Cold Chain Points</p>
-              <h3 className="text-xl font-black text-slate-900 mt-0.5">{kpis.total.toLocaleString('en-IN')}</h3>
-              <p className="text-[10px] font-semibold text-indigo-600 mt-0.5">Active facilities</p>
-            </div>
-            <div className="p-2.5 bg-indigo-50 rounded-xl border border-indigo-100">
-              <Building2 className="w-5 h-5 text-indigo-600" />
-            </div>
-          </div>
+        {/* Table Body */}
+        <div className="overflow-auto flex-1 min-h-0">
+          <table className="w-full" style={{ fontSize: '11px' }}>
+            <thead className="sticky top-0 z-10">
+              <tr className="gradient-header text-white">
+                <th className="px-2.5 py-2 text-center font-bold uppercase tracking-wide w-12 border-b border-purple-900/40">S.No</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-purple-900/40">CCL ID</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-purple-900/40" style={{ minWidth: 180 }}>Name of Facility</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Unit Type</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-purple-900/40">Block / District</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">CCL Block HQ</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-purple-900/40">Incharge</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Level</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-purple-900/40">Health Facility Type</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-purple-900/40">Setting</th>
+              </tr>
+            </thead>
 
-          {/* Card 2: Level 1 (SVS / RVS) */}
-          <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Level 1 (SVS / RVS)</p>
-              <h3 className="text-xl font-black text-purple-700 mt-0.5">{kpis.l1.toLocaleString('en-IN')}</h3>
-              <p className="text-[10px] font-semibold text-purple-600 mt-0.5">State & Regional Stores</p>
-            </div>
-            <div className="p-2.5 bg-purple-50 rounded-xl border border-purple-100">
-              <ShieldCheck className="w-5 h-5 text-purple-600" />
-            </div>
-          </div>
+            <tbody>
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse border-b border-slate-100">
+                    <td colSpan={10} className="px-3 py-2.5"><div className="h-4 bg-slate-200 rounded w-full" /></td>
+                  </tr>
+                ))
+              ) : error ? (
+                <tr>
+                  <td colSpan={10} className="py-12 text-center text-red-500 font-bold">
+                    {error}
+                  </td>
+                </tr>
+              ) : filteredRecords.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="py-16 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <Building2 className="w-10 h-10 text-slate-300" />
+                      <p className="text-slate-400 font-semibold text-sm">No cold chain points match your selected filters.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                paginatedRows.map((row, idx) => {
+                  const serialNo = (page - 1) * pageSize + idx + 1;
+                  const blockName = row.blocks?.health_block_name || row.blocks?.name || '—';
+                  const districtName = row.districts?.name || '—';
+                  const isHq = row.ccl_block_hq_yes === 'Yes' || row.ccl_block_hq_yes === true || row.ccl_block_hq_yes === 1 || String(row.ccl_block_hq_yes).toLowerCase() === 'yes';
+                  const isEven = idx % 2 === 0;
+                  const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
 
-          {/* Card 3: Level 2 (DVS) */}
-          <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Level 2 (DVS)</p>
-              <h3 className="text-xl font-black text-blue-700 mt-0.5">{kpis.l2.toLocaleString('en-IN')}</h3>
-              <p className="text-[10px] font-semibold text-blue-600 mt-0.5">District Vaccine Stores</p>
-            </div>
-            <div className="p-2.5 bg-blue-50 rounded-xl border border-blue-100">
-              <MapPin className="w-5 h-5 text-blue-600" />
-            </div>
-          </div>
-
-          {/* Card 4: Level 3 (CCP-B) */}
-          <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Level 3 (CCP-B)</p>
-              <h3 className="text-xl font-black text-emerald-700 mt-0.5">{kpis.l3.toLocaleString('en-IN')}</h3>
-              <p className="text-[10px] font-semibold text-emerald-600 mt-0.5">Block Cold Chain Points</p>
-            </div>
-            <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-100">
-              <Layers className="w-5 h-5 text-emerald-600" />
-            </div>
-          </div>
+                  return (
+                    <tr key={row.id || idx} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
+                      <td className="px-2.5 py-2 text-center font-bold text-slate-400">{serialNo}</td>
+                      <td className="px-3 py-2 font-bold text-indigo-900 whitespace-nowrap">
+                        <span className="bg-indigo-50 text-indigo-800 px-2 py-0.5 rounded border border-indigo-200 font-mono text-[10px]">
+                          {row.ccl_id || '—'}
+                        </span>
+                      </td>
+                      <td className={`px-3 py-2 font-bold text-slate-900 text-xs sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>
+                        {row.facility_name || '—'}
+                      </td>
+                      <td className="px-3 py-2 text-center whitespace-nowrap">
+                        {row.unit_type === 'SVS' ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-100 text-purple-800 border border-purple-300">SVS</span>
+                        ) : row.unit_type === 'RVS' ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-100 text-blue-800 border border-blue-300">RVS</span>
+                        ) : row.unit_type === 'DVS' ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-100 text-indigo-800 border border-indigo-300">DVS</span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">{row.unit_type || 'CCP-B'}</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="font-bold text-slate-900 text-xs">{blockName}</div>
+                        <div className="text-[10px] font-semibold text-slate-400">{districtName}</div>
+                      </td>
+                      <td className="px-3 py-2 text-center whitespace-nowrap">
+                        {isHq ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">Yes</span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-medium bg-slate-100 text-slate-600 border border-slate-300">No</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="font-bold text-slate-800">{row.name_of_unit_incharge || '—'}</div>
+                        {row.contact_number && <div className="text-[10px] font-medium text-slate-400">Ph: {row.contact_number}</div>}
+                      </td>
+                      <td className="px-3 py-2 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-extrabold bg-slate-100 text-slate-800 border border-slate-300">
+                          Level {row.unit_level || '—'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 font-medium text-slate-700 whitespace-nowrap">{row.health_facility_type || '—'}</td>
+                      <td className="px-3 py-2 font-medium text-slate-700 whitespace-nowrap">{row.setting || '—'}</td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* TABLE CONTAINER */}
-        <div className="flex-1 bg-white rounded-xl shadow-xs border border-slate-200 flex flex-col min-h-0 overflow-hidden">
-          
-          {loading ? (
-            <div className="flex flex-col items-center justify-center flex-1 p-12 text-slate-500">
-              <div className="w-8 h-8 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3" />
-              <p className="font-bold text-slate-700 text-sm">Loading Cold Chain Locations...</p>
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center flex-1 p-12 text-red-500">
-              <p className="font-bold text-sm">{error}</p>
-              <button
-                onClick={fetchLocations}
-                className="mt-3 px-3 py-1.5 bg-red-50 text-red-700 rounded-lg text-xs font-bold border border-red-200 hover:bg-red-100"
-              >
-                Retry Loading
-              </button>
-            </div>
-          ) : filteredRecords.length === 0 ? (
-            <div className="flex flex-col items-center justify-center flex-1 p-12 text-slate-500">
-              <Building2 className="w-10 h-10 mb-2 text-slate-300" />
-              <p className="font-bold text-slate-700 text-sm">No cold chain points match your selected filters</p>
-              <p className="text-xs text-slate-400 mt-0.5">Try adjusting the search query or level filters</p>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col justify-between overflow-x-auto overflow-y-auto">
-              <table className="w-full text-xs text-left border-collapse min-w-[950px]">
-                <thead className="bg-[#311054] text-white sticky top-0 z-10">
-                  <tr>
-                    <th className="px-3 py-3 text-[11px] font-bold text-center w-12 border-b border-purple-900/40">S.No</th>
-                    <th className="px-3 py-3 text-[11px] font-bold border-b border-purple-900/40">CCL ID</th>
-                    <th className="px-3 py-3 text-[11px] font-bold border-b border-purple-900/40">Name of Facility</th>
-                    <th className="px-3 py-3 text-[11px] font-bold text-center border-b border-purple-900/40">Unit Type</th>
-                    <th className="px-3 py-3 text-[11px] font-bold border-b border-purple-900/40">Block / District</th>
-                    <th className="px-3 py-3 text-[11px] font-bold text-center border-b border-purple-900/40">CCL Block HQ</th>
-                    <th className="px-3 py-3 text-[11px] font-bold border-b border-purple-900/40">Incharge</th>
-                    <th className="px-3 py-3 text-[11px] font-bold text-center border-b border-purple-900/40">Level</th>
-                    <th className="px-3 py-3 text-[11px] font-bold border-b border-purple-900/40">Health Facility Type</th>
-                    <th className="px-3 py-3 text-[11px] font-bold border-b border-purple-900/40">Setting</th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-slate-200">
-                  {paginatedRows.map((row, idx) => {
-                    const serialNo = (page - 1) * pageSize + idx + 1;
-                    const blockName = row.blocks?.health_block_name || row.blocks?.name || '—';
-                    const districtName = row.districts?.name || '—';
-                    const isHq = row.ccl_block_hq_yes === 'Yes' || row.ccl_block_hq_yes === true || row.ccl_block_hq_yes === 1 || String(row.ccl_block_hq_yes).toLowerCase() === 'yes';
-
-                    return (
-                      <tr key={row.id || idx} className="hover:bg-indigo-50/40 transition-colors">
-                        {/* 1. S.No */}
-                        <td className="px-3 py-2.5 text-center font-bold text-slate-500 text-[11px]">
-                          {serialNo}
-                        </td>
-
-                        {/* 2. CCL ID */}
-                        <td className="px-3 py-2.5 font-bold text-indigo-900 whitespace-nowrap text-[11px]">
-                          <span className="bg-indigo-50 text-indigo-800 px-2 py-0.5 rounded border border-indigo-200 font-mono">
-                            {row.ccl_id || '—'}
-                          </span>
-                        </td>
-
-                        {/* 3. Name of Facility */}
-                        <td className="px-3 py-2.5 font-black text-slate-900 text-xs">
-                          {row.facility_name || '—'}
-                        </td>
-
-                        {/* 4. Unit Type */}
-                        <td className="px-3 py-2.5 text-center whitespace-nowrap">
-                          {row.unit_type === 'SVS' ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-300">
-                              SVS
-                            </span>
-                          ) : row.unit_type === 'RVS' ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 border border-blue-300">
-                              RVS
-                            </span>
-                          ) : row.unit_type === 'DVS' ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-800 border border-indigo-300">
-                              DVS
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-                              {row.unit_type || 'CCP-B'}
-                            </span>
-                          )}
-                        </td>
-
-                        {/* 5. Block (District name below the block) */}
-                        <td className="px-3 py-2.5 whitespace-nowrap">
-                          <div className="font-bold text-slate-900 text-[11px]">{blockName}</div>
-                          <div className="text-[10px] font-semibold text-slate-400">{districtName}</div>
-                        </td>
-
-                        {/* 6. CCL Block HQ (Yes/No) */}
-                        <td className="px-3 py-2.5 text-center whitespace-nowrap">
-                          {isHq ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                              Yes
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-300">
-                              No
-                            </span>
-                          )}
-                        </td>
-
-                        {/* 7. Incharge */}
-                        <td className="px-3 py-2.5 whitespace-nowrap">
-                          <div className="font-bold text-slate-800 text-[11px]">{row.name_of_unit_incharge || '—'}</div>
-                          {row.contact_number && (
-                            <div className="text-[10px] font-medium text-slate-500">Ph: {row.contact_number}</div>
-                          )}
-                        </td>
-
-                        {/* 8. Level */}
-                        <td className="px-3 py-2.5 text-center whitespace-nowrap">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold bg-slate-100 text-slate-800 border border-slate-300">
-                            Level {row.unit_level || '—'}
-                          </span>
-                        </td>
-
-                        {/* 9. Health Facility Type */}
-                        <td className="px-3 py-2.5 font-medium text-slate-700 whitespace-nowrap text-[11px]">
-                          {row.health_facility_type || '—'}
-                        </td>
-
-                        {/* 10. Setting */}
-                        <td className="px-3 py-2.5 font-medium text-slate-700 whitespace-nowrap text-[11px]">
-                          {row.setting || '—'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* PAGINATION FOOTER */}
-          <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
-            <div className="text-xs font-semibold text-slate-600">
-              Showing <span className="font-bold text-slate-900">{filteredRecords.length > 0 ? (page - 1) * pageSize + 1 : 0}</span> to{' '}
-              <span className="font-bold text-slate-900">{Math.min(page * pageSize, filteredRecords.length)}</span> of{' '}
-              <span className="font-bold text-slate-900">{filteredRecords.length}</span> facilities
-            </div>
-
+        {/* Pagination Footer */}
+        {totalPages > 1 && (
+          <div className="px-4 py-2 border-t border-slate-100 flex items-center justify-between shrink-0">
+            <span className="text-[10px] text-slate-500 font-medium">
+              Showing {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, filteredRecords.length)} of {filteredRecords.length}
+            </span>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 mr-3">
-                <span className="text-xs text-slate-500 font-medium">Rows per page:</span>
+              <div className="flex items-center gap-1.5 mr-2">
+                <span className="text-[10px] text-slate-400 uppercase font-bold">Rows:</span>
                 <select
                   value={pageSize}
                   onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-                  className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded px-2 py-1"
+                  className="text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5"
                 >
                   <option value={15}>15</option>
                   <option value={25}>25</option>
@@ -632,27 +610,28 @@ export const ColdChainLocations: React.FC<{
                 </select>
               </div>
 
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="p-1.5 bg-white border border-slate-300 rounded-md text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-xs font-bold text-slate-800 px-2">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="p-1.5 bg-white border border-slate-300 rounded-md text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 transition-colors cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5 text-slate-600" />
+                </button>
+                <span className="text-xs font-extrabold text-slate-800 px-1.5">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 transition-colors cursor-pointer"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+                </button>
+              </div>
             </div>
           </div>
-
-        </div>
+        )}
       </div>
     </div>
   );
