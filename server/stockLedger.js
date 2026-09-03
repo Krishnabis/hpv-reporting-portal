@@ -42,29 +42,25 @@ export async function ensureMonthlyLedger(targetMonthStr, blocks, districtStores
             supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses').gte('transaction_date', twelveMonthsPriorStart).lte('transaction_date', prevMonthEnd).eq('transaction_type', 'RECEIVED').limit(100000),
             // 3. Transactions for CURRENT MONTH
             supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses').gte('transaction_date', targetMonthStart).lte('transaction_date', targetMonthEnd).limit(100000),
-            // 4. Daily reports (we need all history up to targetMonthEnd to compute max)
-            supabase.from('daily_reports').select('block_id, reporting_date, beneficiaries_vaccinated').lte('reporting_date', targetMonthEnd).limit(100000)
+            // 4. Daily reports (ordered by reporting_date DESC matching Dashboard logic)
+            supabase.from('daily_reports').select('block_id, reporting_date, beneficiaries_vaccinated').lte('reporting_date', targetMonthEnd).order('reporting_date', { ascending: false }).limit(100000)
         ]);
 
-        // Process Daily Reports into Max Cumulative logic
+        // Process Daily Reports matching Dashboard latest report logic
         const maxVaxThirteenMonths = {};
         const maxVaxPrevMonth = {};
         const maxVaxCurrentMonth = {};
 
         (dailyReports || []).forEach(r => {
             const b = r.block_id;
-            if (!maxVaxThirteenMonths[b]) maxVaxThirteenMonths[b] = 0;
-            if (!maxVaxPrevMonth[b]) maxVaxPrevMonth[b] = 0;
-            if (!maxVaxCurrentMonth[b]) maxVaxCurrentMonth[b] = 0;
-
-            if (r.reporting_date <= thirteenMonthsPriorEnd && r.beneficiaries_vaccinated > maxVaxThirteenMonths[b]) {
-                maxVaxThirteenMonths[b] = r.beneficiaries_vaccinated;
+            if (r.reporting_date <= thirteenMonthsPriorEnd && maxVaxThirteenMonths[b] === undefined) {
+                maxVaxThirteenMonths[b] = r.beneficiaries_vaccinated || 0;
             }
-            if (r.reporting_date <= prevMonthEnd && r.beneficiaries_vaccinated > maxVaxPrevMonth[b]) {
-                maxVaxPrevMonth[b] = r.beneficiaries_vaccinated;
+            if (r.reporting_date <= prevMonthEnd && maxVaxPrevMonth[b] === undefined) {
+                maxVaxPrevMonth[b] = r.beneficiaries_vaccinated || 0;
             }
-            if (r.reporting_date <= targetMonthEnd && r.beneficiaries_vaccinated > maxVaxCurrentMonth[b]) {
-                maxVaxCurrentMonth[b] = r.beneficiaries_vaccinated;
+            if (r.reporting_date <= targetMonthEnd && maxVaxCurrentMonth[b] === undefined) {
+                maxVaxCurrentMonth[b] = r.beneficiaries_vaccinated || 0;
             }
         });
 
