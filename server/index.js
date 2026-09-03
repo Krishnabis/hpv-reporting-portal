@@ -2552,7 +2552,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             const preMonthTotalCcp = facs.length;
             const preMonthReportingPct = preMonthTotalCcp > 0 ? (preMonthReportingCount / preMonthTotalCcp) * 100 : 0;
 
-            const vaxLast12Months = Math.max(0, (maxVaxCurrentMonth[block.id] || 0) - (maxVaxThirteenMonths[block.id] || 0));
+            const vaxLast12MonthsForOpening = Math.max(0, (maxVaxPrevMonth[block.id] || 0) - (maxVaxThirteenMonths[block.id] || 0));
             const vaxCurrentMonth = Math.max(0, (maxVaxCurrentMonth[block.id] || 0) - (maxVaxPrevMonth[block.id] || 0));
 
             let receivedLast12Months = 0;
@@ -2569,7 +2569,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 }
             });
 
-            const vaccineConsumedWastageFactor12M = Math.round(vaxLast12Months * 1.01);
+            const vaccineConsumedWastageFactor12M = Math.round(vaxLast12MonthsForOpening * 1.01);
             const openingStockCrudeMethod = Math.max(0, receivedLast12Months - vaccineConsumedWastageFactor12M);
 
             const estimationModel = preMonthReportingPct === 100 ? 'Reported Stock' : 'Crude Method';
@@ -2578,7 +2578,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             const vaccineConsumedCurrentMonth = Math.round(vaxCurrentMonth * 1.01);
             const closingStockEstimated = Math.max(0, openingStock + receivedCurrentMonth - vaccineConsumedCurrentMonth);
 
-            const stockAvailabilityPercentage = annualReq > 0 ? (openingStock / annualReq) * 100 : 0;
+            const stockAvailabilityPercentage = annualReq > 0 ? Math.round((closingStockEstimated / annualReq) * 100) : 0;
             
             let action = '—';
             if (annualReq > 0) {
@@ -2611,7 +2611,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 stock_availability_pct: stockAvailabilityPercentage,
                 action_required: action,
                 vaccine_received_last_12_months: receivedLast12Months,
-                vaccinations_last_12_months: vaxLast12Months,
+                vaccinations_last_12_months: vaxLast12MonthsForOpening,
                 entity_type: 'BLOCK'
             });
         });

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Download, AlertCircle, Info, Building2, MapPin, Filter, Calendar, Clock, Eye, EyeOff } from 'lucide-react';
+import { Download, AlertCircle, Info, Building2, MapPin, Filter, Calendar, Clock, FileText } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface ReportRow {
   id: string | number;
@@ -56,14 +58,13 @@ const ColumnHeader: React.FC<ColumnTooltipProps> = ({ title, tooltip, align = 'r
     : 'right-4';
 
   return (
-    <th className={`px-2.5 py-3 text-[11px] font-bold tracking-tight select-none group relative border-b border-purple-900/40 ${
+    <th className={`px-3 py-3 text-[11px] font-bold tracking-tight select-none group relative border-b border-purple-900/40 ${
       align === 'left' ? 'text-left' : align === 'center' ? 'text-center' : 'text-right'
     } ${highlight ? 'bg-purple-950/80 text-amber-200' : 'text-white/90'}`}>
       <div className={`inline-flex items-center gap-1 ${align === 'left' ? 'justify-start' : align === 'center' ? 'justify-center' : 'justify-end'} w-full`}>
         <span className="leading-snug">{title}</span>
         <div className="relative inline-block text-left shrink-0">
           <Info className="w-3.5 h-3.5 text-white/50 group-hover:text-amber-300 transition-colors cursor-help shrink-0" />
-          {/* TOOLTIP DROPS DOWN BELOW HEADER ROW (top-full mt-2) TO PREVENT TOP CLIPPING */}
           <div className={`pointer-events-none absolute top-full mt-2 hidden group-hover:block w-56 p-2.5 bg-slate-900 text-slate-100 text-[11px] font-normal leading-relaxed rounded-lg shadow-2xl border border-slate-700 z-50 transition-opacity duration-200 ${tooltipPosClass} text-left`}>
             {tooltip}
             <div className={`absolute bottom-full border-4 border-transparent border-b-slate-900 ${arrowPosClass}`} />
@@ -91,10 +92,7 @@ export const VaccineStockMonitoringReport: React.FC<{
   
   // Filter Controls
   const [selectedStateId, setSelectedStateId] = useState<string>('');
-  const [selectedDistrictId, setSelectedDistrictId] = useState<string>('ALL');
-  
-  // Toggle for hiding/showing 4 calculation side columns
-  const [showCalculationColumns, setShowCalculationColumns] = useState<boolean>(false);
+  const [selectedDistrictId] = useState<string>('ALL');
 
   // Reporting Month Selection
   const [selectedMonth, setSelectedMonth] = useState<string>(() => {
@@ -186,27 +184,10 @@ export const VaccineStockMonitoringReport: React.FC<{
     }
   }, [statesList, adminUser, selectedStateId]);
 
-  // Available Districts for the selected State
-  const availableDistricts = useMemo(() => {
-    if (!selectedStateId) return districtsList;
-    return districtsList.filter(d => !d.state_id || String(d.state_id) === String(selectedStateId));
-  }, [districtsList, selectedStateId]);
-
-  // Reset district filter when state changes
-  useEffect(() => {
-    setSelectedDistrictId('ALL');
-  }, [selectedStateId]);
-
   const selectedStateName = useMemo(() => {
     const found = statesList.find(s => String(s.id) === String(selectedStateId));
-    return found ? found.name : 'Selected State';
+    return found ? found.name : 'Uttarakhand';
   }, [statesList, selectedStateId]);
-
-  const selectedDistrictName = useMemo(() => {
-    if (selectedDistrictId === 'ALL') return 'All Districts';
-    const found = availableDistricts.find(d => String(d.id) === String(selectedDistrictId));
-    return found ? found.name : 'Selected District';
-  }, [availableDistricts, selectedDistrictId]);
 
   // Format selected month period string e.g. "September 2026"
   const formattedMonthPeriod = useMemo(() => {
@@ -256,7 +237,7 @@ export const VaccineStockMonitoringReport: React.FC<{
     return Math.round(val).toLocaleString('en-IN');
   };
 
-  // Process and calculate each row deterministically according to prompt logic
+  // Process and calculate each row deterministically
   const processedRows = useMemo(() => {
     const rawRows = selectedDistrictId === 'ALL'
       ? data
@@ -280,6 +261,7 @@ export const VaccineStockMonitoringReport: React.FC<{
       const is100PctReporting = reportingPct >= 100 || (totalCcp > 0 && reportingCount === totalCcp);
       const estimationModel = is100PctReporting ? 'Reported Stock' : 'Crude Method';
 
+      // Opening stock is FIXED for the current month
       const openingStock = is100PctReporting && reportedStock !== null ? reportedStock : openingStockCrude;
 
       const vaccineReceived = row.vaccine_received || 0;
@@ -397,35 +379,20 @@ export const VaccineStockMonitoringReport: React.FC<{
       'Action'
     ];
 
-    if (showCalculationColumns) {
-      headers.push(
-        'Vaccine Received Last 12 Months (since the selected date)',
-        'Vaccinations Last 12 Months (since the selected date)',
-        'Vaccine Consumed (Wastage Factor) 1.01',
-        'Opening Stock * Crude Method'
-      );
-    }
-
-    const rows = processedRows.map(r => {
-      const rowArr = [
-        `"${r.monthPeriod}"`,
-        `"${r.name || r.district}"`,
-        r.annualReq,
-        `"${Math.round(r.reportingPct)}% (${r.reportingCount}/${r.totalCcp})"`,
-        r.reportedStock != null ? r.reportedStock : '—',
-        r.openingStockCrude,
-        r.vaccineReceived,
-        r.vaccinations,
-        r.closingStockEstimated,
-        `"${r.estimationModel}"`,
-        `"${r.stockAvailabilityPct}%"`,
-        `"${r.actionCategory}"`
-      ];
-      if (showCalculationColumns) {
-        rowArr.push(r.received12M, r.vax12M, r.vaccineConsumedWastage12M, r.crudeOpeningFormulaValue);
-      }
-      return rowArr;
-    });
+    const rows = processedRows.map(r => [
+      `"${r.monthPeriod}"`,
+      `"${r.name || r.district}"`,
+      r.annualReq,
+      `"${Math.round(r.reportingPct)}% (${r.reportingCount}/${r.totalCcp})"`,
+      r.reportedStock != null ? r.reportedStock : '—',
+      r.openingStockCrude,
+      r.vaccineReceived,
+      r.vaccinations,
+      r.closingStockEstimated,
+      `"${r.estimationModel}"`,
+      `"${r.stockAvailabilityPct}%"`,
+      `"${r.actionCategory}"`
+    ]);
 
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -435,11 +402,91 @@ export const VaccineStockMonitoringReport: React.FC<{
     link.click();
   };
 
+  // EXPORT PDF HANDLER
+  const downloadPDF = () => {
+    const doc = new jsPDF('landscape', 'mm', 'a4');
+
+    // PDF Title & Subheader
+    doc.setFontSize(15);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(49, 16, 84);
+    doc.text(`Vaccine Stock & Availability Report - ${selectedStateName}`, 14, 15);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Reporting Period: ${formattedMonthPeriod}  |  Generated Date: ${currentDateFormatted}`, 14, 22);
+
+    const tableHeaders = [[
+      'Period',
+      'Site / District',
+      'Annual Req.',
+      'Pre. Reporting',
+      'Opening (Reported)',
+      'Opening (Crude)',
+      'Received',
+      'Vaccinations',
+      'Closing (Est.)',
+      'Model',
+      'Avail (%)',
+      'Action'
+    ]];
+
+    const tableRows = processedRows.map(r => [
+      r.monthPeriod,
+      r.name || r.district,
+      fmt(r.annualReq),
+      `${Math.round(r.reportingPct)}% (${r.reportingCount}/${r.totalCcp})`,
+      r.reportedStock != null ? fmt(r.reportedStock) : '—',
+      fmt(r.openingStockCrude),
+      fmt(r.vaccineReceived),
+      fmt(r.vaccinations),
+      fmt(r.closingStockEstimated),
+      r.estimationModel,
+      `${r.stockAvailabilityPct}%`,
+      r.actionCategory
+    ]);
+
+    // Total row
+    tableRows.push([
+      'Total',
+      `${selectedStateName} Summary`,
+      fmt(aggregateTotals.annualReq),
+      `${Math.round(aggregateTotals.overallReportingPct)}% (${aggregateTotals.reportingCount}/${aggregateTotals.totalCcp})`,
+      fmt(aggregateTotals.reportedStock),
+      fmt(aggregateTotals.openingStockCrude),
+      fmt(aggregateTotals.vaccineReceived),
+      fmt(aggregateTotals.vaccinations),
+      fmt(aggregateTotals.closingStock),
+      '—',
+      `${aggregateTotals.overallAvailability}%`,
+      aggregateTotals.overallAction
+    ]);
+
+    autoTable(doc, {
+      head: tableHeaders,
+      body: tableRows,
+      startY: 26,
+      styles: { fontSize: 8, cellPadding: 2.5, halign: 'right' },
+      columnStyles: {
+        0: { halign: 'left' },
+        1: { halign: 'left', fontStyle: 'bold' },
+        9: { halign: 'center' },
+        11: { halign: 'center', fontStyle: 'bold' }
+      },
+      headStyles: { fillColor: [49, 16, 84], textColor: 255, fontStyle: 'bold', halign: 'center' },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      theme: 'grid'
+    });
+
+    doc.save(`Vaccine_Stock_Report_${selectedStateName.replace(/\s+/g, '_')}_${selectedMonth}.pdf`);
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-50 relative overflow-hidden">
-      {/* Top Section Header & Current Date Display */}
+      {/* Top Section Header */}
       <div className="bg-white border-b border-slate-200 shadow-xs z-20 shrink-0">
-        <div className="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <Building2 className="w-5 h-5 text-indigo-600 shrink-0" />
@@ -455,16 +502,17 @@ export const VaccineStockMonitoringReport: React.FC<{
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* Toggle calculation columns button */}
+            {/* EXPORT PDF BUTTON */}
             <button
-              onClick={() => setShowCalculationColumns(!showCalculationColumns)}
-              className="flex items-center gap-1.5 bg-slate-100 border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors"
-              title={showCalculationColumns ? "Hide 12-month calculation columns" : "Show 12-month calculation columns"}
+              onClick={downloadPDF}
+              disabled={processedRows.length === 0}
+              className="flex items-center gap-1.5 bg-white border border-slate-300 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-xs hover:bg-slate-50 transition-colors disabled:opacity-50"
             >
-              {showCalculationColumns ? <EyeOff className="w-3.5 h-3.5 text-slate-600" /> : <Eye className="w-3.5 h-3.5 text-indigo-600" />}
-              <span>{showCalculationColumns ? "Hide 12M Side Columns" : "Show 12M Side Columns"}</span>
+              <FileText className="w-3.5 h-3.5 text-red-600" />
+              Export PDF
             </button>
 
+            {/* EXPORT CSV BUTTON */}
             <button
               onClick={downloadCSV}
               disabled={processedRows.length === 0}
@@ -476,10 +524,10 @@ export const VaccineStockMonitoringReport: React.FC<{
           </div>
         </div>
 
-        {/* TOP FILTER BAR: MONTH/PERIOD, STATE, AND DISTRICT SELECTORS */}
+        {/* TOP FILTER BAR: SINGLE PERIOD SELECTOR FILTER FOR UTTARAKHAND */}
         <div className="px-5 py-2.5 bg-slate-100/80 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            {/* 1. Month / Period Selector Filter */}
+            {/* Period / Month Selector Filter */}
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5 text-indigo-600" /> Period:
@@ -494,52 +542,15 @@ export const VaccineStockMonitoringReport: React.FC<{
                 ))}
               </select>
             </div>
-
-            {/* 2. State Filter */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-indigo-600" /> State:
-              </span>
-              <select
-                value={selectedStateId}
-                onChange={(e) => setSelectedStateId(e.target.value)}
-                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-w-[150px]"
-              >
-                {statesList.map(s => (
-                  <option key={s.id} value={String(s.id)}>{s.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* 3. District Filter */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                <Filter className="w-3.5 h-3.5 text-indigo-600" /> District:
-              </span>
-              <select
-                value={selectedDistrictId}
-                onChange={(e) => setSelectedDistrictId(e.target.value)}
-                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-w-[150px]"
-              >
-                <option value="ALL">All Districts</option>
-                {availableDistricts.map(d => (
-                  <option key={d.id} value={String(d.id)}>{d.name}</option>
-                ))}
-              </select>
-            </div>
           </div>
 
           <div className="text-[11px] font-semibold text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-md">
-            {selectedDistrictId === 'ALL' ? (
-              <>Showing districts for: <span className="font-bold text-indigo-700">{selectedStateName}</span> ({formattedMonthPeriod})</>
-            ) : (
-              <>Showing district: <span className="font-bold text-indigo-700">{selectedDistrictName}, {selectedStateName}</span> ({formattedMonthPeriod})</>
-            )}
+            State: <span className="font-bold text-indigo-700">{selectedStateName}</span> ({formattedMonthPeriod})
           </div>
         </div>
       </div>
 
-      {/* Main Content Area - SINGLE SCREEN FIT WITHOUT SLIDERS */}
+      {/* Main Content Area - STRETCHES TO FILL FULL CARD HEIGHT */}
       <div className="flex-1 p-3 sm:p-4 bg-slate-100 flex flex-col min-h-0 overflow-hidden">
         <div className="h-full bg-white rounded-xl shadow-xs border border-slate-200 flex flex-col overflow-hidden">
           
@@ -564,13 +575,13 @@ export const VaccineStockMonitoringReport: React.FC<{
             <div className="flex flex-col items-center justify-center flex-1 p-12 text-slate-500">
               <Building2 className="w-10 h-10 mb-2 text-slate-300" />
               <p className="font-bold text-slate-700 text-sm">No district data found for the selected filters</p>
-              <p className="text-xs text-slate-400 mt-0.5">Please select another district, state, or month from above</p>
+              <p className="text-xs text-slate-400 mt-0.5">Please select another month from above</p>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col justify-between overflow-hidden">
-              <table className="w-full text-xs text-left border-collapse table-auto">
-                <thead className="bg-[#311054] text-white">
-                  <tr>
+            <div className="flex-1 flex flex-col justify-between overflow-hidden h-full">
+              <table className="w-full text-xs text-left border-collapse table-auto flex-1 flex flex-col justify-between h-full">
+                <thead className="bg-[#311054] text-white shrink-0">
+                  <tr className="flex w-full">
                     <ColumnHeader 
                       title="Selected Month Period" 
                       tooltip="The month and year for which this stock availability report is calculated."
@@ -578,7 +589,7 @@ export const VaccineStockMonitoringReport: React.FC<{
                     />
                     <ColumnHeader 
                       title="Site / District" 
-                      tooltip="Name of the district unit within the selected State."
+                      tooltip="Name of the district unit within Uttarakhand."
                       align="left"
                       highlight={true}
                     />
@@ -589,18 +600,15 @@ export const VaccineStockMonitoringReport: React.FC<{
                     />
                     <ColumnHeader 
                       title="Pre. Month-end Reporting (%)" 
-                      tooltip="Percentage of expected reporting units that submitted the previous month's month-end stock report. Formula: (Submitted Units / Total Expected Units) x 100."
+                      tooltip="Percentage of expected reporting units that submitted the previous month's month-end stock report."
                       align="right"
                       highlight={true}
                     />
-
-                    {/* UPDATED COLUMN HEADER NAME 1: Opening Stock (Reported) */}
                     <ColumnHeader 
                       title="Opening Stock (Reported)" 
-                      tooltip="Actual reported stock from previous month-end reports. Used as primary opening stock ONLY when previous month reporting is 100%."
+                      tooltip="Actual reported stock from previous month-end reports. Fixed for the current month."
                       align="right"
                     />
-
                     <ColumnHeader 
                       title="Opening Stock (Crude Estimate)" 
                       tooltip="Calculated crude opening stock formula: (Vaccine Received Last 12 Months) - (Vaccinations Last 12 Months with 1.01 wastage factor)."
@@ -612,14 +620,11 @@ export const VaccineStockMonitoringReport: React.FC<{
                       tooltip="Vaccine doses received in the unit during the selected month."
                       align="right"
                     />
-
-                    {/* UPDATED COLUMN HEADER NAME 2: Vaccinations (This Month) */}
                     <ColumnHeader 
                       title="Vaccinations (This Month)" 
                       tooltip="Total vaccinations performed in the unit during the selected month."
                       align="right"
                     />
-
                     <ColumnHeader 
                       title="Closing Stock (Estimated)" 
                       tooltip="Estimated closing stock at month end. Formula: Opening Stock + Vaccine Received - (Vaccinations x 1.01)."
@@ -628,71 +633,45 @@ export const VaccineStockMonitoringReport: React.FC<{
                     />
                     <ColumnHeader 
                       title="Estimation Model" 
-                      tooltip="Methodology used to determine Opening Stock. Displays 'Reported Stock' if previous month reporting is 100%, otherwise 'Crude Method'."
+                      tooltip="Methodology used to determine Opening Stock."
                       align="center"
                       highlight={true}
                     />
                     <ColumnHeader 
                       title="Stock Availability (%)" 
-                      tooltip="Stock availability percentage measured against annual requirement. Formula: (Closing Stock / Annual Requirement) x 100."
+                      tooltip="Stock availability percentage measured against annual requirement."
                       align="right"
                       highlight={true}
                     />
                     <ColumnHeader 
                       title="Action" 
-                      tooltip="Recommended stock status action based on Stock Availability percentage: Adequate (>=50%), Monitor (25-49%), Replenish (10-24%), Critical (<10%)."
+                      tooltip="Recommended stock status action based on Stock Availability percentage."
                       align="center"
                       highlight={true}
                     />
-
-                    {/* 4 SIDE CALCULATION COLUMNS (HIDDEN BY DEFAULT TO FIT ALL COLUMNS ON ONE SCREEN) */}
-                    {showCalculationColumns && (
-                      <>
-                        <ColumnHeader 
-                          title="Vaccine Received Last 12 Months (since date)" 
-                          tooltip="Total vaccine doses received over the rolling 12-month period ending at the selected date."
-                          align="right"
-                        />
-                        <ColumnHeader 
-                          title="Vaccinations Last 12 Months (since date)" 
-                          tooltip="Total vaccinations recorded over the rolling 12-month period ending at the selected date."
-                          align="right"
-                        />
-                        <ColumnHeader 
-                          title="Vaccine Consumed (Wastage 1.01)" 
-                          tooltip="Vaccine consumed over last 12 months calculated with 1.01 wastage factor."
-                          align="right"
-                        />
-                        <ColumnHeader 
-                          title="Opening Stock * Crude Method" 
-                          tooltip="Exposed crude opening stock calculation: Vaccine Received Last 12 Months - ROUND(Vaccinations Last 12 Months x 1.01)."
-                          align="right"
-                        />
-                      </>
-                    )}
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-200 flex-1 flex flex-col justify-between">
                   {processedRows.map((row, idx) => (
-                    <tr key={row.id || idx} className="hover:bg-indigo-50/40 transition-colors">
+                    <tr key={row.id || idx} className="hover:bg-indigo-50/40 transition-colors flex w-full items-center">
                       {/* 1. Selected Month Period */}
-                      <td className="px-2.5 py-1.5 font-medium text-slate-600 whitespace-nowrap text-[11px]">
+                      <td className="px-3 py-2.5 font-medium text-slate-600 whitespace-nowrap text-[11px] flex-1">
                         {row.monthPeriod}
                       </td>
 
                       {/* 2. Site / District */}
-                      <td className="px-2.5 py-1.5 font-bold text-slate-900 whitespace-nowrap text-xs">
+                      <td className="px-3 py-2.5 font-bold text-slate-900 whitespace-nowrap text-xs flex-1">
                         <span>{row.name || row.district}</span>
                       </td>
 
                       {/* 3. Annual Requirement (Doses) */}
-                      <td className="px-2.5 py-1.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px]">
+                      <td className="px-3 py-2.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
                         {fmt(row.annualReq)}
                       </td>
 
                       {/* 4. Pre. Month-end Reporting (%) */}
-                      <td className="px-2.5 py-1.5 text-right font-bold whitespace-nowrap text-[11px]">
+                      <td className="px-3 py-2.5 text-right font-bold whitespace-nowrap text-[11px] flex-1">
                         <span className={row.reportingPct >= 100 ? 'text-emerald-700 font-black' : 'text-amber-700'}>
                           {Math.round(row.reportingPct)}%
                         </span>
@@ -702,32 +681,32 @@ export const VaccineStockMonitoringReport: React.FC<{
                       </td>
 
                       {/* 5. Opening Stock (Reported) */}
-                      <td className="px-2.5 py-1.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px]">
+                      <td className="px-3 py-2.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
                         {row.reportedStock != null ? fmt(row.reportedStock) : '—'}
                       </td>
 
                       {/* 6. Opening Stock (Crude Estimate) */}
-                      <td className="px-2.5 py-1.5 text-right font-bold text-orange-600 whitespace-nowrap text-[11px]">
+                      <td className="px-3 py-2.5 text-right font-bold text-orange-600 whitespace-nowrap text-[11px] flex-1">
                         {fmt(row.openingStockCrude)}
                       </td>
 
                       {/* 7. Vaccine Received */}
-                      <td className="px-2.5 py-1.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px]">
+                      <td className="px-3 py-2.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
                         {fmt(row.vaccineReceived)}
                       </td>
 
                       {/* 8. Vaccinations (This Month) */}
-                      <td className="px-2.5 py-1.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px]">
+                      <td className="px-3 py-2.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
                         {fmt(row.vaccinations)}
                       </td>
 
                       {/* 9. Closing Stock (Estimated) */}
-                      <td className="px-2.5 py-1.5 text-right font-black text-indigo-700 bg-indigo-50/50 whitespace-nowrap text-[11px]">
+                      <td className="px-3 py-2.5 text-right font-black text-indigo-700 bg-indigo-50/50 whitespace-nowrap text-[11px] flex-1">
                         {fmt(row.closingStockEstimated)}
                       </td>
 
                       {/* 10. Estimation Model */}
-                      <td className="px-2.5 py-1.5 text-center whitespace-nowrap">
+                      <td className="px-3 py-2.5 text-center whitespace-nowrap flex-1">
                         {row.estimationModel === 'Reported Stock' ? (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
                             Reported Stock
@@ -740,12 +719,12 @@ export const VaccineStockMonitoringReport: React.FC<{
                       </td>
 
                       {/* 11. Stock Availability (%) */}
-                      <td className="px-2.5 py-1.5 text-right font-black text-slate-900 bg-slate-50/80 whitespace-nowrap text-[11px]">
+                      <td className="px-3 py-2.5 text-right font-black text-slate-900 bg-slate-50/80 whitespace-nowrap text-[11px] flex-1">
                         {row.annualReq > 0 ? `${row.stockAvailabilityPct}%` : '—'}
                       </td>
 
                       {/* 12. Action */}
-                      <td className="px-2.5 py-1.5 text-center whitespace-nowrap">
+                      <td className="px-3 py-2.5 text-center whitespace-nowrap flex-1">
                         {row.actionCategory === 'Critical' ? (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-red-100 text-red-800 border border-red-300">
                             Critical
@@ -766,45 +745,27 @@ export const VaccineStockMonitoringReport: React.FC<{
                           <span className="text-slate-400 font-medium">—</span>
                         )}
                       </td>
-
-                      {/* 4 SIDE CALCULATION COLUMNS (HIDDEN BY DEFAULT) */}
-                      {showCalculationColumns && (
-                        <>
-                          <td className="px-2.5 py-1.5 text-right font-semibold text-slate-600 whitespace-nowrap text-[11px]">
-                            {fmt(row.received12M)}
-                          </td>
-                          <td className="px-2.5 py-1.5 text-right font-semibold text-slate-600 whitespace-nowrap text-[11px]">
-                            {fmt(row.vax12M)}
-                          </td>
-                          <td className="px-2.5 py-1.5 text-right font-semibold text-slate-600 whitespace-nowrap text-[11px]">
-                            {fmt(row.vaccineConsumedWastage12M)}
-                          </td>
-                          <td className="px-2.5 py-1.5 text-right font-bold text-slate-800 whitespace-nowrap text-[11px]">
-                            {fmt(row.crudeOpeningFormulaValue)}
-                          </td>
-                        </>
-                      )}
                     </tr>
                   ))}
 
                   {/* Summary / Totals Row */}
-                  <tr className="bg-slate-200/90 font-black border-t-2 border-slate-300 text-slate-900">
-                    <td className="px-2.5 py-2 font-bold text-slate-700 text-[11px]">Total</td>
-                    <td className="px-2.5 py-2 font-black text-indigo-900 text-xs">
-                      {selectedDistrictId === 'ALL' ? `${selectedStateName} Summary` : `${selectedDistrictName}`}
+                  <tr className="bg-slate-200/90 font-black border-t-2 border-slate-300 text-slate-900 flex w-full items-center shrink-0">
+                    <td className="px-3 py-3 font-bold text-slate-700 text-[11px] flex-1">Total</td>
+                    <td className="px-3 py-3 font-black text-indigo-900 text-xs flex-1">
+                      {`${selectedStateName} Summary`}
                     </td>
-                    <td className="px-2.5 py-2 text-right text-[11px]">{fmt(aggregateTotals.annualReq)}</td>
-                    <td className="px-2.5 py-2 text-right text-indigo-900 text-[11px]">
+                    <td className="px-3 py-3 text-right text-[11px] flex-1">{fmt(aggregateTotals.annualReq)}</td>
+                    <td className="px-3 py-3 text-right text-indigo-900 text-[11px] flex-1">
                       {Math.round(aggregateTotals.overallReportingPct)}% ({aggregateTotals.reportingCount}/{aggregateTotals.totalCcp})
                     </td>
-                    <td className="px-2.5 py-2 text-right text-[11px]">{fmt(aggregateTotals.reportedStock)}</td>
-                    <td className="px-2.5 py-2 text-right text-orange-700 text-[11px]">{fmt(aggregateTotals.openingStockCrude)}</td>
-                    <td className="px-2.5 py-2 text-right text-[11px]">{fmt(aggregateTotals.vaccineReceived)}</td>
-                    <td className="px-2.5 py-2 text-right text-[11px]">{fmt(aggregateTotals.vaccinations)}</td>
-                    <td className="px-2.5 py-2 text-right text-indigo-800 text-[11px]">{fmt(aggregateTotals.closingStock)}</td>
-                    <td className="px-2.5 py-2 text-center text-slate-600 text-[11px]">—</td>
-                    <td className="px-2.5 py-2 text-right text-slate-900 text-[11px]">{aggregateTotals.overallAvailability}%</td>
-                    <td className="px-2.5 py-2 text-center">
+                    <td className="px-3 py-3 text-right text-[11px] flex-1">{fmt(aggregateTotals.reportedStock)}</td>
+                    <td className="px-3 py-3 text-right text-orange-700 text-[11px] flex-1">{fmt(aggregateTotals.openingStockCrude)}</td>
+                    <td className="px-3 py-3 text-right text-[11px] flex-1">{fmt(aggregateTotals.vaccineReceived)}</td>
+                    <td className="px-3 py-3 text-right text-[11px] flex-1">{fmt(aggregateTotals.vaccinations)}</td>
+                    <td className="px-3 py-3 text-right text-indigo-800 text-[11px] flex-1">{fmt(aggregateTotals.closingStock)}</td>
+                    <td className="px-3 py-3 text-center text-slate-600 text-[11px] flex-1">—</td>
+                    <td className="px-3 py-3 text-right text-slate-900 text-[11px] flex-1">{aggregateTotals.overallAvailability}%</td>
+                    <td className="px-3 py-3 text-center flex-1">
                       {aggregateTotals.overallAction === 'Critical' ? (
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-red-200 text-red-900">Critical</span>
                       ) : aggregateTotals.overallAction === 'Replenish' ? (
@@ -817,15 +778,6 @@ export const VaccineStockMonitoringReport: React.FC<{
                         <span className="text-slate-500">—</span>
                       )}
                     </td>
-
-                    {showCalculationColumns && (
-                      <>
-                        <td className="px-2.5 py-2 text-right text-[11px]">{fmt(aggregateTotals.received12M)}</td>
-                        <td className="px-2.5 py-2 text-right text-[11px]">{fmt(aggregateTotals.vax12M)}</td>
-                        <td className="px-2.5 py-2 text-right text-[11px]">{fmt(aggregateTotals.totalVaxConsumed12M)}</td>
-                        <td className="px-2.5 py-2 text-right text-[11px]">{fmt(aggregateTotals.openingStockCrude)}</td>
-                      </>
-                    )}
                   </tr>
                 </tbody>
               </table>
