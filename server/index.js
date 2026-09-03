@@ -2396,10 +2396,13 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             return res.json({ rows: [], kpis: { totalDvs: 0, totalCcp: 0 }, debugError: result.error });
         }
     } else {
-        const result = await ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap);
-        if (result && result.error) {
-            console.error('Ledger generation failed:', result.error);
-            throw new Error(`Ledger generation failed: ${result.error}`);
+        try {
+            const result = await ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap);
+            if (result && result.error) {
+                console.warn('Ledger generation warning:', result.error);
+            }
+        } catch (lErr) {
+            console.warn('Ledger generation error:', lErr);
         }
     }
 

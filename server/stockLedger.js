@@ -183,8 +183,8 @@ export async function ensureMonthlyLedger(targetMonthStr, blocks, districtStores
 
             // Total vaccinations across all blocks in this district from Dashboard data source
             let districtTotalVax12M = 0;
-            blocks.forEach(b => {
-                if (b.district_id === districtId) {
+            (blocks || []).forEach(b => {
+                if (b && String(b.district_id) === String(districtId)) {
                     districtTotalVax12M += Math.max(0, (maxVaxCurrentMonth[b.id] || 0) - (maxVaxThirteenMonths[b.id] || 0));
                 }
             });
