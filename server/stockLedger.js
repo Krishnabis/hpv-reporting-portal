@@ -181,11 +181,16 @@ export async function ensureMonthlyLedger(targetMonthStr, blocks, districtStores
                 }
             });
 
-            let issuedLast12Months = 0;
-            const { data: issuedLast12Data } = await supabase.from('vaccine_stock_transactions').select('quantity_doses').gte('transaction_date', twelveMonthsPriorStart).lte('transaction_date', prevMonthEnd).eq('transaction_type', 'ISSUED').eq('district_id', districtId).eq('level', '2').in('facility_id', facs);
-            (issuedLast12Data || []).forEach(t => { issuedLast12Months += t.quantity_doses; });
-            
-            const openingStockCrudeMethod = Math.max(0, receivedLast12Months - issuedLast12Months);
+            // Total vaccinations across all blocks in this district from Dashboard data source
+            let districtTotalVax12M = 0;
+            blocks.forEach(b => {
+                if (b.district_id === districtId) {
+                    districtTotalVax12M += Math.max(0, (maxVaxCurrentMonth[b.id] || 0) - (maxVaxThirteenMonths[b.id] || 0));
+                }
+            });
+
+            const districtTotalConsumed12M = Math.round(districtTotalVax12M * 1.01);
+            const openingStockCrudeMethod = Math.max(0, receivedLast12Months - districtTotalConsumed12M);
 
             const estimationModel = preMonthReportingPct === 100 ? 'Reported Value Method' : 'Crude Method';
             const openingStock = estimationModel === 'Reported Value Method' ? preMonthEndStockReported : openingStockCrudeMethod;
