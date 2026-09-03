@@ -2569,8 +2569,8 @@ export const AdminDashboard: React.FC = () => {
         {/* TAB: COLD CHAIN LOCATIONS */}
         <div className={(activeTab === 'cold-chain-locations' || activeTab === 'ccl-management') ? 'contents' : 'hidden'}>
           <ColdChainLocations 
-            states={states}
-            allDistricts={allDistricts}
+            states={statesList}
+            allDistricts={allDistrictsList}
             masterBlocks={masterBlocks}
             divisions={divisions}
             adminUser={adminUser}
@@ -2588,7 +2588,13 @@ export const AdminDashboard: React.FC = () => {
         {/* TAB: DAILY PROGRESS REPORT */}
         <div className={activeTab === 'daily-progress' ? 'contents' : 'hidden'}>
           <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
-            <DailyProgressReport adminUser={adminUser} />
+            <DailyProgressReport 
+              states={statesList}
+              allDistricts={allDistrictsList}
+              masterBlocks={masterBlocks}
+              divisions={divisions}
+              adminUser={adminUser}
+            />
           </div>
         </div>
 
@@ -2973,8 +2979,8 @@ export const AdminDashboard: React.FC = () => {
         {/* TAB 3: LOCATIONS MASTER */}
         <div className={activeTab === 'locations' ? 'contents' : 'hidden'}>
           <LocationMaster 
-            states={states}
-            allDistricts={allDistricts}
+            states={statesList}
+            allDistricts={allDistrictsList}
             masterBlocks={masterBlocks}
             divisions={divisions}
             adminUser={adminUser}
