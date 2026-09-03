@@ -164,6 +164,9 @@ app.get('/api/test/ccl', async (req, res) => {
     const { data, error } = await supabase
       .from('vaccine_ccp')
       .select('*, states(name), districts(name), blocks(name)')
+      .in('unit_level', ['1', '2', '3'])
+      .order('unit_level', { ascending: true })
+      .order('to_ccl', { ascending: true })
       .limit(1);
     if (error) throw error;
     res.json(data);
