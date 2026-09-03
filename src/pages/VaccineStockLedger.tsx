@@ -323,26 +323,42 @@ export const VaccineStockLedger: React.FC<{
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto">
-            <table className="w-full text-left border-collapse min-w-[1000px]">
-              <thead className="bg-[#4a148c] text-white sticky top-0 z-10 shadow-md">
-                <tr>
-                  <th className="px-4 py-3 text-xs font-bold tracking-wide">Date</th>
-                  <th className="px-4 py-3 text-xs font-bold tracking-wide">Type</th>
-                  <th className="px-4 py-3 text-xs font-bold tracking-wide">Batch No</th>
-                  {showManufacturer && <th className="px-4 py-3 text-xs font-bold tracking-wide">Manufacturer</th>}
-                  {showExpiry && <th className="px-4 py-3 text-xs font-bold tracking-wide">Expiry</th>}
-                  <th className="px-4 py-3 text-xs font-bold tracking-wide text-right">Quantity</th>
-                  <th className="px-4 py-3 text-xs font-bold tracking-wide">From (Source)</th>
-                  <th className="px-4 py-3 text-xs font-bold tracking-wide">To (Destination)</th>
-                  {matchedCcl && <th className="px-4 py-3 text-xs font-extrabold tracking-wide text-right bg-[#380e6b]">Running Balance</th>}
-                  <th className="px-4 py-3 text-xs font-bold tracking-wide">Remarks</th>
+          <div className="flex-1 overflow-auto bg-white rounded-b-xl border-t border-slate-200">
+            <table className="w-full text-left border-collapse min-w-[1200px]">
+              <thead className="bg-[#1e3a8a] text-white sticky top-0 z-10">
+                <tr className="text-left text-[11px] font-medium tracking-wide">
+                  <th className="px-3 py-3 border-r border-blue-800/50">CCL Name</th>
+                  <th className="px-3 py-3 border-r border-blue-800/50">
+                    <div className="flex items-center justify-between">Transaction Date <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
+                  </th>
+                  <th className="px-3 py-3 border-r border-blue-800/50">
+                    <div className="flex items-center justify-between">Transaction Type <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
+                  </th>
+                  <th className="px-3 py-3 border-r border-blue-800/50">Batch/Lot Number</th>
+                  {showManufacturer && <th className="px-3 py-3 border-r border-blue-800/50">Manufacturer Name</th>}
+                  {showExpiry && (
+                    <th className="px-3 py-3 border-r border-blue-800/50">
+                      <div className="flex items-center justify-between">Expiry <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
+                    </th>
+                  )}
+                  <th className="px-3 py-3 border-r border-blue-800/50 text-right">Transaction Quantity (Doses)</th>
+                  <th className="px-3 py-3 border-r border-blue-800/50">
+                    <div className="flex items-center justify-between">Transaction Facility Name <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
+                  </th>
+                  <th className="px-3 py-3 border-r border-blue-800/50 text-right">Physical Stock Count (Doses)</th>
+                  <th className="px-3 py-3 border-r border-blue-800/50 text-right">
+                    <div className="flex items-center justify-end">Wastage / Adjustment (Doses) <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
+                  </th>
+                  <th className="px-3 py-3 border-r border-blue-800/50 text-right">
+                    <div className="flex items-center justify-end">Closing Stock Balance (Doses) <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
+                  </th>
+                  <th className="px-3 py-3">Remarks</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-slate-200 bg-white">
                 {transactionsWithBalance.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="p-12 text-center text-slate-500">
+                    <td colSpan={12} className="p-12 text-center text-slate-500 border-x border-b border-slate-200">
                       <div className="flex flex-col items-center justify-center">
                         <FileText className="w-12 h-12 text-slate-300 mb-3" />
                         <p className="text-base font-bold text-slate-700">No transactions found</p>
@@ -350,50 +366,92 @@ export const VaccineStockLedger: React.FC<{
                       </div>
                     </td>
                   </tr>
-                ) : transactionsWithBalance.map((row: any) => (
-                  <tr key={row.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap">
-                      {new Date(row.transaction_date).toLocaleDateString('en-GB')}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wide ${
-                        row.transaction_type === 'Receive' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                      }`}>
-                        {row.transaction_type}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm font-bold text-[#4a148c] whitespace-nowrap">{row.batch_no}</td>
-                    {showManufacturer && <td className="px-4 py-3 text-xs font-medium text-slate-500">{row.manufacturer_name}</td>}
-                    {showExpiry && (
-                      <td className="px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap">
-                        {row.expiry_date && row.expiry_date !== '—' ? new Date(row.expiry_date).toLocaleDateString('en-GB') : '—'}
+                ) : transactionsWithBalance.map((row: any) => {
+                  let cclName = row.from_ccl;
+                  let facilityName = row.to_ccl;
+                  let txType = row.transaction_type;
+                  
+                  if (matchedCcl) {
+                    if (row.to_ccl_id === matchedCcl.ccl_id) {
+                        cclName = row.to_ccl;
+                        facilityName = row.from_ccl;
+                        txType = 'Receive';
+                    } else if (row.from_ccl_id === matchedCcl.ccl_id) {
+                        cclName = row.from_ccl;
+                        facilityName = row.to_ccl;
+                        txType = 'Issue';
+                    }
+                  } else {
+                    if (row.transaction_type === 'Receive' || !row.from_ccl_id) {
+                        cclName = row.to_ccl;
+                        facilityName = row.from_ccl;
+                    } else {
+                        cclName = row.from_ccl;
+                        facilityName = row.to_ccl;
+                    }
+                  }
+
+                  return (
+                    <tr key={row.id} className="hover:bg-slate-50 transition-colors group">
+                      <td className="px-3 py-2.5 text-[11px] font-bold text-slate-700 border-x border-slate-200 whitespace-nowrap">
+                        {cclName}
                       </td>
-                    )}
-                    <td className="px-4 py-3 text-right">
-                      <span className={`font-extrabold text-sm ${
-                        row.transaction_type === 'Receive' ? 'text-emerald-600' : 'text-amber-600'
-                      }`}>
-                        {row.transaction_type === 'Receive' ? '+' : ''}{fmt(row.transaction_quantity)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs font-semibold text-slate-600">{row.from_ccl}</td>
-                    <td className="px-4 py-3 text-xs font-semibold text-slate-600">{row.to_ccl}</td>
-                    
-                    {matchedCcl && (
-                      <td className="px-4 py-3 text-right bg-indigo-50/50">
-                        <span className={`font-extrabold ${
-                          row.computed_balance > 0 ? 'text-emerald-700' : row.computed_balance < 0 ? 'text-rose-700' : 'text-slate-500'
+                      <td className="px-3 py-2.5 text-[11px] font-semibold text-slate-600 border-r border-slate-200 whitespace-nowrap">
+                        {new Date(row.transaction_date).toLocaleDateString('en-GB')}
+                      </td>
+                      <td className="px-3 py-2.5 border-r border-slate-200">
+                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wide ${
+                          txType === 'Receive' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                         }`}>
-                          {fmt(row.computed_balance)}
+                          {txType}
                         </span>
                       </td>
-                    )}
-                    
-                    <td className="px-4 py-3 text-[10px] font-medium text-slate-500 italic max-w-[200px] truncate" title={row.remarks}>
-                      {row.remarks}
-                    </td>
-                  </tr>
-                ))}
+                      <td className="px-3 py-2.5 text-[11px] font-bold text-indigo-700 border-r border-slate-200 whitespace-nowrap">
+                        {row.batch_no}
+                      </td>
+                      {showManufacturer && (
+                        <td className="px-3 py-2.5 text-[11px] font-medium text-slate-500 border-r border-slate-200">
+                          {row.manufacturer_name}
+                        </td>
+                      )}
+                      {showExpiry && (
+                        <td className="px-3 py-2.5 text-[11px] font-medium text-slate-500 border-r border-slate-200 whitespace-nowrap">
+                          {row.expiry_date && row.expiry_date !== '—' ? new Date(row.expiry_date).toLocaleDateString('en-GB') : '—'}
+                        </td>
+                      )}
+                      <td className="px-3 py-2.5 text-[11px] text-right border-r border-slate-200">
+                        <span className={`font-bold ${
+                          txType === 'Receive' ? 'text-emerald-600' : 'text-amber-600'
+                        }`}>
+                          {txType === 'Receive' ? '+' : ''}{fmt(row.transaction_quantity)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 text-[11px] font-semibold text-slate-600 border-r border-slate-200 whitespace-nowrap">
+                        {facilityName}
+                      </td>
+                      <td className="px-3 py-2.5 text-[11px] text-right font-medium text-slate-400 border-r border-slate-200">
+                        —
+                      </td>
+                      <td className="px-3 py-2.5 text-[11px] text-right font-medium text-slate-400 border-r border-slate-200">
+                        —
+                      </td>
+                      <td className={`px-3 py-2.5 text-[11px] text-right border-r border-slate-200 ${matchedCcl ? 'bg-indigo-50/30' : ''}`}>
+                        {matchedCcl ? (
+                          <span className={`font-extrabold ${
+                            row.computed_balance > 0 ? 'text-emerald-700' : row.computed_balance < 0 ? 'text-rose-700' : 'text-slate-500'
+                          }`}>
+                            {fmt(row.computed_balance)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-300 font-medium">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 text-[10px] font-medium text-slate-500 italic max-w-[150px] truncate border-r border-slate-200" title={row.remarks}>
+                        {row.remarks}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
