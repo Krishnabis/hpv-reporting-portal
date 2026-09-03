@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Download, AlertCircle, Info, Building2, MapPin, Filter, Calendar, Clock, 
   FileText, RefreshCw, Maximize2, Minimize2, Search, ChevronDown, ChevronUp,
+  FileText, RefreshCw, Maximize2, Minimize2, Search, ChevronDown, ChevronUp,
   Package, ArrowDownRight, ArrowUpRight, Percent, Trash2, Box, Layers,
   SlidersHorizontal, CheckCircle2, ArrowUpDown, Target, BarChart3, PieChart, Activity,
-  Columns
+  Columns, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
 export interface LedgerTransactionRow {
@@ -99,6 +100,7 @@ export const VaccineStockLedger: React.FC<{
   const [loading, setLoading] = useState(false);
   const [searchCCL, setSearchCCL] = useState('');
   const [quickSearch, setQuickSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   
   const [showAdvanceSearch, setShowAdvanceSearch] = useState(false);
   const [showCclSummary, setShowCclSummary] = useState(true);
@@ -208,6 +210,18 @@ export const VaccineStockLedger: React.FC<{
       };
     });
   }, [filteredTransactions, matchedCcl]);
+
+  const ITEMS_PER_PAGE = 15;
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return transactionsWithBalance.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [transactionsWithBalance, currentPage]);
+
+  const totalPages = Math.ceil(transactionsWithBalance.length / ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [transactionsWithBalance]);
 
   return (
     <div className={`flex flex-col h-full bg-slate-50/50 ${isExpanded ? 'fixed inset-0 z-50 bg-slate-50 overflow-y-auto' : ''}`}>
@@ -351,8 +365,8 @@ export const VaccineStockLedger: React.FC<{
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto bg-white rounded-b-xl border-t border-slate-200">
-            <table className="w-full text-left border-collapse min-w-[1200px]">
+          <div className="flex-1 overflow-x-hidden bg-white rounded-t-xl border-t border-slate-200">
+            <table className="w-full text-left border-collapse table-fixed">
               <thead className="bg-[#1e3a8a] text-white sticky top-0 z-10">
                 <tr className="text-left text-[11px] font-medium tracking-wide">
                   <th className="px-3 py-3 border-r border-blue-800/50">CCL Name</th>
@@ -386,7 +400,7 @@ export const VaccineStockLedger: React.FC<{
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
-                {transactionsWithBalance.length === 0 ? (
+                {paginatedTransactions.length === 0 ? (
                   <tr>
                     <td colSpan={14} className="p-12 text-center text-slate-500 border-x border-b border-slate-200">
                       <div className="flex flex-col items-center justify-center">
@@ -396,7 +410,7 @@ export const VaccineStockLedger: React.FC<{
                       </div>
                     </td>
                   </tr>
-                ) : transactionsWithBalance.map((row: any) => {
+                ) : paginatedTransactions.map((row: any) => {
                   let cclName = row.from_ccl;
                   let cclId = row.from_ccl_id || '—';
                   let district = row.from_district || '—';
@@ -433,13 +447,13 @@ export const VaccineStockLedger: React.FC<{
 
                   return (
                     <tr key={row.id} className="hover:bg-slate-50 transition-colors group">
-                      <td className="px-3 py-2.5 text-[11px] font-bold text-slate-700 border-x border-slate-200 whitespace-nowrap">
+                      <td className="px-3 py-2.5 text-[11px] font-bold text-slate-700 border-x border-slate-200 break-words">
                         {cclName}
                       </td>
-                      <td className="px-3 py-2.5 text-[11px] font-medium text-slate-500 border-r border-slate-200 whitespace-nowrap">
+                      <td className="px-3 py-2.5 text-[11px] font-medium text-slate-500 border-r border-slate-200 break-words">
                         {cclId}
                       </td>
-                      <td className="px-3 py-2.5 text-[11px] font-medium text-slate-500 border-r border-slate-200 whitespace-nowrap">
+                      <td className="px-3 py-2.5 text-[11px] font-medium text-slate-500 border-r border-slate-200 break-words">
                         {district}
                       </td>
                       <td className="px-3 py-2.5 text-[11px] font-semibold text-slate-600 border-r border-slate-200 whitespace-nowrap">
@@ -472,7 +486,7 @@ export const VaccineStockLedger: React.FC<{
                           {txType === 'Receive' ? '+' : ''}{fmt(row.transaction_quantity)}
                         </span>
                       </td>
-                      <td className="px-3 py-2.5 text-[11px] font-semibold text-slate-600 border-r border-slate-200 whitespace-nowrap">
+                      <td className="px-3 py-2.5 text-[11px] font-semibold text-slate-600 border-r border-slate-200 break-words">
                         {facilityName}
                       </td>
                       <td className="px-3 py-2.5 text-[11px] text-right font-medium text-slate-400 border-r border-slate-200">
@@ -497,6 +511,54 @@ export const VaccineStockLedger: React.FC<{
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination */}
+          {transactionsWithBalance.length > 0 && (
+            <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-slate-200 rounded-b-xl">
+              <div className="text-sm text-slate-500 font-medium">
+                Showing <span className="font-bold text-slate-900">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-bold text-slate-900">{Math.min(currentPage * ITEMS_PER_PAGE, transactionsWithBalance.length)}</span> of <span className="font-bold text-slate-900">{transactionsWithBalance.length}</span> results
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    // Show a sliding window of pages
+                    let pageNum = i + 1;
+                    if (totalPages > 5 && currentPage > 3) {
+                      pageNum = currentPage - 2 + i;
+                      if (pageNum > totalPages) pageNum = totalPages - (4 - i);
+                    }
+                    return (
+                      <button 
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-8 h-8 flex items-center justify-center rounded text-sm font-bold transition-colors ${
+                          currentPage === pageNum 
+                            ? 'bg-indigo-600 text-white shadow-sm' 
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
