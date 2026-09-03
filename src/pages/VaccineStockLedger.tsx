@@ -44,7 +44,7 @@ const DEFAULT_TRANSACTIONS: LedgerTransactionRow[] = [
     transaction_date: '01/05/2025',
     transaction_type: 'Receive',
     batch_no: 'HPV250401',
-    manufacturer_name: 'Serum Institute of India',
+    manufacturer_name: 'Merck/MSD',
     expiry_date: '31/03/2027',
     transaction_quantity: 1000,
     facility_name: 'State Vaccine Store Lucknow (L1)',
@@ -61,7 +61,7 @@ const DEFAULT_TRANSACTIONS: LedgerTransactionRow[] = [
     transaction_date: '05/05/2025',
     transaction_type: 'Issue',
     batch_no: 'HPV250401',
-    manufacturer_name: 'Serum Institute of India',
+    manufacturer_name: 'Merck/MSD',
     expiry_date: '31/03/2027',
     transaction_quantity: -600,
     facility_name: 'CHC Alambagh (L3)',
@@ -78,7 +78,7 @@ const DEFAULT_TRANSACTIONS: LedgerTransactionRow[] = [
     transaction_date: '10/05/2025',
     transaction_type: 'Receive',
     batch_no: 'HPV250410',
-    manufacturer_name: 'Serum Institute of India',
+    manufacturer_name: 'Merck/MSD',
     expiry_date: '30/04/2027',
     transaction_quantity: 1000,
     facility_name: 'State Vaccine Store Lucknow (L1)',
@@ -95,7 +95,7 @@ const DEFAULT_TRANSACTIONS: LedgerTransactionRow[] = [
     transaction_date: '15/05/2025',
     transaction_type: 'Issue',
     batch_no: 'HPV250401',
-    manufacturer_name: 'Serum Institute of India',
+    manufacturer_name: 'Merck/MSD',
     expiry_date: '31/03/2027',
     transaction_quantity: -800,
     facility_name: 'PHC Mohan Road (L3)',
@@ -112,7 +112,7 @@ const DEFAULT_TRANSACTIONS: LedgerTransactionRow[] = [
     transaction_date: '20/05/2025',
     transaction_type: 'Issue',
     batch_no: 'HPV250410',
-    manufacturer_name: 'Serum Institute of India',
+    manufacturer_name: 'Merck/MSD',
     expiry_date: '30/04/2027',
     transaction_quantity: -600,
     facility_name: 'PHC Kakori (L3)',
@@ -146,7 +146,7 @@ const DEFAULT_TRANSACTIONS: LedgerTransactionRow[] = [
     transaction_date: '02/06/2025',
     transaction_type: 'Receive',
     batch_no: 'HPV250412',
-    manufacturer_name: 'Serum Institute of India',
+    manufacturer_name: 'Merck/MSD',
     expiry_date: '15/05/2027',
     transaction_quantity: 1500,
     facility_name: 'State Vaccine Store Dehradun (L1)',
@@ -163,7 +163,7 @@ const DEFAULT_TRANSACTIONS: LedgerTransactionRow[] = [
     transaction_date: '12/06/2025',
     transaction_type: 'Issue',
     batch_no: 'HPV250412',
-    manufacturer_name: 'Serum Institute of India',
+    manufacturer_name: 'Merck/MSD',
     expiry_date: '15/05/2027',
     transaction_quantity: -750,
     facility_name: 'CHC Roorkee (L3)',
@@ -723,7 +723,7 @@ export const VaccineStockLedger: React.FC<{
                 className="w-full px-2 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-purple-500/30"
               >
                 <option value="All">All Manufacturers</option>
-                <option value="Serum Institute of India">Serum Institute of India</option>
+                <option value="Merck/MSD">Merck/MSD</option>
                 <option value="Bharat Biotech">Bharat Biotech</option>
                 <option value="GlaxoSmithKline">GlaxoSmithKline</option>
               </select>
