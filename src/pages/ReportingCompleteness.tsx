@@ -390,7 +390,7 @@ export const ReportingCompleteness: React.FC<{
             onClick={fetchReport}
             disabled={loading}
             style={{ height: 36, borderRadius: 8, minWidth: 160 }}
-            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
           >
             {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
             {loading ? 'Generating...' : 'Generate Report'}
@@ -436,7 +436,7 @@ export const ReportingCompleteness: React.FC<{
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
           <div className="bg-white rounded-md shadow-sm border border-slate-200 p-2.5 flex items-center gap-2">
-            <div className="w-8 h-8 bg-purple-50 text-[#522B85] rounded-md flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 bg-purple-50 text-[#3A0088] rounded-md flex items-center justify-center shrink-0">
               <BarChart3 className="w-3.5 h-3.5" />
             </div>
             <div>
@@ -519,7 +519,7 @@ export const ReportingCompleteness: React.FC<{
                   paginatedRows.map((r, i) => (
                     <tr key={i} className="hover:bg-slate-50/80 transition-colors group">
                       <td className="px-2 py-1.5 border-r border-slate-100/50">
-                        <div className="font-bold text-[#3B1C63] text-xs flex items-center gap-1.5">
+                        <div className="font-bold text-[#3A0088] text-xs flex items-center gap-1.5">
                           {r.unitName}
                           {r.isUrban && (
                             <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-purple-100 text-purple-700 uppercase tracking-wider">
@@ -538,7 +538,7 @@ export const ReportingCompleteness: React.FC<{
                         )}
                       </td>
                       <td className="px-2 py-1.5 text-sm font-bold text-slate-700 text-center bg-[#f8fafc] border-r border-slate-200/60">{r.expected}</td>
-                      <td className="px-2 py-1.5 text-sm font-black text-[#522B85] text-center bg-purple-50/30 border-r border-slate-200/60">{r.submitted}</td>
+                      <td className="px-2 py-1.5 text-sm font-black text-[#3A0088] text-center bg-purple-50/30 border-r border-slate-200/60">{r.submitted}</td>
                       <td className="px-2 py-1.5 border-r border-slate-100/50 bg-[#faf9fb] align-top">
                         <div className="flex flex-col gap-1 w-12 mt-0.5">
                           <span className={`text-[11px] leading-none font-bold ${r.reportingPct >= 70 ? 'text-emerald-600' : r.reportingPct >= 30 ? 'text-orange-500' : r.reportingPct > 0 ? 'text-amber-600' : 'text-rose-500'}`}>{r.reportingPct}%</span>
@@ -600,7 +600,7 @@ export const ReportingCompleteness: React.FC<{
         
         {/* Footer Note */}
         <div className="bg-[#f3eff7] rounded-xl px-4 py-3 border border-[#e1d9ea] flex items-start gap-3">
-          <Info className="w-5 h-5 text-[#522B85] shrink-0 mt-0.5" />
+          <Info className="w-5 h-5 text-[#3A0088] shrink-0 mt-0.5" />
           <p className="text-sm font-medium text-slate-700">
             <span className="font-bold">Note:</span> Daily Progress Report is expected every day. Monthly Due List Report and Monthly Vaccine Stock Balance Report are expected by the 5th of each month.
           </p>

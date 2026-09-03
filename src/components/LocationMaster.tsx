@@ -448,7 +448,7 @@ export const LocationMaster: React.FC<{
             onClick={fetchLocations}
             disabled={loading}
             style={{ height: 36, borderRadius: 8, minWidth: 160 }}
-            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
           >
             {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
             {loading ? 'Loading...' : 'Filter Units'}
@@ -546,9 +546,9 @@ export const LocationMaster: React.FC<{
             </tbody>
             {!loading && displayRows.length > 0 && (
               <tfoot>
-                <tr className="border-t-2 border-[#3B1C63]/20 font-bold text-slate-800" style={{ background: 'rgba(59,28,99,0.04)', fontSize: '11px' }}>
+                <tr className="border-t-2 border-[#3A0088]/20 font-bold text-slate-800" style={{ background: 'rgba(58,0,136,0.04)', fontSize: '11px' }}>
                   <td className="px-2.5 py-2 text-center text-slate-400">—</td>
-                  <td className="px-3 py-2 font-extrabold sticky left-0 border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)' }}>
+                  <td className="px-3 py-2 font-extrabold sticky left-0 border-r border-slate-200" style={{ background: 'rgba(58,0,136,0.04)' }}>
                     TOTAL ({displayRows.length} Units)
                   </td>
                   <td className="px-3 py-2 text-center">{kpis.totalPop.toLocaleString('en-IN')}</td>

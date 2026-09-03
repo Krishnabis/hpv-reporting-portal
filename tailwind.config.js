@@ -9,9 +9,9 @@ export default {
       colors: {
         hpv: {
           purple: {
-            DEFAULT: "#3B1C63",
-            dark: "#2D1250",
-            light: "#522B85",
+            DEFAULT: "#3A0088",
+            dark: "#3A0088",
+            light: "#3A0088",
             soft: "#F4EFFB"
           },
           teal: {
