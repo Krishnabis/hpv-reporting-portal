@@ -66,7 +66,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
       // Determine scope name based on selection
       if (filterLevel === 'State') {
         const state = statesList.find(s => s.id.toString() === filterStateId);
-        setScopeName(state ? state.name : 'State');
+        setScopeName(state ? state.name : 'Uttarakhand');
       } else if (filterLevel === 'Division') {
         if (filterDivisionId === 'ALL') setScopeName('All Divisions');
         else {
@@ -74,8 +74,10 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
           setScopeName(div ? div.name : 'Division');
         }
       } else if (filterLevel === 'District') {
-        if (filterDistrictId === 'ALL') setScopeName('All Districts');
-        else {
+        if (filterDistrictId === 'ALL') {
+          const state = statesList.find(s => s.id.toString() === filterStateId);
+          setScopeName(state ? state.name : 'Uttarakhand');
+        } else {
           const dist = districtsList.find(d => d.id.toString() === filterDistrictId);
           setScopeName(dist ? dist.name : 'District');
         }
@@ -92,6 +94,21 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
       setLoading(false);
     }
   };
+
+  // Auto select Uttarakhand when statesList is loaded
+  React.useEffect(() => {
+    if (statesList && statesList.length > 0) {
+      const uk = statesList.find(s => s.name === 'Uttarakhand State' || s.name === 'Uttarakhand' || s.name.toLowerCase().includes('uttarakhand'));
+      if (uk && filterStateId !== String(uk.id)) {
+        setFilterStateId(String(uk.id));
+      }
+    }
+  }, [statesList]);
+
+  // Auto generate trend report on initial load / page open
+  React.useEffect(() => {
+    handleGenerate();
+  }, []);
 
   const chartData = useMemo(() => {
     if (!profile || profile.base_population === 0 || reports.length === 0) return [];
@@ -253,7 +270,7 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
           <SearchableSelect 
             label="STATE"
             options={stateOptions} 
-            value={stateOptions.find(o => o.id === filterStateId) || (stateOptions.length > 0 ? stateOptions[0] : null)} 
+            value={stateOptions.find(o => o.id === filterStateId) || (stateOptions.length > 0 ? (stateOptions.find(o => o.name.toLowerCase().includes('uttarakhand')) || stateOptions[0]) : null)} 
             onChange={(opt) => opt && setFilterStateId(opt.id.toString())} 
             placeholder="Select State..." 
           />

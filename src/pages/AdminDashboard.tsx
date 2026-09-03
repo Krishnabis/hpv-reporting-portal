@@ -241,11 +241,15 @@ export const AdminDashboard: React.FC = () => {
 
   // Move the useEffect AFTER the statesList declaration
   useEffect(() => {
-    if (!defaultStateSet.current && adminUser?.role === 'SUPER_ADMIN' && statesList.length > 0) {
-      const uk = statesList.find(s => s.name === 'Uttarakhand State' || s.name === 'Uttarakhand');
+    if (statesList.length > 0) {
+      const uk = statesList.find(s => s.name === 'Uttarakhand State' || s.name === 'Uttarakhand' || s.name.toLowerCase().includes('uttarakhand'));
       if (uk) {
-        setDashboardStateId(String(uk.id));
-        defaultStateSet.current = true;
+        const ukId = String(uk.id);
+        if (!defaultStateSet.current && adminUser?.role === 'SUPER_ADMIN') {
+          setDashboardStateId(ukId);
+          defaultStateSet.current = true;
+        }
+        setFilterStateId(ukId);
       }
     }
   }, [statesList, adminUser]);
