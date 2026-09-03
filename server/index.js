@@ -1850,17 +1850,24 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
         districts!inner(id, name, state_id, division_id, divisions(name))
       `).eq('is_active', true);
       
-    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
-    const userDistrictId = req.user.district_id || (req.user.role === 'DISTRICT_ADMIN' ? req.user.district_id : null);
+    const filterDist = userDistrictId || req.query.district_id || req.query.districtId || req.query.location_id;
     if (targetStateId) bQuery = bQuery.eq('districts.state_id', targetStateId);
-    if (userDistrictId) bQuery = bQuery.eq('district_id', userDistrictId);
     
-    if (level === 'State' || level === 'Division') {
-      // already filtered by targetStateId / userDistrictId
-    } else if (level === 'District' && location_id && location_id !== 'ALL') {
-      bQuery = bQuery.eq('district_id', location_id);
-    } else if (level === 'Block' && location_id && location_id !== 'ALL') {
-      bQuery = bQuery.eq('id', location_id);
+    if (filterDist && filterDist !== 'ALL') {
+      if (filterDist.toUpperCase() === 'KUMAON' || filterDist.toUpperCase() === 'GARHWAL') {
+        const kumaonDists = ['almora', 'bageshwar', 'champawat', 'nainital', 'pithoragarh', 'udham singh nagar'];
+        const garhwalDists = ['chamoli', 'dehradun', 'haridwar', 'pauri garhwal', 'tehri garhwal', 'uttarkashi', 'rudraprayag'];
+        const targetNames = filterDist.toUpperCase() === 'KUMAON' ? kumaonDists : garhwalDists;
+        const { data: matchedDists } = await supabase.from('districts').select('id, name, divisions(name)');
+        const filteredIds = (matchedDists || [])
+          .filter(d => targetNames.includes((d.name || '').toLowerCase()) || (d.divisions?.name || '').toUpperCase().includes(filterDist.toUpperCase()))
+          .map(d => d.id);
+        if (filteredIds.length > 0) {
+          bQuery = bQuery.in('district_id', filteredIds);
+        }
+      } else {
+        bQuery = bQuery.eq('district_id', filterDist);
+      }
     }
     
     const { data: blocks, error: bErr } = await bQuery;
@@ -2114,7 +2121,22 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
       bQuery = bQuery.eq('districts.state_id', targetStateId);
     }
     
-    if (effectiveDistrictId) bQuery = bQuery.eq('district_id', effectiveDistrictId);
+    if (effectiveDistrictId) {
+      if (effectiveDistrictId.toUpperCase() === 'KUMAON' || effectiveDistrictId.toUpperCase() === 'GARHWAL') {
+        const kumaonDists = ['almora', 'bageshwar', 'champawat', 'nainital', 'pithoragarh', 'udham singh nagar'];
+        const garhwalDists = ['chamoli', 'dehradun', 'haridwar', 'pauri garhwal', 'tehri garhwal', 'uttarkashi', 'rudraprayag'];
+        const targetNames = effectiveDistrictId.toUpperCase() === 'KUMAON' ? kumaonDists : garhwalDists;
+        const { data: matchedDists } = await supabase.from('districts').select('id, name, divisions(name)');
+        const filteredIds = (matchedDists || [])
+          .filter(d => targetNames.includes((d.name || '').toLowerCase()) || (d.divisions?.name || '').toUpperCase().includes(effectiveDistrictId.toUpperCase()))
+          .map(d => d.id);
+        if (filteredIds.length > 0) {
+          bQuery = bQuery.in('district_id', filteredIds);
+        }
+      } else {
+        bQuery = bQuery.eq('district_id', effectiveDistrictId);
+      }
+    }
     if (divisionId && divisionId !== 'ALL') bQuery = bQuery.eq('districts.division_id', divisionId);
     if (blockId && blockId !== 'ALL') bQuery = bQuery.eq('id', blockId);
 

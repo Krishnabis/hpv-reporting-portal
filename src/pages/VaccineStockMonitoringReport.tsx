@@ -93,11 +93,10 @@ export const VaccineStockMonitoringReport: React.FC<{
   // Filter Controls
   const [selectedStateId, setSelectedStateId] = useState<string>('');
   const [selectedDistrictId] = useState<string>('ALL');
-  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+  const [selectedMonth] = useState<string>(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
-  const [sortBy, setSortBy] = useState<'avail_asc' | 'avail_desc' | 'name_asc'>('avail_asc');
   const [isFilterActive, setIsFilterActive] = useState<boolean>(false);
 
   // Current Date display

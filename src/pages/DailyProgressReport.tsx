@@ -147,9 +147,8 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
 
   const today = new Date().toISOString().split('T')[0];
   const [filterDate, setFilterDate] = useState(today);
-  const [filterLevel, setFilterLevel] = useState<'Division' | 'District'>('Division');
+  const [reportLevel, setReportLevel] = useState<'District' | 'Block Units'>('District');
   const [filterStateId, setFilterStateId] = useState('');
-  const [filterDivisionId, setFilterDivisionId] = useState('ALL');
   const [filterDistrictId, setFilterDistrictId] = useState('ALL');
 
   const [rows, setRows] = useState<ReportRow[]>([]);
@@ -200,11 +199,10 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
   const generateReport = async () => {
     const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
     setLoading(true);
-    const apiLevel = filterLevel === 'Division' ? 'DISTRICT' : 'BLOCK';
+    const apiLevel = reportLevel === 'District' ? 'DISTRICT' : 'BLOCK';
     const params = new URLSearchParams({ date: filterDate, level: apiLevel });
     if (filterStateId) params.set('state_id', filterStateId);
-    if (filterLevel === 'Division' && filterDivisionId !== 'ALL') params.set('divisionId', filterDivisionId);
-    if (filterLevel === 'District' && filterDistrictId !== 'ALL') params.set('districtId', filterDistrictId);
+    if (filterDistrictId && filterDistrictId !== 'ALL') params.set('districtId', filterDistrictId);
     
     try {
       const res = await fetch(`/api/admin/reports/generate?${params}`, {
