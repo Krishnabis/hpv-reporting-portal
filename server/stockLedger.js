@@ -75,6 +75,7 @@ export async function ensureMonthlyLedger(targetMonthStr, blocks, districtStores
 
         // ─── PROCESS BLOCKS ───────────────────────────────────────────────
         for (const block of blocks) {
+            const prof = profileMap[block.id];
             const baseTarget = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : (block.population ? Math.round(block.population * 0.01) : 0));
             const annualReq = Math.round(baseTarget * 1.01);
 
