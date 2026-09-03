@@ -25,6 +25,7 @@ interface ReportRow {
   vaccination_coverage_pct: number | null;
   has_report: boolean;
   has_today_report: boolean;
+  is_urban?: boolean;
 }
 
 type RankBy = 'vaccination_coverage_pct' | 'sessions_held_cumulative' | 'beneficiaries_vaccinated' | 'vaccinations_per_session' | 'sessions_held_today' | 'vaccinated_today';

@@ -73,11 +73,11 @@ export const LocationMaster: React.FC<{
     if (selectedStateId) return;
     if (adminUser?.state_id) {
       setSelectedStateId(String(adminUser.state_id));
-    } else if (states.length > 0) {
-      const uk = states.find(s => s.name.toLowerCase().includes('uttarakhand'));
-      setSelectedStateId(String(uk ? uk.id : states[0].id));
+    } else if (statesList.length > 0) {
+      const uk = statesList.find(s => s.name.toLowerCase().includes('uttarakhand'));
+      setSelectedStateId(String(uk ? uk.id : statesList[0].id));
     }
-  }, [states, adminUser, selectedStateId]);
+  }, [statesList, adminUser, selectedStateId]);
 
   useEffect(() => {
     if (isDistrictUser && adminUser?.district_id) {
@@ -86,9 +86,9 @@ export const LocationMaster: React.FC<{
   }, [adminUser, isDistrictUser]);
 
   const selectedStateName = useMemo(() => {
-    const found = states.find(s => String(s.id) === String(selectedStateId));
+    const found = statesList.find(s => String(s.id) === String(selectedStateId));
     return found ? found.name : 'Uttarakhand';
-  }, [states, selectedStateId]);
+  }, [statesList, selectedStateId]);
 
   const currentDateFormatted = useMemo(() => {
     return new Date().toLocaleDateString('en-US', {
