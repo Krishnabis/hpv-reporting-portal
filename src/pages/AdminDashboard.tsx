@@ -1411,20 +1411,6 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Welcome Banner */}
-            <div className="bg-[#5b58c7] rounded-3xl p-6 text-white mb-6 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between shadow-md">
-              <div className="relative z-10">
-                <h1 className="text-2xl font-bold mb-2">Welcome back to HPV Tracker!</h1>
-                <p className="text-indigo-100 text-sm max-w-lg">
-                  Monitor block-level coverage, track due lists, and review daily progress to ensure optimal vaccination rates.
-                </p>
-              </div>
-              <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-indigo-500/50 to-transparent pointer-events-none"></div>
-              {/* Optional placeholder for illustration on the right */}
-              <div className="mt-4 sm:mt-0 relative z-10 flex items-center justify-center w-24 h-24 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                <Target className="w-10 h-10 text-white opacity-90" />
-              </div>
-            </div>
 
             {/* KPI Cards Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
