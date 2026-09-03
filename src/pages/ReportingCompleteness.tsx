@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { getDefaultLocationForUser } from '../utils/userLocation';
 
 interface CompletenessRow {
   unitName: string;
@@ -80,7 +81,10 @@ export const ReportingCompleteness: React.FC<{
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    if (!statesList.length || !districtsList.length) {
+    if (states && states.length) setStatesList(states);
+    if (allDistricts && allDistricts.length) setDistrictsList(allDistricts);
+
+    if (!states || !states.length || !allDistricts || !allDistricts.length) {
       Promise.all([
         fetch('/api/locations/states').then(r => r.json()),
         fetch('/api/locations/districts').then(r => r.json()),
@@ -89,31 +93,26 @@ export const ReportingCompleteness: React.FC<{
         if (Array.isArray(dData) && dData.length) setDistrictsList(dData);
       }).catch(console.error);
     }
-  }, []);
+  }, [states, allDistricts]);
 
+  const defaultLocationSet = useRef(false);
   useEffect(() => {
-    if (statesList.length > 0 && adminUser && !filterStateId) {
-      if (adminUser.role === 'SUPER_ADMIN') {
-        const uk = statesList.find((s: any) => s.name === 'Uttarakhand State' || s.name === 'Uttarakhand');
-        if (uk) setFilterStateId(String(uk.id));
-      } else if (adminUser.state_id) {
-        setFilterStateId(String(adminUser.state_id));
-      }
+    if (statesList.length > 0 && adminUser && !defaultLocationSet.current) {
+      const defLoc = getDefaultLocationForUser(adminUser, statesList, districtsList);
+      if (defLoc.stateId) setFilterStateId(defLoc.stateId);
+      if (defLoc.districtId) setFilterDistrictId(defLoc.districtId);
+      if (defLoc.defaultLevel) setReportLevel(defLoc.defaultLevel === 'Block Units' ? 'Block Units' : 'District');
+      defaultLocationSet.current = true;
     }
-  }, [statesList, adminUser]);
+  }, [statesList, districtsList, adminUser]);
 
   const stateDistricts = useMemo(() => districtsList.filter(d => !filterStateId || String(d.state_id) === filterStateId), [districtsList, filterStateId]);
 
-  const hasFetched = useRef(false);
   useEffect(() => {
-    if (!hasFetched.current) {
-      const timer = setTimeout(() => {
-        fetchReport();
-      }, 0);
-      hasFetched.current = true;
-      return () => clearTimeout(timer);
+    if (filterStateId || (filterDistrictId && filterDistrictId !== 'ALL')) {
+      fetchReport();
     }
-  }, []);
+  }, [filterStateId, filterDistrictId, reportLevel, reportType, fromDate, toDate]);
 
   const fetchReport = async () => {
     setLoading(true);

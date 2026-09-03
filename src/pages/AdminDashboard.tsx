@@ -18,6 +18,7 @@ import { DailyProgressReport } from './DailyProgressReport';
 import { ReportingCompleteness } from './ReportingCompleteness';
 import { VaccineStockMonitoringReport } from './VaccineStockMonitoringReport';
 import { ColdChainLocations } from './ColdChainLocations';
+import { getDefaultLocationForUser } from '../utils/userLocation';
 
 // ─── Coming Soon Placeholder Component ─────────────────────────────────────────
 const ComingSoonCard: React.FC<{ title: string; description: string }> = ({ title, description }) => (
@@ -239,21 +240,6 @@ export const AdminDashboard: React.FC = () => {
   const [addLocStateId, setAddLocStateId] = useState('');
   const [addLocDistrictId, setAddLocDistrictId] = useState('');
 
-  // Move the useEffect AFTER the statesList declaration
-  useEffect(() => {
-    if (statesList.length > 0) {
-      const uk = statesList.find(s => s.name === 'Uttarakhand State' || s.name === 'Uttarakhand' || s.name.toLowerCase().includes('uttarakhand'));
-      if (uk) {
-        const ukId = String(uk.id);
-        if (!defaultStateSet.current && adminUser?.role === 'SUPER_ADMIN') {
-          setDashboardStateId(ukId);
-          defaultStateSet.current = true;
-        }
-        setFilterStateId(ukId);
-      }
-    }
-  }, [statesList, adminUser]);
-
   const [states, setStates] = useState<any[]>([]);
   const [filterLevel, setFilterLevel] = useState<'State' | 'Division' | 'District' | 'Block'>('District');
   const [filterStateId, setFilterStateId] = useState<string>('5');
@@ -262,6 +248,20 @@ export const AdminDashboard: React.FC = () => {
   const [filterBlockId, setFilterBlockId] = useState<string>('ALL');
 
   const [districtsList, setDistrictsList] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (statesList.length > 0 && adminUser && !defaultStateSet.current) {
+      const defLoc = getDefaultLocationForUser(adminUser, statesList, allDistrictsList.length ? allDistrictsList : districtsList);
+      if (defLoc.stateId) {
+        setDashboardStateId(defLoc.stateId);
+        setFilterStateId(defLoc.stateId);
+      }
+      if (defLoc.districtId) {
+        setFilterDistrictId(defLoc.districtId);
+      }
+      defaultStateSet.current = true;
+    }
+  }, [statesList, allDistrictsList, districtsList, adminUser]);
 
   const [reportRows, setReportRows] = useState<ReportRow[]>([]);
   const [reportSortOrder, setReportSortOrder] = useState<string>('');
@@ -490,13 +490,13 @@ export const AdminDashboard: React.FC = () => {
       });
   };
 
-  // Re-fetch when date changes
+  // Re-fetch when date changes or state/district filters update
   useEffect(() => {
     if (adminUser) {
       fetchKpis();
       fetchReport();
     }
-  }, [filterDate, dashboardStateId]);
+  }, [filterDate, dashboardStateId, filterDistrictId]);
 
   const [allBlocksList, setAllBlocksList] = useState<any[]>([]);
 

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Download, AlertCircle, Info, Building2, MapPin, Filter, Calendar, Clock, FileText, Target, Syringe, Layers, CheckCircle2, ChevronDown, BarChart3, RefreshCw, Maximize2, Minimize2, Search } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { getDefaultLocationForUser } from '../utils/userLocation';
 
 interface ReportRow {
   id: string | number;
@@ -215,16 +216,16 @@ export const VaccineStockMonitoringReport: React.FC<{
     fetchDistricts();
   }, [initialDistricts]);
 
-  // Auto Select Uttarakhand or Admin user state
+  // Auto Select Uttarakhand or Admin user state/district
+  const defaultLocationSet = useRef(false);
   useEffect(() => {
-    if (selectedStateId) return;
-    if (adminUser?.state_id) {
-      setSelectedStateId(String(adminUser.state_id));
-    } else if (statesList.length > 0) {
-      const uk = statesList.find(s => s.name.toLowerCase().includes('uttarakhand'));
-      setSelectedStateId(String(uk ? uk.id : statesList[0].id));
+    if (statesList.length > 0 && adminUser && !defaultLocationSet.current) {
+      const defLoc = getDefaultLocationForUser(adminUser, statesList, districtsList);
+      if (defLoc.stateId) setSelectedStateId(defLoc.stateId);
+      if (defLoc.districtId) setSelectedDistrictId(defLoc.districtId);
+      defaultLocationSet.current = true;
     }
-  }, [statesList, adminUser, selectedStateId]);
+  }, [statesList, districtsList, adminUser]);
 
   const selectedStateName = useMemo(() => {
     const found = statesList.find(s => String(s.id) === String(selectedStateId));
