@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search, MapPin, Layers, Filter, Building2, Download, FileText, Clock,
-  Maximize2, Minimize2, ChevronDown, BarChart3, RefreshCw, ArrowUp, ArrowDown
+  Maximize2, Minimize2, ChevronDown, BarChart3, RefreshCw, ArrowUp, ArrowDown, ArrowUpDown
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -35,7 +35,7 @@ export const LocationMaster: React.FC<{
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
-  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'name', direction: 'asc' });
 
   const [statesList, setStatesList] = useState<any[]>(initialStates);
   const [districtsList, setDistrictsList] = useState<any[]>(initialDistricts);
@@ -351,9 +351,9 @@ export const LocationMaster: React.FC<{
     setSortConfig({ key, direction });
   };
 
-  const renderSortArrow = (key: string) => {
-    if (sortConfig?.key !== key) return null;
-    return sortConfig.direction === 'asc' ? <ArrowUp className="inline w-3 h-3 ml-1" /> : <ArrowDown className="inline w-3 h-3 ml-1" />;
+  const renderSortIcon = (key: string) => {
+    if (sortConfig?.key !== key) return <ArrowUpDown className="inline w-3 h-3 ml-1 text-white/30" />;
+    return sortConfig.direction === 'asc' ? <ArrowUp className="inline w-3 h-3 ml-1 text-white" /> : <ArrowDown className="inline w-3 h-3 ml-1 text-white" />;
   };
 
   return (
@@ -486,15 +486,15 @@ export const LocationMaster: React.FC<{
             <thead className="sticky top-0 z-10">
               <tr className="gradient-header text-white">
                 <th className="px-2.5 py-2 text-center font-bold uppercase tracking-wide w-12 border-b border-hpv-purple/40">S.No</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" style={{ minWidth: 180 }} onClick={() => handleSort('name')}>Location Hierarchy{renderSortArrow('name')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('population')}>Population{renderSortArrow('population')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('annualTarget')}>Annual Target (1%){renderSortArrow('annualTarget')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('hpvTarget')}>HPV Goal{renderSortArrow('hpvTarget')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('sessions')}>Sessions{renderSortArrow('sessions')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('linelisted')}>Line Listed{renderSortArrow('linelisted')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('vaccinated')}>Vaccinated{renderSortArrow('vaccinated')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('reportsCount')}>Reports{renderSortArrow('reportsCount')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('lastReportDate')}>Last Report{renderSortArrow('lastReportDate')}</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" style={{ minWidth: 180 }} onClick={() => handleSort('name')}>Location Hierarchy{renderSortIcon('name')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('population')}>Population{renderSortIcon('population')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('annualTarget')}>Annual Target (1%){renderSortIcon('annualTarget')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('hpvTarget')}>HPV Goal{renderSortIcon('hpvTarget')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('sessions')}>Sessions{renderSortIcon('sessions')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('linelisted')}>Line Listed{renderSortIcon('linelisted')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('vaccinated')}>Vaccinated{renderSortIcon('vaccinated')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('reportsCount')}>Reports{renderSortIcon('reportsCount')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('lastReportDate')}>Last Report{renderSortIcon('lastReportDate')}</th>
               </tr>
             </thead>
             <tbody>

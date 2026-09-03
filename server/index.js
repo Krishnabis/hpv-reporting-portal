@@ -1560,9 +1560,19 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
        const { data: sFacility } = await supabase.from('vaccine_ccp').select('*').eq('ccl_id', req.user.ccl_id).maybeSingle();
        if (sFacility) senderFacility = sFacility;
     }
+    if (!senderFacility) {
+       let sQuery = supabase.from('vaccine_ccp').select('*').eq('unit_level', currentLevel);
+       if (currentLevel === 2 && effectiveDistrictId) {
+          sQuery = sQuery.eq('district_id', effectiveDistrictId);
+       } else if (currentLevel === 1) {
+          sQuery = sQuery.eq('state_id', req.user.state_id).is('district_id', null);
+       }
+       const { data: sFacility } = await sQuery.limit(1).maybeSingle();
+       if (sFacility) senderFacility = sFacility;
+    }
 
     // Check available stock for THIS BATCH at issuing CCL
-    const senderCclId = req.user.ccl_id || null;
+    const senderCclId = senderFacility ? senderFacility.ccl_id : (req.user.ccl_id || null);
     const availableStock = await getBatchInventory(
       batch_no,
       currentLevel,
@@ -4523,10 +4533,15 @@ app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
 
     // Resolve effective district for VACCINE_MANAGER
     let effDistrictId = req.user.district_id;
-    const userCclId = req.user.ccl_id || null;
+    let userCclId = req.user.ccl_id || null;
     if (req.user.role === 'VACCINE_MANAGER' && userCclId && !effDistrictId) {
        const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', userCclId).maybeSingle();
        if (mgrCcp && mgrCcp.district_id) effDistrictId = mgrCcp.district_id;
+    }
+
+    if (!userCclId && effDistrictId) {
+       const { data: distCcp } = await supabase.from('vaccine_ccp').select('ccl_id').eq('unit_level', 2).eq('district_id', effDistrictId).maybeSingle();
+       if (distCcp) userCclId = distCcp.ccl_id;
     }
 
     // For VACCINE_MANAGER with a ccl_id (district store), compute net balance

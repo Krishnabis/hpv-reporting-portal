@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Building2, Download, Search, ChevronLeft, ChevronRight,
   Filter, MapPin, Clock, FileText, Layers, ShieldCheck, Tag,
-  Maximize2, Minimize2, ChevronDown, BarChart3, RefreshCw
+  Maximize2, Minimize2, ChevronDown, BarChart3, RefreshCw, Upload, FileUp, Database, ArrowUp, ArrowDown, ArrowUpDown
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -79,6 +79,7 @@ export const ColdChainLocations: React.FC<{
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'facility_name', direction: 'asc' });
 
   // Filters
   const [selectedStateId, setSelectedStateId] = useState<string>('');
@@ -179,6 +180,18 @@ export const ColdChainLocations: React.FC<{
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const handleSort = (key: string) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const renderSortIcon = (key: string) => {
+    if (sortConfig?.key !== key) return <ArrowUpDown className="inline w-3 h-3 ml-1 text-white/30" />;
+    return sortConfig.direction === 'asc' ? <ArrowUp className="inline w-3 h-3 ml-1 text-white" /> : <ArrowDown className="inline w-3 h-3 ml-1 text-white" />;
+  };
+
   // Client-side Filtered Records
   const filteredRecords = useMemo(() => {
     let list = ccpList;
@@ -196,12 +209,38 @@ export const ColdChainLocations: React.FC<{
     return list;
   }, [ccpList, searchQuery]);
 
+  const sortedRecords = useMemo(() => {
+    let sorted = [...filteredRecords];
+    sorted.sort((a, b) => {
+      let valA = (a as any)[sortConfig.key];
+      let valB = (b as any)[sortConfig.key];
+      
+      // Handle nested values for districts and blocks
+      if (sortConfig.key === 'districts') valA = a.districts?.name;
+      if (sortConfig.key === 'districts') valB = b.districts?.name;
+      if (sortConfig.key === 'blocks') valA = a.blocks?.name;
+      if (sortConfig.key === 'blocks') valB = b.blocks?.name;
+      
+      if (valA == null) valA = '';
+      if (valB == null) valB = '';
+      
+      let comparison = 0;
+      if (typeof valA === 'number' || typeof valB === 'number') {
+         comparison = (Number(valA) || 0) - (Number(valB) || 0);
+      } else {
+         comparison = String(valA).localeCompare(String(valB));
+      }
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
+    });
+    return sorted;
+  }, [filteredRecords, sortConfig]);
+
   // Paginated Rows
-  const totalPages = Math.ceil(filteredRecords.length / pageSize) || 1;
+  const totalPages = Math.ceil(sortedRecords.length / pageSize) || 1;
   const paginatedRows = useMemo(() => {
     const start = (page - 1) * pageSize;
-    return filteredRecords.slice(start, start + pageSize);
-  }, [filteredRecords, page, pageSize]);
+    return sortedRecords.slice(start, start + pageSize);
+  }, [sortedRecords, page, pageSize]);
 
   // Download CSV Handler
   const downloadCSV = () => {
@@ -209,7 +248,7 @@ export const ColdChainLocations: React.FC<{
       'S.No', 'CCL ID', 'Name of Facility', 'Unit Type', 'District', 'Block', 'CCL Block HQ', 'Incharge', 'Contact', 'Level', 'Health Facility Type', 'Setting'
     ];
 
-    const rows = filteredRecords.map((r, i) => [
+    const rows = sortedRecords.map((r, i) => [
       i + 1,
       `"${r.ccl_id || ''}"`,
       `"${r.facility_name || ''}"`,
@@ -463,7 +502,7 @@ export const ColdChainLocations: React.FC<{
           <div className="flex items-center gap-2">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-xs font-bold text-slate-700">
-              {filteredRecords.length} Cold Chain Facility{filteredRecords.length !== 1 ? 'ies' : ''}
+              {sortedRecords.length} Cold Chain Facility{sortedRecords.length !== 1 ? 'ies' : ''}
             </span>
           </div>
 
@@ -492,17 +531,17 @@ export const ColdChainLocations: React.FC<{
         <div className="overflow-auto flex-1 min-h-0">
           <table className="w-full" style={{ fontSize: '11px' }}>
             <thead className="sticky top-0 z-10">
-              <tr className="gradient-header text-white">
+              <tr className="gradient-header text-white shadow-sm">
                 <th className="px-2.5 py-2 text-center font-bold uppercase tracking-wide w-12 border-b border-hpv-purple/40">S.No</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40">CCL ID</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-hpv-purple/40" style={{ minWidth: 180 }}>Name of Facility</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40">Unit Type</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40">Block / District</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40">CCL Block HQ</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40">Incharge</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40">Level</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40">Health Facility Type</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40">Setting</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('ccl_id')}>CCL ID{renderSortIcon('ccl_id')}</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" style={{ minWidth: 180 }} onClick={() => handleSort('facility_name')}>Name of Facility{renderSortIcon('facility_name')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('unit_type')}>Unit Type{renderSortIcon('unit_type')}</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('blocks')}>Block / District{renderSortIcon('blocks')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('ccl_block_hq_yes')}>CCL Block HQ{renderSortIcon('ccl_block_hq_yes')}</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('name_of_unit_incharge')}>Incharge{renderSortIcon('name_of_unit_incharge')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('level')}>Level{renderSortIcon('level')}</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('health_facility_type')}>Health Facility Type{renderSortIcon('health_facility_type')}</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('setting')}>Setting{renderSortIcon('setting')}</th>
               </tr>
             </thead>
 
@@ -519,7 +558,7 @@ export const ColdChainLocations: React.FC<{
                     {error}
                   </td>
                 </tr>
-              ) : filteredRecords.length === 0 ? (
+              ) : sortedRecords.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="py-16 text-center">
                     <div className="flex flex-col items-center gap-2">

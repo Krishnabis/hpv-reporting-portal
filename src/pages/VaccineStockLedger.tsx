@@ -2,10 +2,9 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Download, AlertCircle, Info, Building2, MapPin, Filter, Calendar, Clock, 
   FileText, RefreshCw, Maximize2, Minimize2, Search, ChevronDown, ChevronUp,
-  FileText, RefreshCw, Maximize2, Minimize2, Search, ChevronDown, ChevronUp,
   Package, ArrowDownRight, ArrowUpRight, Percent, Trash2, Box, Layers,
   SlidersHorizontal, CheckCircle2, ArrowUpDown, Target, BarChart3, PieChart, Activity,
-  Columns, ChevronLeft, ChevronRight
+  Columns, ChevronLeft, ChevronRight, ArrowUp, ArrowDown
 } from 'lucide-react';
 
 export interface LedgerTransactionRow {
@@ -110,6 +109,7 @@ export const VaccineStockLedger: React.FC<{
   const [showExpiry, setShowExpiry] = useState(true);
   const [showColMenu, setShowColMenu] = useState(false);
   const colMenuRef = useRef<HTMLDivElement>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'transaction_date', direction: 'desc' });
 
   // Filters
   const [dateFrom, setDateFrom] = useState('2026-01-01');
@@ -211,17 +211,61 @@ export const VaccineStockLedger: React.FC<{
     });
   }, [filteredTransactions, matchedCcl]);
 
+  const handleSort = (key: string) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const renderSortIcon = (key: string) => {
+    if (sortConfig?.key !== key) return <ArrowUpDown className="inline w-3 h-3 ml-1 text-white/30" />;
+    return sortConfig.direction === 'asc' ? <ArrowUp className="inline w-3 h-3 ml-1 text-white" /> : <ArrowDown className="inline w-3 h-3 ml-1 text-white" />;
+  };
+
+  const sortedTransactions = useMemo(() => {
+    let sorted = [...transactionsWithBalance];
+    sorted.sort((a, b) => {
+      let valA = (a as any)[sortConfig.key];
+      let valB = (b as any)[sortConfig.key];
+      
+      // Fallback handlers
+      if (sortConfig.key === 'ccl_name') {
+        valA = a.transaction_type === 'Receive' ? a.to_ccl : a.from_ccl;
+        valB = b.transaction_type === 'Receive' ? b.to_ccl : b.from_ccl;
+      } else if (sortConfig.key === 'ccl_id') {
+        valA = a.transaction_type === 'Receive' ? a.to_ccl_id : a.from_ccl_id;
+        valB = b.transaction_type === 'Receive' ? b.to_ccl_id : b.from_ccl_id;
+      } else if (sortConfig.key === 'facility_name') {
+        valA = a.transaction_type === 'Receive' ? a.from_ccl : a.to_ccl;
+        valB = b.transaction_type === 'Receive' ? b.from_ccl : b.to_ccl;
+      }
+      
+      if (valA == null) valA = '';
+      if (valB == null) valB = '';
+      
+      let comparison = 0;
+      if (typeof valA === 'number' || typeof valB === 'number') {
+         comparison = (Number(valA) || 0) - (Number(valB) || 0);
+      } else {
+         comparison = String(valA).localeCompare(String(valB));
+      }
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
+    });
+    return sorted;
+  }, [transactionsWithBalance, sortConfig]);
+
   const ITEMS_PER_PAGE = 15;
   const paginatedTransactions = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return transactionsWithBalance.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [transactionsWithBalance, currentPage]);
+    return sortedTransactions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [sortedTransactions, currentPage]);
 
-  const totalPages = Math.ceil(transactionsWithBalance.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(sortedTransactions.length / ITEMS_PER_PAGE);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [transactionsWithBalance]);
+  }, [sortedTransactions]);
 
   return (
     <div className={`flex flex-col h-full gap-3 ${isExpanded ? 'fixed inset-0 z-50 bg-slate-50 overflow-y-auto p-4' : ''}`}>
@@ -364,35 +408,23 @@ export const VaccineStockLedger: React.FC<{
 
           <div className="flex-1 overflow-x-hidden bg-white rounded-t-xl border-t border-slate-200">
             <table className="w-full text-left border-collapse table-fixed">
-              <thead className="bg-[#1e3a8a] text-white sticky top-0 z-10">
-                <tr className="text-left text-[11px] font-medium tracking-wide">
-                  <th className="px-3 py-3 border-r border-blue-800/50">CCL Name</th>
-                  <th className="px-3 py-3 border-r border-blue-800/50">CCL ID</th>
-                  <th className="px-3 py-3 border-r border-blue-800/50">
-                    <div className="flex items-center justify-between">Transaction Date <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
-                  </th>
-                  <th className="px-3 py-3 border-r border-blue-800/50">
-                    <div className="flex items-center justify-between">Transaction Type <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
-                  </th>
-                  <th className="px-3 py-3 border-r border-blue-800/50">Batch/Lot Number</th>
-                  {showManufacturer && <th className="px-3 py-3 border-r border-blue-800/50">Manufacturer Name</th>}
+              <thead className="sticky top-0 z-10">
+                <tr className="gradient-header text-white shadow-sm">
+                  <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('ccl_name')}>CCL Name{renderSortIcon('ccl_name')}</th>
+                  <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('ccl_id')}>CCL ID{renderSortIcon('ccl_id')}</th>
+                  <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('transaction_date')}>Transaction Date{renderSortIcon('transaction_date')}</th>
+                  <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('transaction_type')}>Transaction Type{renderSortIcon('transaction_type')}</th>
+                  <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('batch_no')}>Batch/Lot Number{renderSortIcon('batch_no')}</th>
+                  {showManufacturer && <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('manufacturer')}>Manufacturer Name{renderSortIcon('manufacturer')}</th>}
                   {showExpiry && (
-                    <th className="px-3 py-3 border-r border-blue-800/50">
-                      <div className="flex items-center justify-between">Expiry <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
-                    </th>
+                    <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('expiry_date')}>Expiry{renderSortIcon('expiry_date')}</th>
                   )}
-                  <th className="px-3 py-3 border-r border-blue-800/50 text-right">Transaction Quantity (Doses)</th>
-                  <th className="px-3 py-3 border-r border-blue-800/50">
-                    <div className="flex items-center justify-between">Transaction Facility Name <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
-                  </th>
-                  <th className="px-3 py-3 border-r border-blue-800/50 text-right">Physical Stock Count (Doses)</th>
-                  <th className="px-3 py-3 border-r border-blue-800/50 text-right">
-                    <div className="flex items-center justify-end">Wastage / Adjustment (Doses) <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
-                  </th>
-                  <th className="px-3 py-3 border-r border-blue-800/50 text-right">
-                    <div className="flex items-center justify-end">Closing Stock Balance (Doses) <ArrowUpDown className="w-3 h-3 text-blue-300 ml-1" /></div>
-                  </th>
-                  <th className="px-3 py-3">Remarks</th>
+                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('transaction_quantity')}>Transaction Quantity (Doses){renderSortIcon('transaction_quantity')}</th>
+                  <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('facility_name')}>Transaction Facility Name{renderSortIcon('facility_name')}</th>
+                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('physical_stock_count')}>Physical Stock Count (Doses){renderSortIcon('physical_stock_count')}</th>
+                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('wastage_quantity')}>Wastage / Adjustment (Doses){renderSortIcon('wastage_quantity')}</th>
+                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('computed_balance')}>Closing Stock Balance (Doses){renderSortIcon('computed_balance')}</th>
+                  <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40">Remarks</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">

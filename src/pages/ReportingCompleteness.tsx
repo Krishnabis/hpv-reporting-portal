@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Calendar, Download, BarChart3, ChevronDown, Search, Maximize2, Minimize2,
   ChevronLeft, ChevronRight, Activity, Target, Users,
-  Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart, Clock, Info, FileText
+  Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart, Clock, Info, FileText, ArrowUp, ArrowDown, ArrowUpDown
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -73,6 +73,7 @@ export const ReportingCompleteness: React.FC<{
   
   const [order, setOrder] = useState<'best' | 'worst'>('best');
   const [rankedBy, setRankedBy] = useState<'reporting' | 'ontime'>('reporting');
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'unitName', direction: 'asc' });
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -144,13 +145,41 @@ export const ReportingCompleteness: React.FC<{
     }
   };
 
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const renderSortIcon = (key: string) => {
+    if (sortConfig?.key !== key) return <ArrowUpDown className="inline w-3 h-3 ml-1 text-white/30" />;
+    return sortConfig.direction === 'asc' ? <ArrowUp className="inline w-3 h-3 ml-1 text-white" /> : <ArrowDown className="inline w-3 h-3 ml-1 text-white" />;
+  };
+
   const sortedRows = useMemo(() => {
-    return [...rows].sort((a, b) => {
-      let valA = rankedBy === 'reporting' ? a.reportingPct : a.onTimePct;
-      let valB = rankedBy === 'reporting' ? b.reportingPct : b.onTimePct;
-      return order === 'best' ? valB - valA : valA - valB;
+    let sorted = [...rows];
+
+    // Note: The UI has 'Best on Top / Worst on Top' buttons. 
+    // We will prioritize sortConfig if a user clicks a column header, 
+    // but default to 'unit' name sorting initially.
+    
+    sorted.sort((a, b) => {
+      const aVal = String(a[sortConfig.key as keyof typeof a] || '');
+      const bVal = String(b[sortConfig.key as keyof typeof b] || '');
+      
+      let comparison = 0;
+      if (typeof a[sortConfig.key as keyof typeof a] === 'number') {
+         comparison = (a[sortConfig.key as keyof typeof a] as number) - (b[sortConfig.key as keyof typeof b] as number);
+      } else {
+         comparison = aVal.localeCompare(bVal);
+      }
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
-  }, [rows, order, rankedBy]);
+
+    return sorted;
+  }, [rows, sortConfig]);
 
   const paginatedRows = useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -499,15 +528,15 @@ export const ReportingCompleteness: React.FC<{
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10">
                 <tr className="gradient-header text-white shadow-sm">
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">Reporting Unit</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">Report Name</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">Frequency</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">Last Reported</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-hpv-purple-soft uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 text-center border-r border-hpv-purple/20" title="Hidden internally but visible here">Reports Expected<br/><span className="text-[9px] font-medium opacity-80">(Hidden)</span></th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 text-center border-r border-hpv-purple/20">Reports<br/>Submitted</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">Reporting (%)</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 border-r border-hpv-purple/20">On Time (%)</th>
-                  <th className="px-2 py-2 text-[10px] font-extrabold text-amber-300 uppercase tracking-wider whitespace-nowrap border-b border-hpv-purple/30 text-center">Current Status<br/><span className="text-[9px] font-medium opacity-80">(Complete / Late / Pending)</span></th>
+                  <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('unitName')}>Reporting Unit{renderSortIcon('unitName')}</th>
+                  <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('reportName')}>Report Name{renderSortIcon('reportName')}</th>
+                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('frequency')}>Frequency{renderSortIcon('frequency')}</th>
+                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('lastReported')}>Last Reported{renderSortIcon('lastReported')}</th>
+                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" title="Hidden internally but visible here" onClick={() => handleSort('expected')}>Reports Expected<br/><span className="text-[9px] font-medium opacity-80">(Hidden)</span>{renderSortIcon('expected')}</th>
+                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('submitted')}>Reports<br/>Submitted{renderSortIcon('submitted')}</th>
+                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('reportingPct')}>Reporting (%){renderSortIcon('reportingPct')}</th>
+                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('onTimePct')}>On Time (%){renderSortIcon('onTimePct')}</th>
+                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('status')}>Current Status<br/><span className="text-[9px] font-medium opacity-80">(Complete / Late / Pending)</span>{renderSortIcon('status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">

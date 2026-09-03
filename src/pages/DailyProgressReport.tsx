@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Calendar, Download, BarChart3, ChevronDown, Search, Maximize2, Minimize2,
   ChevronLeft, ChevronRight, Activity, Target, Users,
-  Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart
+  Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart,
+  ArrowUp, ArrowDown, ArrowUpDown
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -161,8 +162,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
   const [isSavingImg, setIsSavingImg] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
 
-  const [sortDir, setSortDir] = useState<SortDir>('best');
-  const [rankBy, setRankBy] = useState<RankBy>('vaccination_coverage_pct');
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'name', direction: 'asc' });
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 15;
@@ -397,19 +397,44 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
     setIsSavingImg(false);
   };
 
-  const rankedRows = useMemo(() => {
-    const bestFirst = [...rows]
-      .sort((a, b) => ((a as any)[rankBy] ?? -1) - ((b as any)[rankBy] ?? -1))
-      .reverse()
-      .map((r, i) => ({ ...r, rank: i + 1 }));
-    return sortDir === 'best' ? bestFirst : [...bestFirst].reverse();
-  }, [rows, rankBy, sortDir]);
+  const handleSort = (key: string) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const renderSortIcon = (key: string) => {
+    if (sortConfig?.key !== key) return <ArrowUpDown className="inline w-3 h-3 ml-1 text-white/30" />;
+    return sortConfig.direction === 'asc' ? <ArrowUp className="inline w-3 h-3 ml-1 text-white" /> : <ArrowDown className="inline w-3 h-3 ml-1 text-white" />;
+  };
+
+  const sortedRows = useMemo(() => {
+    let sorted = [...rows];
+    sorted.sort((a, b) => {
+      let valA = (a as any)[sortConfig.key];
+      let valB = (b as any)[sortConfig.key];
+      
+      if (valA == null) valA = '';
+      if (valB == null) valB = '';
+      
+      let comparison = 0;
+      if (typeof valA === 'number' || typeof valB === 'number') {
+         comparison = (Number(valA) || 0) - (Number(valB) || 0);
+      } else {
+         comparison = String(valA).localeCompare(String(valB));
+      }
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
+    });
+
+    return sorted.map((r, i) => ({ ...r, rank: i + 1 }));
+  }, [rows, sortConfig]);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return rankedRows;
+    if (!search.trim()) return sortedRows;
     const q = search.toLowerCase();
-    return rankedRows.filter(r => r.name.toLowerCase().includes(q));
-  }, [rankedRows, search]);
+    return sortedRows.filter(r => r.name.toLowerCase().includes(q));
+  }, [sortedRows, search]);
 
   const totalPages = Math.ceil(filtered.length / rowsPerPage);
   const paginated = useMemo(() => {
@@ -434,7 +459,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
   const handleCSV = () => {
     if (!rows.length) return;
     const headers = ['Rank','Reporting Unit','Coverage %'];
-    const csvRows = rankedRows.map((r: any, i: number) => [i + 1, `"${r.name}"`, r.vaccination_coverage_pct]);
+    const csvRows = sortedRows.map((r: any, i: number) => [i + 1, `"${r.name}"`, r.vaccination_coverage_pct]);
     const content = [headers.join(','), ...csvRows.map(r => r.join(','))].join('\n');
     const blob = new Blob([content], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -633,17 +658,17 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
 
         {/* Sort direction */}
         <div className="flex items-center gap-3">
-          {(['best', 'worst'] as SortDir[]).map(val => (
+          {(['asc', 'desc'] as Array<'asc'|'desc'>).map(val => (
             <label key={val} className="flex items-center gap-1.5 cursor-pointer select-none">
               <div
-                onClick={() => setSortDir(val)}
-                className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${sortDir === val ? 'border-hpv-purple' : 'border-slate-300'}`}
+                onClick={() => setSortConfig(prev => ({ ...prev, direction: val }))}
+                className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${sortConfig.direction === val ? 'border-hpv-purple' : 'border-slate-300'}`}
               >
-                {sortDir === val && <div className="w-1.5 h-1.5 rounded-full bg-hpv-purple" />}
+                {sortConfig.direction === val && <div className="w-1.5 h-1.5 rounded-full bg-hpv-purple" />}
               </div>
-              <span className={`text-xs font-semibold cursor-pointer ${sortDir === val ? 'text-hpv-purple' : 'text-slate-500'}`}
-                onClick={() => setSortDir(val)}>
-                {val === 'best' ? 'Best on Top' : 'Worst on Top'}
+              <span className={`text-xs font-semibold cursor-pointer ${sortConfig.direction === val ? 'text-hpv-purple' : 'text-slate-500'}`}
+                onClick={() => setSortConfig(prev => ({ ...prev, direction: val }))}>
+                {val === 'asc' ? 'Ascending' : 'Descending'}
               </span>
             </label>
           ))}
@@ -651,10 +676,11 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
 
         {/* Ranked By */}
         <div className="flex items-center gap-2">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Ranked By</span>
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Sort By</span>
           <div className="relative">
-            <select value={rankBy} onChange={e => setRankBy(e.target.value as RankBy)}
+            <select value={sortConfig.key} onChange={e => setSortConfig(prev => ({ ...prev, key: e.target.value }))}
               className="pl-2.5 pr-7 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer">
+              <option value="name">Name</option>
               <option value="vaccination_coverage_pct">Coverage (%)</option>
               <option value="sessions_held_cumulative">Sessions Held</option>
               <option value="beneficiaries_vaccinated">Vaccinations</option>
@@ -701,18 +727,18 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
         <div className="overflow-auto flex-1 min-h-0">
           <table className="w-full" style={{ fontSize: '11px' }}>
             <thead className="sticky top-0 z-10">
-              <tr className="gradient-header text-white">
-                <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Reporting Unit ({reportLevel === 'District' ? 'District' : 'Block'})</th>
-                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Last Reported</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Population</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">HPV Goal</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Sessions Today</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vaccinations Today</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Sessions Cumulative</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vaccinations Cumulative</th>
-                <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vaccinations Per Session</th>
-                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Goal %</th>
-                <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Rank</th>
+              <tr className="gradient-header text-white shadow-sm">
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 cursor-pointer hover:bg-white/10" style={{ minWidth: 140 }} onClick={() => handleSort('name')}>Reporting Unit ({reportLevel === 'District' ? 'District' : 'Block'}){renderSortIcon('name')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('last_reporting_date')}>Last Reported{renderSortIcon('last_reporting_date')}</th>
+                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('population')}>Population{renderSortIcon('population')}</th>
+                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('hpv_target')}>HPV Goal{renderSortIcon('hpv_target')}</th>
+                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('sessions_held_today')}>Sessions Today{renderSortIcon('sessions_held_today')}</th>
+                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('vaccinated_today')}>Vaccinations Today{renderSortIcon('vaccinated_today')}</th>
+                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('sessions_held_cumulative')}>Sessions Cumulative{renderSortIcon('sessions_held_cumulative')}</th>
+                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('beneficiaries_vaccinated')}>Vaccinations Cumulative{renderSortIcon('beneficiaries_vaccinated')}</th>
+                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('vaccinations_per_session')}>Vaccinations Per Session{renderSortIcon('vaccinations_per_session')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('vaccination_coverage_pct')}>Goal %{renderSortIcon('vaccination_coverage_pct')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40">Rank</th>
               </tr>
             </thead>
             <tbody>
