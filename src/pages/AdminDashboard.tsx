@@ -1362,7 +1362,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex items-center gap-2 group relative">
                   <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-1.5">
                     <span className="text-[#188E94]">
-                      Monitoring Dashboard:
+                      Program Monitoring Dashboard:
                     </span>
                     {adminUser?.role === 'SUPER_ADMIN' ? (
                       <select 
@@ -1593,7 +1593,7 @@ export const AdminDashboard: React.FC = () => {
                 {((!selectedDistrict && kpis?.district_chart_data && kpis.district_chart_data.length > 0) || 
                   (selectedDistrict && kpis?.block_chart_data && kpis.block_chart_data.some((b: any) => b.district === selectedDistrict))) ? (
                   <div className="flex-1 min-h-0 overflow-y-auto">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 sm:gap-y-1.5 pb-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-0.5 sm:gap-y-1 pb-2">
                     {(!selectedDistrict ? [...(kpis?.district_chart_data || [])] : [...(kpis?.block_chart_data || []).filter((b: any) => b.district === selectedDistrict)])
                        .sort((a, b) => {
                         const pa = selectedKpi === 'linelist' ? a.lineListPct : a.coveragePct;
@@ -1616,7 +1616,7 @@ export const AdminDashboard: React.FC = () => {
                               if (adminUser?.role === 'DISTRICT_ADMIN' && d.district !== adminUser.district_name) return;
                               setSelectedDistrict(d.district);
                             }}
-                            className={`flex items-center py-1 sm:py-1.5 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1.5 ${(!isBlock && (adminUser?.role !== 'DISTRICT_ADMIN' || d.district === adminUser.district_name)) ? 'cursor-pointer hover:bg-blue-50/50' : ''} ${(!isBlock && adminUser?.role === 'DISTRICT_ADMIN' && d.district !== adminUser.district_name) ? 'opacity-70 grayscale' : ''}`}
+                            className={`flex items-center py-0.5 sm:py-1 rounded hover:bg-slate-50 transition-colors border-b border-slate-100 gap-1 ${(!isBlock && (adminUser?.role !== 'DISTRICT_ADMIN' || d.district === adminUser.district_name)) ? 'cursor-pointer hover:bg-blue-50/50' : ''} ${(!isBlock && adminUser?.role === 'DISTRICT_ADMIN' && d.district !== adminUser.district_name) ? 'opacity-70 grayscale' : ''}`}
                           >
                             <span className="text-[10px] font-bold text-slate-400 w-4 shrink-0 text-center">{idx + 1}</span>
                             <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
@@ -1894,7 +1894,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex items-center gap-2 group relative">
                   <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-1.5 flex-wrap">
                     <span className="text-[#188E94]">
-                      HPV Vaccine Monitoring Dashboard:
+                      Program Monitoring Dashboard:
                     </span>
                     {adminUser?.role === 'SUPER_ADMIN' ? (
                       <select 

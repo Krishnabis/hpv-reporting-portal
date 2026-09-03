@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search, MapPin, Layers, Filter, Building2, Download, FileText, Clock,
-  Maximize2, Minimize2, ChevronDown, BarChart3, RefreshCw
+  Maximize2, Minimize2, ChevronDown, BarChart3, RefreshCw, ArrowUp, ArrowDown
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -35,6 +35,7 @@ export const LocationMaster: React.FC<{
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
 
   const [statesList, setStatesList] = useState<any[]>(initialStates);
   const [districtsList, setDistrictsList] = useState<any[]>(initialDistricts);
@@ -154,8 +155,9 @@ export const LocationMaster: React.FC<{
 
   // Aggregate stats for district mode if level === 'District'
   const displayRows = useMemo(() => {
+    let rows: any[] = [];
     if (reportLevel === 'Block Units') {
-      return filteredLocations.map(l => {
+      rows = filteredLocations.map(l => {
         const pop = l.population || 0;
         const annualTarget = Math.round(pop * 0.01);
         const hpvTarget = l.hpv_target || 0;
@@ -174,7 +176,7 @@ export const LocationMaster: React.FC<{
           is_urban: l.is_urban
         };
       });
-    }
+    } else {
 
     // Aggregated District View
     const districtMap: { [key: string]: any } = {};
@@ -208,8 +210,25 @@ export const LocationMaster: React.FC<{
       }
     });
 
-    return Object.values(districtMap);
-  }, [filteredLocations, reportLevel, selectedStateName]);
+    rows = Object.values(districtMap);
+    }
+    
+    if (sortConfig) {
+      rows.sort((a: any, b: any) => {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+        
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+        
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return rows;
+  }, [filteredLocations, reportLevel, selectedStateName, sortConfig]);
 
   const kpis = useMemo(() => {
     const totalUnits = displayRows.length;
@@ -322,6 +341,19 @@ export const LocationMaster: React.FC<{
     });
 
     doc.save(`Block_Units_Report_${selectedStateName.replace(/\s+/g, '_')}.pdf`);
+  };
+
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const renderSortArrow = (key: string) => {
+    if (sortConfig?.key !== key) return null;
+    return sortConfig.direction === 'asc' ? <ArrowUp className="inline w-3 h-3 ml-1" /> : <ArrowDown className="inline w-3 h-3 ml-1" />;
   };
 
   return (
@@ -454,15 +486,15 @@ export const LocationMaster: React.FC<{
             <thead className="sticky top-0 z-10">
               <tr className="gradient-header text-white">
                 <th className="px-2.5 py-2 text-center font-bold uppercase tracking-wide w-12 border-b border-purple-900/40">S.No</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-purple-900/40" style={{ minWidth: 180 }}>Location Hierarchy</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Population</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Annual Target (1%)</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">HPV Goal</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Sessions</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Line Listed</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Vaccinated</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Reports</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Last Report</th>
+                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-purple-900/40 cursor-pointer hover:bg-white/10" style={{ minWidth: 180 }} onClick={() => handleSort('name')}>Location Hierarchy{renderSortArrow('name')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('population')}>Population{renderSortArrow('population')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('annualTarget')}>Annual Target (1%){renderSortArrow('annualTarget')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('hpvTarget')}>HPV Goal{renderSortArrow('hpvTarget')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('sessions')}>Sessions{renderSortArrow('sessions')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('linelisted')}>Line Listed{renderSortArrow('linelisted')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('vaccinated')}>Vaccinated{renderSortArrow('vaccinated')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('reportsCount')}>Reports{renderSortArrow('reportsCount')}</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('lastReportDate')}>Last Report{renderSortArrow('lastReportDate')}</th>
               </tr>
             </thead>
             <tbody>

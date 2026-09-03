@@ -3459,7 +3459,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
         }
       }
 
-      const sessStr = row.session || row.sessions || row.Session || row.Sessions || '0';
+      const sessStr = row.sessions_held || row.session_held || row.session || row.sessions || row.Session || row.Sessions || '0';
       let lineList = parseInt(llStr, 10);
       let vaccinated = parseInt(vaccStr, 10);
       let sessions = parseInt(sessStr, 10);
@@ -3517,6 +3517,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
         if (existingIdx >= 0) {
           store.daily_reports[existingIdx].line_list_count = lineList;
           store.daily_reports[existingIdx].beneficiaries_vaccinated = vaccinated;
+          store.daily_reports[existingIdx].sessions_held = sessions;
         } else {
           store.daily_reports.push({
             id: `rep-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,

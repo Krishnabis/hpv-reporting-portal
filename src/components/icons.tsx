@@ -35,7 +35,8 @@ import {
   ClockIcon as Clock,
   ShoppingCartIcon as ShoppingCart,
   ExclamationTriangleIcon as AlertTriangle,
-  CloudArrowUpIcon as UploadCloud
+  CloudArrowUpIcon as UploadCloud,
+  BoltIcon as Zap
 } from '@heroicons/react/24/outline';
 
 // Fallback to Lucide for specific medical/niche icons that don't exist in Heroicons
@@ -50,5 +51,5 @@ export {
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
   Building2, Edit2, Trash2, ClipboardList, FileSpreadsheet, Target, Bell,
-  Syringe, SearchIcon, HeartPulse, UploadCloud, Activity, UsersIcon, Info, Clock, ShoppingCart, AlertTriangle
+  Syringe, SearchIcon, HeartPulse, UploadCloud, Activity, UsersIcon, Info, Clock, ShoppingCart, AlertTriangle, Zap
 };
