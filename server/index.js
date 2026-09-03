@@ -2934,219 +2934,141 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
         if (c.ccl_id) ccpMap[c.ccl_id] = c;
       });
 
-      // ── Step 1: sort transactions chronologically (ascending) before computing balances ──
-      const sortedTx = (txData || []).slice().sort((a, b) => {
-        const da = new Date(a.transaction_date || a.created_at || 0).getTime();
-        const db = new Date(b.transaction_date || b.created_at || 0).getTime();
-        if (da !== db) return da - db;
-        // RECEIVED before ISSUED on same date so balance never goes negative unnecessarily
-        if (a.transaction_type === 'RECEIVED' && b.transaction_type !== 'RECEIVED') return -1;
-        if (b.transaction_type === 'RECEIVED' && a.transaction_type !== 'RECEIVED') return 1;
-        return 0;
-      });
+      // ── Step 1: Initialize CCL Summary Map ──
+      const cclSummaryMap = {};
+      const initCcl = (id, fallbackName, fallbackLevel) => {
+         if (!id) return null;
+         const key = String(id);
+         if (!cclSummaryMap[key]) {
+            const fac = ccpMap[key] || {};
+            const level = String(fac.unit_level || fallbackLevel || '2');
+            let levelLabel = 'Block/CCP (L3)';
+            if (level === '1') levelLabel = 'State (L1)';
+            if (level === '2') levelLabel = 'District (L2)';
 
-      // ── Step 2: build per-CCL running balance using new single-record model ──
-      //   RECEIVED: only external receipts → +qty at destination CCL (facility_id)
-      //   ISSUED:   single record with source + destination
-      //             → -qty at source CCL (facility_id)
-      //             → +qty at destination CCL (destination_ccl_id → lookup)
-      const runningBalanceMap = {}; // cclKey → current balance
-      const cclMetaMap = {};        // cclKey → { cclName, levelLabel, unitTypeStr }
-      const liveRows = [];
-
-      const initCcl = (key, cclName, levelLabel, unitTypeStr) => {
-        if (runningBalanceMap[key] === undefined) {
-          runningBalanceMap[key] = 0;
-          cclMetaMap[key] = { cclName, levelLabel, unitTypeStr };
-        }
+            cclSummaryMap[key] = {
+               ccl_id: key,
+               ccl_name: fac.facility_name || fallbackName || 'Unknown CCL',
+               level,
+               level_label: levelLabel,
+               unit_type: fac.unit_type || (level === '1' ? 'SVS' : (level === '2' ? 'DVS' : 'CCP-B')),
+               total_in: 0,
+               total_out: 0,
+               balance: 0
+            };
+         }
+         return cclSummaryMap[key];
       };
 
-      sortedTx.forEach((t, idx) => {
-        const qty = Number(t.quantity_doses || 0);
-        const isRecv = t.transaction_type === 'RECEIVED';
+      // ── Step 2: Process Transactions Exactly as Requested ──
+      txData.forEach(t => {
+         const qty = Number(t.quantity_doses || 0);
+         
+         if (t.transaction_type === 'RECEIVED') {
+            // External Receipt: Adds to Destination (State)
+            const destId = t.facility_id || t.destination_ccl_id;
+            const dest = initCcl(destId, t.destination_ccl_name, t.level);
+            if (dest) {
+               dest.total_in += qty;
+               dest.balance += qty;
+            }
+         } else if (t.transaction_type === 'ISSUED') {
+            // Internal Transfer: Reduces Source, Increases Destination
+            const srcId = t.source_ccl_id || t.facility_id;
+            const srcName = t.source_ccl_name || ccpMap[srcId]?.facility_name;
+            const src = initCcl(srcId, srcName, t.level);
+            if (src) {
+               src.total_out += qty;
+               src.balance -= qty;
+            }
 
-        if (isRecv) {
-          // ── External receipt: +qty at the receiving CCL (facility_id) ──
-          const fac = ccpMap[t.facility_id] || ccpMap[t.destination_ccl_id] || {};
-          const distName = t.district_id ? distMap[t.district_id] : (fac.districts?.name || '');
-          const cclNameText = fac.facility_name || t.destination_ccl_name || (distName ? `Vaccine Store ${distName}` : 'Unknown CCL');
-          const levelStr = String(t.level || fac.unit_level || '1');
-          const levelLabel = levelStr === '1' ? 'L1' : (levelStr === '2' ? 'L2' : 'L3');
-          const unitTypeStr = fac.unit_type || (levelStr === '1' ? 'SVS' : (levelStr === '2' ? 'DVS' : 'CCP-B'));
-          const key = String(t.facility_id || t.destination_ccl_id || cclNameText);
-
-          initCcl(key, cclNameText, levelLabel, unitTypeStr);
-          runningBalanceMap[key] += qty;
-
-          liveRows.push({
-            id: t.id || `tx-${idx}`,
-            ccl_name: cclNameText, ccl_key: key,
-            transaction_date: t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB') : '',
-            raw_date: t.transaction_date || t.created_at,
-            transaction_type: 'Receive',
-            batch_no: t.batch_no || '—',
-            manufacturer_name: t.manufacture_name || '—',
-            expiry_date: t.batch_expiry_date ? new Date(t.batch_expiry_date).toLocaleDateString('en-GB') : '—',
-            transaction_quantity: qty,
-            from_ccl: 'External Supplier',
-            to_ccl: cclNameText,
-            physical_stock_count: null, wastage_adjustment: null,
-            closing_balance: runningBalanceMap[key],
-            remarks: t.remarks || 'Receipt from supplier',
-            ccl_level: levelLabel, unit_type: unitTypeStr, district_name: distName
-          });
-
-        } else {
-          // ── Internal transfer: ONE ISSUED record → two balance impacts ──
-          const srcFac = ccpMap[t.facility_id] || {};
-          const srcDistName = t.district_id ? distMap[t.district_id] : (srcFac.districts?.name || '');
-          const srcCclName = srcFac.facility_name || t.source_ccl_name || (srcDistName ? `Vaccine Store ${srcDistName}` : 'Source CCL');
-          const srcLevelStr = String(t.level || srcFac.unit_level || '2');
-          const srcLevelLabel = srcLevelStr === '1' ? 'L1' : (srcLevelStr === '2' ? 'L2' : 'L3');
-          const srcUnitType = srcFac.unit_type || (srcLevelStr === '1' ? 'SVS' : (srcLevelStr === '2' ? 'DVS' : 'CCP-B'));
-          const srcKey = String(t.facility_id || t.source_ccl_id || srcCclName);
-
-          const dstFac = ccpMap[t.destination_ccl_id] || {};
-          const dstDistName = dstFac.district_id ? distMap[dstFac.district_id] : (dstFac.districts?.name || srcDistName);
-          const dstCclName = dstFac.facility_name || t.destination_ccl_name || 'Destination CCL';
-          const dstLevelStr = String(t.destination_level || dstFac.unit_level || '2');
-          const dstLevelLabel = dstLevelStr === '1' ? 'L1' : (dstLevelStr === '2' ? 'L2' : 'L3');
-          const dstUnitType = dstFac.unit_type || (dstLevelStr === '1' ? 'SVS' : (dstLevelStr === '2' ? 'DVS' : 'CCP-B'));
-          const dstKey = String(t.destination_ccl_id || dstCclName);
-
-          initCcl(srcKey, srcCclName, srcLevelLabel, srcUnitType);
-          initCcl(dstKey, dstCclName, dstLevelLabel, dstUnitType);
-
-          // Source loses stock
-          runningBalanceMap[srcKey] -= qty;
-          // Destination gains stock
-          runningBalanceMap[dstKey] += qty;
-
-          const txDate = t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB') : '';
-          const rawDate = t.transaction_date || t.created_at;
-          const batchNo = t.batch_no || '—';
-          const mfg = t.manufacture_name || '—';
-          const expiry = t.batch_expiry_date ? new Date(t.batch_expiry_date).toLocaleDateString('en-GB') : '—';
-          const remarks = t.remarks || 'Internal transfer';
-
-          // Source row: outflow
-          liveRows.push({
-            id: `${t.id || idx}-out`,
-            ccl_name: srcCclName, ccl_key: srcKey,
-            transaction_date: txDate, raw_date: rawDate,
-            transaction_type: 'Issue',
-            batch_no: batchNo, manufacturer_name: mfg, expiry_date: expiry,
-            transaction_quantity: -qty,
-            from_ccl: srcCclName, to_ccl: dstCclName,
-            physical_stock_count: null, wastage_adjustment: null,
-            closing_balance: runningBalanceMap[srcKey],
-            remarks,
-            ccl_level: srcLevelLabel, unit_type: srcUnitType, district_name: srcDistName
-          });
-
-          // Destination row: inflow
-          liveRows.push({
-            id: `${t.id || idx}-in`,
-            ccl_name: dstCclName, ccl_key: dstKey,
-            transaction_date: txDate, raw_date: rawDate,
-            transaction_type: 'Receive',
-            batch_no: batchNo, manufacturer_name: mfg, expiry_date: expiry,
-            transaction_quantity: qty,
-            from_ccl: srcCclName, to_ccl: dstCclName,
-            physical_stock_count: null, wastage_adjustment: null,
-            closing_balance: runningBalanceMap[dstKey],
-            remarks,
-            ccl_level: dstLevelLabel, unit_type: dstUnitType, district_name: dstDistName
-          });
-        }
+            const destId = t.destination_ccl_id;
+            const dest = initCcl(destId, t.destination_ccl_name, t.destination_level);
+            if (dest) {
+               dest.total_in += qty;
+               dest.balance += qty;
+            }
+         }
       });
 
-      if (liveRows.length > 0) {
-        // ── Step 3: build CCL summary (final balance per CCL) ──
-        const cclSummary = Object.entries(runningBalanceMap).map(([key, finalBalance]) => ({
-          cclKey: key,
-          cclName: cclMetaMap[key]?.cclName || key,
-          levelLabel: cclMetaMap[key]?.levelLabel || '—',
-          unitType: cclMetaMap[key]?.unitTypeStr || '—',
-          finalBalance
-        })).sort((a, b) => a.cclName.localeCompare(b.cclName));
+      // ── Step 3: Build Raw Transaction Log ──
+      const rawRows = (txData || []).map(t => {
+         const isRecv = t.transaction_type === 'RECEIVED';
+         const srcId = isRecv ? null : (t.source_ccl_id || t.facility_id);
+         const srcName = isRecv ? 'External Supplier' : (t.source_ccl_name || ccpMap[srcId]?.facility_name || 'Source CCL');
+         const destId = isRecv ? (t.facility_id || t.destination_ccl_id) : t.destination_ccl_id;
+         const destName = t.destination_ccl_name || ccpMap[destId]?.facility_name || 'Destination CCL';
+         
+         return {
+            id: t.id,
+            transaction_date: t.transaction_date || t.created_at,
+            transaction_type: isRecv ? 'Receive' : 'Issue',
+            batch_no: t.batch_no || '—',
+            manufacturer_name: t.manufacture_name || '—',
+            expiry_date: t.batch_expiry_date || '—',
+            transaction_quantity: Number(t.quantity_doses || 0),
+            from_ccl: srcName,
+            to_ccl: destName,
+            from_ccl_id: srcId,
+            to_ccl_id: destId,
+            remarks: t.remarks || (isRecv ? 'Receipt from supplier' : 'Internal transfer')
+         };
+      });
 
-        // ── Step 4: apply filters AFTER balance is computed (so sort/balance is always correct) ──
-        // Default display order: CCL name asc → date asc
-        let filteredRows = liveRows.slice().sort((a, b) => {
-          const nameComp = a.ccl_name.localeCompare(b.ccl_name);
-          if (nameComp !== 0) return nameComp;
-          return new Date(a.raw_date).getTime() - new Date(b.raw_date).getTime();
-        });
+      // Sort by date ascending (chronological)
+      rawRows.sort((a, b) => new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime());
 
-        if (district && district !== 'All Districts') {
-          filteredRows = filteredRows.filter(r =>
-            r.ccl_name.toLowerCase().includes(district.toLowerCase()) ||
-            r.district_name.toLowerCase().includes(district.toLowerCase())
-          );
-        }
-        if (transactionType && transactionType !== 'All') {
-          filteredRows = filteredRows.filter(r => r.transaction_type.toLowerCase() === transactionType.toLowerCase());
-        }
+      // ── Step 4: Apply Filters to Transaction Log ──
+      let filteredRows = rawRows.filter(r => {
+         let match = true;
+         if (district && district !== 'All Districts') {
+            const fromFac = ccpMap[r.from_ccl_id] || {};
+            const toFac = ccpMap[r.to_ccl_id] || {};
+            const fromDist = distMap[fromFac.district_id] || '';
+            const toDist = distMap[toFac.district_id] || '';
+            match = match && (fromDist.toLowerCase().includes(district.toLowerCase()) || toDist.toLowerCase().includes(district.toLowerCase()));
+         }
+         if (cclName && cclName.trim() !== '') {
+            match = match && (r.from_ccl.toLowerCase().includes(cclName.toLowerCase()) || r.to_ccl.toLowerCase().includes(cclName.toLowerCase()));
+         }
+         if (transactionType && transactionType !== 'All') {
+            match = match && (r.transaction_type.toLowerCase() === transactionType.toLowerCase());
+         }
+         return match;
+      });
 
-        // ── Step 5: compute KPIs — strictly separated by type, no double-counting ──
-        let totalReceived = 0;
-        let totalIssued = 0;
-        let totalAdjustment = 0;
+      // ── Step 5: Compute System-Wide KPIs ──
+      const kpis = {
+         totalExternalReceived: 0,
+         totalStateBalance: 0,
+         totalDistrictBalance: 0,
+         totalIssuedToBlocks: 0
+      };
 
-        const isGlobalView = (!district || district === 'All Districts');
+      const cclSummary = Object.values(cclSummaryMap);
+      cclSummary.forEach(c => {
+         if (c.level === '1') {
+            kpis.totalExternalReceived += c.total_in;
+            kpis.totalStateBalance += c.balance;
+         } else if (c.level === '2') {
+            kpis.totalDistrictBalance += c.balance;
+         } else if (c.level === '3') {
+            kpis.totalIssuedToBlocks += c.total_in;
+         }
+      });
+      
+      // Sort Summary by Level then Name
+      cclSummary.sort((a, b) => {
+         if (a.level !== b.level) return Number(a.level) - Number(b.level);
+         return a.ccl_name.localeCompare(b.ccl_name);
+      });
 
-        // Use filteredRows so the KPIs update when user filters by district
-        filteredRows.forEach(r => {
-          if (r.transaction_type === 'Receive' && r.transaction_quantity) {
-             // In Global view, only count external receipts to avoid double-counting internal transfers
-             if (isGlobalView) {
-                if (r.from_ccl === 'External Supplier') {
-                   totalReceived += r.transaction_quantity;
-                }
-             } else {
-                // If filtered to a specific district, count all its receipts (both external and internal from State)
-                totalReceived += r.transaction_quantity;
-             }
-          }
-          if (r.transaction_type === 'Issue' && r.transaction_quantity) {
-             totalIssued += Math.abs(r.transaction_quantity);
-          }
-          if (r.wastage_adjustment) {
-             totalAdjustment += r.wastage_adjustment;
-          }
-        });
-
-        // Closing stock = net balance of the CCLs being viewed
-        let closingStock = 0;
-        if (isGlobalView) {
-           // Global: sum of all CCL balances in the whole system
-           closingStock = cclSummary.reduce((sum, c) => sum + c.finalBalance, 0);
-        } else {
-           // Filtered: sum of final balances of ONLY the CCLs that appear in the filtered rows
-           const filteredCclKeys = new Set(filteredRows.map(r => r.ccl_key));
-           filteredCclKeys.forEach(key => {
-              closingStock += (runningBalanceMap[key] || 0);
-           });
-        }
-
-        const wastagePct = totalIssued > 0 ? ((totalAdjustment / totalIssued) * 100).toFixed(2) : '0.00';
-
-        return res.json({
-          rows: filteredRows,
-          cclSummary,
-          kpis: {
-            openingStock: 0,
-            totalReceived,
-            totalIssued,
-            totalAdjustment,
-            closingStock,
-            wastagePct
-          },
-          isLive: true
-        });
-      }
-    }
+      return res.json({
+         rows: filteredRows,
+         cclSummary,
+         kpis,
+         isLive: true
+      });
 
     // Reference fallback rows when DB table is freshly initialized or empty
     const rows = [
