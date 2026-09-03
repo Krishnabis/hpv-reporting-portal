@@ -1667,47 +1667,47 @@ export const AdminDashboard: React.FC = () => {
 
               {/* Bottom Banner - Global Strategy */}
               <div className="bg-white rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2 border border-slate-200">
-                <div className="p-3 sm:p-4 bg-[#14233c] border-b border-slate-200 flex items-center justify-center gap-3">
-                  <HeartPulse className="w-6 h-6 sm:w-8 sm:h-8 text-pink-400 shrink-0" />
-                  <h3 className="text-[14px] sm:text-lg md:text-xl font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
+                <div className="p-2 sm:p-2.5 bg-[#14233c] border-b border-slate-200 flex items-center justify-center gap-2">
+                  <HeartPulse className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400 shrink-0" />
+                  <h3 className="text-[12px] sm:text-sm font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
                 </div>
-                <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-2 sm:p-3 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                   
                   {/* 90% Vaccinated */}
-                  <div className="bg-pink-50/50 rounded-xl border border-pink-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
-                    <div className="flex items-center gap-3">
-                      <span className="text-5xl sm:text-6xl font-black text-[#e81c6a] tracking-tighter">90%</span>
-                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-pink-100">
-                        <Syringe className="w-6 h-6 text-[#e81c6a]" />
+                  <div className="bg-pink-50/50 rounded-xl border border-pink-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl sm:text-3xl font-black text-[#e81c6a] tracking-tighter">90%</span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-pink-100">
+                        <Syringe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#e81c6a]" />
                       </div>
                     </div>
-                    <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
                       of Girls Vaccinated<br />Against HPV by Age 15
                     </p>
                   </div>
 
                   {/* 70% Screened */}
-                  <div className="bg-teal-50/50 rounded-xl border border-teal-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
-                    <div className="flex items-center gap-3">
-                      <span className="text-5xl sm:text-6xl font-black text-[#438392] tracking-tighter">70%</span>
-                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
-                        <SearchIcon className="w-6 h-6 text-[#438392]" />
+                  <div className="bg-teal-50/50 rounded-xl border border-teal-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl sm:text-3xl font-black text-[#438392] tracking-tighter">70%</span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
+                        <SearchIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#438392]" />
                       </div>
                     </div>
-                    <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
                       of Women Screened with a<br />high-performance test by<br />Ages 35 and 45
                     </p>
                   </div>
 
                   {/* 90% Treated */}
-                  <div className="bg-purple-50/50 rounded-xl border border-purple-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
-                    <div className="flex items-center gap-3">
-                      <span className="text-5xl sm:text-6xl font-black text-[#694b8c] tracking-tighter">90%</span>
-                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
-                        <ShieldCheck className="w-6 h-6 text-[#694b8c]" />
+                  <div className="bg-purple-50/50 rounded-xl border border-purple-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl sm:text-3xl font-black text-[#694b8c] tracking-tighter">90%</span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
+                        <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#694b8c]" />
                       </div>
                     </div>
-                    <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
                       of Women identified with<br />Cervical Disease<br />Receive Treatment
                     </p>
                   </div>
@@ -2075,47 +2075,47 @@ export const AdminDashboard: React.FC = () => {
 
                     {/* Bottom Banner - Global Strategy */}
                     <div className="bg-white rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2 border border-slate-200">
-                      <div className="p-3 sm:p-4 bg-[#14233c] border-b border-slate-200 flex items-center justify-center gap-3">
-                        <HeartPulse className="w-6 h-6 sm:w-8 sm:h-8 text-pink-400 shrink-0" />
-                        <h3 className="text-[14px] sm:text-lg md:text-xl font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
+                      <div className="p-2 sm:p-2.5 bg-[#14233c] border-b border-slate-200 flex items-center justify-center gap-2">
+                        <HeartPulse className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400 shrink-0" />
+                        <h3 className="text-[12px] sm:text-sm font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
                       </div>
-                      <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="p-2 sm:p-3 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                         
                         {/* 90% Vaccinated */}
-                        <div className="bg-pink-50/50 rounded-xl border border-pink-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
-                          <div className="flex items-center gap-3">
-                            <span className="text-5xl sm:text-6xl font-black text-[#e81c6a] tracking-tighter">90%</span>
-                            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-pink-100">
-                              <Syringe className="w-6 h-6 text-[#e81c6a]" />
+                        <div className="bg-pink-50/50 rounded-xl border border-pink-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl sm:text-3xl font-black text-[#e81c6a] tracking-tighter">90%</span>
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-pink-100">
+                              <Syringe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#e81c6a]" />
                             </div>
                           </div>
-                          <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                          <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
                             of Girls Vaccinated<br />Against HPV by Age 15
                           </p>
                         </div>
 
                         {/* 70% Screened */}
-                        <div className="bg-teal-50/50 rounded-xl border border-teal-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
-                          <div className="flex items-center gap-3">
-                            <span className="text-5xl sm:text-6xl font-black text-[#438392] tracking-tighter">70%</span>
-                            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
-                              <SearchIcon className="w-6 h-6 text-[#438392]" />
+                        <div className="bg-teal-50/50 rounded-xl border border-teal-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl sm:text-3xl font-black text-[#438392] tracking-tighter">70%</span>
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
+                              <SearchIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#438392]" />
                             </div>
                           </div>
-                          <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                          <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
                             of Women Screened with a<br />high-performance test by<br />Ages 35 and 45
                           </p>
                         </div>
 
                         {/* 90% Treated */}
-                        <div className="bg-purple-50/50 rounded-xl border border-purple-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
-                          <div className="flex items-center gap-3">
-                            <span className="text-5xl sm:text-6xl font-black text-[#694b8c] tracking-tighter">90%</span>
-                            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
-                              <ShieldCheck className="w-6 h-6 text-[#694b8c]" />
+                        <div className="bg-purple-50/50 rounded-xl border border-purple-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl sm:text-3xl font-black text-[#694b8c] tracking-tighter">90%</span>
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
+                              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#694b8c]" />
                             </div>
                           </div>
-                          <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                          <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
                             of Women identified with<br />Cervical Disease<br />Receive Treatment
                           </p>
                         </div>
