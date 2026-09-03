@@ -947,6 +947,8 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     if (!useSupabase) return res.json({ total_blocks: 0, reporting_today: 0, total_line_list: 0, total_vaccinated: 0, overall_coverage_pct: 0, overall_linelist_pct: 0, district_chart_data: [], latest_reporting_date: null });
 
     const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+    const userDistrictId = req.user.district_id || (req.user.role === 'DISTRICT_ADMIN' ? req.user.district_id : null);
+    const targetDistrictId = userDistrictId || (req.query.district_id && req.query.district_id !== 'ALL' ? req.query.district_id : null);
 
     // 1. Fetch all active blocks with district info
     let bq = supabase
@@ -954,6 +956,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       .select(targetStateId ? 'id, name, health_block_name, is_urban, district_id, districts!inner(name, state_id, divisions(name))' : 'id, name, health_block_name, is_urban, district_id, districts!inner(name, divisions(name))')
       .eq('is_active', true);
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
+    if (targetDistrictId) bq = bq.eq('district_id', targetDistrictId);
     
     const { data: blocks, error: bErr } = await bq;
     if (bErr) throw bErr;

@@ -5,7 +5,7 @@ import {
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
   Building2, Edit2, Trash2, ClipboardList, FileSpreadsheet, Target, Bell,
-  Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Activity, Users as UsersIcon, Info
+  Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Activity, Users as UsersIcon, Info, Clock
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
@@ -17,6 +17,20 @@ import { LocationMaster } from '../components/LocationMaster';
 import { DailyProgressReport } from './DailyProgressReport';
 import { ReportingCompleteness } from './ReportingCompleteness';
 import { VaccineStockMonitoringReport } from './VaccineStockMonitoringReport';
+
+// ─── Coming Soon Placeholder Component ─────────────────────────────────────────
+const ComingSoonCard: React.FC<{ title: string; description: string }> = ({ title, description }) => (
+  <div className="flex flex-col items-center justify-center flex-1 h-full p-12 bg-slate-50 text-slate-600 border border-slate-200 rounded-2xl shadow-xs min-h-[450px]">
+    <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-4 shadow-sm">
+      <Clock className="w-8 h-8" />
+    </div>
+    <h2 className="text-2xl font-black text-slate-800 tracking-tight">{title}</h2>
+    <p className="text-xs sm:text-sm font-semibold text-slate-500 mt-1 max-w-md text-center">{description}</p>
+    <div className="mt-6 px-4 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-extrabold rounded-full border border-indigo-200">
+      Feature Coming Soon
+    </div>
+  </div>
+);
 
 interface KPIState {
   total_blocks: number;
@@ -948,11 +962,11 @@ export const AdminDashboard: React.FC = () => {
 
                     {/* Navigation Links */}
           <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
-            {/* Dashboard */}
+            {/* 1. Dashboard */}
             <button
               onClick={() => handleTabChange('dashboard')}
               title="Dashboard"
-              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'dashboard'
                   ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -962,66 +976,51 @@ export const AdminDashboard: React.FC = () => {
               <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Dashboard</span>
             </button>
 
-            {/* HPV Vaccine Management */}
+            {/* 2. Monitoring (Coming Soon) */}
             <button
-              onClick={() => handleTabChange('vaccine-management')}
-              title="HPV Vaccine Management"
-              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === 'vaccine-management'
-                  ? 'bg-pink-50 text-pink-600 font-bold shadow-sm shadow-pink-600/10'
+              onClick={() => handleTabChange('monitoring')}
+              title="Monitoring"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
+                activeTab === 'monitoring'
+                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <Syringe className={`w-5 h-5 shrink-0 ${activeTab === 'vaccine-management' ? 'text-pink-600' : 'text-slate-400'}`} />
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>HPV Vaccine</span>
+              <Activity className={`w-5 h-5 shrink-0 ${activeTab === 'monitoring' ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Monitoring</span>
             </button>
 
-            {/* Alerts */}
-            {adminUser?.role !== 'VACCINE_MANAGER' && (
-              <button
-              onClick={() => handleTabChange('population')}
-              title="Alerts"
-              className={`w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-xl transition-all duration-200 group relative overflow-hidden ${
-                activeTab === 'population'
-                  ? 'bg-emerald-50 text-emerald-700 shadow-sm border border-emerald-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
-              }`}
-            >
-              <div className="relative">
-                <Bell className={`w-5 h-5 shrink-0 ${activeTab === 'population' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                {alertCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
-                )}
-              </div>
-              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Alerts</span>
-              {!sidebarCollapsed && (
-                <span className={`ml-auto py-0.5 px-2 rounded-full text-[10px] font-bold ${alertCount > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500'}`}>
-                  {alertCount}
-                </span>
-              )}
-            </button>
-            )}
-
-            {/* Analytics Group */}
-            {adminUser?.role !== 'VACCINE_MANAGER' && (
+            {/* 3. PROGRAM MANAGEMENT */}
             <div className="pt-2">
               <button 
-                onClick={() => { if (!sidebarCollapsed) setAnalyticsOpen(!analyticsOpen) }}
+                onClick={() => { if (!sidebarCollapsed) setProgramMgmtOpen(!programMgmtOpen) }}
                 className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
-                title="Analytics"
+                title="Program Management"
               >
-                <span className={sidebarCollapsed ? 'hidden' : ''}>Analytics</span>
+                <span className={sidebarCollapsed ? 'hidden' : ''}>Program Management</span>
                 {!sidebarCollapsed && (
-                  <ChevronDown className={`w-4 h-4 transition-transform ${analyticsOpen ? '' : '-rotate-90'}`} />
+                  <ChevronDown className={`w-4 h-4 transition-transform ${programMgmtOpen ? '' : '-rotate-90'}`} />
                 )}
               </button>
               
-              {(analyticsOpen || sidebarCollapsed) && (
+              {(programMgmtOpen || sidebarCollapsed) && (
                 <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
-                  {/* Daily Progress Report */}
+                  {/* Block Units */}
+                  <button
+                    onClick={() => handleTabChange('locations')}
+                    title="Block Units"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'locations' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <Building2 className={`w-4 h-4 shrink-0 ${activeTab === 'locations' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Block Units</span>
+                  </button>
+
+                  {/* Daily Progress */}
                   <button
                     onClick={() => handleTabChange('daily-progress')}
-                    title="Daily Progress Report"
+                    title="Daily Progress"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
                       activeTab === 'daily-progress' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
@@ -1030,119 +1029,138 @@ export const AdminDashboard: React.FC = () => {
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Daily Progress</span>
                   </button>
 
-                  {/* Stock Monitoring Report */}
+                  {/* Due List Report (Coming Soon) */}
                   <button
-                    onClick={() => handleTabChange('stock-monitoring')}
-                    title="Stock Monitoring Report"
+                    onClick={() => handleTabChange('due-list-report')}
+                    title="Due List Report"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-monitoring' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      activeTab === 'due-list-report' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
-                    <Syringe className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-indigo-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Monitoring</span>
+                    <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'due-list-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Due List Report</span>
                   </button>
 
-                  {/* Completeness Report */}
+                  {/* Reporting (%) */}
                   <button
                     onClick={() => handleTabChange('completeness-report')}
-                    title="Reporting Report"
+                    title="Reporting (%)"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
                       activeTab === 'completeness-report' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
-                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'completeness-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Reporting Report</span>
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'completeness-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Reporting (%)</span>
                   </button>
 
-                  {/* Reports */}
-                  <button
-                    onClick={() => handleTabChange('reports')}
-                    title="Reports"
-                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'reports' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'reports' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Reports</span>
-                  </button>
-
-                  {/* Trend */}
+                  {/* Trends */}
                   <button
                     onClick={() => handleTabChange('trend')}
-                    title="Trend"
+                    title="Trends"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
                       activeTab === 'trend' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
                     <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Trend</span>
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Trends</span>
                   </button>
                 </div>
               )}
             </div>
-            )}
 
-            {/* Reporting Group */}
+            {/* 4. VACCINE MANAGEMENT */}
             <div className="pt-2">
               <button 
-                onClick={() => { if (!sidebarCollapsed) setReportingOpen(!reportingOpen) }}
+                onClick={() => { if (!sidebarCollapsed) setVaccineMgmtOpen(!vaccineMgmtOpen) }}
                 className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
-                title="Reporting"
+                title="Vaccine Management"
               >
-                <span className={sidebarCollapsed ? 'hidden' : ''}>Reporting</span>
+                <span className={sidebarCollapsed ? 'hidden' : ''}>Vaccine Management</span>
                 {!sidebarCollapsed && (
-                  <ChevronDown className={`w-4 h-4 transition-transform ${reportingOpen ? '' : '-rotate-90'}`} />
+                  <ChevronDown className={`w-4 h-4 transition-transform ${vaccineMgmtOpen ? '' : '-rotate-90'}`} />
                 )}
               </button>
               
-              {(reportingOpen || sidebarCollapsed) && (
+              {(vaccineMgmtOpen || sidebarCollapsed) && (
                 <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
-                  {/* Stock Receiving (Hidden for District Admins and Block Admins, but visible to Vaccine Manager unless level 2) */}
-                  {((['SUPER_ADMIN', 'STATE_ADMIN'].includes(adminUser?.role) || (adminUser?.role === 'ADMIN' && !adminUser?.district_id)) || (adminUser?.role === 'VACCINE_MANAGER' && String(adminUser?.ccl_unit_level) !== '2')) && (
+                  {/* Cold Chain Locations (Coming Soon) */}
+                  <button
+                    onClick={() => handleTabChange('cold-chain-locations')}
+                    title="Cold Chain Locations"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'cold-chain-locations' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <MapPin className={`w-4 h-4 shrink-0 ${activeTab === 'cold-chain-locations' ? 'text-pink-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Cold Chain Locations</span>
+                  </button>
+
+                  {/* Stock Receipt (ONLY State, Level 1, Superadmin) */}
+                  {(['SUPER_ADMIN', 'STATE_ADMIN'].includes(adminUser?.role) || (adminUser?.role === 'ADMIN' && !adminUser?.district_id)) && (
                     <button
                       onClick={() => handleTabChange('stock-receiving')}
-                      title="Stock Receiving"
+                      title="Stock Receipt"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
                         activeTab === 'stock-receiving' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                       }`}
                     >
-                      <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-pink-600' : 'text-slate-400'}`} />
-                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Receiving</span>
+                      <FileSpreadsheet className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-pink-600' : 'text-slate-400'}`} />
+                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Receipt</span>
                     </button>
                   )}
 
-                  {/* Stock Issuing (Hidden for Block Admins) */}
-                  {adminUser?.role !== 'BLOCK' && (
-                    <button
-                      onClick={() => handleTabChange('stock-issuing')}
-                      title="Stock Issuing"
-                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'stock-issuing' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
-                    >
-                      <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'stock-issuing' ? 'text-pink-600' : 'text-slate-400'}`} />
-                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Issuing</span>
-                    </button>
-                  )}
+                  {/* Stock Issue */}
+                  <button
+                    onClick={() => handleTabChange('stock-issuing')}
+                    title="Stock Issue"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'stock-issuing' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <Syringe className={`w-4 h-4 shrink-0 ${activeTab === 'stock-issuing' ? 'text-pink-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Issue</span>
+                  </button>
 
-                  {/* Month End Balance (Hidden for Block Admins) */}
-                  {adminUser?.role !== 'BLOCK' && (
-                    <button
-                      onClick={() => handleTabChange('month-end-balance')}
-                      title="Month End Balance"
-                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'month-end-balance' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
-                    >
-                      <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-pink-600' : 'text-slate-400'}`} />
-                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Month End Balance</span>
-                    </button>
-                  )}
+                  {/* Month-End Balance */}
+                  <button
+                    onClick={() => handleTabChange('month-end-balance')}
+                    title="Month-End Balance"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'month-end-balance' ? 'bg-pink-50 text-pink-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-pink-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Month-End Balance</span>
+                  </button>
+
+                  {/* Stock Ledger (New page coming soon) */}
+                  <button
+                    onClick={() => handleTabChange('stock-ledger')}
+                    title="Stock Ledger"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'stock-ledger' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'stock-ledger' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Ledger</span>
+                  </button>
+
+                  {/* Stock Availability (%) */}
+                  <button
+                    onClick={() => handleTabChange('stock-monitoring')}
+                    title="Stock Availability (%)"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'stock-monitoring' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Availability (%)</span>
+                  </button>
                 </div>
               )}
             </div>
 
-            {/* User Management */}
+            {/* 5. USER MANAGEMENT (Only Superadmin) */}
             {adminUser?.role === 'SUPER_ADMIN' && (
               <div className="pt-2">
                 <button 
@@ -1183,35 +1201,25 @@ export const AdminDashboard: React.FC = () => {
               </div>
             )}
 
-            {/* Settings */}
-            {adminUser?.role === 'SUPER_ADMIN' && (
-              <div className="pt-2">
-                <button 
-                  onClick={() => { if (!sidebarCollapsed) setSettingsOpen(!settingsOpen) }}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
-                  title="Settings"
-                >
-                  <span className={sidebarCollapsed ? 'hidden' : ''}>Settings</span>
-                  {!sidebarCollapsed && (
-                    <ChevronDown className={`w-4 h-4 transition-transform ${settingsOpen ? '' : '-rotate-90'}`} />
-                  )}
-                </button>
-                
-                {(settingsOpen || sidebarCollapsed) && (
-                  <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
-                    <button
-                      onClick={() => handleTabChange('ccl-management')}
-                      title="CCL Management"
-                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'ccl-management' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
-                    >
-                      <Building2 className={`w-4 h-4 shrink-0 ${activeTab === 'ccl-management' ? 'text-indigo-600' : 'text-slate-400'}`} />
-                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>CCL Management</span>
-                    </button>
+            {/* 6. SETTINGS */}
+            <div className="pt-2">
+              <button 
+                onClick={() => { if (!sidebarCollapsed) setSettingsOpen(!settingsOpen) }}
+                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                title="Settings"
+              >
+                <span className={sidebarCollapsed ? 'hidden' : ''}>Settings</span>
+                {!sidebarCollapsed && (
+                  <ChevronDown className={`w-4 h-4 transition-transform ${settingsOpen ? '' : '-rotate-90'}`} />
+                )}
+              </button>
+              
+              {(settingsOpen || sidebarCollapsed) && (
+                <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
+                  {/* Upload CSV (Only Superadmin) */}
+                  {adminUser?.role === 'SUPER_ADMIN' && (
                     <button
                       onClick={() => handleTabChange('upload')}
-
                       title="Upload CSV"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
                         activeTab === 'upload' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -1220,20 +1228,36 @@ export const AdminDashboard: React.FC = () => {
                       <UploadCloud className={`w-4 h-4 shrink-0 ${activeTab === 'upload' ? 'text-emerald-600' : 'text-slate-400'}`} />
                       <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Upload CSV</span>
                     </button>
-                    <button
-                      onClick={() => handleTabChange('settings')}
-                      title="Update Password"
-                      className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'settings' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
-                    >
-                      <SettingsIcon className={`w-4 h-4 shrink-0 ${activeTab === 'settings' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                      <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Update Password</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+
+                  {/* Update Password (All) */}
+                  <button
+                    onClick={() => handleTabChange('settings')}
+                    title="Update Password"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'settings' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <SettingsIcon className={`w-4 h-4 shrink-0 ${activeTab === 'settings' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Update Password</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 7. FEEDBACK (All) */}
+            <button
+              onClick={() => handleTabChange('feedback')}
+              title="Feedback"
+              className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
+                activeTab === 'feedback'
+                  ? 'bg-emerald-50 text-emerald-600 font-bold shadow-sm shadow-emerald-600/10'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <HeartPulse className={`w-5 h-5 shrink-0 ${activeTab === 'feedback' ? 'text-emerald-600' : 'text-slate-400'}`} />
+              <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Feedback</span>
+            </button>
           </nav>
         </div>
 
@@ -2518,6 +2542,38 @@ export const AdminDashboard: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* TAB: MONITORING (COMING SOON) */}
+        <div className={activeTab === 'monitoring' ? 'contents' : 'hidden'}>
+          <ComingSoonCard 
+            title="Monitoring Dashboard" 
+            description="Real-time monitoring analytics and key performance indicators will be available here." 
+          />
+        </div>
+
+        {/* TAB: DUE LIST REPORT (COMING SOON) */}
+        <div className={activeTab === 'due-list-report' ? 'contents' : 'hidden'}>
+          <ComingSoonCard 
+            title="Due List Report" 
+            description="Comprehensive beneficiary due lists and upcoming vaccination tracking report." 
+          />
+        </div>
+
+        {/* TAB: COLD CHAIN LOCATIONS (COMING SOON) */}
+        <div className={activeTab === 'cold-chain-locations' ? 'contents' : 'hidden'}>
+          <ComingSoonCard 
+            title="Cold Chain Locations" 
+            description="Cold chain equipment inventory, storage points, and temperature monitoring management." 
+          />
+        </div>
+
+        {/* TAB: STOCK LEDGER (COMING SOON) */}
+        <div className={activeTab === 'stock-ledger' ? 'contents' : 'hidden'}>
+          <ComingSoonCard 
+            title="Stock Ledger" 
+            description="Detailed vaccine transaction ledger and audit history — layout will be configured in the next update." 
+          />
         </div>
 
         {/* TAB: DAILY PROGRESS REPORT */}
