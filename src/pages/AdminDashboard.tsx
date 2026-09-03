@@ -16,6 +16,8 @@ import { AdminPopulation } from '../components/AdminPopulation';
 import { LocationMaster } from '../components/LocationMaster';
 import { DailyProgressReport } from './DailyProgressReport';
 import { ReportingCompleteness } from './ReportingCompleteness';
+import { VaccineStockMonitoringReport } from './VaccineStockMonitoringReport';
+import { VaccineStockLedger } from './VaccineStockLedger';
 import { ColdChainLocations } from './ColdChainLocations';
 import { getDefaultLocationForUser } from '../utils/userLocation';
 
@@ -100,8 +102,12 @@ type Tab =
   | 'activity' 
   | 'ccl-management' 
   | 'daily-progress' 
+  | 'completeness-report' 
+  | 'stock-monitoring'
+  | 'monitoring'
   | 'due-list-report'
   | 'cold-chain-locations'
+  | 'stock-ledger'
   | 'feedback';
 
 export const AdminDashboard: React.FC = () => {
@@ -1162,6 +1168,30 @@ export const AdminDashboard: React.FC = () => {
                   >
                     <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-pink-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Month-End Balance</span>
+                  </button>
+
+                  {/* Stock Ledger (New page coming soon) */}
+                  <button
+                    onClick={() => handleTabChange('stock-ledger')}
+                    title="Stock Ledger"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'stock-ledger' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'stock-ledger' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Ledger</span>
+                  </button>
+
+                  {/* Stock Availability (%) */}
+                  <button
+                    onClick={() => handleTabChange('stock-monitoring')}
+                    title="Stock Availability (%)"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'stock-monitoring' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Availability (%)</span>
                   </button>
                 </div>
               )}
@@ -2563,6 +2593,17 @@ export const AdminDashboard: React.FC = () => {
           />
         </div>
 
+        {/* TAB: STOCK LEDGER */}
+        <div className={activeTab === 'stock-ledger' ? 'contents' : 'hidden'}>
+          <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
+            <VaccineStockLedger 
+              adminUser={adminUser}
+              districts={allDistrictsList}
+              states={statesList}
+            />
+          </div>
+        </div>
+
         {/* TAB: DAILY PROGRESS REPORT */}
         <div className={activeTab === 'daily-progress' ? 'contents' : 'hidden'}>
           <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
@@ -2572,6 +2613,18 @@ export const AdminDashboard: React.FC = () => {
               masterBlocks={masterBlocks}
               divisions={divisionsList}
               adminUser={adminUser}
+            />
+          </div>
+        </div>
+
+        {/* TAB: STOCK MONITORING REPORT */}
+        <div className={activeTab === 'stock-monitoring' ? 'contents' : 'hidden'}>
+          <div className="flex flex-col flex-1 min-h-0 h-full overflow-hidden">
+            <VaccineStockMonitoringReport 
+              adminUser={adminUser} 
+              divisions={divisionsList}
+              districts={allDistrictsList}
+              states={statesList}
             />
           </div>
         </div>
