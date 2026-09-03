@@ -2972,7 +2972,13 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 3: LOCATIONS MASTER */}
         <div className={activeTab === 'locations' ? 'contents' : 'hidden'}>
-          <LocationMaster />
+          <LocationMaster 
+            states={states}
+            allDistricts={allDistricts}
+            masterBlocks={masterBlocks}
+            divisions={divisions}
+            adminUser={adminUser}
+          />
         </div>
 
         {/* TAB 4: USERS MANAGEMENT */}

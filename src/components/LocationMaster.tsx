@@ -27,10 +27,13 @@ export const LocationMaster: React.FC<{
   masterBlocks?: any[];
   divisions?: any[];
   adminUser?: any;
-}> = ({ states = [], allDistricts = [], adminUser }) => {
+}> = ({ states: initialStates = [], allDistricts: initialDistricts = [], adminUser }) => {
   const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+
+  const [statesList, setStatesList] = useState<any[]>(initialStates);
+  const [districtsList, setDistrictsList] = useState<any[]>(initialDistricts);
 
   // Top Filters
   const [selectedStateId, setSelectedStateId] = useState<string>('');
@@ -41,6 +44,30 @@ export const LocationMaster: React.FC<{
 
   // District scoping for District users
   const isDistrictUser = adminUser?.district_id || adminUser?.role === 'DISTRICT_ADMIN' || String(adminUser?.ccl_unit_level) === '2';
+
+  // Fallback fetch states if empty
+  useEffect(() => {
+    if (initialStates && initialStates.length > 0) {
+      setStatesList(initialStates);
+      return;
+    }
+    fetch('/api/locations/states', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then(r => r.json())
+      .then(data => setStatesList(Array.isArray(data) ? data : []))
+      .catch(console.error);
+  }, [initialStates]);
+
+  // Fallback fetch districts if empty
+  useEffect(() => {
+    if (initialDistricts && initialDistricts.length > 0) {
+      setDistrictsList(initialDistricts);
+      return;
+    }
+    fetch('/api/locations/districts', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then(r => r.json())
+      .then(data => setDistrictsList(Array.isArray(data) ? data : []))
+      .catch(console.error);
+  }, [initialDistricts]);
 
   useEffect(() => {
     if (selectedStateId) return;
@@ -335,7 +362,7 @@ export const LocationMaster: React.FC<{
                 onChange={(e) => setSelectedStateId(e.target.value)}
                 className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500"
               >
-                {states.map(s => (
+                {(statesList || []).map(s => (
                   <option key={s.id} value={String(s.id)}>{s.name}</option>
                 ))}
               </select>
@@ -370,7 +397,7 @@ export const LocationMaster: React.FC<{
                 <option value="ALL">All Districts</option>
                 <option value="KUMAON">Kumaon Division</option>
                 <option value="GARHWAL">Garhwal Division</option>
-                {allDistricts.map(d => (
+                {(districtsList || []).map(d => (
                   <option key={d.id} value={String(d.id)}>{d.name}</option>
                 ))}
               </select>
