@@ -2832,17 +2832,14 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
 
     if (useSupabase) {
       let txQuery = supabase.from('vaccine_stock_transactions').select('*');
-      let balQuery = supabase.from('monthly_balance').select('*');
       let ccpQuery = supabase.from('vaccine_ccp').select('id, ccl_id, facility_name, unit_level, unit_type, district_id, block_id, districts(name)');
       let distQuery = supabase.from('districts').select('id, name, state_id');
 
       if (dateFrom) {
         txQuery = txQuery.gte('transaction_date', dateFrom);
-        balQuery = balQuery.gte('transaction_date', dateFrom);
       }
       if (dateTo) {
         txQuery = txQuery.lte('transaction_date', dateTo);
-        balQuery = balQuery.lte('transaction_date', dateTo);
       }
       if (batchNo && batchNo.trim()) {
         txQuery = txQuery.ilike('batch_no', `%${batchNo.trim()}%`);
@@ -2850,12 +2847,10 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
 
       const [
         { data: txData, error: txErr },
-        { data: balData },
         { data: ccpData },
         { data: distData }
       ] = await Promise.all([
         txQuery.order('transaction_date', { ascending: true }),
-        balQuery.order('transaction_date', { ascending: true }),
         ccpQuery,
         distQuery
       ]);
@@ -2909,37 +2904,6 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
           remarks: t.remarks || (isRecv ? 'Receipt' : 'Routine issue'),
           ccl_level: levelLabel,
           unit_type: unitTypeStr,
-          district_name: distName
-        });
-      });
-
-      (balData || []).forEach((b, idx) => {
-        const fac = ccpMap[b.facility_id] || {};
-        const distName = b.district_id ? distMap[b.district_id] : (fac.districts?.name || 'Lucknow');
-        const cclNameText = fac.facility_name || `District Vaccine Store ${distName} (L2)`;
-        const key = b.facility_id || cclNameText;
-
-        const physicalCount = Number(b.qty_doses || 0);
-        const wastage = Number(b.wastage_doses || 0);
-        runningBalanceMap[key] = physicalCount;
-
-        liveRows.push({
-          id: b.id || `bal-${idx}`,
-          ccl_name: cclNameText,
-          transaction_date: b.transaction_date ? new Date(b.transaction_date).toLocaleDateString('en-GB') : '31/05/2025',
-          raw_date: b.transaction_date || b.created_at,
-          transaction_type: 'Month-end Reconciliation',
-          batch_no: '-',
-          manufacturer_name: '-',
-          expiry_date: '-',
-          transaction_quantity: null,
-          facility_name: cclNameText,
-          physical_stock_count: physicalCount,
-          wastage_adjustment: wastage > 0 ? wastage : 75,
-          closing_balance: physicalCount,
-          remarks: b.notes || 'Physical verification at month end',
-          ccl_level: fac.unit_level ? `L${fac.unit_level}` : 'L2',
-          unit_type: fac.unit_type || 'DVS',
           district_name: distName
         });
       });

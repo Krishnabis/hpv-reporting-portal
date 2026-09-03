@@ -248,7 +248,6 @@ export const VaccineStockLedger: React.FC<{
   // Pagination & Sorting State
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortByWastage, setSortByWastage] = useState(false);
   const [sortField, setSortField] = useState<keyof LedgerTransactionRow>('transaction_date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -339,9 +338,7 @@ export const VaccineStockLedger: React.FC<{
       result = result.filter(r => r.batch_no.toLowerCase().includes(batchNo.trim().toLowerCase()));
     }
 
-    if (sortByWastage) {
-      result.sort((a, b) => (b.wastage_adjustment || 0) - (a.wastage_adjustment || 0));
-    } else if (sortField) {
+    if (sortField) {
       result.sort((a, b) => {
         let valA = a[sortField] ?? '';
         let valB = b[sortField] ?? '';
@@ -354,7 +351,7 @@ export const VaccineStockLedger: React.FC<{
     }
 
     return result;
-  }, [data, searchCCL, quickSearch, selectedDistrict, cclLevel, cclUnitType, transactionType, manufacturerName, batchNo, sortByWastage, sortField, sortOrder]);
+  }, [data, searchCCL, quickSearch, selectedDistrict, cclLevel, cclUnitType, transactionType, manufacturerName, batchNo, sortField, sortOrder]);
 
   // Compute KPI Summaries
   const kpis = useMemo(() => {
@@ -774,28 +771,6 @@ export const VaccineStockLedger: React.FC<{
         </div>
       )}
 
-      {/* ─── 4. SECONDARY TOOLBAR ─── */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 justify-between shrink-0">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-          <Calendar className="w-3.5 h-3.5 text-purple-500" />
-          <span>Report Period:</span>
-          <span className="font-extrabold text-slate-900">{dateFrom} to {dateTo}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setSortByWastage(prev => !prev)}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
-              sortByWastage
-                ? 'bg-rose-50 text-rose-700 border-rose-300 font-bold'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            Sort by Wastage
-          </button>
-        </div>
-      </div>
-
       {/* ─── 5. DATA TABLE CONTAINER ─── */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-0 overflow-hidden">
         
@@ -967,13 +942,6 @@ export const VaccineStockLedger: React.FC<{
 
         {/* Stock Alerts & Footer Notes */}
         <div className="p-3 bg-slate-50 border-t border-slate-200 space-y-2 shrink-0">
-          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded-lg text-xs font-semibold">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>
-              <strong>Stock Alerts (5):</strong> Stock Alerts: When Stock is Issued &gt; An Alert message is generated to the Destination Facility.
-            </span>
-          </div>
-
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-blue-50 border border-blue-200 text-blue-900 px-3 py-2 rounded-lg text-[11px] font-medium">
             <div className="flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
