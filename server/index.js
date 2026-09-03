@@ -3357,9 +3357,17 @@ app.get('/api/admin/locations-master-data', authenticateToken, async (req, res) 
       const bReports = reports.filter(r => r.block_id === b.id).sort((x, y) => new Date(y.reporting_date) - new Date(x.reporting_date));
       const latestReport = bReports[0] || {};
       
+      const pop = prof.base_population || b.population || 0;
+      const annualTarget = Math.round(pop * 0.01);
+      const hpvTarget = prof.initial_hpv_target || b.hpv_target || 0;
+      const totalSessions = bReports.reduce((sum, r) => sum + (r.sessions_held || 0), 0);
+
       return {
         ...flat,
-        population: prof.base_population || 0,
+        population: pop,
+        annual_target: annualTarget,
+        hpv_target: hpvTarget,
+        sessions: latestReport.sessions_held || totalSessions || 0,
         linelisted: latestReport.line_list_count || 0,
         vaccinated: latestReport.beneficiaries_vaccinated || 0,
         reports_count: bReports.length,

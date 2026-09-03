@@ -1,41 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { SearchIcon, MapPinIcon, Edit2Icon, SaveIcon, XIcon, PlusIcon } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search, MapPin, Layers, Filter, Building2, Download, FileText, Clock } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
-export const LocationMaster = () => {
-  const [locations, setLocations] = useState<any[]>([]);
+interface LocationRecord {
+  id: string | number;
+  name: string;
+  district_name?: string;
+  district_id?: string | number;
+  division_name?: string;
+  state_name?: string;
+  population?: number;
+  annual_target?: number;
+  hpv_target?: number;
+  sessions?: number;
+  linelisted?: number;
+  vaccinated?: number;
+  reports_count?: number;
+  last_reported_date?: string;
+  is_urban?: boolean;
+}
+
+export const LocationMaster: React.FC<{
+  states?: any[];
+  allDistricts?: any[];
+  masterBlocks?: any[];
+  divisions?: any[];
+  adminUser?: any;
+}> = ({ states = [], allDistricts = [], adminUser }) => {
+  const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [editRowId, setEditRowId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<any>({});
-  
-  // Dropdown data
-  const [countries, setCountries] = useState<any[]>([]);
-  const [states, setStates] = useState<any[]>([]);
-  const [divisions, setDivisions] = useState<any[]>([]);
-  const [districts, setDistricts] = useState<any[]>([]);
-  
-  // Create mode
-  const [isCreating, setIsCreating] = useState(false);
-  const [createType, setCreateType] = useState<'country'|'state'|'division'|'district'|'block'>('block');
-  const [createForm, setCreateForm] = useState<any>({});
-  const [createMsg, setCreateMsg] = useState('');
+
+  // Top Filters
+  const [selectedStateId, setSelectedStateId] = useState<string>('');
+  const [reportLevel, setReportLevel] = useState<'District' | 'Block Units'>('Block Units');
+  const [selectedDistrictId, setSelectedDistrictId] = useState<string>('ALL');
 
   const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
 
-  const fetchDropdowns = async () => {
-    try {
-      const [cRes, sRes, rRes, dRes] = await Promise.all([
-        fetch('/api/locations/countries', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('/api/locations/states', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('/api/locations/divisions', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('/api/locations/districts', { headers: { Authorization: `Bearer ${token}` } })
-      ]);
-      setCountries(await cRes.json());
-      setStates(await sRes.json());
-      setDivisions(await rRes.json());
-      setDistricts(await dRes.json());
-    } catch (e) { console.error(e); }
-  };
+  // District scoping for District users
+  const isDistrictUser = adminUser?.district_id || adminUser?.role === 'DISTRICT_ADMIN' || String(adminUser?.ccl_unit_level) === '2';
+
+  useEffect(() => {
+    if (selectedStateId) return;
+    if (adminUser?.state_id) {
+      setSelectedStateId(String(adminUser.state_id));
+    } else if (states.length > 0) {
+      const uk = states.find(s => s.name.toLowerCase().includes('uttarakhand'));
+      setSelectedStateId(String(uk ? uk.id : states[0].id));
+    }
+  }, [states, adminUser, selectedStateId]);
+
+  useEffect(() => {
+    if (isDistrictUser && adminUser?.district_id) {
+      setSelectedDistrictId(String(adminUser.district_id));
+    }
+  }, [adminUser, isDistrictUser]);
+
+  const selectedStateName = useMemo(() => {
+    const found = states.find(s => String(s.id) === String(selectedStateId));
+    return found ? found.name : 'Uttarakhand';
+  }, [states, selectedStateId]);
+
+  const currentDateFormatted = useMemo(() => {
+    return new Date().toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  }, []);
 
   const fetchLocations = async () => {
     setLoading(true);
@@ -46,248 +80,412 @@ export const LocationMaster = () => {
       const data = await res.json();
       setLocations(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching location master data:', err);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchDropdowns();
     fetchLocations();
   }, []);
 
-  const handleEdit = (loc: any) => {
-    setEditRowId(loc.id);
-    setEditForm({
-      population: loc.population,
-      linelisted: loc.linelisted,
-      vaccinated: loc.vaccinated,
-      name: loc.name,
-      district_id: loc.district_id,
-      reporting_date: new Date().toISOString().split('T')[0] // Default to today for editing stats
+  // Filter Locations based on top filters + search
+  const filteredLocations = useMemo(() => {
+    let list = locations;
+
+    // District / Division filter
+    if (isDistrictUser && adminUser?.district_id) {
+      list = list.filter(l => String(l.district_id) === String(adminUser.district_id));
+    } else if (selectedDistrictId && selectedDistrictId !== 'ALL') {
+      if (selectedDistrictId.toUpperCase() === 'KUMAON') {
+        const kumaonDists = ['almora', 'bageshwar', 'champawat', 'nainital', 'pithoragarh', 'udham singh nagar'];
+        list = list.filter(l => kumaonDists.includes((l.district_name || '').toLowerCase()));
+      } else if (selectedDistrictId.toUpperCase() === 'GARHWAL') {
+        const garhwalDists = ['chamoli', 'dehradun', 'haridwar', 'pauri garhwal', 'rudraprayag', 'tehri garhwal', 'uttarkashi'];
+        list = list.filter(l => garhwalDists.includes((l.district_name || '').toLowerCase()));
+      } else {
+        list = list.filter(l => String(l.district_id) === String(selectedDistrictId));
+      }
+    }
+
+    // Search query filter
+    if (search.trim()) {
+      const q = search.toLowerCase().trim();
+      list = list.filter(l =>
+        (l.name && l.name.toLowerCase().includes(q)) ||
+        (l.district_name && l.district_name.toLowerCase().includes(q)) ||
+        (l.division_name && l.division_name.toLowerCase().includes(q))
+      );
+    }
+
+    return list;
+  }, [locations, selectedDistrictId, isDistrictUser, adminUser, search]);
+
+  // Aggregate stats for district mode if level === 'District'
+  const displayRows = useMemo(() => {
+    if (reportLevel === 'Block Units') {
+      return filteredLocations.map(l => {
+        const pop = l.population || 0;
+        const annualTarget = Math.round(pop * 0.01);
+        const hpvTarget = l.hpv_target || 0;
+        return {
+          id: l.id,
+          name: l.name,
+          subtext: `${l.district_name || '—'} • ${l.division_name || 'No Division'} • ${l.state_name || selectedStateName}`,
+          population: pop,
+          annualTarget,
+          hpvTarget,
+          sessions: l.sessions || 0,
+          linelisted: l.linelisted || 0,
+          vaccinated: l.vaccinated || 0,
+          reportsCount: l.reports_count || 0,
+          lastReportDate: l.last_reported_date || 'N/A'
+        };
+      });
+    }
+
+    // Aggregated District View
+    const districtMap: { [key: string]: any } = {};
+    filteredLocations.forEach(l => {
+      const dName = l.district_name || 'Unknown';
+      if (!districtMap[dName]) {
+        districtMap[dName] = {
+          id: dName,
+          name: dName,
+          subtext: `District Unit • ${l.state_name || selectedStateName}`,
+          population: 0,
+          annualTarget: 0,
+          hpvTarget: 0,
+          sessions: 0,
+          linelisted: 0,
+          vaccinated: 0,
+          reportsCount: 0,
+          lastReportDate: 'N/A'
+        };
+      }
+      const pop = l.population || 0;
+      districtMap[dName].population += pop;
+      districtMap[dName].annualTarget += Math.round(pop * 0.01);
+      districtMap[dName].hpvTarget += (l.hpv_target || 0);
+      districtMap[dName].sessions += (l.sessions || 0);
+      districtMap[dName].linelisted += (l.linelisted || 0);
+      districtMap[dName].vaccinated += (l.vaccinated || 0);
+      districtMap[dName].reportsCount += (l.reports_count || 0);
+      if (l.last_reported_date && l.last_reported_date !== 'N/A') {
+        districtMap[dName].lastReportDate = l.last_reported_date;
+      }
     });
+
+    return Object.values(districtMap);
+  }, [filteredLocations, reportLevel, selectedStateName]);
+
+  // CSV Export
+  const downloadCSV = () => {
+    const headers = [
+      'S.No',
+      'Location Unit',
+      'Population',
+      'Annual Target (Calculated 1%)',
+      'HPV Target (Reported)',
+      'Sessions',
+      'Line Listed',
+      'Vaccinated',
+      'Reports',
+      'Last Report'
+    ];
+
+    const csvRows = displayRows.map((r, i) => [
+      i + 1,
+      `"${r.name} (${r.subtext})"`,
+      r.population,
+      r.annualTarget,
+      r.hpvTarget,
+      r.sessions,
+      r.linelisted,
+      r.vaccinated,
+      r.reportsCount,
+      `"${r.lastReportDate}"`
+    ]);
+
+    const csvContent = [headers.join(','), ...csvRows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Block_Units_Report_${selectedStateName.replace(/\s+/g, '_')}.csv`;
+    link.click();
   };
 
-  const handleSaveEdit = async () => {
-    try {
-      const res = await fetch(`/api/locations/block/${editRowId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          name: editForm.name,
-          district_id: editForm.district_id,
-          base_population: editForm.population ? parseInt(editForm.population) : undefined,
-          linelisted: editForm.linelisted ? parseInt(editForm.linelisted) : undefined,
-          vaccinated: editForm.vaccinated ? parseInt(editForm.vaccinated) : undefined,
-          reporting_date: editForm.reporting_date
-        })
-      });
-      if (res.ok) {
-        setEditRowId(null);
-        fetchLocations();
-      } else {
-        const err = await res.json();
-        alert('Error: ' + err.error);
-      }
-    } catch (e) {
-      console.error(e);
-      alert('Save failed');
-    }
+  // PDF Export
+  const downloadPDF = () => {
+    const doc = new jsPDF('landscape', 'mm', 'a4');
+
+    doc.setFontSize(15);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(49, 16, 84);
+    doc.text(`Block Units Location Master - ${selectedStateName}`, 14, 15);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Report Level: ${reportLevel}  |  Total Units: ${displayRows.length}  |  Generated: ${currentDateFormatted}`, 14, 22);
+
+    const pdfHeaders = [[
+      'S.No',
+      'Location Unit',
+      'Population',
+      'Annual Target (1%)',
+      'HPV Target (Reported)',
+      'Sessions',
+      'Line Listed',
+      'Vaccinated',
+      'Reports',
+      'Last Report'
+    ]];
+
+    const pdfRows = displayRows.map((r, i) => [
+      i + 1,
+      `${r.name}\n(${r.subtext})`,
+      r.population.toLocaleString('en-IN'),
+      r.annualTarget.toLocaleString('en-IN'),
+      r.hpvTarget.toLocaleString('en-IN'),
+      r.sessions.toLocaleString('en-IN'),
+      r.linelisted.toLocaleString('en-IN'),
+      r.vaccinated.toLocaleString('en-IN'),
+      r.reportsCount,
+      r.lastReportDate
+    ]);
+
+    autoTable(doc, {
+      head: pdfHeaders,
+      body: pdfRows,
+      startY: 26,
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      columnStyles: {
+        0: { halign: 'center', fontStyle: 'bold' },
+        1: { fontStyle: 'bold' },
+        2: { halign: 'right' },
+        3: { halign: 'right', fontStyle: 'bold' },
+        4: { halign: 'right', fontStyle: 'bold' },
+        5: { halign: 'center' },
+        6: { halign: 'right' },
+        7: { halign: 'right', fontStyle: 'bold' },
+        8: { halign: 'center' },
+        9: { halign: 'center' }
+      },
+      headStyles: { fillColor: [49, 16, 84], textColor: 255, fontStyle: 'bold', halign: 'center' },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      theme: 'grid'
+    });
+
+    doc.save(`Block_Units_Report_${selectedStateName.replace(/\s+/g, '_')}.pdf`);
   };
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCreateMsg('Saving...');
-    try {
-      let body: any = { name: createForm.name, lgd_code: createForm.lgd_code };
-      if (createType === 'state') body.country_id = createForm.country_id;
-      if (createType === 'division') body.state_id = createForm.state_id;
-      if (createType === 'district') { body.division_id = createForm.division_id; body.state_id = createForm.state_id; }
-      if (createType === 'block') { body.district_id = createForm.district_id; body.is_urban = createForm.is_urban; }
-
-      const res = await fetch(`/api/locations/${createType}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body)
-      });
-      
-      if (res.ok) {
-        setCreateMsg('✅ Created successfully');
-        setCreateForm({});
-        fetchDropdowns();
-        fetchLocations();
-        setTimeout(() => setIsCreating(false), 1500);
-      } else {
-        const err = await res.json();
-        setCreateMsg('❌ ' + err.error);
-      }
-    } catch (e) {
-      setCreateMsg('❌ Error saving');
-    }
-  };
-
-  const filtered = locations.filter(loc => 
-    !search || 
-    loc.name?.toLowerCase().includes(search.toLowerCase()) || 
-    loc.district_name?.toLowerCase().includes(search.toLowerCase()) ||
-    loc.state_name?.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
-    <div className="space-y-4 flex-1 min-h-0 flex flex-col pb-4 h-full">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Master Location Registry</h1>
-          <p className="text-xs text-slate-500 mt-1">Manage all divisions, populations, and manual stats overrides.</p>
-        </div>
-        <button onClick={() => setIsCreating(!isCreating)} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-emerald-700">
-          {isCreating ? <XIcon className="w-4 h-4"/> : <PlusIcon className="w-4 h-4"/>} 
-          {isCreating ? 'Close' : 'Add New Location'}
-        </button>
-      </div>
-
-      {isCreating && (
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div className="flex gap-2 flex-wrap">
-            {(['country', 'state', 'division', 'district', 'block'] as const).map(t => (
-              <button key={t} onClick={() => { setCreateType(t); setCreateMsg(''); setCreateForm({}); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize ${createType === t ? 'bg-hpv-purple text-white' : 'bg-slate-100 text-slate-600'}`}>
-                {t}
-              </button>
-            ))}
+    <div className="flex flex-col h-full bg-slate-50 relative overflow-hidden">
+      {/* Header Bar */}
+      <div className="bg-white border-b border-slate-200 shadow-xs z-20 shrink-0">
+        <div className="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-indigo-600 shrink-0" />
+              <h1 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">
+                Block Units Master Registry
+              </h1>
+              <div className="ml-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-bold border border-slate-300">
+                <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Current Date: <strong className="text-slate-900">{currentDateFormatted}</strong></span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Comprehensive block unit populations, sessions, targets, and cumulative vaccination metrics
+            </p>
           </div>
-          <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            {(createType === 'state' || createType === 'division' || createType === 'district' || createType === 'block') && (
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-slate-500">Country</label>
-                <select required onChange={e => setCreateForm({...createForm, country_id: e.target.value})} className="p-2 border rounded-lg text-xs font-semibold bg-slate-50">
-                  <option value="">Select...</option>
-                  {countries.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-            )}
-            {(createType === 'division' || createType === 'district' || createType === 'block') && (
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-slate-500">State</label>
-                <select required onChange={e => setCreateForm({...createForm, state_id: e.target.value})} className="p-2 border rounded-lg text-xs font-semibold bg-slate-50">
-                  <option value="">Select...</option>
-                  {states.filter(s => !createForm.country_id || String(s.country_id) === String(createForm.country_id)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </div>
-            )}
-            {(createType === 'district' || createType === 'block') && (
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-slate-500">Division</label>
-                <select required onChange={e => setCreateForm({...createForm, division_id: e.target.value})} className="p-2 border rounded-lg text-xs font-semibold bg-slate-50">
-                  <option value="">Select...</option>
-                  {divisions.filter(r => !createForm.state_id || String(r.state_id) === String(createForm.state_id)).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                </select>
-              </div>
-            )}
-            {createType === 'block' && (
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-slate-500">District</label>
-                <select required onChange={e => setCreateForm({...createForm, district_id: e.target.value})} className="p-2 border rounded-lg text-xs font-semibold bg-slate-50">
-                  <option value="">Select...</option>
-                  {districts.filter(d => (!createForm.division_id || String(d.division_id) === String(createForm.division_id)) && (!createForm.state_id || String(d.state_id) === String(createForm.state_id))).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                </select>
-              </div>
-            )}
-            
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold uppercase text-slate-500">Name</label>
-              <input required type="text" onChange={e => setCreateForm({...createForm, name: e.target.value})} className="p-2 border rounded-lg text-xs font-semibold bg-slate-50"/>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold uppercase text-slate-500">LGD Code</label>
-              <input required type="text" onChange={e => setCreateForm({...createForm, lgd_code: e.target.value})} className="p-2 border rounded-lg text-xs font-semibold bg-slate-50"/>
-            </div>
-            
-            {createType === 'block' && (
-              <div className="flex items-center gap-2 h-[34px]">
-                <input type="checkbox" id="isUrban" onChange={e => setCreateForm({...createForm, is_urban: e.target.checked})} className="w-4 h-4"/>
-                <label htmlFor="isUrban" className="text-xs font-bold text-slate-700">Is Urban Body?</label>
-              </div>
-            )}
 
-            <button type="submit" className="h-[34px] bg-hpv-purple text-white font-bold text-xs rounded-lg hover:bg-hpv-purple-dark transition-colors">
-              Save Location
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={downloadPDF}
+              disabled={displayRows.length === 0}
+              className="flex items-center gap-1.5 bg-white border border-slate-300 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-xs hover:bg-slate-50 transition-colors disabled:opacity-50"
+            >
+              <FileText className="w-3.5 h-3.5 text-red-600" />
+              Export PDF
             </button>
-          </form>
-          {createMsg && <p className="text-xs font-bold text-emerald-600 mt-2">{createMsg}</p>}
-        </div>
-      )}
 
-      <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 shrink-0">
-        <SearchIcon className="w-5 h-5 text-slate-400 ml-1" />
-        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search any location..." className="w-full bg-transparent text-sm text-slate-900 focus:outline-none" />
+            <button
+              onClick={downloadCSV}
+              disabled={displayRows.length === 0}
+              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        {/* TOP FILTER BAR: STATE, REPORT LEVEL, DISTRICTS */}
+        <div className="px-5 py-2.5 bg-slate-100/80 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* 1. State Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-indigo-600" /> State:
+              </span>
+              <select
+                value={selectedStateId}
+                onChange={(e) => setSelectedStateId(e.target.value)}
+                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500"
+              >
+                {states.map(s => (
+                  <option key={s.id} value={String(s.id)}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* 2. Report Level Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                <Layers className="w-3.5 h-3.5 text-indigo-600" /> Report Level:
+              </span>
+              <select
+                value={reportLevel}
+                onChange={(e) => setReportLevel(e.target.value as any)}
+                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="District">District</option>
+                <option value="Block Units">Block Units</option>
+              </select>
+            </div>
+
+            {/* 3. District Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                <Filter className="w-3.5 h-3.5 text-indigo-600" /> Districts:
+              </span>
+              <select
+                value={selectedDistrictId}
+                disabled={isDistrictUser}
+                onChange={(e) => setSelectedDistrictId(e.target.value)}
+                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500 disabled:opacity-75"
+              >
+                <option value="ALL">All Districts</option>
+                <option value="KUMAON">Kumaon Division</option>
+                <option value="GARHWAL">Garhwal Division</option>
+                {allDistricts.map(d => (
+                  <option key={d.id} value={String(d.id)}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Search Box */}
+          <div className="relative min-w-[200px] flex-1 sm:flex-none">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search location..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
-        <div className="overflow-auto flex-1 relative">
+      {/* Table Content */}
+      <div className="flex-1 p-3 sm:p-4 bg-slate-100 flex flex-col min-h-0 overflow-hidden">
+        <div className="h-full bg-white rounded-xl shadow-xs border border-slate-200 flex flex-col overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center text-slate-500 font-semibold animate-pulse">Loading Locations...</div>
+            <div className="flex flex-col items-center justify-center flex-1 p-12 text-slate-500">
+              <div className="w-8 h-8 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3" />
+              <p className="font-bold text-slate-700 text-sm">Loading Location Registry Data...</p>
+            </div>
+          ) : displayRows.length === 0 ? (
+            <div className="flex flex-col items-center justify-center flex-1 p-12 text-slate-500">
+              <Building2 className="w-10 h-10 mb-2 text-slate-300" />
+              <p className="font-bold text-slate-700 text-sm">No locations match your selected filters</p>
+              <p className="text-xs text-slate-400 mt-0.5">Try selecting another district or state filter</p>
+            </div>
           ) : (
-            <table className="w-full text-left text-xs whitespace-nowrap">
-              <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0 z-10">
-                <tr>
-                  <th className="px-3 py-3">Location Hierarchy</th>
-                  <th className="px-3 py-3 text-right">Population</th>
-                  <th className="px-3 py-3 text-right">Line Listed</th>
-                  <th className="px-3 py-3 text-right">Vaccinated</th>
-                  <th className="px-3 py-3 text-center">Reports</th>
-                  <th className="px-3 py-3">Last Report</th>
-                  <th className="px-3 py-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filtered.map(loc => {
-                  const isEditing = editRowId === loc.id;
-                  return (
-                    <tr key={loc.id} className="hover:bg-slate-50">
-                      <td className="px-3 py-3">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-bold text-hpv-teal-dark text-sm">{isEditing ? <input className="border p-1 rounded" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} /> : loc.name}</span>
-                          <span className="text-[10px] font-semibold text-slate-500">
-                            {loc.district_name} • {loc.division_name || 'No Division'} • {loc.state_name}
-                          </span>
-                        </div>
+            <div className="flex-1 flex flex-col justify-between overflow-x-auto overflow-y-auto">
+              <table className="w-full text-xs text-left border-collapse min-w-[1000px]">
+                <thead className="bg-[#311054] text-white sticky top-0 z-10">
+                  <tr>
+                    <th className="px-3 py-3 text-[11px] font-bold text-center w-12 border-b border-purple-900/40">S.No</th>
+                    <th className="px-3 py-3 text-[11px] font-bold border-b border-purple-900/40">Location Hierarchy</th>
+                    <th className="px-3 py-3 text-[11px] font-bold text-right border-b border-purple-900/40">Population</th>
+                    <th className="px-3 py-3 text-[11px] font-bold text-right border-b border-purple-900/40">Annual Target (1%)</th>
+                    <th className="px-3 py-3 text-[11px] font-bold text-right border-b border-purple-900/40">HPV Target (Reported)</th>
+                    <th className="px-3 py-3 text-[11px] font-bold text-center border-b border-purple-900/40">Sessions</th>
+                    <th className="px-3 py-3 text-[11px] font-bold text-right border-b border-purple-900/40">Line Listed</th>
+                    <th className="px-3 py-3 text-[11px] font-bold text-right border-b border-purple-900/40">Vaccinated</th>
+                    <th className="px-3 py-3 text-[11px] font-bold text-center border-b border-purple-900/40">Reports</th>
+                    <th className="px-3 py-3 text-[11px] font-bold border-b border-purple-900/40">Last Report</th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-slate-200">
+                  {displayRows.map((row, idx) => (
+                    <tr key={row.id || idx} className="hover:bg-indigo-50/40 transition-colors">
+                      {/* S.No */}
+                      <td className="px-3 py-2.5 text-center font-bold text-slate-500 text-[11px]">
+                        {idx + 1}
                       </td>
-                      <td className="px-3 py-3 text-right font-bold text-slate-700">
-                        {isEditing ? <input type="number" className="border p-1 w-20 text-right rounded" value={editForm.population} onChange={e => setEditForm({...editForm, population: e.target.value})} /> : loc.population?.toLocaleString() || '-'}
+
+                      {/* Location Hierarchy */}
+                      <td className="px-3 py-2.5">
+                        <div className="font-bold text-slate-900 text-xs">{row.name}</div>
+                        <div className="text-[10px] font-semibold text-slate-400">{row.subtext}</div>
                       </td>
-                      <td className="px-3 py-3 text-right font-bold text-amber-600">
-                        {isEditing ? <input type="number" className="border p-1 w-20 text-right rounded" value={editForm.linelisted} onChange={e => setEditForm({...editForm, linelisted: e.target.value})} /> : loc.linelisted?.toLocaleString() || '0'}
+
+                      {/* Population */}
+                      <td className="px-3 py-2.5 text-right font-bold text-slate-800 text-[11px]">
+                        {row.population > 0 ? row.population.toLocaleString('en-IN') : '—'}
                       </td>
-                      <td className="px-3 py-3 text-right font-bold text-emerald-600">
-                        {isEditing ? <input type="number" className="border p-1 w-20 text-right rounded" value={editForm.vaccinated} onChange={e => setEditForm({...editForm, vaccinated: e.target.value})} /> : loc.vaccinated?.toLocaleString() || '0'}
+
+                      {/* Annual Target (Calculated 1%) */}
+                      <td className="px-3 py-2.5 text-right font-black text-indigo-900 bg-indigo-50/40 text-[11px]">
+                        {row.annualTarget > 0 ? row.annualTarget.toLocaleString('en-IN') : '—'}
                       </td>
-                      <td className="px-3 py-3 text-center font-bold text-slate-500">
-                        {loc.reports_count}
+
+                      {/* HPV Target (Reported) */}
+                      <td className="px-3 py-2.5 text-right font-black text-purple-900 bg-purple-50/40 text-[11px]">
+                        {row.hpvTarget > 0 ? row.hpvTarget.toLocaleString('en-IN') : '—'}
                       </td>
-                      <td className="px-3 py-3 text-xs text-slate-500">
-                        {isEditing ? <input type="date" className="border p-1 rounded" value={editForm.reporting_date} onChange={e => setEditForm({...editForm, reporting_date: e.target.value})} /> : loc.last_reported_date}
+
+                      {/* Sessions */}
+                      <td className="px-3 py-2.5 text-center font-bold text-slate-700 text-[11px]">
+                        {row.sessions}
                       </td>
-                      <td className="px-3 py-3 text-center">
-                        {isEditing ? (
-                          <div className="flex items-center justify-center gap-2">
-                            <button onClick={handleSaveEdit} className="text-emerald-600 hover:text-emerald-700 p-1 bg-emerald-50 rounded"><SaveIcon className="w-4 h-4"/></button>
-                            <button onClick={() => setEditRowId(null)} className="text-rose-600 hover:text-rose-700 p-1 bg-rose-50 rounded"><XIcon className="w-4 h-4"/></button>
-                          </div>
-                        ) : (
-                          <button onClick={() => handleEdit(loc)} className="text-blue-600 hover:text-blue-800 p-1.5 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-                            <Edit2Icon className="w-4 h-4" />
-                          </button>
-                        )}
+
+                      {/* Line Listed */}
+                      <td className="px-3 py-2.5 text-right font-bold text-amber-600 text-[11px]">
+                        {row.linelisted > 0 ? row.linelisted.toLocaleString('en-IN') : '0'}
+                      </td>
+
+                      {/* Vaccinated */}
+                      <td className="px-3 py-2.5 text-right font-bold text-emerald-600 text-[11px]">
+                        {row.vaccinated > 0 ? row.vaccinated.toLocaleString('en-IN') : '0'}
+                      </td>
+
+                      {/* Reports */}
+                      <td className="px-3 py-2.5 text-center font-bold text-slate-600 text-[11px]">
+                        {row.reportsCount}
+                      </td>
+
+                      {/* Last Report */}
+                      <td className="px-3 py-2.5 font-medium text-slate-500 whitespace-nowrap text-[11px]">
+                        {row.lastReportDate}
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
     </div>
   );
 };
+
+export default LocationMaster;
