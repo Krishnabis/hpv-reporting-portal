@@ -24,12 +24,12 @@ import { getDefaultLocationForUser } from '../utils/userLocation';
 // ─── Coming Soon Placeholder Component ─────────────────────────────────────────
 const ComingSoonCard: React.FC<{ title: string; description: string }> = ({ title, description }) => (
   <div className="flex flex-col items-center justify-center flex-1 h-full p-12 bg-slate-50 text-slate-600 border border-slate-200 rounded-2xl shadow-xs min-h-[450px]">
-    <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-4 shadow-sm">
+    <div className="w-16 h-16 rounded-2xl bg-hpv-purple-soft border border-hpv-purple-soft flex items-center justify-center text-hpv-purple mb-4 shadow-sm">
       <Clock className="w-8 h-8" />
     </div>
     <h2 className="text-2xl font-black text-slate-800 tracking-tight">{title}</h2>
     <p className="text-xs sm:text-sm font-semibold text-slate-500 mt-1 max-w-md text-center">{description}</p>
-    <div className="mt-6 px-4 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-extrabold rounded-full border border-indigo-200">
+    <div className="mt-6 px-4 py-1.5 bg-hpv-purple-soft text-hpv-purple text-xs font-extrabold rounded-full border border-hpv-purple-soft">
       Feature Coming Soon
     </div>
   </div>
@@ -118,8 +118,8 @@ export const AdminDashboard: React.FC = () => {
 
   const [usersOpen, setUsersOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [programMgmtOpen, setProgramMgmtOpen] = useState(true);
-  const [vaccineMgmtOpen, setVaccineMgmtOpen] = useState(true);
+  const [programMgmtOpen, setProgramMgmtOpen] = useState(false);
+  const [vaccineMgmtOpen, setVaccineMgmtOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [reportingOpen, setReportingOpen] = useState(false);
@@ -951,8 +951,8 @@ export const AdminDashboard: React.FC = () => {
     return (
       <div className="h-[100dvh] w-full bg-[#f4f7fe] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-sm font-bold text-indigo-600">
+          <div className="w-10 h-10 border-4 border-hpv-purple border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-sm font-bold text-hpv-purple">
             {isAuthenticating ? 'Checking authentication...' : 'Loading Dashboard...'}
           </div>
         </div>
@@ -1013,7 +1013,7 @@ export const AdminDashboard: React.FC = () => {
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'dashboard'
                   ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
               }`}
             >
               <LayoutDashboard className={`w-5 h-5 shrink-0 ${activeTab === 'dashboard' ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'text-slate-400'}`} />
@@ -1027,7 +1027,7 @@ export const AdminDashboard: React.FC = () => {
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'monitoring'
                   ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
               }`}
             >
               <Activity className={`w-5 h-5 shrink-0 ${activeTab === 'monitoring' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1035,10 +1035,12 @@ export const AdminDashboard: React.FC = () => {
             </button>
 
             {/* 3. PROGRAM MANAGEMENT */}
+            {adminUser?.role !== 'VACCINE_MANAGER' && (
             <div className="pt-2">
               <button 
                 onClick={() => { if (!sidebarCollapsed) setProgramMgmtOpen(!programMgmtOpen) }}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold uppercase tracking-wider hover:opacity-80 transition-opacity ${sidebarCollapsed ? 'justify-center' : ''}`}
+                style={{ color: '#188E94' }}
                 title="Program Management"
               >
                 <span className={sidebarCollapsed ? 'hidden' : ''}>Program Management</span>
@@ -1054,7 +1056,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('locations')}
                     title="Block Units"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'locations' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'locations' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                     }`}
                   >
                     <Building2 className={`w-4 h-4 shrink-0 ${activeTab === 'locations' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1066,7 +1068,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('daily-progress')}
                     title="Daily Progress"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'daily-progress' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'daily-progress' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                     }`}
                   >
                     <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'daily-progress' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1078,7 +1080,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('due-list-report')}
                     title="Due List Report"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'due-list-report' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'due-list-report' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                     }`}
                   >
                     <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'due-list-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1090,31 +1092,20 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('completeness-report')}
                     title="Reporting (%)"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'completeness-report' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'completeness-report' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                     }`}
                   >
                     <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'completeness-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Reporting (%)</span>
                   </button>
 
-                  {/* Stock Availability (%) */}
-                  <button
-                    onClick={() => handleTabChange('stock-monitoring')}
-                    title="Stock Availability (%)"
-                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-monitoring' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
-                    }`}
-                  >
-                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm whitespace-nowrap'}>Stock Availability (%)</span>
-                  </button>
 
                   {/* Trends */}
                   <button
                     onClick={() => handleTabChange('trend')}
                     title="Trends"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'trend' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'trend' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                     }`}
                   >
                     <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1123,12 +1114,14 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               )}
             </div>
+            )}
 
             {/* 4. VACCINE MANAGEMENT */}
             <div className="pt-2">
               <button 
                 onClick={() => { if (!sidebarCollapsed) setVaccineMgmtOpen(!vaccineMgmtOpen) }}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors ${sidebarCollapsed ? 'justify-center' : ''}`}
+                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-bold uppercase tracking-wider hover:opacity-80 transition-opacity ${sidebarCollapsed ? 'justify-center' : ''}`}
+                style={{ color: '#3A0088' }}
                 title="Vaccine Management"
               >
                 <span className={sidebarCollapsed ? 'hidden' : ''}>Vaccine Management</span>
@@ -1139,12 +1132,23 @@ export const AdminDashboard: React.FC = () => {
               
               {(vaccineMgmtOpen || sidebarCollapsed) && (
                 <div className={`mt-1 space-y-1 ${sidebarCollapsed ? '' : 'pl-2 border-l-2 border-slate-100 ml-3'}`}>
+                  {/* Stock Availability (%) */}
+                  <button
+                    onClick={() => handleTabChange('stock-monitoring')}
+                    title="Stock Availability (%)"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'stock-monitoring' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
+                    }`}
+                  >
+                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm whitespace-nowrap'}>Stock Availability (%)</span>
+                  </button>
                   {/* Cold Chain Locations (Coming Soon) */}
                   <button
                     onClick={() => handleTabChange('cold-chain-locations')}
                     title="Cold Chain Locations"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'cold-chain-locations' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'cold-chain-locations' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                     }`}
                   >
                     <MapPin className={`w-4 h-4 shrink-0 ${activeTab === 'cold-chain-locations' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1157,7 +1161,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('stock-receiving')}
                       title="Stock Receipt"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'stock-receiving' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                        activeTab === 'stock-receiving' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                       }`}
                     >
                       <FileSpreadsheet className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1170,7 +1174,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-issuing')}
                     title="Stock Issue"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-issuing' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'stock-issuing' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                     }`}
                   >
                     <Syringe className={`w-4 h-4 shrink-0 ${activeTab === 'stock-issuing' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1182,7 +1186,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('month-end-balance')}
                     title="Month-End Balance"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'month-end-balance' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'month-end-balance' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                     }`}
                   >
                     <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1194,10 +1198,10 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-ledger')}
                     title="Stock Ledger"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-ledger' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'stock-ledger' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                     }`}
                   >
-                    <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'stock-ledger' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                    <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'stock-ledger' ? 'text-hpv-purple' : 'text-slate-400'}`} />
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Ledger</span>
                   </button>
 
@@ -1225,7 +1229,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('users')}
                       title="Admin Users"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'users' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                        activeTab === 'users' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                       }`}
                     >
                       <UsersIcon className={`w-4 h-4 shrink-0 ${activeTab === 'users' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1235,7 +1239,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('activity')}
                       title="Activity"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'activity' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                        activeTab === 'activity' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                       }`}
                     >
                       <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'activity' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1267,7 +1271,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('upload')}
                       title="Upload CSV"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'upload' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                        activeTab === 'upload' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                       }`}
                     >
                       <UploadCloud className={`w-4 h-4 shrink-0 ${activeTab === 'upload' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1280,7 +1284,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('settings')}
                     title="Update Password"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'settings' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'settings' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
                     }`}
                   >
                     <SettingsIcon className={`w-4 h-4 shrink-0 ${activeTab === 'settings' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1297,7 +1301,7 @@ export const AdminDashboard: React.FC = () => {
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'feedback'
                   ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-hpv-purple rounded-xl transition-all'
               }`}
             >
               <HeartPulse className={`w-5 h-5 shrink-0 ${activeTab === 'feedback' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1368,13 +1372,13 @@ export const AdminDashboard: React.FC = () => {
                       <select 
                         value={dashboardStateId} 
                         onChange={(e) => setDashboardStateId(e.target.value)}
-                        className="text-purple-900 bg-transparent outline-none cursor-pointer border-b-2 border-transparent hover:border-purple-300 ml-1 pb-0.5 text-lg"
+                        className="text-hpv-purple bg-transparent outline-none cursor-pointer border-b-2 border-transparent hover:border-hpv-purple-soft ml-1 pb-0.5 text-lg"
                       >
                         <option value="">All States</option>
                         {statesList.map(s => <option key={s.id} value={String(s.id)}>{s.name}</option>)}
                       </select>
                     ) : (
-                      <span className="text-purple-900 ml-1">
+                      <span className="text-hpv-purple ml-1">
                         {adminUser?.state_name || 'Assigned State'}
                         {adminUser?.role === 'VACCINE_MANAGER' ? (
                           <span>
@@ -1449,8 +1453,8 @@ export const AdminDashboard: React.FC = () => {
                 {/* Card 2: Reporting Today */}
                 <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between">
                   <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
-                      <Building2 className="w-5 h-5 text-purple-500" />
+                    <div className="w-10 h-10 rounded-full bg-hpv-purple-soft flex items-center justify-center shrink-0">
+                      <Building2 className="w-5 h-5 text-hpv-purple" />
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
@@ -1469,7 +1473,7 @@ export const AdminDashboard: React.FC = () => {
                   <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                     <span className="text-[9px] text-slate-400">Reporting today</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded font-mono">
+                      <span className="text-[10px] font-bold text-hpv-purple bg-hpv-purple-soft px-1.5 py-0.5 rounded font-mono">
                         {kpis ? ((kpis.reporting_today / (kpis.total_blocks || 1)) * 100).toFixed(1) : '0'}%
                       </span>
                       <span className="text-[10px] font-bold font-mono text-slate-700">{kpis ? kpis.reporting_today : '0'}</span>
@@ -1702,10 +1706,10 @@ export const AdminDashboard: React.FC = () => {
                         </p>
                       </div>
                       {/* 90% Treated */}
-                      <div className="bg-purple-50/50 rounded-xl border border-purple-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
+                      <div className="bg-hpv-purple-soft/50 rounded-xl border border-hpv-purple-soft p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
                         <div className="flex items-center gap-2">
                           <span className="text-2xl sm:text-3xl font-black text-[#694b8c] tracking-tighter">90%</span>
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-hpv-purple-soft">
                             <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#694b8c]" />
                           </div>
                         </div>
@@ -1720,12 +1724,12 @@ export const AdminDashboard: React.FC = () => {
                   <div className="min-w-full w-full shrink-0 flex items-center justify-center p-2 pb-4 gap-2 bg-white">
                     
                     {/* Left Header */}
-                    <div className="bg-indigo-50/50 rounded-xl border border-indigo-100 p-2 flex flex-col items-center justify-center gap-1.5 shadow-sm relative h-full flex-1">
-                      <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full border border-indigo-200 flex items-center justify-center text-indigo-400 text-[9px] italic font-serif bg-white cursor-help" title="Based on total stock balance across districts and blocks">i</div>
+                    <div className="bg-hpv-purple-soft/50 rounded-xl border border-hpv-purple-soft p-2 flex flex-col items-center justify-center gap-1.5 shadow-sm relative h-full flex-1">
+                      <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full border border-hpv-purple-soft flex items-center justify-center text-hpv-purple text-[9px] italic font-serif bg-white cursor-help" title="Based on total stock balance across districts and blocks">i</div>
                       <div className="flex items-center gap-2">
-                        <ShieldCheck className="w-10 h-10 text-indigo-900" />
+                        <ShieldCheck className="w-10 h-10 text-hpv-purple" />
                       </div>
-                      <h3 className="text-[13px] font-extrabold text-indigo-900 leading-tight text-center mt-1">Vaccine<br/>Stock Alert</h3>
+                      <h3 className="text-[13px] font-extrabold text-hpv-purple leading-tight text-center mt-1">Vaccine<br/>Stock Alert</h3>
                     </div>
 
                     {/* Middle: Critical */}
@@ -1772,8 +1776,8 @@ export const AdminDashboard: React.FC = () => {
 
                 {/* Dots */}
                 <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-1.5 z-10">
-                  <button onClick={() => setCarouselSlide(0)} className={`w-1.5 h-1.5 rounded-full transition-all ${carouselSlide === 0 ? 'bg-indigo-500 w-3' : 'bg-slate-300'}`}></button>
-                  <button onClick={() => setCarouselSlide(1)} className={`w-1.5 h-1.5 rounded-full transition-all ${carouselSlide === 1 ? 'bg-indigo-500 w-3' : 'bg-slate-300'}`}></button>
+                  <button onClick={() => setCarouselSlide(0)} className={`w-1.5 h-1.5 rounded-full transition-all ${carouselSlide === 0 ? 'bg-hpv-purple w-3' : 'bg-slate-300'}`}></button>
+                  <button onClick={() => setCarouselSlide(1)} className={`w-1.5 h-1.5 rounded-full transition-all ${carouselSlide === 1 ? 'bg-hpv-purple w-3' : 'bg-slate-300'}`}></button>
                 </div>
               </div>
 
@@ -1789,11 +1793,11 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 <div className="text-[10px] text-left text-slate-500 mb-2 mt-1 flex items-center flex-wrap gap-1">
-                  <span className="font-bold bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded">Showing:</span>
+                  <span className="font-bold bg-hpv-purple-soft text-hpv-purple px-1.5 py-0.5 rounded">Showing:</span>
                   {selectedKpi === 'coverage' || selectedKpi === 'both' ? (
                     <div className="flex items-center gap-1 group relative">
-                      <span className="text-purple-900 font-semibold">Vaccination Coverage (%)</span>
-                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
+                      <span className="text-hpv-purple font-semibold">Vaccination Coverage (%)</span>
+                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-hpv-purple transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
                         <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
                           <div className="flex items-center gap-2">
@@ -1811,8 +1815,8 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                   ) : (
                     <div className="flex items-center gap-1 group relative">
-                      <span className="text-purple-900 font-semibold">Line Listed (%)</span>
-                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
+                      <span className="text-hpv-purple font-semibold">Line Listed (%)</span>
+                      <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-hpv-purple transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
                         <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
                           <div className="flex items-center gap-2">
@@ -1878,13 +1882,13 @@ export const AdminDashboard: React.FC = () => {
                       <select 
                         value={dashboardStateId} 
                         onChange={(e) => { setDashboardStateId(e.target.value); }}
-                        className="text-purple-900 bg-transparent outline-none cursor-pointer border-b-2 border-transparent hover:border-purple-300 ml-1 pb-0.5 text-lg"
+                        className="text-hpv-purple bg-transparent outline-none cursor-pointer border-b-2 border-transparent hover:border-hpv-purple-soft ml-1 pb-0.5 text-lg"
                       >
                         <option value="">All States</option>
                         {statesList.map(s => <option key={s.id} value={String(s.id)}>{s.name}</option>)}
                       </select>
                     ) : (
-                      <span className="text-purple-900 ml-1">
+                      <span className="text-hpv-purple ml-1">
                         {adminUser?.state_name || 'Assigned State'}
                         {adminUser?.role === 'VACCINE_MANAGER' ? (
                           <span>
@@ -1951,10 +1955,10 @@ export const AdminDashboard: React.FC = () => {
                   </div>
 
                   {/* Card 2: District Level */}
-                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-purple-500 flex flex-col justify-between">
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-hpv-purple flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">District Level</span>
-                      <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">{vaccDashboard?.district?.stores || 0} Stores</span>
+                      <span className="text-[10px] font-bold text-hpv-purple bg-hpv-purple-soft px-1.5 py-0.5 rounded">{vaccDashboard?.district?.stores || 0} Stores</span>
                     </div>
                     <div className="flex items-stretch gap-0 mb-2">
                       <div className="flex-1 pr-2">
@@ -1972,11 +1976,11 @@ export const AdminDashboard: React.FC = () => {
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                       <div>
                         <span className="text-[8px] text-slate-400 block">Month End Balance</span>
-                        <span className="text-[10px] font-bold font-mono text-purple-700">{(vaccDashboard?.district?.monthEndBalance || 0).toLocaleString('en-IN')}</span>
+                        <span className="text-[10px] font-bold font-mono text-hpv-purple">{(vaccDashboard?.district?.monthEndBalance || 0).toLocaleString('en-IN')}</span>
                       </div>
                       <div className="text-right">
                         <span className="text-[8px] text-slate-400 block">VWF</span>
-                        <span className="text-[10px] font-bold font-mono text-purple-700">{vaccDashboard?.district?.vwf?.toFixed(2) || '0.00'}</span>
+                        <span className="text-[10px] font-bold font-mono text-hpv-purple">{vaccDashboard?.district?.vwf?.toFixed(2) || '0.00'}</span>
                       </div>
                     </div>
                   </div>
@@ -2022,7 +2026,7 @@ export const AdminDashboard: React.FC = () => {
                       <div className="flex flex-col items-center">
                         <span className="text-[8px] leading-tight text-center font-medium">Total Beneficiaries Vaccinated</span>
                         <div className="w-full h-px bg-slate-300 my-0.5"></div>
-                        <span className="text-[8px] leading-tight text-center font-medium">Total Vaccines Issued <strong className="text-purple-600 font-extrabold uppercase tracking-wide">TO</strong> District</span>
+                        <span className="text-[8px] leading-tight text-center font-medium">Total Vaccines Issued <strong className="text-hpv-purple font-extrabold uppercase tracking-wide">TO</strong> District</span>
                       </div>
                       <span className="text-[10px] font-bold">× 100</span>
                     </div>
@@ -2151,10 +2155,10 @@ export const AdminDashboard: React.FC = () => {
                     </div>
 
                     <div className="text-[10px] text-left text-slate-500 mb-2 mt-1 flex items-center flex-wrap gap-1">
-                      <span className="font-bold bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded">Showing:</span>
+                      <span className="font-bold bg-hpv-purple-soft text-hpv-purple px-1.5 py-0.5 rounded">Showing:</span>
                       <div className="flex items-center gap-1 group relative">
-                        <span className="text-purple-900 font-semibold">Vaccine Utilization (%)</span>
-                        <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-purple-900 transition-colors shrink-0">
+                        <span className="text-hpv-purple font-semibold">Vaccine Utilization (%)</span>
+                        <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-hpv-purple transition-colors shrink-0">
                           <span className="text-[9px] font-bold italic font-serif">i</span>
                           <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
                             <div className="flex items-center gap-2">
@@ -2390,7 +2394,7 @@ export const AdminDashboard: React.FC = () => {
                   } catch (err: any) { setStockMsg({ type: 'error', text: err.message }); }
                   setStockLoading(false);
                 }}
-                className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-2.5 rounded-xl bg-hpv-purple text-white font-bold text-sm hover:bg-hpv-purple transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {stockLoading ? 'Submitting...' : 'Submit Stock Issue'}
               </button>
@@ -2819,13 +2823,13 @@ export const AdminDashboard: React.FC = () => {
                   <p className="text-sm font-extrabold text-emerald-700">{totalTarget.toLocaleString('en-IN')}</p>
                 </div>
                 <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
-                  <div className="w-6 h-6 bg-purple-50 rounded-full flex items-center justify-center text-purple-500 mb-0.5">
+                  <div className="w-6 h-6 bg-hpv-purple-soft rounded-full flex items-center justify-center text-hpv-purple mb-0.5">
                     <FileText className="w-3 h-3" />
                   </div>
                   <p className="text-[9px] font-bold text-slate-500 line-clamp-1">Line List</p>
-                  <p className="text-sm font-extrabold text-purple-700">
+                  <p className="text-sm font-extrabold text-hpv-purple">
                     {totalLL.toLocaleString('en-IN')}
-                    <span className="ml-1 text-[10px] text-purple-500 font-bold">({totalTarget > 0 ? Math.round((totalLL / totalTarget) * 100) : 0}%)</span>
+                    <span className="ml-1 text-[10px] text-hpv-purple font-bold">({totalTarget > 0 ? Math.round((totalLL / totalTarget) * 100) : 0}%)</span>
                   </p>
                 </div>
                 <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex items-center justify-center flex-col text-center gap-1">
@@ -3133,7 +3137,7 @@ export const AdminDashboard: React.FC = () => {
                       <td className="px-4 py-2.5 font-bold text-slate-900">{u.name}</td>
                       <td className="px-4 py-2.5 font-mono text-slate-600">@{u.username}</td>
                       <td className="px-4 py-2.5">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.role === 'SUPER_ADMIN' ? 'bg-hpv-purple-soft text-hpv-purple' : 'bg-blue-100 text-blue-700'}`}>
                           {u.role}
                         </span>
                       </td>
@@ -3534,12 +3538,12 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                  <Building2 className="w-7 h-7 text-indigo-600" />
+                  <Building2 className="w-7 h-7 text-hpv-purple" />
                   CCL Management
                 </h1>
                 <p className="text-slate-500 text-sm mt-1">Manage and track all Level 1-3 Cold Chain Points.</p>
               
-                <button onClick={handleExportCcl} className="ml-3 inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-sm font-bold transition-colors">
+                <button onClick={handleExportCcl} className="ml-3 inline-flex items-center gap-2 px-4 py-2 bg-hpv-purple-soft text-hpv-purple hover:bg-hpv-purple-soft rounded-xl text-sm font-bold transition-colors">
                   <Download className="w-4 h-4" />
                   Export CSV
                 </button>
@@ -3552,7 +3556,7 @@ export const AdminDashboard: React.FC = () => {
                   placeholder="Search facility name or CCL ID..."
                   value={cclSearchTerm}
                   onChange={e => setCclSearchTerm(e.target.value)}
-                  className="pl-9 pr-4 py-2 w-full sm:w-64 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="pl-9 pr-4 py-2 w-full sm:w-64 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-hpv-purple bg-white"
                 />
               </div>
             </div>
@@ -3631,7 +3635,7 @@ export const AdminDashboard: React.FC = () => {
                           </td>
                           <td className="px-4 py-3 text-right sticky right-0 bg-white group-hover:bg-slate-50 border-l border-slate-100 transition-colors">
                             <div className="flex items-center justify-end gap-1">
-                              <button onClick={() => { setEditingCcl(c); setCclEditModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors" title="Edit">
+                              <button onClick={() => { setEditingCcl(c); setCclEditModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-hpv-purple hover:bg-hpv-purple-soft rounded transition-colors" title="Edit">
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button onClick={() => handleDeleteCcl(c.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors" title="Delete">
@@ -3708,7 +3712,7 @@ export const AdminDashboard: React.FC = () => {
                             <select 
                               value={editingCcl[field.key] || ''} 
                               onChange={e => setEditingCcl({...editingCcl, [field.key]: e.target.value})}
-                              className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow shadow-sm"
+                              className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-hpv-purple focus:border-transparent transition-shadow shadow-sm"
                             >
                               <option value="">- Select -</option>
                               {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -3719,7 +3723,7 @@ export const AdminDashboard: React.FC = () => {
                               step={(field as any).step}
                               value={editingCcl[field.key] || ''} 
                               onChange={e => setEditingCcl({...editingCcl, [field.key]: e.target.type === 'number' ? (e.target.value ? Number(e.target.value) : null) : e.target.value})}
-                              className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow shadow-sm"
+                              className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-hpv-purple focus:border-transparent transition-shadow shadow-sm"
                             />
                           )}
                         </div>
@@ -3730,7 +3734,7 @@ export const AdminDashboard: React.FC = () => {
                           value={editingCcl.address || ''} 
                           onChange={e => setEditingCcl({...editingCcl, address: e.target.value})}
                           rows={2}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow shadow-sm resize-none"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-hpv-purple focus:border-transparent transition-shadow shadow-sm resize-none"
                         />
                       </div>
                     </div>
@@ -3738,7 +3742,7 @@ export const AdminDashboard: React.FC = () => {
                   
                   <div className="p-5 bg-white border-t border-slate-100 flex items-center justify-end gap-3 shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                     <button onClick={() => setCclEditModalOpen(false)} className="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">Cancel</button>
-                    <button onClick={handleEditCcl} className="px-6 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-500/20 rounded-xl transition-all">Save Changes</button>
+                    <button onClick={handleEditCcl} className="px-6 py-2.5 text-sm font-bold text-white bg-hpv-purple hover:bg-hpv-purple hover:shadow-md hover:shadow-hpv-purple/20 rounded-xl transition-all">Save Changes</button>
                   </div>
                 </div>
               </div>
