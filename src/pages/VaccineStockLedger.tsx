@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Download, AlertCircle, Info, Building2, MapPin, Filter, Calendar, Clock, 
   FileText, RefreshCw, Maximize2, Minimize2, Search, ChevronDown, ChevronUp,
@@ -135,7 +135,7 @@ export const VaccineStockLedger: React.FC<{
       });
 
       const res = await fetch(`/api/admin/reports/stock-ledger?${params.toString()}`, {
-        headers: token ? { Authorization: \`Bearer \${token}\` } : {}
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
 
       if (res.ok) {
@@ -182,7 +182,7 @@ export const VaccineStockLedger: React.FC<{
   }, [filteredTransactions, matchedCcl]);
 
   return (
-    <div className={\`flex flex-col h-full bg-slate-50/50 \${isExpanded ? 'fixed inset-0 z-50 bg-slate-50 overflow-y-auto' : ''}\`}>
+    <div className={`flex flex-col h-full bg-slate-50/50 ${isExpanded ? 'fixed inset-0 z-50 bg-slate-50 overflow-y-auto' : ''}`}>
       <div className="flex-none bg-white border-b border-slate-200">
         <div className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -306,11 +306,11 @@ export const VaccineStockLedger: React.FC<{
                         {c.ccl_name}
                       </td>
                       <td className="px-4 py-2.5">
-                        <span className={\`inline-flex px-2 py-0.5 rounded text-[10px] font-bold \${
+                        <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold ${
                           c.level === '1' ? 'bg-emerald-100 text-emerald-800' :
                           c.level === '2' ? 'bg-blue-100 text-blue-800' :
                           'bg-amber-100 text-amber-800'
-                        }\`}>
+                        }`}>
                           {c.level_label}
                         </span>
                       </td>
@@ -322,7 +322,7 @@ export const VaccineStockLedger: React.FC<{
                         {c.level === '3' ? (
                           <span className="text-slate-400 font-medium text-sm">—</span>
                         ) : (
-                          <span className={\`font-extrabold \${c.balance > 0 ? 'text-emerald-600' : c.balance < 0 ? 'text-rose-600' : 'text-slate-500'}\`}>
+                          <span className={`font-extrabold ${c.balance > 0 ? 'text-emerald-600' : c.balance < 0 ? 'text-rose-600' : 'text-slate-500'}`}>
                             {fmt(c.balance)}
                           </span>
                         )}
@@ -418,9 +418,9 @@ export const VaccineStockLedger: React.FC<{
                       {new Date(row.transaction_date).toLocaleDateString('en-GB')}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={\`inline-flex px-2 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wide \${
+                      <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wide ${
                         row.transaction_type === 'Receive' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                      }\`}>
+                      }`}>
                         {row.transaction_type}
                       </span>
                     </td>
@@ -432,9 +432,9 @@ export const VaccineStockLedger: React.FC<{
                       </td>
                     )}
                     <td className="px-4 py-3 text-right">
-                      <span className={\`font-extrabold text-sm \${
+                      <span className={`font-extrabold text-sm ${
                         row.transaction_type === 'Receive' ? 'text-emerald-600' : 'text-amber-600'
-                      }\`}>
+                      }`}>
                         {row.transaction_type === 'Receive' ? '+' : ''}{fmt(row.transaction_quantity)}
                       </span>
                     </td>
@@ -443,9 +443,9 @@ export const VaccineStockLedger: React.FC<{
                     
                     {matchedCcl && (
                       <td className="px-4 py-3 text-right bg-indigo-50/50">
-                        <span className={\`font-extrabold \${
+                        <span className={`font-extrabold ${
                           row.computed_balance > 0 ? 'text-emerald-700' : row.computed_balance < 0 ? 'text-rose-700' : 'text-slate-500'
-                        }\`}>
+                        }`}>
                           {fmt(row.computed_balance)}
                         </span>
                       </td>
