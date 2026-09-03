@@ -257,7 +257,7 @@ export const VaccineStockMonitoringReport: React.FC<{
     });
 
     const totalVaxConsumed12M = Math.round(vax12M * 1.01);
-    const overallCrudeOpening = Math.max(0, received12M - vax12M - totalVaxConsumed12M);
+    const overallCrudeOpening = Math.max(0, received12M - totalVaxConsumed12M);
     const overallReportingPct = totalCcp > 0 ? (reportingCount / totalCcp) * 100 : 0;
     const overallOpening = overallReportingPct >= 100 ? reportedStock : overallCrudeOpening;
     const overallAvailability = annualReq > 0 ? Math.round((closingStock / annualReq) * 100) : 0;
