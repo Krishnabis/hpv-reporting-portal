@@ -82,10 +82,36 @@ interface ReportRow {
   vaccination_coverage_pct: number | null;
 }
 
+type Tab = 
+  | 'dashboard' 
+  | 'vaccine-management' 
+  | 'stock-receiving' 
+  | 'stock-issuing' 
+  | 'month-end-balance' 
+  | 'monthly-report' 
+  | 'reports' 
+  | 'trend' 
+  | 'locations' 
+  | 'users' 
+  | 'settings' 
+  | 'audit' 
+  | 'population' 
+  | 'upload' 
+  | 'activity' 
+  | 'ccl-management' 
+  | 'daily-progress' 
+  | 'completeness-report' 
+  | 'stock-monitoring'
+  | 'monitoring'
+  | 'due-list-report'
+  | 'cold-chain-locations'
+  | 'stock-ledger'
+  | 'feedback';
+
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'vaccine-management' | 'stock-receiving' | 'stock-issuing' | 'month-end-balance' | 'monthly-report' | 'reports' | 'trend' | 'locations' | 'users' | 'settings' | 'audit' | 'population' | 'upload' | 'activity' | 'ccl-management' | 'daily-progress' | 'completeness-report' | 'stock-monitoring'>((sessionStorage.getItem('hpv_admin_active_tab') as any) || 'dashboard');
+  const [activeTab, setActiveTab] = useState<Tab>((sessionStorage.getItem('hpv_admin_active_tab') as Tab) || 'dashboard');
   
 
   const [usersOpen, setUsersOpen] = useState(false);
