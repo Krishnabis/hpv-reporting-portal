@@ -17,6 +17,7 @@ import { LocationMaster } from '../components/LocationMaster';
 import { DailyProgressReport } from './DailyProgressReport';
 import { ReportingCompleteness } from './ReportingCompleteness';
 import { VaccineStockMonitoringReport } from './VaccineStockMonitoringReport';
+import { ColdChainLocations } from './ColdChainLocations';
 
 // ─── Coming Soon Placeholder Component ─────────────────────────────────────────
 const ComingSoonCard: React.FC<{ title: string; description: string }> = ({ title, description }) => (
@@ -2565,11 +2566,14 @@ export const AdminDashboard: React.FC = () => {
           />
         </div>
 
-        {/* TAB: COLD CHAIN LOCATIONS (COMING SOON) */}
-        <div className={activeTab === 'cold-chain-locations' ? 'contents' : 'hidden'}>
-          <ComingSoonCard 
-            title="Cold Chain Locations" 
-            description="Cold chain equipment inventory, storage points, and temperature monitoring management." 
+        {/* TAB: COLD CHAIN LOCATIONS */}
+        <div className={(activeTab === 'cold-chain-locations' || activeTab === 'ccl-management') ? 'contents' : 'hidden'}>
+          <ColdChainLocations 
+            states={states}
+            allDistricts={allDistricts}
+            masterBlocks={masterBlocks}
+            divisions={divisions}
+            adminUser={adminUser}
           />
         </div>
 

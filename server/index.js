@@ -3977,18 +3977,83 @@ app.delete('/api/superadmin/ccl/:id', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/api/admin/ccl-locations', authenticateToken, async (req, res) => {
+  try {
+    const { state_id, level, districtId, unit_level, unit_type, search } = req.query;
+    if (!useSupabase) return res.json({ ccps: [], kpis: { total: 0, l1: 0, l2: 0, l3: 0 } });
+
+    let userDistrictId = req.user.district_id || (req.user.role === 'DISTRICT_ADMIN' ? req.user.district_id : null);
+    if (req.user.role === 'VACCINE_MANAGER' && req.user.ccl_id && !userDistrictId) {
+      const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', req.user.ccl_id).maybeSingle();
+      if (mgrCcp && mgrCcp.district_id) userDistrictId = mgrCcp.district_id;
+    }
+
+    let query = supabase.from('vaccine_ccp')
+      .select('*, states(id, name), districts(id, name, division_id, divisions(name)), blocks(id, name, health_block_name)')
+      .order('unit_level', { ascending: true })
+      .order('facility_name', { ascending: true });
+
+    if (userDistrictId) {
+      query = query.eq('district_id', userDistrictId);
+    } else if (districtId && districtId !== 'ALL') {
+      if (districtId.toUpperCase() === 'KUMAON' || districtId.toUpperCase() === 'GARHWAL') {
+        const { data: divDists } = await supabase.from('districts').select('id, name, divisions!inner(name)');
+        const filteredDistIds = (divDists || [])
+          .filter(d => d.divisions?.name?.toUpperCase() === districtId.toUpperCase())
+          .map(d => d.id);
+        if (filteredDistIds.length > 0) query = query.in('district_id', filteredDistIds);
+      } else {
+        query = query.eq('district_id', districtId);
+      }
+    }
+
+    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (state_id && state_id !== 'ALL' ? state_id : null);
+    if (targetStateId) query = query.eq('state_id', targetStateId);
+
+    if (unit_level && unit_level !== 'ALL') query = query.eq('unit_level', String(unit_level));
+    if (unit_type && unit_type !== 'ALL') query = query.eq('unit_type', unit_type);
+
+    const { data: ccps, error } = await query;
+    if (error) throw error;
+
+    let filtered = ccps || [];
+    if (search && search.trim()) {
+      const s = search.toLowerCase().trim();
+      filtered = filtered.filter(c => 
+        (c.facility_name && c.facility_name.toLowerCase().includes(s)) ||
+        (c.ccl_id && c.ccl_id.toLowerCase().includes(s)) ||
+        (c.name_of_unit_incharge && c.name_of_unit_incharge.toLowerCase().includes(s))
+      );
+    }
+
+    const total = filtered.length;
+    const l1 = filtered.filter(c => String(c.unit_level) === '1').length;
+    const l2 = filtered.filter(c => String(c.unit_level) === '2').length;
+    const l3 = filtered.filter(c => String(c.unit_level) === '3').length;
+
+    res.json({
+      ccps: filtered,
+      kpis: { total, l1, l2, l3 }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/superadmin/ccl-list', authenticateToken, async (req, res) => {
   try {
-    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
-    
-    // Fetch CCPs that are level 1, 2, or 3
-    const { data: ccps, error } = await supabase
+    let query = supabase
       .from('vaccine_ccp')
       .select('*, states(name), districts(name), blocks(name)')
       .in('unit_level', ['1', '2', '3'])
       .order('unit_level', { ascending: true })
       .order('facility_name', { ascending: true });
 
+    let effectiveDistrictId = req.user.district_id || (req.user.role === 'DISTRICT_ADMIN' ? req.user.district_id : null);
+    if (effectiveDistrictId) query = query.eq('district_id', effectiveDistrictId);
+
+    const { data: ccps, error } = await query;
     if (error) throw error;
     res.json(ccps || []);
   } catch (err) {
