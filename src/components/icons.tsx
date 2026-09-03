@@ -29,7 +29,6 @@ import {
   TrashIcon as Trash2,
   ClipboardDocumentListIcon as ClipboardList,
   TableCellsIcon as FileSpreadsheet,
-  ViewfinderCircleIcon as Target,
   BellIcon as Bell,
   PresentationChartLineIcon as Activity,
   InformationCircleIcon as Info,
@@ -42,7 +41,8 @@ import {
 // Fallback to Lucide for specific medical/niche icons that don't exist in Heroicons
 import {
   Syringe,
-  HeartPulse
+  HeartPulse,
+  Target
 } from 'lucide-react';
 
 export {

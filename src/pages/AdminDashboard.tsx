@@ -1425,7 +1425,7 @@ export const AdminDashboard: React.FC = () => {
                 <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between">
                   <div className="flex gap-3 relative z-10">
                     <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                      <img src="/target_icon.svg" alt="Target" className="w-6 h-6" />
+                      <Target className="w-6 h-6 text-blue-500" />
                     </div>
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-1">
@@ -1723,9 +1723,9 @@ export const AdminDashboard: React.FC = () => {
                     <div className="bg-indigo-50/50 rounded-xl border border-indigo-100 p-2 flex flex-col items-center justify-center gap-1.5 shadow-sm relative h-full flex-1">
                       <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full border border-indigo-200 flex items-center justify-center text-indigo-400 text-[9px] italic font-serif bg-white cursor-help" title="Based on total stock balance across districts and blocks">i</div>
                       <div className="flex items-center gap-2">
-                        <ShieldCheck className="w-5 h-5 text-indigo-900" />
+                        <ShieldCheck className="w-10 h-10 text-indigo-900" />
                       </div>
-                      <h3 className="text-xs font-extrabold text-indigo-900 leading-tight text-center">Vaccine<br/>Stock Alert</h3>
+                      <h3 className="text-[13px] font-extrabold text-indigo-900 leading-tight text-center mt-1">Vaccine<br/>Stock Alert</h3>
                     </div>
 
                     {/* Middle: Critical */}
@@ -1741,12 +1741,12 @@ export const AdminDashboard: React.FC = () => {
                       </div>
                       <div className="flex items-center justify-around mt-1">
                         <div className="flex flex-col items-center">
-                          <span className="text-lg font-bold text-red-600 leading-none">13</span>
+                          <span className="text-lg font-bold text-red-600 leading-none">{Object.keys(vaccDashboard?.districtCriticalStock || {}).length}</span>
                           <span className="text-[9px] text-red-500 font-medium">Districts</span>
                         </div>
                         <div className="w-px h-5 bg-red-200"></div>
                         <div className="flex flex-col items-center">
-                          <span className="text-lg font-bold text-red-600 leading-none">116</span>
+                          <span className="text-lg font-bold text-red-600 leading-none">{(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isCriticalStock).length}</span>
                           <span className="text-[9px] text-red-500 font-medium">Blocks</span>
                         </div>
                       </div>
@@ -1759,23 +1759,22 @@ export const AdminDashboard: React.FC = () => {
                           <ShoppingCart className="w-3.5 h-3.5 text-orange-500" />
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="text-[11px] font-extrabold text-orange-700">Re-Order</span>
-                          <span className="text-[8px] font-bold text-orange-600 bg-orange-100/80 px-1.5 py-0.5 rounded-full">Re-order stock</span>
+                          <span className="text-[11px] font-extrabold text-orange-600">Re-Order</span>
+                          <span className="text-[8px] font-bold text-orange-500 bg-orange-100/80 px-1.5 py-0.5 rounded-full">Re-order stock</span>
                         </div>
                       </div>
                       <div className="flex items-center justify-around mt-1">
                         <div className="flex flex-col items-center">
-                          <span className="text-lg font-bold text-orange-600 leading-none">0</span>
+                          <span className="text-lg font-bold text-orange-600 leading-none">{Object.keys(vaccDashboard?.districtLowStock || {}).length}</span>
                           <span className="text-[9px] text-orange-500 font-medium">Districts</span>
                         </div>
                         <div className="w-px h-5 bg-orange-200"></div>
                         <div className="flex flex-col items-center">
-                          <span className="text-lg font-bold text-orange-600 leading-none">1</span>
+                          <span className="text-lg font-bold text-orange-600 leading-none">{(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isLowStock).length}</span>
                           <span className="text-[9px] text-orange-500 font-medium">Blocks</span>
                         </div>
                       </div>
                     </div>
-
                   </div>
                 </div>
                 
@@ -2889,7 +2888,11 @@ export const AdminDashboard: React.FC = () => {
                           {paginatedReportRows.map(row => (
                             <tr key={row.id} className="hover:bg-slate-50">
                               <td className="px-2 py-1 font-sans font-bold text-slate-900">
-                                {row.name}
+                                {row.name} {row.hpv_target !== null && (
+                                  <span className="inline-flex items-center gap-0.5 ml-1 text-slate-500 font-normal">
+                                    (<Target className="w-3 h-3 text-blue-500" /> {row.hpv_target.toLocaleString('en-IN')})
+                                  </span>
+                                )}
                                 {row.district_name && (
                                   <span className="block text-[10px] text-slate-400 font-normal">
                                     {row.district_name} District
