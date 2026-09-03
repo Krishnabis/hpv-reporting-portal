@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Download, AlertCircle, Info, Building2, MapPin, Syringe, Layers, Filter } from 'lucide-react';
+import { Download, AlertCircle, Info, Building2, MapPin, Filter } from 'lucide-react';
 
 interface ReportRow {
   id: string | number;
@@ -76,9 +76,8 @@ export const VaccineStockMonitoringReport: React.FC<{
   const [statesList, setStatesList] = useState<StateItem[]>(initialStates);
   const [districtsList, setDistrictsList] = useState<DistrictItem[]>(initialDistricts);
   
-  // Filter States
+  // Filter States & Districts
   const [selectedStateId, setSelectedStateId] = useState<string>('');
-  const [reportLevel, setReportLevel] = useState<'DISTRICT' | 'BLOCK'>('DISTRICT');
   const [selectedDistrictId, setSelectedDistrictId] = useState<string>('ALL');
 
   // Selected Reporting Period Month
@@ -189,9 +188,8 @@ export const VaccineStockMonitoringReport: React.FC<{
       const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
       const params = new URLSearchParams({
         reportingMonth: currentPeriodStr,
-        level: reportLevel,
-        state_id: selectedStateId,
-        districtId: selectedDistrictId
+        level: 'DISTRICT',
+        state_id: selectedStateId
       });
 
       const res = await fetch(`/api/admin/reports/stock-monitoring?${params.toString()}`, {
@@ -212,7 +210,7 @@ export const VaccineStockMonitoringReport: React.FC<{
     if (selectedStateId) {
       fetchData();
     }
-  }, [selectedStateId, reportLevel, selectedDistrictId, currentPeriodStr]);
+  }, [selectedStateId, currentPeriodStr]);
 
   // Number Formatter
   const fmt = (val: number | null | undefined) => {
@@ -222,7 +220,11 @@ export const VaccineStockMonitoringReport: React.FC<{
 
   // Process and calculate each row deterministically according to prompt logic
   const processedRows = useMemo(() => {
-    return data.map(row => {
+    const rawRows = selectedDistrictId === 'ALL'
+      ? data
+      : data.filter(row => String(row.district_id) === String(selectedDistrictId) || String(row.id) === String(selectedDistrictId));
+
+    return rawRows.map(row => {
       const annualReq = row.annual_requirement || 0;
       const reportingPct = row.month_end_reporting_pct || 0;
       const reportingCount = row.month_end_reporting_count || 0;
@@ -283,7 +285,7 @@ export const VaccineStockMonitoringReport: React.FC<{
         crudeOpeningFormulaValue: openingStockCrude
       };
     });
-  }, [data, formattedMonthPeriod]);
+  }, [data, selectedDistrictId, formattedMonthPeriod]);
 
   // Aggregate Totals for the Summary Row
   const aggregateTotals = useMemo(() => {
@@ -384,7 +386,7 @@ export const VaccineStockMonitoringReport: React.FC<{
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Vaccine_Stock_${reportLevel}_${selectedStateName.replace(/\s+/g, '_')}_${currentPeriodStr}.csv`;
+    link.download = `Vaccine_Stock_District_${selectedStateName.replace(/\s+/g, '_')}_${currentPeriodStr}.csv`;
     link.click();
   };
 
@@ -401,7 +403,7 @@ export const VaccineStockMonitoringReport: React.FC<{
               </h1>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-              {reportLevel === 'DISTRICT' ? 'District-wise' : 'Block-wise'} monthly vaccine stock estimation and availability calculations
+              District-wise monthly vaccine stock estimation and availability calculations
             </p>
           </div>
 
@@ -417,10 +419,10 @@ export const VaccineStockMonitoringReport: React.FC<{
           </div>
         </div>
 
-        {/* PAGE FILTER BAR: STATE, VIEW LEVEL, AND DISTRICT FILTERS */}
+        {/* PAGE FILTER BAR: STATE AND DISTRICT SELECTORS ONLY */}
         <div className="px-5 py-3 bg-slate-100/70 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
-            {/* State Filter */}
+            {/* 1. State Filter */}
             <div className="flex items-center gap-2">
               <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-indigo-600" /> State:
@@ -436,22 +438,7 @@ export const VaccineStockMonitoringReport: React.FC<{
               </select>
             </div>
 
-            {/* View Level Filter */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-indigo-600" /> Level:
-              </span>
-              <select
-                value={reportLevel}
-                onChange={(e) => setReportLevel(e.target.value as 'DISTRICT' | 'BLOCK')}
-                className="text-sm font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-3 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value="DISTRICT">District Level</option>
-                <option value="BLOCK">Block Units Level</option>
-              </select>
-            </div>
-
-            {/* District Filter (Allows viewing blocks for specific or all districts) */}
+            {/* 2. District Filter */}
             <div className="flex items-center gap-2">
               <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
                 <Filter className="w-4 h-4 text-indigo-600" /> District:
@@ -459,7 +446,7 @@ export const VaccineStockMonitoringReport: React.FC<{
               <select
                 value={selectedDistrictId}
                 onChange={(e) => setSelectedDistrictId(e.target.value)}
-                className="text-sm font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-3 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-w-[170px]"
+                className="text-sm font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-3 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-w-[180px]"
               >
                 <option value="ALL">All Districts</option>
                 {availableDistricts.map(d => (
@@ -470,12 +457,10 @@ export const VaccineStockMonitoringReport: React.FC<{
           </div>
 
           <div className="text-xs font-semibold text-indigo-900 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-md">
-            {reportLevel === 'DISTRICT' ? (
-              <>Showing district summary for: <span className="font-bold text-indigo-700">{selectedStateName}</span></>
-            ) : selectedDistrictId === 'ALL' ? (
-              <>Showing block units for all districts in: <span className="font-bold text-indigo-700">{selectedStateName}</span></>
+            {selectedDistrictId === 'ALL' ? (
+              <>Showing districts for: <span className="font-bold text-indigo-700">{selectedStateName}</span></>
             ) : (
-              <>Showing block units for: <span className="font-bold text-indigo-700">{selectedDistrictName}, {selectedStateName}</span></>
+              <>Showing district: <span className="font-bold text-indigo-700">{selectedDistrictName}, {selectedStateName}</span></>
             )}
           </div>
         </div>
@@ -505,7 +490,7 @@ export const VaccineStockMonitoringReport: React.FC<{
           ) : processedRows.length === 0 ? (
             <div className="flex flex-col items-center justify-center flex-1 p-12 text-slate-500">
               <Building2 className="w-12 h-12 mb-3 text-slate-300" />
-              <p className="font-bold text-slate-700 text-base">No data found for the selected filters</p>
+              <p className="font-bold text-slate-700 text-base">No district data found for the selected filters</p>
               <p className="text-xs text-slate-400 mt-1">Please select another district or state from the filter above</p>
             </div>
           ) : (
@@ -521,7 +506,7 @@ export const VaccineStockMonitoringReport: React.FC<{
                     />
                     <ColumnHeader 
                       title="Site / District" 
-                      tooltip="Name of the site/district unit within the selected State."
+                      tooltip="Name of the district unit within the selected State."
                       align="left"
                       highlight={true}
                     />
@@ -614,23 +599,7 @@ export const VaccineStockMonitoringReport: React.FC<{
 
                       {/* 2. Site / District */}
                       <td className="px-3 py-2.5 font-bold text-slate-900 whitespace-nowrap sticky left-0 bg-white shadow-xs z-10">
-                        {reportLevel === 'DISTRICT' ? (
-                          <span>{row.name || row.district}</span>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            {row.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE' ? (
-                              <Building2 className="w-4 h-4 text-pink-600 shrink-0" />
-                            ) : (
-                              <Syringe className="w-4 h-4 text-indigo-600 shrink-0" />
-                            )}
-                            <div>
-                              <div className="font-bold text-slate-900">{row.name}</div>
-                              {row.district && row.entity_type !== 'CCL_LEVEL_2_DISTRICT_STORE' && (
-                                <div className="text-[10px] font-semibold text-slate-500">{row.district} District</div>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                        <span>{row.name || row.district}</span>
                       </td>
 
                       {/* 3. Annual Requirement (Doses) */}
@@ -740,7 +709,7 @@ export const VaccineStockMonitoringReport: React.FC<{
                   <tr className="bg-slate-200/90 font-black border-t-2 border-slate-300 text-slate-900">
                     <td className="px-3 py-3 font-bold text-slate-700">Total</td>
                     <td className="px-3 py-3 font-black text-indigo-900 sticky left-0 bg-slate-200 z-10">
-                      {reportLevel === 'DISTRICT' ? `${selectedStateName} Summary` : selectedDistrictId === 'ALL' ? `${selectedStateName} All Blocks` : `${selectedDistrictName} Blocks`}
+                      {selectedDistrictId === 'ALL' ? `${selectedStateName} Summary` : `${selectedDistrictName}`}
                     </td>
                     <td className="px-3 py-3 text-right">{fmt(aggregateTotals.annualReq)}</td>
                     <td className="px-3 py-3 text-right text-indigo-900">
