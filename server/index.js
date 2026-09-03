@@ -158,6 +158,20 @@ function flattenBlock(b) {
 
 // ─── Status ───────────────────────────────────────────────────────────────────
 
+
+app.get('/api/test/ccl', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('vaccine_ccp')
+      .select('*, states(name), districts(name), blocks(name)')
+      .limit(1);
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    res.json({ error: err.message, details: err });
+  }
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'HPV Reporting Portal API', time: new Date().toISOString() });
 });
