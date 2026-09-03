@@ -2919,9 +2919,17 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
           manufacturer_name: t.manufacture_name || '—',
           expiry_date: t.batch_expiry_date ? new Date(t.batch_expiry_date).toLocaleDateString('en-GB') : '—',
           transaction_quantity: transQty,
+          // from_ccl: who dispatched the doses
+          from_ccl: isRecv
+            ? (t.destination_ccl_name && !isRecv ? t.destination_ccl_name : (distName ? `State Vaccine Store ${distName} (L1)` : 'External Source'))
+            : cclNameText,
+          // to_ccl: who received the doses
+          to_ccl: isRecv
+            ? cclNameText
+            : (t.destination_ccl_name || 'Destination CCL'),
           facility_name: isRecv
-            ? (t.source_ccl_name || t.destination_ccl_name || (distName ? `State Vaccine Store ${distName} (L1)` : 'Source CCL'))
-            : (t.destination_ccl_name || t.source_ccl_name || 'Destination CCL'),
+            ? (t.destination_ccl_name || (distName ? `State Vaccine Store ${distName} (L1)` : 'Source CCL'))
+            : (t.destination_ccl_name || 'Destination CCL'),
           physical_stock_count: null,
           wastage_adjustment: null,
           closing_balance: runningBalanceMap[key],
