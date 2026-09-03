@@ -5,7 +5,7 @@ import {
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
   Building2, Edit2, Trash2, ClipboardList, FileSpreadsheet, Target, Bell,
-  Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Activity, Users as UsersIcon, Info, Clock, ShoppingCart
+  Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Activity, Users as UsersIcon, Info, Clock, ShoppingCart, AlertTriangle
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
