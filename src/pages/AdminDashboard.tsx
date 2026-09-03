@@ -954,16 +954,9 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="h-[100dvh] w-full bg-[#05050A] flex flex-col lg:flex-row font-sans overflow-hidden relative text-slate-200">
-      {/* Dynamic Animated Background Blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-cyan-600/20 blur-[100px] animate-float mix-blend-screen"></div>
-        <div className="absolute top-[40%] -right-[10%] w-[40%] h-[60%] rounded-full bg-purple-600/20 blur-[120px] animate-float mix-blend-screen" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute -bottom-[20%] left-[20%] w-[60%] h-[40%] rounded-full bg-indigo-600/10 blur-[100px] animate-float mix-blend-screen" style={{ animationDelay: '4s' }}></div>
-      </div>
-      
+    <div className="h-[100dvh] w-full bg-[#f4f7fe] flex flex-col lg:flex-row font-sans overflow-hidden relative text-slate-800">
       {/* Mobile Topbar */}
-      <div className="lg:hidden vr-glass-panel border-b border-white/10 p-4 flex items-center justify-between sticky top-0 z-40 relative">
+      <div className="lg:hidden bg-white shadow-sm border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-40 relative">
         <div className="bg-white/10 rounded-[2rem] px-3 py-1 flex items-center justify-center shadow-sm shrink-0 border border-white/10 backdrop-blur-md">
           <img src="/headinglogo.png" alt="HPV Kavach Login Logo" className="h-10 w-auto object-contain brightness-0 invert" />
         </div>
@@ -984,7 +977,7 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed inset-y-0 left-0 z-50 vr-glass-panel text-slate-300 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-[100dvh] lg:shrink-0 ${
+      <aside className={`fixed inset-y-0 left-0 z-50 bg-white shadow-sm border-r border-slate-100 text-slate-500 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-[100dvh] lg:shrink-0 ${
         mobileMenuOpen ? 'translate-x-0 w-64 shadow-2xl' : '-translate-x-full w-64'
       } ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} lg:translate-x-0 relative`}>
         <div className="flex flex-col flex-1 min-h-0">
@@ -1012,8 +1005,8 @@ export const AdminDashboard: React.FC = () => {
               title="Dashboard"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'dashboard'
-                  ? 'bg-cyan-500/20 text-cyan-400 font-bold shadow-[0_0_15px_rgba(6,182,212,0.3)] border border-cyan-500/50'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                  ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
               }`}
             >
               <LayoutDashboard className={`w-5 h-5 shrink-0 ${activeTab === 'dashboard' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1026,8 +1019,8 @@ export const AdminDashboard: React.FC = () => {
               title="Monitoring"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'monitoring'
-                  ? 'bg-cyan-500/20 text-cyan-400 font-bold shadow-[0_0_15px_rgba(6,182,212,0.3)] border border-cyan-500/50'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                  ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
               }`}
             >
               <Activity className={`w-5 h-5 shrink-0 ${activeTab === 'monitoring' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1054,7 +1047,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('locations')}
                     title="Block Units"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'locations' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                      activeTab === 'locations' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <Building2 className={`w-4 h-4 shrink-0 ${activeTab === 'locations' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1066,7 +1059,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('daily-progress')}
                     title="Daily Progress"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'daily-progress' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                      activeTab === 'daily-progress' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'daily-progress' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1078,7 +1071,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('due-list-report')}
                     title="Due List Report"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'due-list-report' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                      activeTab === 'due-list-report' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'due-list-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1090,7 +1083,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('completeness-report')}
                     title="Reporting (%)"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'completeness-report' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                      activeTab === 'completeness-report' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'completeness-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1102,7 +1095,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-monitoring')}
                     title="Stock Availability (%)"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-monitoring' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                      activeTab === 'stock-monitoring' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1114,7 +1107,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('trend')}
                     title="Trends"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'trend' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                      activeTab === 'trend' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1144,7 +1137,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('cold-chain-locations')}
                     title="Cold Chain Locations"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'cold-chain-locations' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                      activeTab === 'cold-chain-locations' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <MapPin className={`w-4 h-4 shrink-0 ${activeTab === 'cold-chain-locations' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1157,7 +1150,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('stock-receiving')}
                       title="Stock Receipt"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'stock-receiving' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                        activeTab === 'stock-receiving' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                       }`}
                     >
                       <FileSpreadsheet className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1170,7 +1163,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-issuing')}
                     title="Stock Issue"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-issuing' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                      activeTab === 'stock-issuing' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <Syringe className={`w-4 h-4 shrink-0 ${activeTab === 'stock-issuing' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1182,7 +1175,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('month-end-balance')}
                     title="Month-End Balance"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'month-end-balance' ? 'bg-fuchsia-500/20 text-fuchsia-400 font-bold border border-fuchsia-500/30 shadow-[0_0_10px_rgba(217,70,239,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                      activeTab === 'month-end-balance' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1194,7 +1187,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-ledger')}
                     title="Stock Ledger"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-ledger' ? 'bg-indigo-500/20 text-indigo-400 font-bold border border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                      activeTab === 'stock-ledger' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'stock-ledger' ? 'text-indigo-600' : 'text-slate-400'}`} />
@@ -1225,7 +1218,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('users')}
                       title="Admin Users"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'users' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                        activeTab === 'users' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                       }`}
                     >
                       <UsersIcon className={`w-4 h-4 shrink-0 ${activeTab === 'users' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1235,7 +1228,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('activity')}
                       title="Activity"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'activity' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                        activeTab === 'activity' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                       }`}
                     >
                       <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'activity' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1267,7 +1260,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('upload')}
                       title="Upload CSV"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'upload' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                        activeTab === 'upload' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                       }`}
                     >
                       <UploadCloud className={`w-4 h-4 shrink-0 ${activeTab === 'upload' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1280,7 +1273,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('settings')}
                     title="Update Password"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'settings' ? 'bg-cyan-500/20 text-cyan-400 font-bold border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]' : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                      activeTab === 'settings' ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <SettingsIcon className={`w-4 h-4 shrink-0 ${activeTab === 'settings' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1296,8 +1289,8 @@ export const AdminDashboard: React.FC = () => {
               title="Feedback"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'feedback'
-                  ? 'bg-cyan-500/20 text-cyan-400 font-bold shadow-[0_0_15px_rgba(6,182,212,0.3)] border border-cyan-500/50'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white transition-all'
+                  ? 'bg-indigo-600 text-white font-bold rounded-xl shadow-sm'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
               }`}
             >
               <HeartPulse className={`w-5 h-5 shrink-0 ${activeTab === 'feedback' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1418,26 +1411,34 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
+            {/* Welcome Banner */}
+            <div className="bg-[#5b58c7] rounded-3xl p-6 text-white mb-6 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between shadow-md">
+              <div className="relative z-10">
+                <h1 className="text-2xl font-bold mb-2">Welcome back to HPV Tracker!</h1>
+                <p className="text-indigo-100 text-sm max-w-lg">
+                  Monitor block-level coverage, track due lists, and review daily progress to ensure optimal vaccination rates.
+                </p>
+              </div>
+              <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-indigo-500/50 to-transparent pointer-events-none"></div>
+              {/* Optional placeholder for illustration on the right */}
+              <div className="mt-4 sm:mt-0 relative z-10 flex items-center justify-center w-24 h-24 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+                <Target className="w-10 h-10 text-white opacity-90" />
+              </div>
+            </div>
+
             {/* KPI Cards Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Card 1: Total Population */}
-                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative border-t-4 border-t-blue-500 flex flex-col justify-between">
-                  <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                      <img src="/target_icon.svg" alt="Target" className="w-6 h-6 invert brightness-0" />
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                  <div className="flex gap-3 relative z-10">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                      <img src="/target_icon.svg" alt="Target" className="w-6 h-6" />
                     </div>
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-1">
                         <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
                           HPV VACC. TARGET
                         </span>
-                        <div className="w-3 h-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-slate-600 transition-colors shrink-0 group relative">
-                          <span className="text-[8px] font-bold italic font-serif">i</span>
-                          <div className="absolute left-1/2 top-full mt-1.5 -translate-x-1/2 w-max bg-slate-800 text-white text-[9px] p-2 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-lg">
-                            HPV Target Population = 1% of total population
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-b-[4px] border-b-slate-800" />
-                          </div>
-                        </div>
                       </div>
                       <span className="text-2xl font-extrabold font-mono text-slate-900 leading-none mt-1">
                         {kpis?.total_target?.toLocaleString('en-IN') || '—'}
@@ -1453,10 +1454,10 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Card 2: Reporting Today */}
-                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-purple-500 flex flex-col justify-between">
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between">
                   <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                      <Building2 className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
+                      <Building2 className="w-5 h-5 text-purple-500" />
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
@@ -1484,10 +1485,10 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Card 3: Total Line List */}
-                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden border-t-4 border-t-emerald-500 flex flex-col justify-between">
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between">
                   <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-inner shadow-white/20">
-                      <FileSpreadsheet className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                      <FileSpreadsheet className="w-5 h-5 text-emerald-500" />
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">
@@ -2844,7 +2845,7 @@ export const AdminDashboard: React.FC = () => {
                   <>
                     <div className="overflow-x-auto lg:overflow-auto lg:flex-1 rounded-xl border border-slate-200">
                       <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className="bg-[#1e1b4b] text-white font-semibold uppercase tracking-wider sticky top-0 z-10">
+                        <thead className="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider sticky top-0 z-10 border-b border-slate-200">
                           <tr>
                             <th className="px-2 py-1.5">District / Block</th>
                             <th className="px-2 py-1.5 text-right">Population</th>
@@ -2948,7 +2949,7 @@ export const AdminDashboard: React.FC = () => {
                                   onClick={() => setCurrentPage(page)}
                                   className={`w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold transition-colors ${
                                     currentPage === page 
-                                      ? 'bg-[#1e1b4b] text-white border border-[#1e1b4b]' 
+                                      ? 'bg-slate-100 text-slate-800 font-bold border border-slate-200 shadow-sm' 
                                       : 'border border-slate-200 text-slate-700 hover:bg-slate-50'
                                   }`}
                                 >
@@ -3348,7 +3349,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden lg:flex-1 lg:min-h-0 flex flex-col">
               <div className="overflow-x-auto lg:overflow-auto lg:flex-1">
                 <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className="bg-slate-900 text-white font-semibold uppercase sticky top-0">
+                  <thead className="bg-slate-50 text-slate-500 font-semibold uppercase sticky top-0 border-b border-slate-200">
                     <tr>
                       <th className="p-3">Timestamp</th>
                       <th className="p-3">User</th>
