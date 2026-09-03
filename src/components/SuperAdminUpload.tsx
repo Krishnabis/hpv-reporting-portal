@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UploadCloud, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { UploadCloud, FileSpreadsheet, AlertCircle, CheckCircle2, Database } from 'lucide-react';
 import { parse } from 'csv-parse/browser/esm/sync';
 
 export const SuperAdminUpload: React.FC = () => {
@@ -10,6 +10,7 @@ export const SuperAdminUpload: React.FC = () => {
   const [conflicts, setConflicts] = useState<any[]>([]);
   const [pendingUploadData, setPendingUploadData] = useState<any[] | null>(null);
   const [pendingEndpoint, setPendingEndpoint] = useState<string | null>(null);
+  const [selectedExportTable, setSelectedExportTable] = useState('admin_users');
 
   const handleDownloadTemplate = (type: 'population' | 'livedata' | 'locations' | 'vaccine_ccp' | 'stock_receive' | 'stock_issue') => {
     let headers = '';
@@ -91,6 +92,47 @@ export const SuperAdminUpload: React.FC = () => {
           downloadCSV(data[key], `${key}_table_export.csv`);
         }
       }
+    } catch (err: any) {
+      alert(err.message || 'Error exporting table');
+    }
+  };
+
+  const handleCustomTableDownload = async () => {
+    try {
+      const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+      const res = await fetch(`/api/superadmin/export-custom-table/${selectedExportTable}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Failed to fetch table data');
+      const data = await res.json();
+      
+      if (!data || data.length === 0) {
+        alert('No data found in this table.');
+        return;
+      }
+      
+      const headers = Object.keys(data[0]);
+      const csvRows = [headers.join(',')];
+      
+      for (const row of data) {
+        const values = headers.map(header => {
+          const val = row[header];
+          const str = (val === null || val === undefined) ? '' : String(val);
+          if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        });
+        csvRows.push(values.join(','));
+      }
+      
+      const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${selectedExportTable}_export.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err: any) {
       alert(err.message || 'Error exporting table');
     }
@@ -348,6 +390,48 @@ export const SuperAdminUpload: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 gap-4">
             {renderSection('Stock Issue', 'Upload Stock Issue', 'stock_issue', '/api/superadmin/upload-stock-issue', 'border-purple-100')}
+          </div>
+        </div>
+
+        {/* Custom Database Table Export */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 md:col-span-2 lg:col-span-3">
+          <div className="flex items-center gap-2 mb-4">
+            <Database className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-base font-bold text-slate-800">Export Database Tables (Admin Only)</h2>
+          </div>
+          <div className="p-4 rounded-xl border border-indigo-100 bg-white flex flex-col gap-3 justify-between shadow-sm">
+            <div>
+              <p className="text-[10px] text-slate-500 mb-3">Select any database table to download its full contents as CSV. This is a temporary feature for data extraction.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <select 
+                value={selectedExportTable}
+                onChange={(e) => setSelectedExportTable(e.target.value)}
+                className="flex-1 py-1.5 px-3 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="admin_users">admin_users</option>
+                <option value="audit_logs">audit_logs</option>
+                <option value="block_population_targets">block_population_targets</option>
+                <option value="block_reporting_profiles">block_reporting_profiles</option>
+                <option value="blocks">blocks</option>
+                <option value="countries">countries</option>
+                <option value="daily_reports">daily_reports</option>
+                <option value="districts">districts</option>
+                <option value="divisions">divisions</option>
+                <option value="hpv_vaccinations">hpv_vaccinations</option>
+                <option value="monthly_balance">monthly_balance</option>
+                <option value="states">states</option>
+                <option value="vaccine_ccp">vaccine_ccp</option>
+                <option value="vaccine_stock_transactions">vaccine_stock_transactions</option>
+              </select>
+              <button 
+                onClick={handleCustomTableDownload}
+                className="flex items-center justify-center gap-1.5 py-1.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-colors"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                Download Table CSV
+              </button>
+            </div>
           </div>
         </div>
       </div>

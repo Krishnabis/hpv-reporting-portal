@@ -3151,6 +3151,35 @@ app.get('/api/superadmin/export-table/:table', authenticateToken, async (req, re
   }
 });
 
+app.get('/api/superadmin/export-custom-table/:tableName', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
+    const { tableName } = req.params;
+    
+    const allowedTables = [
+      'admin_users', 'audit_logs', 'block_population_targets', 'block_reporting_profiles', 
+      'blocks', 'countries', 'daily_reports', 'districts', 'divisions', 'states', 
+      'vaccine_ccp', 'vaccine_stock_transactions', 'monthly_balance', 'hpv_vaccinations'
+    ];
+    
+    if (!allowedTables.includes(tableName)) {
+      return res.status(400).json({ error: 'Invalid or unsupported table name' });
+    }
+    
+    if (!useSupabase) {
+       return res.json(store[tableName] || []);
+    }
+    
+    const { data, error } = await supabase.from(tableName).select('*').limit(100000);
+    if (error) throw error;
+    
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/superadmin/upload-population', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
