@@ -166,7 +166,7 @@ app.get('/api/test/ccl', async (req, res) => {
       .select('*, states(name), districts(name), blocks(name)')
       .in('unit_level', ['1', '2', '3'])
       .order('unit_level', { ascending: true })
-      .order('to_ccl', { ascending: true })
+      .order('facility_name', { ascending: true })
       .limit(1);
     if (error) throw error;
     res.json(data);
@@ -4276,7 +4276,7 @@ app.get('/api/vaccine/monthly-report/status', async (req, res) => {
     let ccpsQuery = supabase.from('vaccine_ccp')
       .select('id, to_ccl, name_of_unit_incharge, contact_number, block_id, lgd_block_code')
       .eq('unit_level', '3')
-      .order('to_ccl');
+      .order('facility_name');
 
     if (lgdCode) {
       ccpsQuery = ccpsQuery.or(`block_id.eq.${blockId},lgd_block_code.eq.${lgdCode}`);
@@ -4382,7 +4382,7 @@ app.put('/api/superadmin/ccl/:id', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
     const { id } = req.params;
-    const allowedFields = ['state_id', 'district_id', 'block_id', 'lgd_state_code', 'lgd_district_code', 'lgd_block_code', 'to_ccl', 'sub_district_name', 'facility_acronym', 'hospital_facility_id', 'abdm_org_facility_id', 'pin_code', 'address', 'latitude', 'longitude', 'altitude', 'contact_number', 'health_facility_group', 'health_facility_type', 'setting', 'ulb_code', 'ulb_type', 'ownership', 'parent_organization', 'department_name', 'department_type', 'service_domain', 'service_category', 'service', 'service_unit', 'unit_level', 'unit_sub_level', 'unit_type', 'ccl_id', 'ccl_block_hq_yes', 'name_of_unit_incharge', 'status'];
+    const allowedFields = ['state_id', 'district_id', 'block_id', 'lgd_state_code', 'lgd_district_code', 'lgd_block_code', 'facility_name', 'sub_district_name', 'facility_acronym', 'hospital_facility_id', 'abdm_org_facility_id', 'pin_code', 'address', 'latitude', 'longitude', 'altitude', 'contact_number', 'health_facility_group', 'health_facility_type', 'setting', 'ulb_code', 'ulb_type', 'ownership', 'parent_organization', 'department_name', 'department_type', 'service_domain', 'service_category', 'service', 'service_unit', 'unit_level', 'unit_sub_level', 'unit_type', 'ccl_id', 'ccl_block_hq_yes', 'name_of_unit_incharge', 'status'];
     
     let updateData = {};
     for (const key of allowedFields) {
@@ -4425,7 +4425,7 @@ app.get('/api/admin/ccl-locations', authenticateToken, async (req, res) => {
     let query = supabase.from('vaccine_ccp')
       .select('*, states(id, name), districts(id, name, division_id, divisions(name)), blocks(id, name, health_block_name)')
       .order('unit_level', { ascending: true })
-      .order('to_ccl', { ascending: true });
+      .order('facility_name', { ascending: true });
 
     if (userDistrictId) {
       query = query.eq('district_id', userDistrictId);
@@ -4454,7 +4454,7 @@ app.get('/api/admin/ccl-locations', authenticateToken, async (req, res) => {
     if (search && search.trim()) {
       const s = search.toLowerCase().trim();
       filtered = filtered.filter(c => 
-        (c.to_ccl && c.to_ccl.toLowerCase().includes(s)) ||
+        (c.facility_name && c.facility_name.toLowerCase().includes(s)) ||
         (c.ccl_id && c.ccl_id.toLowerCase().includes(s)) ||
         (c.name_of_unit_incharge && c.name_of_unit_incharge.toLowerCase().includes(s))
       );
@@ -4482,7 +4482,7 @@ app.get('/api/superadmin/ccl-list', authenticateToken, async (req, res) => {
       .select('*, states(name), districts(name), blocks(name)')
       .in('unit_level', ['1', '2', '3'])
       .order('unit_level', { ascending: true })
-      .order('to_ccl', { ascending: true });
+      .order('facility_name', { ascending: true });
 
     let effectiveDistrictId = req.user.district_id || (req.user.role === 'DISTRICT_ADMIN' ? req.user.district_id : null);
     if (effectiveDistrictId) query = query.eq('district_id', effectiveDistrictId);
