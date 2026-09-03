@@ -115,7 +115,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 15;
   const [isExpanded, setIsExpanded] = useState(false);
-  
+  const [leastOnTop, setLeastOnTop] = useState(false);
   const [activeActionFilter, setActiveActionFilter] = useState<'ALL' | 'CRITICAL' | 'REORDER'>('ALL');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'name', direction: 'asc' });
 
