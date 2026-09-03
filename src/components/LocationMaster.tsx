@@ -455,12 +455,12 @@ export const LocationMaster: React.FC<{
               <tr className="gradient-header text-white">
                 <th className="px-2.5 py-2 text-center font-bold uppercase tracking-wide w-12 border-b border-purple-900/40">S.No</th>
                 <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-purple-900/40" style={{ minWidth: 180 }}>Location Hierarchy</th>
-                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-purple-900/40">Population</th>
-                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-purple-900/40">Annual Target (1%)</th>
-                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-purple-900/40">HPV Goal</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Population</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Annual Target (1%)</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">HPV Goal</th>
                 <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Sessions</th>
-                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-purple-900/40">Line Listed</th>
-                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-purple-900/40">Vaccinated</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Line Listed</th>
+                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Vaccinated</th>
                 <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Reports</th>
                 <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Last Report</th>
               </tr>
@@ -499,12 +499,12 @@ export const LocationMaster: React.FC<{
                         </div>
                         <div className="text-[10px] font-semibold text-slate-400">{row.subtext}</div>
                       </td>
-                      <td className="px-3 py-2 text-right font-semibold text-slate-700">{row.population > 0 ? row.population.toLocaleString('en-IN') : '—'}</td>
-                      <td className="px-3 py-2 text-right font-bold text-indigo-900 bg-indigo-50/40">{row.annualTarget > 0 ? row.annualTarget.toLocaleString('en-IN') : '—'}</td>
-                      <td className="px-3 py-2 text-right font-bold text-purple-900 bg-purple-50/40">{row.hpvTarget > 0 ? row.hpvTarget.toLocaleString('en-IN') : '—'}</td>
+                      <td className="px-3 py-2 text-center font-semibold text-slate-700">{row.population > 0 ? row.population.toLocaleString('en-IN') : '—'}</td>
+                      <td className="px-3 py-2 text-center font-bold text-indigo-900 bg-indigo-50/40">{row.annualTarget > 0 ? row.annualTarget.toLocaleString('en-IN') : '—'}</td>
+                      <td className="px-3 py-2 text-center font-bold text-purple-900 bg-purple-50/40">{row.hpvTarget > 0 ? row.hpvTarget.toLocaleString('en-IN') : '—'}</td>
                       <td className="px-3 py-2 text-center font-bold text-slate-700">{row.sessions}</td>
-                      <td className="px-3 py-2 text-right font-bold text-amber-600">{row.linelisted > 0 ? row.linelisted.toLocaleString('en-IN') : '0'}</td>
-                      <td className="px-3 py-2 text-right font-bold text-emerald-600">{row.vaccinated > 0 ? row.vaccinated.toLocaleString('en-IN') : '0'}</td>
+                      <td className="px-3 py-2 text-center font-bold text-amber-600">{row.linelisted > 0 ? row.linelisted.toLocaleString('en-IN') : '0'}</td>
+                      <td className="px-3 py-2 text-center font-bold text-emerald-600">{row.vaccinated > 0 ? row.vaccinated.toLocaleString('en-IN') : '0'}</td>
                       <td className="px-3 py-2 text-center font-semibold text-slate-600">{row.reportsCount}</td>
                       <td className="px-3 py-2 text-center font-medium text-slate-500 whitespace-nowrap">{row.lastReportDate}</td>
                     </tr>
@@ -519,12 +519,12 @@ export const LocationMaster: React.FC<{
                   <td className="px-3 py-2 font-extrabold sticky left-0 border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)' }}>
                     TOTAL ({displayRows.length} Units)
                   </td>
-                  <td className="px-3 py-2 text-right">{kpis.totalPop.toLocaleString('en-IN')}</td>
-                  <td className="px-3 py-2 text-right text-indigo-900">{kpis.totalAnnualTarget.toLocaleString('en-IN')}</td>
-                  <td className="px-3 py-2 text-right text-purple-900">{kpis.totalHpvTarget.toLocaleString('en-IN')}</td>
+                  <td className="px-3 py-2 text-center">{kpis.totalPop.toLocaleString('en-IN')}</td>
+                  <td className="px-3 py-2 text-center text-indigo-900">{kpis.totalAnnualTarget.toLocaleString('en-IN')}</td>
+                  <td className="px-3 py-2 text-center text-purple-900">{kpis.totalHpvTarget.toLocaleString('en-IN')}</td>
                   <td className="px-3 py-2 text-center text-slate-700">{kpis.totalSessions.toLocaleString('en-IN')}</td>
-                  <td className="px-3 py-2 text-right text-amber-600">{kpis.totalLineListed.toLocaleString('en-IN')}</td>
-                  <td className="px-3 py-2 text-right text-emerald-600">{kpis.totalVaccinated.toLocaleString('en-IN')}</td>
+                  <td className="px-3 py-2 text-center text-amber-600">{kpis.totalLineListed.toLocaleString('en-IN')}</td>
+                  <td className="px-3 py-2 text-center text-emerald-600">{kpis.totalVaccinated.toLocaleString('en-IN')}</td>
                   <td className="px-3 py-2 text-center text-slate-600">{kpis.totalReports.toLocaleString('en-IN')}</td>
                   <td className="px-3 py-2 text-center text-slate-400">—</td>
                 </tr>

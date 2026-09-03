@@ -2870,40 +2870,58 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
         if (c.ccl_id) ccpMap[c.ccl_id] = c;
       });
 
-      const liveRows = [];
-      const runningBalanceMap = {};
+      // ── Step 1: sort transactions chronologically (ascending) before computing balances ──
+      const sortedTx = (txData || []).slice().sort((a, b) => {
+        const da = new Date(a.transaction_date || a.created_at || 0).getTime();
+        const db = new Date(b.transaction_date || b.created_at || 0).getTime();
+        if (da !== db) return da - db;
+        // RECEIVED before ISSUED on same date so balance never goes negative unnecessarily
+        if (a.transaction_type === 'RECEIVED' && b.transaction_type !== 'RECEIVED') return -1;
+        if (b.transaction_type === 'RECEIVED' && a.transaction_type !== 'RECEIVED') return 1;
+        return 0;
+      });
 
-      (txData || []).forEach((t, idx) => {
+      // ── Step 2: build per-CCL running balance starting from 0 ──
+      const runningBalanceMap = {}; // key → current balance (starts at 0, not 1250)
+      const cclMetaMap = {};        // key → { cclName, levelLabel, unitTypeStr }
+      const liveRows = [];
+
+      sortedTx.forEach((t, idx) => {
         const fac = ccpMap[t.facility_id] || ccpMap[t.destination_ccl_id] || {};
-        const distName = t.district_id ? distMap[t.district_id] : (fac.districts?.name || 'Lucknow');
-        
-        const cclNameText = fac.facility_name || t.destination_ccl_name || `District Vaccine Store ${distName} (L2)`;
+        const distName = t.district_id ? distMap[t.district_id] : (fac.districts?.name || '');
+
+        const cclNameText = fac.facility_name || t.destination_ccl_name || (distName ? `District Vaccine Store ${distName} (L2)` : 'Unknown CCL');
         const levelStr = String(t.level || fac.unit_level || '2');
         const levelLabel = levelStr === '1' ? 'L1' : (levelStr === '2' ? 'L2' : 'L3');
         const unitTypeStr = fac.unit_type || (levelStr === '1' ? 'SVS' : (levelStr === '2' ? 'DVS' : 'CCP-B'));
 
-        const key = t.facility_id || cclNameText;
+        // Each CCL is identified by its facility_id; start at 0
+        const key = String(t.facility_id || cclNameText);
         if (runningBalanceMap[key] === undefined) {
-          runningBalanceMap[key] = 1250;
+          runningBalanceMap[key] = 0;
+          cclMetaMap[key] = { cclName: cclNameText, levelLabel, unitTypeStr };
         }
 
         const qty = Number(t.quantity_doses || 0);
         const isRecv = t.transaction_type === 'RECEIVED';
+        // RECEIVED → stock increases; ISSUED → stock decreases
         const transQty = isRecv ? qty : -qty;
-
         runningBalanceMap[key] += transQty;
 
         liveRows.push({
           id: t.id || `tx-${idx}`,
           ccl_name: cclNameText,
-          transaction_date: t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB') : '01/05/2025',
+          ccl_key: key,
+          transaction_date: t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('en-GB') : '',
           raw_date: t.transaction_date || t.created_at,
           transaction_type: isRecv ? 'Receive' : 'Issue',
-          batch_no: t.batch_no || 'HPV250401',
-          manufacturer_name: t.manufacture_name || 'Merck/MSD',
-          expiry_date: t.batch_expiry_date ? new Date(t.batch_expiry_date).toLocaleDateString('en-GB') : '31/03/2027',
+          batch_no: t.batch_no || '—',
+          manufacturer_name: t.manufacture_name || '—',
+          expiry_date: t.batch_expiry_date ? new Date(t.batch_expiry_date).toLocaleDateString('en-GB') : '—',
           transaction_quantity: transQty,
-          facility_name: t.destination_ccl_name || t.source_ccl_name || (isRecv ? `State Vaccine Store ${distName} (L1)` : `CHC Alambagh (L3)`),
+          facility_name: isRecv
+            ? (t.source_ccl_name || t.destination_ccl_name || (distName ? `State Vaccine Store ${distName} (L1)` : 'Source CCL'))
+            : (t.destination_ccl_name || t.source_ccl_name || 'Destination CCL'),
           physical_stock_count: null,
           wastage_adjustment: null,
           closing_balance: runningBalanceMap[key],
@@ -2915,32 +2933,61 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
       });
 
       if (liveRows.length > 0) {
-        liveRows.sort((a, b) => new Date(b.raw_date).getTime() - new Date(a.raw_date).getTime());
+        // ── Step 3: build CCL summary (final balance per CCL) ──
+        const cclSummary = Object.entries(runningBalanceMap).map(([key, finalBalance]) => ({
+          cclKey: key,
+          cclName: cclMetaMap[key]?.cclName || key,
+          levelLabel: cclMetaMap[key]?.levelLabel || '—',
+          unitType: cclMetaMap[key]?.unitTypeStr || '—',
+          finalBalance
+        })).sort((a, b) => a.cclName.localeCompare(b.cclName));
 
-        let filteredRows = liveRows;
+        // ── Step 4: apply filters AFTER balance is computed (so sort/balance is always correct) ──
+        // Default display order: CCL name asc → date asc
+        let filteredRows = liveRows.slice().sort((a, b) => {
+          const nameComp = a.ccl_name.localeCompare(b.ccl_name);
+          if (nameComp !== 0) return nameComp;
+          return new Date(a.raw_date).getTime() - new Date(b.raw_date).getTime();
+        });
+
         if (district && district !== 'All Districts') {
-          filteredRows = filteredRows.filter(r => r.ccl_name.toLowerCase().includes(district.toLowerCase()) || r.district_name.toLowerCase().includes(district.toLowerCase()));
+          filteredRows = filteredRows.filter(r =>
+            r.ccl_name.toLowerCase().includes(district.toLowerCase()) ||
+            r.district_name.toLowerCase().includes(district.toLowerCase())
+          );
         }
         if (transactionType && transactionType !== 'All') {
           filteredRows = filteredRows.filter(r => r.transaction_type.toLowerCase() === transactionType.toLowerCase());
         }
 
+        // ── Step 5: compute KPIs — strictly separated by type, no double-counting ──
         let totalReceived = 0;
         let totalIssued = 0;
         let totalAdjustment = 0;
-        filteredRows.forEach(r => {
+
+        // Use the full liveRows (pre-filter) for global KPIs to reflect the real totals
+        liveRows.forEach(r => {
           if (r.transaction_type === 'Receive' && r.transaction_quantity) totalReceived += r.transaction_quantity;
           if (r.transaction_type === 'Issue' && r.transaction_quantity) totalIssued += Math.abs(r.transaction_quantity);
           if (r.wastage_adjustment) totalAdjustment += r.wastage_adjustment;
         });
 
-        const openingStock = 1250;
-        const closingStock = Math.max(0, openingStock + totalReceived - totalIssued - totalAdjustment);
-        const wastagePct = totalIssued > 0 ? ((totalAdjustment / totalIssued) * 100).toFixed(2) : '2.73';
+        // Closing stock = net balance across all CCLs (total received - total issued to outside the tracked system)
+        // We simply take the sum of all final CCL balances as the "net in system" figure
+        const netInSystem = cclSummary.reduce((sum, c) => sum + c.finalBalance, 0);
+        const wastagePct = totalIssued > 0 ? ((totalAdjustment / totalIssued) * 100).toFixed(2) : '0.00';
 
         return res.json({
           rows: filteredRows,
-          kpis: { openingStock, totalReceived, totalIssued, totalAdjustment, closingStock, wastagePct },
+          cclSummary,
+          kpis: {
+            openingStock: 0,
+            totalReceived,
+            totalIssued,
+            totalAdjustment,
+            closingStock: netInSystem,
+            wastagePct
+          },
           isLive: true
         });
       }
