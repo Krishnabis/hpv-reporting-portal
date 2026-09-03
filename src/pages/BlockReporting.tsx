@@ -298,10 +298,10 @@ const BlockReportingContent: React.FC = () => {
               <span className="text-[9px] font-bold text-emerald-700/70 mt-0.5">Count ({lastVaccinated.toLocaleString('en-IN')})</span>
             </div>
             {/* Vaccinations per Session */}
-            <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
-              <span className="text-[9px] uppercase font-bold text-violet-600 mb-1 leading-tight">Vaccinations per Session</span>
-              <span className="text-2xl font-extrabold font-mono text-violet-700">{vaccinationsPerSession}</span>
-              <span className="text-[9px] font-bold text-violet-700/70 mt-0.5">Vaccinated / Session</span>
+            <div className="bg-hpv-purple-soft border border-hpv-purple/20 rounded-xl p-3 flex flex-col justify-center items-center text-center">
+              <span className="text-[9px] uppercase font-bold text-hpv-purple mb-1 leading-tight">Vaccinations per Session</span>
+              <span className="text-2xl font-extrabold font-mono text-hpv-purple-dark">{vaccinationsPerSession}</span>
+              <span className="text-[9px] font-bold text-hpv-purple-dark/70 mt-0.5">Vaccinated / Session</span>
             </div>
             {/* Session Count */}
             <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">

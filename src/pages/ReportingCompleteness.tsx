@@ -373,28 +373,30 @@ export const ReportingCompleteness: React.FC<{
             />
           </div>
 
-          {/* To Date */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">To Date</label>
-            <input
-              type="date"
-              value={toDate}
-              onChange={e => setToDate(e.target.value)}
-              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple cursor-pointer"
-              style={{ minWidth: 140 }}
-            />
-          </div>
+          {/* To Date + Generate Report Button inline */}
+          <div className="flex items-end gap-2.5">
+            <div className="flex flex-col gap-1">
+              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">To Date</label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={e => setToDate(e.target.value)}
+                className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple cursor-pointer"
+                style={{ minWidth: 140 }}
+              />
+            </div>
 
-          {/* Generate Report Button */}
-          <button
-            onClick={fetchReport}
-            disabled={loading}
-            style={{ height: 36, borderRadius: 8, minWidth: 160 }}
-            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-hpv-purple/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
-          >
-            {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
-            {loading ? 'Generating...' : 'Generate Report'}
-          </button>
+            {/* Generate Report Button */}
+            <button
+              onClick={fetchReport}
+              disabled={loading}
+              style={{ height: 36, borderRadius: 8, minWidth: 152 }}
+              className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-hpv-purple/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            >
+              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
+              {loading ? 'Generating...' : 'Generate Report'}
+            </button>
+          </div>
         </div>
       </div>
 

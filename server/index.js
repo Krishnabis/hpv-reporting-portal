@@ -3047,14 +3047,12 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
       let filteredRows = rawRows.filter(r => {
          let match = true;
          if (district && district !== 'All Districts') {
-            const fromFac = ccpMap[r.from_ccl_id] || {};
-            const toFac = ccpMap[r.facility_name_id] || {};
-            const fromDist = distMap[fromFac.district_id] || '';
-            const toDist = distMap[toFac.district_id] || '';
+            const fromDist = r.from_district || '';
+            const toDist = r.to_district || '';
             match = match && (fromDist.toLowerCase().includes(district.toLowerCase()) || toDist.toLowerCase().includes(district.toLowerCase()));
          }
          if (cclName && cclName.trim() !== '') {
-            match = match && (r.from_ccl.toLowerCase().includes(cclName.toLowerCase()) || r.facility_name.toLowerCase().includes(cclName.toLowerCase()));
+            match = match && (r.from_ccl.toLowerCase().includes(cclName.toLowerCase()) || r.to_ccl.toLowerCase().includes(cclName.toLowerCase()));
          }
          if (transactionType && transactionType !== 'All') {
             match = match && (r.transaction_type.toLowerCase() === transactionType.toLowerCase());

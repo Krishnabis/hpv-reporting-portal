@@ -208,7 +208,7 @@ export const UttarakhandMap: React.FC<MapProps> = ({ data, selectedKpi, selected
               {/* Value(s) */}
               {selectedKpi === 'both' ? (
                 <>
-                  <text x={lx} y={rectY + 68} textAnchor="middle" fontSize={24} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#6b21a8">
+                  <text x={lx} y={rectY + 68} textAnchor="middle" fontSize={24} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#3A0088">
                     V: {covPct.toFixed(1)}%
                   </text>
                   <text x={lx} y={rectY + 95} textAnchor="middle" fontSize={24} fontFamily="system-ui, sans-serif" fontWeight="800" fill="#047857">
