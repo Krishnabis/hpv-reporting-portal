@@ -942,10 +942,10 @@ export const AdminDashboard: React.FC = () => {
   const isInitialLoading = isAuthenticating || (kpis === null && loadingKpis) || (reportRows.length === 0 && loadingReport);
   if (isInitialLoading) {
     return (
-      <div className="h-[100dvh] w-full bg-[#09090E] flex items-center justify-center">
+      <div className="h-[100dvh] w-full bg-[#f4f7fe] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-sm font-bold text-cyan-400 vr-neon-text">
+          <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-sm font-bold text-indigo-600">
             {isAuthenticating ? 'Checking authentication...' : 'Loading Dashboard...'}
           </div>
         </div>
