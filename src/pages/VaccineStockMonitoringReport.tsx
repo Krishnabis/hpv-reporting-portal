@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Download, AlertCircle, Info, Building2, MapPin, Filter, Calendar, Clock, FileText } from 'lucide-react';
+import { Download, AlertCircle, Info, Building2, MapPin, Filter, Calendar, Clock, FileText, ArrowUpDown } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -93,6 +93,7 @@ export const VaccineStockMonitoringReport: React.FC<{
   // Filter Controls
   const [selectedStateId, setSelectedStateId] = useState<string>('');
   const [selectedDistrictId] = useState<string>('ALL');
+  const [sortBy, setSortBy] = useState<'avail_asc' | 'avail_desc' | 'name_asc'>('avail_asc');
 
   // Reporting Month Selection
   const [selectedMonth, setSelectedMonth] = useState<string>(() => {
@@ -243,7 +244,7 @@ export const VaccineStockMonitoringReport: React.FC<{
       ? data
       : data.filter(row => String(row.district_id) === String(selectedDistrictId) || String(row.id) === String(selectedDistrictId));
 
-    return rawRows.map(row => {
+    const calculated = rawRows.map(row => {
       const annualReq = row.annual_requirement || 0;
       const reportingPct = row.month_end_reporting_pct || 0;
       const reportingCount = row.month_end_reporting_count || 0;
@@ -305,7 +306,17 @@ export const VaccineStockMonitoringReport: React.FC<{
         crudeOpeningFormulaValue: openingStockCrude
       };
     });
-  }, [data, selectedDistrictId, formattedMonthPeriod]);
+
+    if (sortBy === 'avail_asc') {
+      calculated.sort((a, b) => a.stockAvailabilityPct - b.stockAvailabilityPct);
+    } else if (sortBy === 'avail_desc') {
+      calculated.sort((a, b) => b.stockAvailabilityPct - a.stockAvailabilityPct);
+    } else if (sortBy === 'name_asc') {
+      calculated.sort((a, b) => (a.name || a.district || '').localeCompare(b.name || b.district || ''));
+    }
+
+    return calculated;
+  }, [data, selectedDistrictId, formattedMonthPeriod, sortBy]);
 
   // Aggregate Totals for the Summary Row
   const aggregateTotals = useMemo(() => {
@@ -355,19 +366,18 @@ export const VaccineStockMonitoringReport: React.FC<{
       vaccinations,
       closingStock,
       overallAvailability,
-      overallAction,
+        overallAction,
       received12M,
       vax12M,
       totalVaxConsumed12M
     };
   }, [processedRows]);
 
-  // Export CSV Handler
+  // EXPORT CSV HANDLER
   const downloadCSV = () => {
     const headers = [
-      'Selected Month Period',
       'Site / District',
-      'Annual Requirement (Doses)',
+      'Annual Req (Doses)',
       'Pre. Month-end Reporting (%)',
       'Opening Stock (Reported)',
       'Opening Stock (Crude Estimate)',
@@ -380,7 +390,6 @@ export const VaccineStockMonitoringReport: React.FC<{
     ];
 
     const rows = processedRows.map(r => [
-      `"${r.monthPeriod}"`,
       `"${r.name || r.district}"`,
       r.annualReq,
       `"${Math.round(r.reportingPct)}% (${r.reportingCount}/${r.totalCcp})"`,
@@ -418,7 +427,6 @@ export const VaccineStockMonitoringReport: React.FC<{
     doc.text(`Reporting Period: ${formattedMonthPeriod}  |  Generated Date: ${currentDateFormatted}`, 14, 22);
 
     const tableHeaders = [[
-      'Period',
       'Site / District',
       'Annual Req.',
       'Pre. Reporting',
@@ -433,7 +441,6 @@ export const VaccineStockMonitoringReport: React.FC<{
     ]];
 
     const tableRows = processedRows.map(r => [
-      r.monthPeriod,
       r.name || r.district,
       fmt(r.annualReq),
       `${Math.round(r.reportingPct)}% (${r.reportingCount}/${r.totalCcp})`,
@@ -449,7 +456,6 @@ export const VaccineStockMonitoringReport: React.FC<{
 
     // Total row
     tableRows.push([
-      'Total',
       `${selectedStateName} Summary`,
       fmt(aggregateTotals.annualReq),
       `${Math.round(aggregateTotals.overallReportingPct)}% (${aggregateTotals.reportingCount}/${aggregateTotals.totalCcp})`,
@@ -467,12 +473,9 @@ export const VaccineStockMonitoringReport: React.FC<{
       head: tableHeaders,
       body: tableRows,
       startY: 26,
-      styles: { fontSize: 8, cellPadding: 2.5, halign: 'right' },
+      styles: { fontSize: 8, cellPadding: 2.5, halign: 'center' },
       columnStyles: {
-        0: { halign: 'left' },
-        1: { halign: 'left', fontStyle: 'bold' },
-        9: { halign: 'center' },
-        11: { halign: 'center', fontStyle: 'bold' }
+        0: { halign: 'left', fontStyle: 'bold' }
       },
       headStyles: { fillColor: [49, 16, 84], textColor: 255, fontStyle: 'bold', halign: 'center' },
       alternateRowStyles: { fillColor: [248, 250, 252] },
@@ -496,7 +499,7 @@ export const VaccineStockMonitoringReport: React.FC<{
               {/* CURRENT DATE DISPLAY ON TOP */}
               <div className="ml-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-bold border border-slate-300">
                 <Clock className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Current Date: <strong className="text-slate-900">{currentDateFormatted}</strong></span>
+                <span>Report Date: <strong className="text-slate-900">{currentDateFormatted}</strong></span>
               </div>
             </div>
           </div>
@@ -524,13 +527,13 @@ export const VaccineStockMonitoringReport: React.FC<{
           </div>
         </div>
 
-        {/* TOP FILTER BAR: SINGLE PERIOD SELECTOR FILTER FOR UTTARAKHAND */}
+        {/* TOP FILTER BAR: CURRENT DATE SELECTOR FILTER FOR UTTARAKHAND */}
         <div className="px-5 py-2.5 bg-slate-100/80 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             {/* Period / Month Selector Filter */}
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-indigo-600" /> Period:
+                <Calendar className="w-3.5 h-3.5 text-indigo-600" /> Current Date:
               </span>
               <select
                 value={selectedMonth}
@@ -540,6 +543,22 @@ export const VaccineStockMonitoringReport: React.FC<{
                 {monthOptions.map(m => (
                   <option key={m.val} value={m.val}>{m.label}</option>
                 ))}
+              </select>
+            </div>
+
+            {/* Sort Availability Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                <ArrowUpDown className="w-3.5 h-3.5 text-indigo-600" /> Sort Availability:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="avail_asc">Least Availability % First (Lowest First)</option>
+                <option value="avail_desc">Highest Availability % First</option>
+                <option value="name_asc">District Name (A-Z)</option>
               </select>
             </div>
           </div>
@@ -583,11 +602,6 @@ export const VaccineStockMonitoringReport: React.FC<{
                 <thead className="bg-[#311054] text-white shrink-0">
                   <tr className="flex w-full">
                     <ColumnHeader 
-                      title="Selected Month Period" 
-                      tooltip="The month and year for which this stock availability report is calculated."
-                      align="left"
-                    />
-                    <ColumnHeader 
                       title="Site / District" 
                       tooltip="Name of the district unit within Uttarakhand."
                       align="left"
@@ -596,39 +610,39 @@ export const VaccineStockMonitoringReport: React.FC<{
                     <ColumnHeader 
                       title="Annual Requirement (Doses)" 
                       tooltip="Target annual vaccine requirement in doses for this unit."
-                      align="right"
+                      align="center"
                     />
                     <ColumnHeader 
                       title="Pre. Month-end Reporting (%)" 
                       tooltip="Percentage of expected reporting units that submitted the previous month's month-end stock report."
-                      align="right"
+                      align="center"
                       highlight={true}
                     />
                     <ColumnHeader 
                       title="Opening Stock (Reported)" 
                       tooltip="Actual reported stock from previous month-end reports. Fixed for the current month."
-                      align="right"
+                      align="center"
                     />
                     <ColumnHeader 
                       title="Opening Stock (Crude Estimate)" 
                       tooltip="Calculated crude opening stock formula: (Vaccine Received Last 12 Months) - (Vaccinations Last 12 Months with 1.01 wastage factor)."
-                      align="right"
+                      align="center"
                       highlight={true}
                     />
                     <ColumnHeader 
                       title="Vaccine Received" 
                       tooltip="Vaccine doses received in the unit during the selected month."
-                      align="right"
+                      align="center"
                     />
                     <ColumnHeader 
                       title="Vaccinations (This Month)" 
                       tooltip="Total vaccinations performed in the unit during the selected month."
-                      align="right"
+                      align="center"
                     />
                     <ColumnHeader 
                       title="Closing Stock (Estimated)" 
                       tooltip="Estimated closing stock at month end. Formula: Opening Stock + Vaccine Received - (Vaccinations x 1.01)."
-                      align="right"
+                      align="center"
                       highlight={true}
                     />
                     <ColumnHeader 
@@ -640,7 +654,7 @@ export const VaccineStockMonitoringReport: React.FC<{
                     <ColumnHeader 
                       title="Stock Availability (%)" 
                       tooltip="Stock availability percentage measured against annual requirement."
-                      align="right"
+                      align="center"
                       highlight={true}
                     />
                     <ColumnHeader 
@@ -655,23 +669,18 @@ export const VaccineStockMonitoringReport: React.FC<{
                 <tbody className="divide-y divide-slate-200 flex-1 flex flex-col justify-between">
                   {processedRows.map((row, idx) => (
                     <tr key={row.id || idx} className="hover:bg-indigo-50/40 transition-colors flex w-full items-center">
-                      {/* 1. Selected Month Period */}
-                      <td className="px-3 py-2.5 font-medium text-slate-600 whitespace-nowrap text-[11px] flex-1">
-                        {row.monthPeriod}
-                      </td>
-
-                      {/* 2. Site / District */}
-                      <td className="px-3 py-2.5 font-bold text-slate-900 whitespace-nowrap text-xs flex-1">
+                      {/* 1. Site / District */}
+                      <td className="px-3 py-2.5 font-bold text-slate-900 whitespace-nowrap text-xs flex-1 text-left">
                         <span>{row.name || row.district}</span>
                       </td>
 
-                      {/* 3. Annual Requirement (Doses) */}
-                      <td className="px-3 py-2.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
+                      {/* 2. Annual Requirement (Doses) */}
+                      <td className="px-3 py-2.5 text-center font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
                         {fmt(row.annualReq)}
                       </td>
 
-                      {/* 4. Pre. Month-end Reporting (%) */}
-                      <td className="px-3 py-2.5 text-right font-bold whitespace-nowrap text-[11px] flex-1">
+                      {/* 3. Pre. Month-end Reporting (%) */}
+                      <td className="px-3 py-2.5 text-center font-bold whitespace-nowrap text-[11px] flex-1">
                         <span className={row.reportingPct >= 100 ? 'text-emerald-700 font-black' : 'text-amber-700'}>
                           {Math.round(row.reportingPct)}%
                         </span>
@@ -680,32 +689,32 @@ export const VaccineStockMonitoringReport: React.FC<{
                         </span>
                       </td>
 
-                      {/* 5. Opening Stock (Reported) */}
-                      <td className="px-3 py-2.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
+                      {/* 4. Opening Stock (Reported) */}
+                      <td className="px-3 py-2.5 text-center font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
                         {row.reportedStock != null ? fmt(row.reportedStock) : '—'}
                       </td>
 
-                      {/* 6. Opening Stock (Crude Estimate) */}
-                      <td className="px-3 py-2.5 text-right font-bold text-orange-600 whitespace-nowrap text-[11px] flex-1">
+                      {/* 5. Opening Stock (Crude Estimate) */}
+                      <td className="px-3 py-2.5 text-center font-bold text-orange-600 whitespace-nowrap text-[11px] flex-1">
                         {fmt(row.openingStockCrude)}
                       </td>
 
-                      {/* 7. Vaccine Received */}
-                      <td className="px-3 py-2.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
+                      {/* 6. Vaccine Received */}
+                      <td className="px-3 py-2.5 text-center font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
                         {fmt(row.vaccineReceived)}
                       </td>
 
-                      {/* 8. Vaccinations (This Month) */}
-                      <td className="px-3 py-2.5 text-right font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
+                      {/* 7. Vaccinations (This Month) */}
+                      <td className="px-3 py-2.5 text-center font-semibold text-slate-700 whitespace-nowrap text-[11px] flex-1">
                         {fmt(row.vaccinations)}
                       </td>
 
-                      {/* 9. Closing Stock (Estimated) */}
-                      <td className="px-3 py-2.5 text-right font-black text-indigo-700 bg-indigo-50/50 whitespace-nowrap text-[11px] flex-1">
+                      {/* 8. Closing Stock (Estimated) */}
+                      <td className="px-3 py-2.5 text-center font-black text-indigo-700 bg-indigo-50/50 whitespace-nowrap text-[11px] flex-1">
                         {fmt(row.closingStockEstimated)}
                       </td>
 
-                      {/* 10. Estimation Model */}
+                      {/* 9. Estimation Model */}
                       <td className="px-3 py-2.5 text-center whitespace-nowrap flex-1">
                         {row.estimationModel === 'Reported Stock' ? (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
@@ -718,12 +727,12 @@ export const VaccineStockMonitoringReport: React.FC<{
                         )}
                       </td>
 
-                      {/* 11. Stock Availability (%) */}
-                      <td className="px-3 py-2.5 text-right font-black text-slate-900 bg-slate-50/80 whitespace-nowrap text-[11px] flex-1">
+                      {/* 10. Stock Availability (%) */}
+                      <td className="px-3 py-2.5 text-center font-black text-slate-900 bg-slate-50/80 whitespace-nowrap text-[11px] flex-1">
                         {row.annualReq > 0 ? `${row.stockAvailabilityPct}%` : '—'}
                       </td>
 
-                      {/* 12. Action */}
+                      {/* 11. Action */}
                       <td className="px-3 py-2.5 text-center whitespace-nowrap flex-1">
                         {row.actionCategory === 'Critical' ? (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-red-100 text-red-800 border border-red-300">
@@ -750,21 +759,20 @@ export const VaccineStockMonitoringReport: React.FC<{
 
                   {/* Summary / Totals Row */}
                   <tr className="bg-slate-200/90 font-black border-t-2 border-slate-300 text-slate-900 flex w-full items-center shrink-0">
-                    <td className="px-3 py-3 font-bold text-slate-700 text-[11px] flex-1">Total</td>
-                    <td className="px-3 py-3 font-black text-indigo-900 text-xs flex-1">
+                    <td className="px-3 py-3 font-black text-indigo-900 text-xs flex-1 text-left">
                       {`${selectedStateName} Summary`}
                     </td>
-                    <td className="px-3 py-3 text-right text-[11px] flex-1">{fmt(aggregateTotals.annualReq)}</td>
-                    <td className="px-3 py-3 text-right text-indigo-900 text-[11px] flex-1">
+                    <td className="px-3 py-3 text-center text-[11px] flex-1">{fmt(aggregateTotals.annualReq)}</td>
+                    <td className="px-3 py-3 text-center text-indigo-900 text-[11px] flex-1">
                       {Math.round(aggregateTotals.overallReportingPct)}% ({aggregateTotals.reportingCount}/{aggregateTotals.totalCcp})
                     </td>
-                    <td className="px-3 py-3 text-right text-[11px] flex-1">{fmt(aggregateTotals.reportedStock)}</td>
-                    <td className="px-3 py-3 text-right text-orange-700 text-[11px] flex-1">{fmt(aggregateTotals.openingStockCrude)}</td>
-                    <td className="px-3 py-3 text-right text-[11px] flex-1">{fmt(aggregateTotals.vaccineReceived)}</td>
-                    <td className="px-3 py-3 text-right text-[11px] flex-1">{fmt(aggregateTotals.vaccinations)}</td>
-                    <td className="px-3 py-3 text-right text-indigo-800 text-[11px] flex-1">{fmt(aggregateTotals.closingStock)}</td>
+                    <td className="px-3 py-3 text-center text-[11px] flex-1">{fmt(aggregateTotals.reportedStock)}</td>
+                    <td className="px-3 py-3 text-center text-orange-700 text-[11px] flex-1">{fmt(aggregateTotals.openingStockCrude)}</td>
+                    <td className="px-3 py-3 text-center text-[11px] flex-1">{fmt(aggregateTotals.vaccineReceived)}</td>
+                    <td className="px-3 py-3 text-center text-[11px] flex-1">{fmt(aggregateTotals.vaccinations)}</td>
+                    <td className="px-3 py-3 text-center text-indigo-800 text-[11px] flex-1">{fmt(aggregateTotals.closingStock)}</td>
                     <td className="px-3 py-3 text-center text-slate-600 text-[11px] flex-1">—</td>
-                    <td className="px-3 py-3 text-right text-slate-900 text-[11px] flex-1">{aggregateTotals.overallAvailability}%</td>
+                    <td className="px-3 py-3 text-center text-slate-900 text-[11px] flex-1">{aggregateTotals.overallAvailability}%</td>
                     <td className="px-3 py-3 text-center flex-1">
                       {aggregateTotals.overallAction === 'Critical' ? (
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-red-200 text-red-900">Critical</span>
