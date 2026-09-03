@@ -4,7 +4,7 @@
 
 @layer base {
   html, body, #root {
-    @apply bg-[#09090E] text-slate-200 antialiased;
+    @apply bg-slate-50 text-slate-900 antialiased;
     width: 100%;
     height: 100dvh;
     margin: 0;
@@ -19,21 +19,11 @@
 }
 
 .vr-glass-panel {
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  @apply bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_4px_30px_rgba(0,0,0,0.05)];
 }
 
 .vr-glass-card {
-  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  @apply bg-white/90 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-300;
 }
 
 .vr-glass-card:hover {
@@ -43,12 +33,11 @@
 }
 
 .vr-neon-text {
-  text-shadow: 0 0 10px rgba(6, 182, 212, 0.5), 0 0 20px rgba(6, 182, 212, 0.3);
+  @apply drop-shadow-[0_0_8px_rgba(var(--tw-text-opacity-color),0.6)];
 }
 
 .vr-neon-border {
-  box-shadow: inset 0 0 15px rgba(6, 182, 212, 0.2), 0 0 15px rgba(6, 182, 212, 0.2);
-  border-color: rgba(6, 182, 212, 0.5);
+  @apply shadow-[0_0_15px_rgba(var(--tw-border-opacity-color),0.4)];
 }
 
 .vr-gradient-text {
@@ -61,6 +50,32 @@
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
   100% { transform: translateY(0px); }
+}
+
+.animated-bg-blob-1 {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(6,182,212,0.15) 0%, rgba(6,182,212,0) 70%);
+  border-radius: 50%;
+  animation: float 20s infinite ease-in-out alternate;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.animated-bg-blob-2 {
+  position: absolute;
+  bottom: -10%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(217,70,239,0.1) 0%, rgba(217,70,239,0) 70%);
+  border-radius: 50%;
+  animation: float 25s infinite ease-in-out alternate-reverse;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .animate-float {
