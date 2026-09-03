@@ -199,9 +199,40 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
     setViewBy('daily');
   };
 
-  const stateOptions = statesList.map(s => ({ id: s.id.toString(), name: s.name }));
-  const districtOptions = [{ id: 'ALL', name: 'All Districts' }, ...districtsList.map(d => ({ id: d.id.toString(), name: d.name }))];
-  const blockOptions = [{ id: 'ALL', name: 'All Blocks' }, ...blocksList.map(b => ({ id: b.id.toString(), name: `${b.name} (${b.district_name})` }))];
+  const stateOptions = useMemo(() => {
+    return statesList.map(s => ({ id: s.id.toString(), name: s.name }));
+  }, [statesList]);
+
+  const districtOptions = useMemo(() => {
+    const opts = [
+      { id: 'ALL', name: 'All Districts' }
+    ];
+
+    if (divisionsList && divisionsList.length > 0) {
+      divisionsList.forEach(d => {
+        opts.push({
+          id: `div_${d.id}`,
+          name: d.name.replace(/\s*Division\s*/i, '').trim()
+        });
+      });
+    } else {
+      opts.push({ id: 'KUMAON', name: 'Kumaon' });
+      opts.push({ id: 'GARHWAL', name: 'Garhwal' });
+    }
+
+    districtsList.forEach(d => {
+      opts.push({
+        id: d.id.toString(),
+        name: d.name
+      });
+    });
+
+    return opts;
+  }, [divisionsList, districtsList]);
+
+  const blockOptions = useMemo(() => {
+    return [{ id: 'ALL', name: 'All Blocks' }, ...blocksList.map(b => ({ id: b.id.toString(), name: `${b.name} (${b.district_name})` }))];
+  }, [blocksList]);
 
   return (
     <div className="flex flex-col min-h-full lg:h-full gap-2 lg:min-h-0 max-w-7xl mx-auto w-full pb-10 lg:pb-0">
@@ -217,68 +248,60 @@ export const AdminTrend: React.FC<AdminTrendProps> = ({
           <Filter className="w-4 h-4 text-emerald-600" /> Filters
         </div>
 
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+          {/* 1. State */}
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Select Area</label>
-            <select value={filterLevel} onChange={e => setFilterLevel(e.target.value as any)} className="px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold focus:border-emerald-500 focus:outline-none">
-              <option value="State">State</option>
-              <option value="Division">Division</option>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State</label>
+            <SearchableSelect 
+              label="State"
+              options={stateOptions} 
+              value={stateOptions.find(o => o.id === filterStateId) || (stateOptions.length > 0 ? stateOptions[0] : null)} 
+              onChange={(opt) => opt && setFilterStateId(opt.id.toString())} 
+              placeholder="Select State..." 
+            />
+          </div>
+
+          {/* 2. Report Level */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Report Level</label>
+            <select 
+              value={filterLevel === 'Block' ? 'Block Units' : 'District'} 
+              onChange={e => {
+                const val = e.target.value;
+                if (val === 'Block Units' || val === 'Block') {
+                  setFilterLevel('Block');
+                } else {
+                  setFilterLevel('District');
+                }
+              }} 
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold focus:border-emerald-500 focus:outline-none h-[38px]"
+            >
               <option value="District">District</option>
-              <option value="Block">Block</option>
+              <option value="Block Units">Block Units</option>
             </select>
           </div>
 
-          {filterLevel === 'State' && (
+          {/* 3. Districts / Block Units */}
+          {filterLevel === 'Block' ? (
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">State</label>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Block Units</label>
               <SearchableSelect 
-                label="State"
-                options={stateOptions} 
-                value={stateOptions.find(o => o.id === filterStateId) || null} 
-                onChange={(opt) => opt && setFilterStateId(opt.id.toString())} 
-                placeholder="Select State..." 
-              />
-            </div>
-          )}
-
-          {filterLevel === 'Division' && (() => {
-            const divOptions = [{id: 'ALL', name: 'All Divisions'}, ...divisionsList.map(d => ({ id: d.id.toString(), name: d.name }))];
-            return (
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Division</label>
-                <SearchableSelect 
-                  label="Division"
-                  options={divOptions} 
-                  value={divOptions.find(o => o.id === filterDivisionId) || null} 
-                  onChange={(opt) => opt && setFilterDivisionId(opt.id.toString())} 
-                  placeholder="Select Division..." 
-                />
-              </div>
-            );
-          })()}
-
-          {filterLevel === 'District' && (
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">District</label>
-              <SearchableSelect 
-                label="District"
-                options={districtOptions} 
-                value={districtOptions.find(o => o.id === filterDistrictId) || null} 
-                onChange={(opt) => opt && setFilterDistrictId(opt.id.toString())} 
-                placeholder="Select District..." 
-              />
-            </div>
-          )}
-
-          {filterLevel === 'Block' && (
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Block</label>
-              <SearchableSelect 
-                label="Block"
+                label="Block Units"
                 options={blockOptions} 
                 value={blockOptions.find(o => o.id === filterBlockId) || null} 
                 onChange={(opt) => opt && setFilterBlockId(opt.id.toString())} 
                 placeholder="Select Block..." 
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Districts</label>
+              <SearchableSelect 
+                label="Districts"
+                options={districtOptions} 
+                value={districtOptions.find(o => o.id === filterDistrictId) || null} 
+                onChange={(opt) => opt && setFilterDistrictId(opt.id.toString())} 
+                placeholder="Select District / Division..." 
               />
             </div>
           )}
