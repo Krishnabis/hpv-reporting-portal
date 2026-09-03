@@ -178,8 +178,8 @@ export const VaccineStockMonitoringReport: React.FC<{
       const vax12M = row.vaccinations_last_12_months || 0;
       const vaccineConsumedWastage12M = Math.round(vax12M * 1.01);
 
-      // Crude Method Opening Stock
-      const openingStockCrude = Math.max(0, received12M - vax12M - vaccineConsumedWastage12M);
+      // Crude Method Opening Stock = Vaccine Received Last 12 Months - Vaccine Consumed (Wastage Factor 1.01)
+      const openingStockCrude = Math.max(0, received12M - vaccineConsumedWastage12M);
 
       // CRITICAL BUSINESS RULE: Use reported stock ONLY IF previous month reporting is 100%
       const is100PctReporting = reportingPct >= 100 || (totalCcp > 0 && reportingCount === totalCcp);

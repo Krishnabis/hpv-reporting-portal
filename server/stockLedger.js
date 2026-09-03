@@ -94,8 +94,8 @@ export async function ensureMonthlyLedger(targetMonthStr, blocks, districtStores
             const preMonthTotalCcp = facs.length;
             const preMonthReportingPct = preMonthTotalCcp > 0 ? (preMonthReportingCount / preMonthTotalCcp) * 100 : 0;
 
-            // Vaccinations
-            const vaxLast12Months = Math.max(0, (maxVaxPrevMonth[block.id] || 0) - (maxVaxThirteenMonths[block.id] || 0));
+            // Vaccinations: Total rolling 12 months up to target month
+            const vaxLast12Months = Math.max(0, (maxVaxCurrentMonth[block.id] || 0) - (maxVaxThirteenMonths[block.id] || 0));
             const vaxCurrentMonth = Math.max(0, (maxVaxCurrentMonth[block.id] || 0) - (maxVaxPrevMonth[block.id] || 0));
 
             // Received
