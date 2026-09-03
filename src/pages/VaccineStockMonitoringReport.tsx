@@ -250,7 +250,7 @@ export const VaccineStockMonitoringReport: React.FC<{
         state_id: selectedStateId || '1'
       });
 
-      const res = await fetch(`/api/admin/vaccine-stock-monitoring?${params.toString()}`, {
+      const res = await fetch(`/api/admin/reports/stock-monitoring?${params.toString()}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
 
@@ -545,95 +545,12 @@ export const VaccineStockMonitoringReport: React.FC<{
       </div>
 
       {/* ── Filter Toolbar ─────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 shrink-0">
-        <div className="flex flex-wrap gap-2.5 items-end">
-          {/* State */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">State</label>
-            <div className="relative">
-              <select
-                value={selectedStateId}
-                onChange={(e) => setSelectedStateId(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
-                style={{ minWidth: 160 }}
-              >
-                {(statesList || []).map(s => (
-                  <option key={s.id} value={String(s.id)}>{s.name}</option>
-                ))}
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* District */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">District</label>
-            <div className="relative">
-              <select
-                value={selectedDistrictId}
-                onChange={(e) => setSelectedDistrictId(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
-                style={{ minWidth: 160 }}
-              >
-                <option value="ALL">All Districts</option>
-                {(districtsList || []).map(d => (
-                  <option key={d.id} value={String(d.id)}>{d.name}</option>
-                ))}
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Month */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Reporting Month</label>
-            <div className="relative">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
-                style={{ minWidth: 140 }}
-              >
-                {monthOptions.map(m => (
-                  <option key={m.val} value={m.val}>{m.label}</option>
-                ))}
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Least Availability Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setIsFilterActive(prev => !prev)}
-            style={{ height: 36, borderRadius: 8 }}
-            className={`flex items-center gap-2 px-3.5 font-bold text-xs transition-all border shadow-xs select-none cursor-pointer ${
-              isFilterActive
-                ? 'bg-purple-700 text-white border-purple-700 hover:bg-purple-800 ring-2 ring-purple-300'
-                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            <Filter className={`w-3.5 h-3.5 ${isFilterActive ? 'text-white' : 'text-purple-600'}`} />
-            <span>Least Availability % First</span>
-            <span
-              className={`px-1.5 py-0.5 text-[9px] font-black rounded-full uppercase ${
-                isFilterActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-              }`}
-            >
-              {isFilterActive ? 'ON' : 'OFF'}
-            </span>
-          </button>
-
-          {/* Action Button */}
-          <button
-            onClick={fetchData}
-            disabled={loading}
-            style={{ height: 36, borderRadius: 8, minWidth: 160 }}
-            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
-          >
-            {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
-            {loading ? 'Calculating...' : 'Calculate Stock'}
-          </button>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 shrink-0 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-purple-600" />
+          <span className="text-sm font-extrabold text-slate-800">
+            {selectedStateName} — ({currentDateFormatted})
+          </span>
         </div>
       </div>
 
@@ -644,11 +561,8 @@ export const VaccineStockMonitoringReport: React.FC<{
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-purple-600" />
               <span className="text-xs font-bold text-slate-700">{selectedStateName}</span>
-              <span className="text-[10px] text-slate-400">— Stock Availability Overview ({formattedMonthPeriod})</span>
+              <span className="text-[10px] text-slate-400">— Stock Availability Overview</span>
             </div>
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-              Current Date: {currentDateFormatted}
-            </span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-1.5">
