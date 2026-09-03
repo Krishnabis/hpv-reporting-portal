@@ -170,14 +170,42 @@ export const VaccineStockLedger: React.FC<{
     return cclSummary.find(c => c.ccl_name.toLowerCase() === quickSearch.toLowerCase().trim());
   }, [quickSearch, cclSummary]);
 
-  // Compute Running Balance for the matched CCL
+  // Sort chronologically (oldest first) and compute Running Balance for the perspective store
   const transactionsWithBalance = useMemo(() => {
-    if (!matchedCcl) return filteredTransactions;
-    let runningBal = 0;
-    return filteredTransactions.map(t => {
-       if (t.to_ccl_id === matchedCcl.ccl_id) runningBal += t.transaction_quantity;
-       if (t.from_ccl_id === matchedCcl.ccl_id) runningBal -= t.transaction_quantity;
-       return { ...t, computed_balance: runningBal };
+    // 1. Sort chronological (oldest first)
+    const sorted = [...filteredTransactions].sort((a, b) => 
+      new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime()
+    );
+
+    // 2. We need to track the balance for every CCL ID dynamically.
+    const storeBalances: Record<string, number> = {};
+
+    return sorted.map(t => {
+      // First, update both stores' balances independently
+      if (t.to_ccl_id) {
+         storeBalances[t.to_ccl_id] = (storeBalances[t.to_ccl_id] || 0) + t.transaction_quantity;
+      }
+      if (t.from_ccl_id) {
+         storeBalances[t.from_ccl_id] = (storeBalances[t.from_ccl_id] || 0) - t.transaction_quantity;
+      }
+      
+      // Determine which store's perspective this row is showing
+      let primaryCclId;
+      if (matchedCcl) {
+         primaryCclId = matchedCcl.ccl_id;
+      } else {
+         if (t.transaction_type === 'Receive' || !t.from_ccl_id) {
+             primaryCclId = t.to_ccl_id;
+         } else {
+             primaryCclId = t.from_ccl_id;
+         }
+      }
+      
+      // Return the row with the balance of the primary store AFTER this transaction
+      return { 
+        ...t, 
+        computed_balance: storeBalances[primaryCclId] || 0
+      };
     });
   }, [filteredTransactions, matchedCcl]);
 
@@ -436,15 +464,11 @@ export const VaccineStockLedger: React.FC<{
                         —
                       </td>
                       <td className={`px-3 py-2.5 text-[11px] text-right border-r border-slate-200 ${matchedCcl ? 'bg-indigo-50/30' : ''}`}>
-                        {matchedCcl ? (
-                          <span className={`font-extrabold ${
-                            row.computed_balance > 0 ? 'text-emerald-700' : row.computed_balance < 0 ? 'text-rose-700' : 'text-slate-500'
-                          }`}>
-                            {fmt(row.computed_balance)}
-                          </span>
-                        ) : (
-                          <span className="text-slate-300 font-medium">—</span>
-                        )}
+                        <span className={`font-extrabold ${
+                          row.computed_balance > 0 ? 'text-emerald-700' : row.computed_balance < 0 ? 'text-rose-700' : 'text-slate-500'
+                        }`}>
+                          {fmt(row.computed_balance)}
+                        </span>
                       </td>
                       <td className="px-3 py-2.5 text-[10px] font-medium text-slate-500 italic max-w-[150px] truncate border-r border-slate-200" title={row.remarks}>
                         {row.remarks}
