@@ -89,6 +89,8 @@ export const AdminDashboard: React.FC = () => {
 
   const [usersOpen, setUsersOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [programMgmtOpen, setProgramMgmtOpen] = useState(true);
+  const [vaccineMgmtOpen, setVaccineMgmtOpen] = useState(true);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [reportingOpen, setReportingOpen] = useState(false);
@@ -380,14 +382,17 @@ export const AdminDashboard: React.FC = () => {
       if (tab === 'upload' || tab === 'settings' || tab === 'ccl-management') setSettingsOpen(true);
       if (tab === 'reports' || tab === 'trend') setAnalyticsOpen(true);
 
-      // Preload data unconditionally in the background
+      // Preload data conditionally in the background
       fetchMasterLocations();
-      fetchAdminUsers();
-      fetchAuditLogs();
-      fetchActivityData();
       fetchVaccineDashboard();
       fetchStockHistory();
-      fetchCclList();
+
+      if (adminUser?.role === 'SUPER_ADMIN') {
+        fetchAdminUsers();
+        fetchAuditLogs();
+        fetchActivityData();
+        fetchCclList();
+      }
 
       const isLvl2 = adminUser.district_id || String(adminUser.ccl_unit_level) === '2';
       // Only fetch batches conditionally to avoid state overwrite conflicts for shared state variables

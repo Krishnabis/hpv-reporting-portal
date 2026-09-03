@@ -1851,10 +1851,12 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
       `).eq('is_active', true);
       
     const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+    const userDistrictId = req.user.district_id || (req.user.role === 'DISTRICT_ADMIN' ? req.user.district_id : null);
     if (targetStateId) bQuery = bQuery.eq('districts.state_id', targetStateId);
+    if (userDistrictId) bQuery = bQuery.eq('district_id', userDistrictId);
     
     if (level === 'State' || level === 'Division') {
-      // already filtered by targetStateId
+      // already filtered by targetStateId / userDistrictId
     } else if (level === 'District' && location_id && location_id !== 'ALL') {
       bQuery = bQuery.eq('district_id', location_id);
     } else if (level === 'Block' && location_id && location_id !== 'ALL') {
@@ -2096,6 +2098,8 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
 
     // 1. Fetch blocks — include hpv_target column directly from blocks table
     const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+    const userDistrictId = req.user.district_id || (req.user.role === 'DISTRICT_ADMIN' ? req.user.district_id : null);
+    const effectiveDistrictId = userDistrictId || (districtId && districtId !== 'ALL' ? districtId : null);
 
     let bQuery = supabase
       .from('blocks')
@@ -2110,7 +2114,7 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
       bQuery = bQuery.eq('districts.state_id', targetStateId);
     }
     
-    if (districtId && districtId !== 'ALL') bQuery = bQuery.eq('district_id', districtId);
+    if (effectiveDistrictId) bQuery = bQuery.eq('district_id', effectiveDistrictId);
     if (divisionId && divisionId !== 'ALL') bQuery = bQuery.eq('districts.division_id', divisionId);
     if (blockId && blockId !== 'ALL') bQuery = bQuery.eq('id', blockId);
 
