@@ -3094,16 +3094,42 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
         let totalIssued = 0;
         let totalAdjustment = 0;
 
-        // Use the full liveRows (pre-filter) for global KPIs to reflect the real totals
-        liveRows.forEach(r => {
-          if (r.transaction_type === 'Receive' && r.transaction_quantity) totalReceived += r.transaction_quantity;
-          if (r.transaction_type === 'Issue' && r.transaction_quantity) totalIssued += Math.abs(r.transaction_quantity);
-          if (r.wastage_adjustment) totalAdjustment += r.wastage_adjustment;
+        const isGlobalView = (!district || district === 'All Districts');
+
+        // Use filteredRows so the KPIs update when user filters by district
+        filteredRows.forEach(r => {
+          if (r.transaction_type === 'Receive' && r.transaction_quantity) {
+             // In Global view, only count external receipts to avoid double-counting internal transfers
+             if (isGlobalView) {
+                if (r.from_ccl === 'External Supplier') {
+                   totalReceived += r.transaction_quantity;
+                }
+             } else {
+                // If filtered to a specific district, count all its receipts (both external and internal from State)
+                totalReceived += r.transaction_quantity;
+             }
+          }
+          if (r.transaction_type === 'Issue' && r.transaction_quantity) {
+             totalIssued += Math.abs(r.transaction_quantity);
+          }
+          if (r.wastage_adjustment) {
+             totalAdjustment += r.wastage_adjustment;
+          }
         });
 
-        // Closing stock = net balance across all CCLs (total received - total issued to outside the tracked system)
-        // We simply take the sum of all final CCL balances as the "net in system" figure
-        const netInSystem = cclSummary.reduce((sum, c) => sum + c.finalBalance, 0);
+        // Closing stock = net balance of the CCLs being viewed
+        let closingStock = 0;
+        if (isGlobalView) {
+           // Global: sum of all CCL balances in the whole system
+           closingStock = cclSummary.reduce((sum, c) => sum + c.finalBalance, 0);
+        } else {
+           // Filtered: sum of final balances of ONLY the CCLs that appear in the filtered rows
+           const filteredCclKeys = new Set(filteredRows.map(r => r.ccl_key));
+           filteredCclKeys.forEach(key => {
+              closingStock += (runningBalanceMap[key] || 0);
+           });
+        }
+
         const wastagePct = totalIssued > 0 ? ((totalAdjustment / totalIssued) * 100).toFixed(2) : '0.00';
 
         return res.json({
@@ -3114,7 +3140,7 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
             totalReceived,
             totalIssued,
             totalAdjustment,
-            closingStock: netInSystem,
+            closingStock,
             wastagePct
           },
           isLive: true
