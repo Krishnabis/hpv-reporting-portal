@@ -49,14 +49,19 @@ const CircularProgress: React.FC<{ pct: number; size?: number; strokeWidth?: num
 };
 
 export const ReportingCompleteness: React.FC<{
-  states: any[];
-  allDistricts: any[];
-  masterBlocks: any[];
-  divisions: any[];
-  adminUser: any;
+  states?: any[];
+  allDistricts?: any[];
+  masterBlocks?: any[];
+  divisions?: any[];
+  adminUser?: any;
 }> = ({ states, allDistricts, masterBlocks, divisions, adminUser }) => {
+  const [statesList, setStatesList] = useState<any[]>(states || []);
+  const [districtsList, setDistrictsList] = useState<any[]>(allDistricts || []);
+  const [filterStateId, setFilterStateId] = useState('');
+  const [reportLevel, setReportLevel] = useState<'District' | 'Block Units'>('District');
+  const [filterDistrictId, setFilterDistrictId] = useState('ALL');
+
   const [loading, setLoading] = useState(false);
-  const [level, setLevel] = useState<'State' | 'Division'>('State');
   
   const [reportType, setReportType] = useState<string>('ALL');
   const [fromDate, setFromDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -74,6 +79,31 @@ export const ReportingCompleteness: React.FC<{
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  useEffect(() => {
+    if (!statesList.length || !districtsList.length) {
+      Promise.all([
+        fetch('/api/locations/states').then(r => r.json()),
+        fetch('/api/locations/districts').then(r => r.json()),
+      ]).then(([sData, dData]) => {
+        if (Array.isArray(sData) && sData.length) setStatesList(sData);
+        if (Array.isArray(dData) && dData.length) setDistrictsList(dData);
+      }).catch(console.error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (statesList.length > 0 && adminUser && !filterStateId) {
+      if (adminUser.role === 'SUPER_ADMIN') {
+        const uk = statesList.find((s: any) => s.name === 'Uttarakhand State' || s.name === 'Uttarakhand');
+        if (uk) setFilterStateId(String(uk.id));
+      } else if (adminUser.state_id) {
+        setFilterStateId(String(adminUser.state_id));
+      }
+    }
+  }, [statesList, adminUser]);
+
+  const stateDistricts = useMemo(() => districtsList.filter(d => !filterStateId || String(d.state_id) === filterStateId), [districtsList, filterStateId]);
+
   const hasFetched = useRef(false);
   useEffect(() => {
     if (!hasFetched.current) {
@@ -89,19 +119,24 @@ export const ReportingCompleteness: React.FC<{
     setLoading(true);
     try {
       const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
+      const apiLevel = reportLevel === 'District' ? 'District' : 'Block';
       const q = new URLSearchParams({
-        level,
+        level: apiLevel,
         report_type: reportType,
         from_date: fromDate,
         to_date: toDate
       });
+      if (filterStateId) q.set('state_id', filterStateId);
+      if (filterDistrictId && filterDistrictId !== 'ALL') {
+        q.set('district_id', filterDistrictId);
+      }
       const res = await fetch(`/api/admin/reports/completeness?${q.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setKpis(data.kpis);
-      setRows(data.rows);
+      setRows(data.rows || []);
       setPage(1);
     } catch (err) {
       console.error(err);
@@ -242,33 +277,82 @@ export const ReportingCompleteness: React.FC<{
           </div>
       </div>
 
+      {/* ── Filter Toolbar ─────────────────────────────────────────── */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 shrink-0">
         <div className="flex flex-wrap gap-2.5 items-end">
+          {/* State */}
           <div className="flex flex-col gap-1">
             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">State</label>
             <div className="relative">
-              <select disabled className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none appearance-none cursor-not-allowed" style={{ minWidth: 160 }}>
-                <option>Uttarakhand</option>
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none opacity-50" />
-              </div>
-            </div>
-            
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Area</label>
-            <div className="relative">
-              <select value={level} onChange={e => setLevel(e.target.value as any)} className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 120 }}>
-                <option value="State">State</option>
-                <option value="Division">Division</option>
+              <select
+                value={filterStateId}
+                onChange={e => {
+                  setFilterStateId(e.target.value);
+                  setFilterDistrictId('ALL');
+                }}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 160 }}
+              >
+                {statesList.length > 0 ? (
+                  statesList.map(s => (
+                    <option key={s.id} value={String(s.id)}>{s.name}</option>
+                  ))
+                ) : (
+                  <option value="">Uttarakhand</option>
+                )}
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
           </div>
 
+          {/* Report Level */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Level</label>
+            <div className="relative">
+              <select
+                value={reportLevel}
+                onChange={e => setReportLevel(e.target.value as any)}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 130 }}
+              >
+                <option value="District">District</option>
+                <option value="Block Units">Block Units</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Districts */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Districts</label>
+            <div className="relative">
+              <select
+                value={filterDistrictId}
+                onChange={e => setFilterDistrictId(e.target.value)}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 160 }}
+              >
+                <option value="ALL">All Districts</option>
+                <option value="KUMAON">Kumaon</option>
+                <option value="GARHWAL">Garhwal</option>
+                {stateDistricts.map(d => (
+                  <option key={d.id} value={String(d.id)}>{d.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Report Selector */}
           <div className="flex flex-col gap-1">
             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Selector</label>
             <div className="relative">
-              <select value={reportType} onChange={e => setReportType(e.target.value)} className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 180 }}>
+              <select
+                value={reportType}
+                onChange={e => setReportType(e.target.value)}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 180 }}
+              >
                 <option value="ALL">All Reports</option>
                 <option value="DAILY_PROGRESS">Daily Progress Report</option>
                 <option value="MONTHLY_DUE_LIST">Monthly Due List Report</option>
@@ -278,22 +362,42 @@ export const ReportingCompleteness: React.FC<{
             </div>
           </div>
 
+          {/* From Date */}
           <div className="flex flex-col gap-1">
             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">From Date</label>
-            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer" style={{ minWidth: 140 }} />
+            <input
+              type="date"
+              value={fromDate}
+              onChange={e => setFromDate(e.target.value)}
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer"
+              style={{ minWidth: 140 }}
+            />
           </div>
 
+          {/* To Date */}
           <div className="flex flex-col gap-1">
             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">To Date</label>
-            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer" style={{ minWidth: 140 }} />
+            <input
+              type="date"
+              value={toDate}
+              onChange={e => setToDate(e.target.value)}
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer"
+              style={{ minWidth: 140 }}
+            />
           </div>
 
-          <button onClick={fetchReport} disabled={loading} style={{ height: 36, borderRadius: 8, minWidth: 160 }} className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer">
+          {/* Generate Report Button */}
+          <button
+            onClick={fetchReport}
+            disabled={loading}
+            style={{ height: 36, borderRadius: 8, minWidth: 160 }}
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+          >
             {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
             {loading ? 'Generating...' : 'Generate Report'}
           </button>
-          </div>
         </div>
+      </div>
 
         {!isExpanded && (
           <>

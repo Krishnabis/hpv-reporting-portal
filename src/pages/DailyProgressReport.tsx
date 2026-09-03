@@ -435,23 +435,17 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
     a.href = url; a.download = `Report.csv`; a.click();
   };
 
-  const stateDistricts = useMemo(() => districtsList.filter(d => String(d.state_id) === filterStateId), [districtsList, filterStateId]);
-  const divisionDistricts = useMemo(() => stateDistricts.filter(d => filterDivisionId === 'ALL' || String(d.division_id) === filterDivisionId), [stateDistricts, filterDivisionId]);
-  const isAdminOrState = adminUser?.role === 'SUPER_ADMIN' || adminUser?.role === 'ADMIN' || adminUser?.role === 'STATE_ADMIN';
-
-  const canPickDivision = filterLevel === 'Division' && isAdminOrState;
-  const canPickDistrict = filterLevel === 'District' && isAdminOrState;
+  const stateDistricts = useMemo(() => districtsList.filter(d => !filterStateId || String(d.state_id) === filterStateId), [districtsList, filterStateId]);
 
   const locationLabel = useMemo(() => {
-    if (filterLevel === 'District' && filterDistrictId !== 'ALL') {
+    if (filterDistrictId === 'KUMAON') return 'Kumaon Division';
+    if (filterDistrictId === 'GARHWAL') return 'Garhwal Division';
+    if (filterDistrictId !== 'ALL') {
       return stateDistricts.find(d => String(d.id) === filterDistrictId)?.name || 'Selected District';
     }
-    if (filterLevel === 'Division' && filterDivisionId !== 'ALL') {
-      return divisionsList.find(d => String(d.id) === filterDivisionId)?.name || 'Selected Division';
-    }
-    if (filterStateId) return statesList.find(s => String(s.id) === filterStateId)?.name || 'Selected State';
+    if (filterStateId) return statesList.find(s => String(s.id) === filterStateId)?.name || 'Uttarakhand';
     return 'All Units';
-  }, [filterLevel, filterDistrictId, filterDivisionId, filterStateId, stateDistricts, divisionsList, statesList]);
+  }, [filterDistrictId, filterStateId, stateDistricts, statesList]);
 
   const tierInfo = coverageTier(reportGenerated ? kpis.coveragePct : null);
 
@@ -477,77 +471,89 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
       {/* ── Filter Toolbar ─────────────────────────────────────────── */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 shrink-0">
         <div className="flex flex-wrap gap-2.5 items-end">
-          {/* Date */}
+          {/* State */}
           <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Date</label>
-            <input type="date" value={filterDate} max={today}
-              onChange={e => setFilterDate(e.target.value)}
-              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer" style={{ minWidth: 148 }} />
-          </div>
-
-          {/* State — SUPER_ADMIN only */}
-          {adminUser?.role === 'SUPER_ADMIN' && (
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">State</label>
-              <div className="relative">
-                <select value={filterStateId} onChange={e => { setFilterStateId(e.target.value); setFilterDistrictId('ALL'); }}
-                  className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 160 }}>
-                  <option value="">All States</option>
-                  {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
-              </div>
-            </div>
-          )}
-
-          {/* Level (View By) */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">View By</label>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">State</label>
             <div className="relative">
-              <select value={filterLevel}
-                onChange={e => { setFilterLevel(e.target.value as any); setFilterDivisionId('ALL'); setFilterDistrictId('ALL'); }}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 120 }}>
-                {isAdminOrState && <option value="Division">Division</option>}
-                <option value="District">District</option>
+              <select
+                value={filterStateId}
+                onChange={e => {
+                  setFilterStateId(e.target.value);
+                  setFilterDistrictId('ALL');
+                }}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 160 }}
+              >
+                {statesList.length > 0 ? (
+                  statesList.map(s => (
+                    <option key={s.id} value={String(s.id)}>{s.name}</option>
+                  ))
+                ) : (
+                  <option value="">Uttarakhand</option>
+                )}
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
           </div>
 
-          {/* Division Dropdown */}
-          {canPickDivision && (
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Division</label>
-              <div className="relative">
-                <select value={filterDivisionId} onChange={e => setFilterDivisionId(e.target.value)}
-                  className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 160 }}>
-                  <option value="ALL">All Divisions</option>
-                  {divisionsList.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
-              </div>
+          {/* Report Level */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Level</label>
+            <div className="relative">
+              <select
+                value={reportLevel}
+                onChange={e => setReportLevel(e.target.value as any)}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 130 }}
+              >
+                <option value="District">District</option>
+                <option value="Block Units">Block Units</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
-          )}
+          </div>
 
-          {/* District Dropdown */}
-          {canPickDistrict && (
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">District</label>
-              <div className="relative">
-                <select value={filterDistrictId} onChange={e => setFilterDistrictId(e.target.value)}
-                  className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 160 }}>
-                  <option value="ALL">All Districts</option>
-                  {stateDistricts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
-              </div>
+          {/* Districts */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Districts</label>
+            <div className="relative">
+              <select
+                value={filterDistrictId}
+                onChange={e => setFilterDistrictId(e.target.value)}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer"
+                style={{ minWidth: 160 }}
+              >
+                <option value="ALL">All Districts</option>
+                <option value="KUMAON">Kumaon</option>
+                <option value="GARHWAL">Garhwal</option>
+                {stateDistricts.map(d => (
+                  <option key={d.id} value={String(d.id)}>{d.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
-          )}
+          </div>
 
-          {/* Generate */}
-          <button onClick={handleGenerate} disabled={loading}
+          {/* Report Date */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Date</label>
+            <input
+              type="date"
+              value={filterDate}
+              max={today}
+              onChange={e => setFilterDate(e.target.value)}
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer"
+              style={{ minWidth: 148 }}
+            />
+          </div>
+
+          {/* Generate Report Button */}
+          <button
+            onClick={handleGenerate}
+            disabled={loading}
             style={{ height: 36, borderRadius: 8, minWidth: 160 }}
-            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer">
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+          >
             {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
             {loading ? 'Generating...' : 'Generate Report'}
           </button>
