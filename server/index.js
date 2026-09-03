@@ -3648,7 +3648,7 @@ app.get('/api/admin/locations-master-data', authenticateToken, async (req, res) 
       
       const pop = prof.base_population || b.population || 0;
       const annualTarget = Math.round(pop * 0.01);
-      const hpvTarget = prof.initial_hpv_target || b.hpv_target || 0;
+      const hpvTarget = b.hpv_target || 0;
       const totalSessions = bReports.reduce((sum, r) => sum + (r.sessions_held || 0), 0);
 
       return {

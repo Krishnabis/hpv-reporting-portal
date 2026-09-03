@@ -230,7 +230,7 @@ export const LocationMaster: React.FC<{
       'Location Unit',
       'Population',
       'Annual Target (Calculated 1%)',
-      'HPV Target (Reported)',
+      'HPV Goal',
       'Sessions',
       'Line Listed',
       'Vaccinated',
@@ -278,7 +278,7 @@ export const LocationMaster: React.FC<{
       'Location Unit',
       'Population',
       'Annual Target (1%)',
-      'HPV Target (Reported)',
+      'HPV Goal',
       'Sessions',
       'Line Listed',
       'Vaccinated',
@@ -457,7 +457,7 @@ export const LocationMaster: React.FC<{
                 <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-purple-900/40" style={{ minWidth: 180 }}>Location Hierarchy</th>
                 <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-purple-900/40">Population</th>
                 <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-purple-900/40">Annual Target (1%)</th>
-                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-purple-900/40">HPV Target (Reported)</th>
+                <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-purple-900/40">HPV Goal</th>
                 <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-purple-900/40">Sessions</th>
                 <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-purple-900/40">Line Listed</th>
                 <th className="px-3 py-2 text-right font-bold uppercase tracking-wide border-b border-purple-900/40">Vaccinated</th>
