@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  Calendar, Download, BarChart3, ChevronDown, Search, Maximize2, Minimize2,
+  Calendar, Download, BarChart3, ChevronDown, Search, Maximize2, Minimize2, TrendingDown,
   AlertCircle, MapPin, Users, Target, CheckCircle2, PackageMinus, Layers, Zap, AlertTriangle,
   ChevronLeft, ChevronRight, RefreshCw
 } from 'lucide-react';
@@ -117,6 +117,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
   const [isExpanded, setIsExpanded] = useState(false);
   
   const [activeActionFilter, setActiveActionFilter] = useState<'ALL' | 'CRITICAL' | 'REORDER'>('ALL');
+  const [leastOnTop, setLeastOnTop] = useState(false);
 
   useEffect(() => {
     if (initialStates && initialStates.length > 0) setStatesList(initialStates);
@@ -235,14 +236,20 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
   }, [rows, search]);
 
   const filtered = useMemo(() => {
-    if (activeActionFilter === 'ALL') return filteredBySearch;
-    return filteredBySearch.filter(r => {
-      const a = (r.action_required || '').toLowerCase();
-      if (activeActionFilter === 'CRITICAL') return a.includes('critical');
-      if (activeActionFilter === 'REORDER') return a.includes('re-order') || a.includes('replenish');
-      return true;
-    });
-  }, [filteredBySearch, activeActionFilter]);
+    let result = filteredBySearch;
+    if (activeActionFilter !== 'ALL') {
+      result = result.filter(r => {
+        const a = (r.action_required || '').toLowerCase();
+        if (activeActionFilter === 'CRITICAL') return a.includes('critical');
+        if (activeActionFilter === 'REORDER') return a.includes('re-order') || a.includes('replenish');
+        return true;
+      });
+    }
+    if (leastOnTop) {
+      result = [...result].sort((a, b) => (a.stock_availability_pct || 0) - (b.stock_availability_pct || 0));
+    }
+    return result;
+  }, [filteredBySearch, activeActionFilter, leastOnTop]);
 
   const totalPages = Math.ceil(filtered.length / rowsPerPage);
   const paginated = useMemo(() => {
@@ -486,13 +493,24 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
               {isExpanded ? 'Collapse Table' : 'Expand Table'}
             </button>
             
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
-              <input type="text" placeholder="Search by name..." value={search}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setLeastOnTop(!leastOnTop); setCurrentPage(1); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                  leastOnTop ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <TrendingDown className="w-3.5 h-3.5" />
+                Least on Top
+              </button>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+                <input type="text" placeholder="Search by name..." value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                 className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400" style={{ width: 200 }} />
             </div>
           </div>
+            </div>
 
           <div className="overflow-auto flex-1 min-h-0">
             <table className="w-full" style={{ fontSize: '11px' }}>
@@ -527,10 +545,11 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                   </tr>
                 ) : paginated.map((row: any, idx: number) => {
                   const isEven = idx % 2 === 0;
-                  const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
+                  const isDistrictStore = row.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE';
+                  const rowClass = isDistrictStore ? 'bg-pink-50/50 hover:bg-pink-100/50' : (isEven ? 'bg-white hover:bg-purple-50/30' : 'bg-slate-50/60 hover:bg-purple-50/30');
                   return (
-                    <tr key={row.id} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
-                      <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>
+                    <tr key={row.id} className={`border-b border-slate-100 transition-colors group ${rowClass}`}>
+                      <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowClass}`}>
                         {row.name}
                         {row.is_urban && <span className="ml-1.5 text-[8px] font-bold text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded uppercase tracking-wider">Urban</span>}
                       </td>
@@ -549,6 +568,27 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                   );
                 })}
               </tbody>
+              <tfoot>
+                <tr className="bg-slate-100 font-bold text-slate-800 border-t border-slate-300">
+                  <td className="px-2 py-2 sticky left-0 z-[5] bg-slate-100 border-r border-slate-200 uppercase tracking-wider text-xs">Total</td>
+                  <td className="px-2 py-2 text-right">{fmt(filtered.reduce((s, r) => s + (r.annual_requirement || 0), 0))}</td>
+                  <td className="px-2 py-2 text-right">{fmt(filtered.reduce((s, r) => s + (r.opening_stock || 0), 0))}</td>
+                  <td className="px-2 py-2 text-right text-blue-700">{fmt(filtered.reduce((s, r) => s + (r.vaccine_received || 0), 0))}</td>
+                  <td className="px-2 py-2 text-right text-orange-700">{fmt(filtered.reduce((s, r) => s + (r.vaccinations || 0), 0))}</td>
+                  <td className="px-2 py-2 text-right text-red-600">{fmt(filtered.reduce((s, r) => s + (r.wastage || 0), 0))}</td>
+                  <td className="px-2 py-2 text-center">—</td>
+                  <td className="px-2 py-2 text-right">{fmt(filtered.reduce((s, r) => s + (r.estimated_stock_balance || 0), 0))}</td>
+                  <td className="px-2 py-2 text-right text-green-700">{fmt(filtered.reduce((s, r) => s + (r.month_end_stock_reported || 0), 0))}</td>
+                  <td className="px-2 py-2 text-center text-red-600">—</td>
+                  <td className="px-2 py-2 text-center">
+                    {filtered.reduce((s, r) => s + (r.annual_requirement || 0), 0) > 0 
+                      ? `${fmt((filtered.reduce((s, r) => s + (r.estimated_stock_balance || 0), 0) / filtered.reduce((s, r) => s + (r.annual_requirement || 0), 0)) * 100, 1)}%`
+                      : '—'}
+                  </td>
+                  <td className="px-2 py-2 text-center"></td>
+                </tr>
+              </tfoot>
+
             </table>
           </div>
           
