@@ -2824,11 +2824,13 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                     vaccinations_last_12_months_sum: 0,
                     valid_reporting_count: 0,
                     total_entities: 0,
-                    entity_type: 'DISTRICT_AGGREGATE'
+                    entity_type: 'DISTRICT_AGGREGATE',
+                    population: 0
                 };
             }
             const g = distGroup[distId];
             g.annual_requirement += d.annual_requirement;
+            g.population += (d.population || 0);
             
             if (d.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE') {
                 // District Store ONLY contributes to "Received"
