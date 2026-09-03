@@ -271,69 +271,7 @@ export const VaccineStockLedger: React.FC<{
           />
         </div>
 
-        {/* CCL Summary Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <button 
-            onClick={() => setShowCclSummary(!showCclSummary)}
-            className="w-full flex items-center justify-between p-4 bg-slate-50/80 hover:bg-slate-50 transition-colors border-b border-slate-200"
-          >
-            <div className="flex items-center gap-2">
-              <Layers className="w-5 h-5 text-indigo-600" />
-              <h2 className="text-[13px] font-bold text-slate-700 uppercase tracking-wider">CCL Stock Balances</h2>
-              <span className="text-xs text-slate-500 font-medium ml-2">({cclSummary.length} Stores)</span>
-            </div>
-            {showCclSummary ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
-          </button>
-          
-          {showCclSummary && (
-            <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
-              <table className="w-full text-left border-collapse min-w-[800px]">
-                <thead className="bg-white sticky top-0 z-10 shadow-sm">
-                  <tr>
-                    <th className="px-4 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider border-b border-slate-200">CCL Name</th>
-                    <th className="px-4 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider border-b border-slate-200">Level</th>
-                    <th className="px-4 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Received (In)</th>
-                    <th className="px-4 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Issued (Out)</th>
-                    <th className="px-4 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider border-b border-slate-200 text-right">Current Balance</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {cclSummary.length === 0 ? (
-                    <tr><td colSpan={5} className="p-8 text-center text-slate-500 font-medium">No CCLs found for this period.</td></tr>
-                  ) : cclSummary.map((c, i) => (
-                    <tr key={c.ccl_id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-4 py-2.5 font-bold text-slate-700 text-sm">
-                        {c.ccl_name}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold ${
-                          c.level === '1' ? 'bg-emerald-100 text-emerald-800' :
-                          c.level === '2' ? 'bg-blue-100 text-blue-800' :
-                          'bg-amber-100 text-amber-800'
-                        }`}>
-                          {c.level_label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5 text-right font-semibold text-slate-600">{fmt(c.total_in)}</td>
-                      <td className="px-4 py-2.5 text-right font-semibold text-slate-600">
-                        {c.level === '3' ? '—' : fmt(c.total_out)}
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
-                        {c.level === '3' ? (
-                          <span className="text-slate-400 font-medium text-sm">—</span>
-                        ) : (
-                          <span className={`font-extrabold ${c.balance > 0 ? 'text-emerald-600' : c.balance < 0 ? 'text-rose-600' : 'text-slate-500'}`}>
-                            {fmt(c.balance)}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+
 
         {/* Transaction History Log */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-[500px]">
