@@ -1090,6 +1090,18 @@ export const AdminDashboard: React.FC = () => {
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Reporting (%)</span>
                   </button>
 
+                  {/* Stock Availability (%) */}
+                  <button
+                    onClick={() => handleTabChange('stock-monitoring')}
+                    title="Stock Availability (%)"
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
+                      activeTab === 'stock-monitoring' ? 'bg-emerald-50 text-emerald-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Availability (%)</span>
+                  </button>
+
                   {/* Trends */}
                   <button
                     onClick={() => handleTabChange('trend')}
@@ -1182,17 +1194,6 @@ export const AdminDashboard: React.FC = () => {
                     <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Ledger</span>
                   </button>
 
-                  {/* Stock Availability (%) */}
-                  <button
-                    onClick={() => handleTabChange('stock-monitoring')}
-                    title="Stock Availability (%)"
-                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-monitoring' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-indigo-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Availability (%)</span>
-                  </button>
                 </div>
               )}
             </div>

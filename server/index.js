@@ -6,7 +6,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import { supabase, useSupabase, store, saveStore } from './db/database.js';
-import { ensureMonthlyLedger } from './stockLedger.js';
+
 
 dotenv.config();
 
@@ -2794,7 +2794,8 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
         }
 
         // Asynchronously update ledger table without blocking response
-        ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap).catch(e => console.warn('Background ledger update notice:', e));
+        // ensureMonthlyLedger is disabled as it was removed
+        // ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap).catch(e => console.warn('Background ledger update notice:', e));
     }
 
     let finalRows = [];
