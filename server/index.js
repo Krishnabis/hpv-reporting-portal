@@ -2474,13 +2474,15 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
     // 2. Fetch CCPs for District and Block logic
     const { data: allCcps } = await supabase
       .from('vaccine_ccp')
-      .select('id, unit_level, district_id, block_id')
+      .select('id, ccl_id, unit_level, district_id, block_id')
       .in('unit_level', ['2', '3'])
       .in('district_id', finalDistrictIds);
       
     const districtStores = allCcps.filter(c => c.unit_level === '2');
     const blockCcps = allCcps.filter(c => c.unit_level === '3');
     
+    const ccpCclIdMap = {};
+    allCcps.forEach(c => { if(c.ccl_id) ccpCclIdMap[c.id] = c.ccl_id; });
     const districtStoreMap = {}; 
     districtStores.forEach(c => {
       if (!districtStoreMap[c.district_id]) districtStoreMap[c.district_id] = [];
@@ -2599,25 +2601,21 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
 
         const [
             { data: monthlyBalances },
-            { data: transactionsLast12 },
+            { data: transactionsHistorical },
             { data: transactionsCurrent },
             { data: dailyReports }
         ] = await Promise.all([
             supabase.from('monthly_balance').select('facility_id, qty_doses, transaction_date').gte('transaction_date', prevMonthStr + '-01').lte('transaction_date', prevMonthEnd).limit(50000),
-            supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses').gte('transaction_date', twelveMonthsPriorStart).lte('transaction_date', prevMonthEnd).limit(50000),
-            supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses').gte('transaction_date', targetMonthStart).lte('transaction_date', targetMonthEnd).limit(50000),
+            supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses, source_ccl_id, destination_ccl_id').lte('transaction_date', prevMonthEnd).limit(100000),
+            supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses, source_ccl_id, destination_ccl_id').gte('transaction_date', targetMonthStart).lte('transaction_date', targetMonthEnd).limit(50000),
             supabase.from('daily_reports').select('block_id, reporting_date, beneficiaries_vaccinated').lte('reporting_date', targetMonthEnd).order('reporting_date', { ascending: false }).limit(50000)
         ]);
 
-        const maxVaxThirteenMonths = {};
         const maxVaxPrevMonth = {};
         const maxVaxCurrentMonth = {};
 
         (dailyReports || []).forEach(r => {
             const b = r.block_id;
-            if (r.reporting_date <= thirteenMonthsPriorEnd && maxVaxThirteenMonths[b] === undefined) {
-                maxVaxThirteenMonths[b] = r.beneficiaries_vaccinated || 0;
-            }
             if (r.reporting_date <= prevMonthEnd && maxVaxPrevMonth[b] === undefined) {
                 maxVaxPrevMonth[b] = r.beneficiaries_vaccinated || 0;
             }
@@ -2625,6 +2623,28 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 maxVaxCurrentMonth[b] = r.beneficiaries_vaccinated || 0;
             }
         });
+
+        // Helper for transaction grouping
+        const calculateFlows = (facs, txList) => {
+            let inflow = 0;
+            let outflow = 0;
+            const facCclIds = facs.map(f => ccpCclIdMap[f]).filter(Boolean);
+            
+            (txList || []).forEach(t => {
+                const qty = Number(t.quantity_doses || 0);
+                if (t.transaction_type === 'RECEIVED') {
+                    if (facs.includes(t.facility_id) && !t.source_ccl_id) inflow += qty;
+                } else if (t.transaction_type === 'ISSUED') {
+                    if (t.destination_ccl_id && facCclIds.includes(t.destination_ccl_id) && !facs.includes(t.facility_id)) {
+                        inflow += qty;
+                    }
+                    if (facs.includes(t.facility_id) && (!t.destination_ccl_id || !facCclIds.includes(t.destination_ccl_id))) {
+                        outflow += qty;
+                    }
+                }
+            });
+            return { inflow, outflow };
+        };
 
         // 1. Process Blocks
         blocks.forEach(block => {
@@ -2646,32 +2666,18 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             const preMonthTotalCcp = facs.length;
             const preMonthReportingPct = preMonthTotalCcp > 0 ? (preMonthReportingCount / preMonthTotalCcp) * 100 : 0;
 
-            const vaxLast12MonthsForOpening = Math.max(0, (maxVaxPrevMonth[block.id] || 0) - (maxVaxThirteenMonths[block.id] || 0));
-            const vaxCurrentMonth = Math.max(0, (maxVaxCurrentMonth[block.id] || 0) - (maxVaxPrevMonth[block.id] || 0));
+            const vaxHistorical = maxVaxPrevMonth[block.id] || 0;
+            const vaxCurrentMonth = Math.max(0, (maxVaxCurrentMonth[block.id] || 0) - vaxHistorical);
 
-            let receivedLast12Months = 0;
-            (transactionsLast12 || []).forEach(t => {
-                if (t.block_id === block.id && t.transaction_type === 'RECEIVED' && facs.includes(t.facility_id)) {
-                    receivedLast12Months += t.quantity_doses;
-                }
-            });
+            const histFlows = calculateFlows(facs, transactionsHistorical);
+            const currFlows = calculateFlows(facs, transactionsCurrent);
 
-            let receivedCurrentMonth = 0;
-            (transactionsCurrent || []).forEach(t => {
-                if (t.block_id === block.id && t.transaction_type === 'RECEIVED' && facs.includes(t.facility_id)) {
-                    receivedCurrentMonth += t.quantity_doses;
-                }
-            });
-
-            const vaccineConsumedWastageFactor12M = Math.round(vaxLast12MonthsForOpening * 1.01);
-            const openingStockCrudeMethod = Math.max(0, receivedLast12Months - vaccineConsumedWastageFactor12M);
-
+            // True opening stock using crude method is historical inflow - historical outflow - historical vaccinations
+            const openingStockCrudeMethod = Math.max(0, histFlows.inflow - histFlows.outflow - vaxHistorical);
             const estimationModel = preMonthReportingPct === 100 ? 'Reported Stock' : 'Crude Method';
             const openingStock = estimationModel === 'Reported Stock' ? preMonthEndStockReported : openingStockCrudeMethod;
 
-            const vaccineConsumedCurrentMonth = Math.round(vaxCurrentMonth * 1.01);
-            const closingStockEstimated = Math.max(0, openingStock + receivedCurrentMonth - vaccineConsumedCurrentMonth);
-
+            const closingStockEstimated = Math.max(0, openingStock + currFlows.inflow - currFlows.outflow - vaxCurrentMonth);
             const stockAvailabilityPercentage = annualReq > 0 ? Math.round((closingStockEstimated / annualReq) * 100) : 0;
             
             let action = '—';
@@ -2693,7 +2699,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 division_name: block.districts?.divisions?.name,
                 annual_requirement: annualReq,
                 opening_stock: openingStock,
-                vaccine_received: receivedCurrentMonth,
+                vaccine_received: currFlows.inflow,
                 vaccinations: vaxCurrentMonth,
                 estimated_stock_balance: closingStockEstimated,
                 month_end_reporting_pct: preMonthReportingPct,
@@ -2704,8 +2710,8 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 estimation_model: estimationModel,
                 stock_availability_pct: stockAvailabilityPercentage,
                 action_required: action,
-                vaccine_received_last_12_months: receivedLast12Months,
-                vaccinations_last_12_months: vaxLast12MonthsForOpening,
+                vaccine_received_last_12_months: histFlows.inflow,
+                vaccinations_last_12_months: vaxHistorical,
                 entity_type: 'BLOCK'
             });
         });
@@ -2733,36 +2739,28 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             const preMonthTotalCcp = facs.length;
             const preMonthReportingPct = preMonthTotalCcp > 0 ? (preMonthReportingCount / preMonthTotalCcp) * 100 : 0;
 
-            let receivedLast12Months = 0;
-            (transactionsLast12 || []).forEach(t => {
-                if (t.district_id === districtId && String(t.level) === '2' && t.transaction_type === 'RECEIVED' && facs.includes(t.facility_id)) {
-                    receivedLast12Months += t.quantity_doses;
-                }
-            });
-
-            let districtTotalVax12M = 0;
+            let districtTotalVaxHistorical = 0;
+            let districtTotalVaxCurrent = 0;
             blocks.forEach(b => {
                 if (b && String(b.district_id) === String(districtId)) {
-                    districtTotalVax12M += Math.max(0, (maxVaxCurrentMonth[b.id] || 0) - (maxVaxThirteenMonths[b.id] || 0));
+                    const hist = maxVaxPrevMonth[b.id] || 0;
+                    districtTotalVaxHistorical += hist;
+                    districtTotalVaxCurrent += Math.max(0, (maxVaxCurrentMonth[b.id] || 0) - hist);
                 }
             });
 
-            const districtTotalConsumed12M = Math.round(districtTotalVax12M * 1.01);
-            const openingStockCrudeMethod = Math.max(0, receivedLast12Months - districtTotalConsumed12M);
+            const histFlows = calculateFlows(facs, transactionsHistorical);
+            const currFlows = calculateFlows(facs, transactionsCurrent);
+
+            // District store vaccinations are technically its issues, but if we track crude method:
+            // Since vaccinations happen at blocks, the district store outflow is effectively its issues to blocks.
+            // Opening crude = histFlows.inflow - histFlows.outflow. (District stores don't directly vaccinate)
+            const openingStockCrudeMethod = Math.max(0, histFlows.inflow - histFlows.outflow);
 
             const estimationModel = preMonthReportingPct === 100 ? 'Reported Stock' : 'Crude Method';
             const openingStock = estimationModel === 'Reported Stock' ? preMonthEndStockReported : openingStockCrudeMethod;
 
-            let receivedCurrentMonth = 0;
-            let issuedCurrentMonth = 0;
-            (transactionsCurrent || []).forEach(t => {
-                if (t.district_id === districtId && String(t.level) === '2' && facs.includes(t.facility_id)) {
-                    if (t.transaction_type === 'RECEIVED') receivedCurrentMonth += t.quantity_doses;
-                    if (t.transaction_type === 'ISSUED') issuedCurrentMonth += t.quantity_doses;
-                }
-            });
-
-            const closingStockEstimated = Math.max(0, openingStock + receivedCurrentMonth - issuedCurrentMonth);
+            const closingStockEstimated = Math.max(0, openingStock + currFlows.inflow - currFlows.outflow);
             const d = blocks.find(x => x.district_id === districtId)?.districts;
 
             districtStoreData.push({
@@ -2776,8 +2774,8 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 division_name: d?.divisions?.name,
                 annual_requirement: 0,
                 opening_stock: openingStock,
-                vaccine_received: receivedCurrentMonth,
-                vaccinations: issuedCurrentMonth,
+                vaccine_received: currFlows.inflow,
+                vaccinations: currFlows.outflow, 
                 estimated_stock_balance: closingStockEstimated,
                 month_end_reporting_pct: preMonthReportingPct,
                 month_end_reporting_count: preMonthReportingCount,
@@ -2787,8 +2785,8 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 estimation_model: estimationModel,
                 stock_availability_pct: 0,
                 action_required: '—',
-                vaccine_received_last_12_months: receivedLast12Months,
-                vaccinations_last_12_months: districtTotalVax12M,
+                vaccine_received_last_12_months: histFlows.inflow,
+                vaccinations_last_12_months: districtTotalVaxHistorical,
                 entity_type: 'CCL_LEVEL_2_DISTRICT_STORE'
             });
         }
