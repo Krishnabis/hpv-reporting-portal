@@ -271,7 +271,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
       const locWidth = pdf.getTextWidth(locationLabel);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(148, 163, 184); // slate-400
-      const subLabel = ` \u2014 ${filterLevel === 'Division' ? 'Districts inside Division' : (filterLevel === 'District' ? 'Blocks inside District' : 'Overview')}`;
+      const subLabel = ` \u2014 ${reportLevel === 'District' ? 'Districts inside State' : 'Blocks inside District'}`;
       pdf.text(subLabel, 14 + locWidth, 40);
       
       // Right side badge: "Progressing"
@@ -310,7 +310,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
       drawKpi(242, kpiY, 'Reporting Today', `${kpis.reportingToday}`, `of ${rows.length} units`);
       
       const head = [[
-        `Reporting Unit (${filterLevel === 'Division' ? 'District' : 'Block'})`,
+        `Reporting Unit (${reportLevel === 'District' ? 'District' : 'Block'})`,
         'Last Reported',
         'Population',
         'HPV Goal',
@@ -584,7 +584,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-purple-600" />
               <span className="text-xs font-bold text-slate-700">{locationLabel}</span>
-              <span className="text-[10px] text-slate-400">— {filterLevel === 'Division' ? 'Districts inside Division' : 'Blocks inside District'}</span>
+              <span className="text-[10px] text-slate-400">— {reportLevel === 'District' ? 'Districts inside State' : 'Blocks inside District'}</span>
             </div>
           {reportGenerated && (
             <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${tierInfo.bg} ${tierInfo.color}`}>{tierInfo.label}</span>
@@ -612,7 +612,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
 
           <KpiCard loading={loading} icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} iconBg="bg-emerald-50"
             label="Reporting Today" value={fmt(kpis.reportingToday)}
-            subValue={`of ${rows.length}`} subLabel={filterLevel === 'Division' ? 'districts' : 'blocks'} />
+            subValue={`of ${rows.length}`} subLabel={reportLevel === 'District' ? 'districts' : 'blocks'} />
         </div>
       </div>
 
@@ -670,7 +670,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
           <div className="flex items-center gap-2">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-xs font-bold text-slate-700">
-              {filtered.length} {filterLevel === 'Division' ? 'District' : 'Block'}{filtered.length !== 1 ? 's' : ''}
+              {filtered.length} {reportLevel === 'District' ? 'District' : 'Block'}{filtered.length !== 1 ? 's' : ''}
             </span>
             {reportGenerated && !loading && (
               <span className="text-[10px] text-slate-400">• {rows.filter(r => r.has_today_report).length} reported today</span>
@@ -695,7 +695,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
           <table className="w-full" style={{ fontSize: '11px' }}>
             <thead className="sticky top-0 z-10">
               <tr className="gradient-header text-white">
-                <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Reporting Unit ({filterLevel === 'Division' ? 'District' : 'Block'})</th>
+                <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Reporting Unit ({reportLevel === 'District' ? 'District' : 'Block'})</th>
                 <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Last Reported</th>
                 <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Population</th>
                 <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">HPV Goal</th>

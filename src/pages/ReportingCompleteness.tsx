@@ -441,7 +441,7 @@ export const ReportingCompleteness: React.FC<{
               <BarChart3 className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h3 className="text-[11px] font-black text-slate-900">{level === 'State' ? 'All Blocks (Statewide)' : 'All Districts (Statewide)'}</h3>
+              <h3 className="text-[11px] font-black text-slate-900">{reportLevel === 'Block Units' ? 'All Blocks (Statewide)' : 'All Districts (Statewide)'}</h3>
               <p className="text-[9px] text-slate-500 font-medium">Report Selector: {reportType === 'ALL' ? 'All Reports' : reportType.replace(/_/g, ' ')}</p>
             </div>
           </div>
@@ -480,7 +480,7 @@ export const ReportingCompleteness: React.FC<{
           <div className="flex items-center gap-2">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-xs font-bold text-slate-700">
-              {rows.length} {level === 'State' ? 'Block' : 'District'}{rows.length !== 1 ? 's' : ''}
+              {rows.length} {reportLevel === 'Block Units' ? 'Block' : 'District'}{rows.length !== 1 ? 's' : ''}
             </span>
           </div>
           
