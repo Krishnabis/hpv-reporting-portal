@@ -2572,7 +2572,7 @@ export const AdminDashboard: React.FC = () => {
             states={statesList}
             allDistricts={allDistrictsList}
             masterBlocks={masterBlocks}
-            divisions={divisions}
+            divisions={divisionsList}
             adminUser={adminUser}
           />
         </div>
@@ -2592,7 +2592,7 @@ export const AdminDashboard: React.FC = () => {
               states={statesList}
               allDistricts={allDistrictsList}
               masterBlocks={masterBlocks}
-              divisions={divisions}
+              divisions={divisionsList}
               adminUser={adminUser}
             />
           </div>
@@ -2982,7 +2982,7 @@ export const AdminDashboard: React.FC = () => {
             states={statesList}
             allDistricts={allDistrictsList}
             masterBlocks={masterBlocks}
-            divisions={divisions}
+            divisions={divisionsList}
             adminUser={adminUser}
           />
         </div>
