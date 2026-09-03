@@ -4,7 +4,7 @@
 
 @layer base {
   html, body, #root {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-[#09090E] text-slate-200 antialiased;
     width: 100%;
     height: 100dvh;
     margin: 0;
@@ -13,13 +13,72 @@
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vr-glass-panel {
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.vr-glass-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.vr-glass-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 10px 30px rgba(6, 182, 212, 0.2);
+}
+
+.vr-neon-text {
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.5), 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.vr-neon-border {
+  box-shadow: inset 0 0 15px rgba(6, 182, 212, 0.2), 0 0 15px rgba(6, 182, 212, 0.2);
+  border-color: rgba(6, 182, 212, 0.5);
+}
+
+.vr-gradient-text {
+  background: linear-gradient(to right, #06b6d4, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(6, 182, 212, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
 }
 
 .gradient-header {
-  background: linear-gradient(135deg, #2D1250 0%, #3B1C63 50%, #522B85 100%);
+  background: linear-gradient(135deg, #1A0D30 0%, #251240 50%, #321955 100%);
 }
 
 .gradient-badge {
@@ -30,19 +89,19 @@
   background: linear-gradient(135deg, #EC4899 0%, #D946EF 100%);
 }
 
-/* Custom Scrollbar for Report Table */
+/* Custom Scrollbar for Report Table - Dark Theme */
 ::-webkit-scrollbar {
   height: 8px;
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #0f172a;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #334155;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #475569;
 }

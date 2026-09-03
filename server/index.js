@@ -605,9 +605,9 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
       if (user?.districts) districtName = user.districts.name;
       
       if (user?.role === 'VACCINE_MANAGER' && user?.ccl_id) {
-        const { data: ccp } = await supabase.from('vaccine_ccp').select('to_ccl, unit_level, district_id, districts(name)').eq('ccl_id', user.ccl_id).maybeSingle();
+        const { data: ccp } = await supabase.from('vaccine_ccp').select('facility_name, unit_level, district_id, districts(name)').eq('ccl_id', user.ccl_id).maybeSingle();
         if (ccp) {
-          cclFacilityName = ccp.to_ccl;
+          cclFacilityName = ccp.facility_name;
           cclUnitLevel = ccp.unit_level;
           if (ccp.district_id) {
             user.district_id = ccp.district_id;
@@ -719,7 +719,7 @@ app.get('/api/admin/users', authenticateToken, async (req, res) => {
       const cclIds = [...new Set(data.filter(u => u.role === 'VACCINE_MANAGER' && u.ccl_id).map(u => u.ccl_id))];
       let cclMap = {};
       if (cclIds.length > 0) {
-        const { data: ccps } = await supabase.from('vaccine_ccp').select('ccl_id, to_ccl, districts(name)').in('ccl_id', cclIds);
+        const { data: ccps } = await supabase.from('vaccine_ccp').select('ccl_id, facility_name, districts(name)').in('ccl_id', cclIds);
         if (ccps) ccps.forEach(c => cclMap[c.ccl_id] = c);
       }
 
@@ -727,7 +727,7 @@ app.get('/api/admin/users', authenticateToken, async (req, res) => {
         let district_name = u.districts ? u.districts.name : null;
         let ccl_to_ccl = null;
         if (u.role === 'VACCINE_MANAGER' && u.ccl_id && cclMap[u.ccl_id]) {
-          ccl_to_ccl = cclMap[u.ccl_id].to_ccl;
+          ccl_to_ccl = cclMap[u.ccl_id].facility_name;
           if (cclMap[u.ccl_id].districts && cclMap[u.ccl_id].districts.name) {
             district_name = cclMap[u.ccl_id].districts.name;
           }
@@ -1466,7 +1466,7 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
     
     const formatted = data.map(f => {
       let locationPrefix = '';
-      if (f.to_ccl?.toLowerCase().includes('divisional') || String(f.unit_level) === '2') {
+      if (f.facility_name?.toLowerCase().includes('divisional') || String(f.unit_level) === '2') {
          locationPrefix = f.districts?.name || '';
       } else if (String(f.unit_level) === '1') {
          locationPrefix = f.states?.name || '';
@@ -1476,7 +1476,7 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
       
       return {
         ...f,
-        display_name: (locationPrefix ? `${locationPrefix} - ${f.to_ccl}` : f.to_ccl) + (f.ccl_block_hq_yes === 'Y' ? ' - HQ' : '')
+        display_name: (locationPrefix ? `${locationPrefix} - ${f.facility_name}` : f.facility_name) + (f.ccl_block_hq_yes === 'Y' ? ' - HQ' : '')
       };
     });
 
@@ -1581,9 +1581,9 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       destination_level: String(destLvl),
       // Source CCL (who is issuing)
       source_ccl_id: senderFacility ? (senderFacility.ccl_id || null) : (req.user.ccl_id || null),
-      source_ccl_name: senderFacility ? senderFacility.to_ccl : (req.user.ccl_to_ccl || null),
+      source_ccl_name: senderFacility ? senderFacility.facility_name : (req.user.ccl_to_ccl || null),
       // Destination CCL (who will receive)
-      destination_ccl_name: destFacility.to_ccl,
+      destination_ccl_name: destFacility.facility_name,
       destination_ccl_id: destFacility.ccl_id,
       remarks: [notes, `Recorded by: ${req.user.name || req.user.username}`].filter(Boolean).join(' | '),
       state_id: senderFacility ? senderFacility.state_id : req.user.state_id,
@@ -2902,7 +2902,7 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
 
     if (useSupabase) {
       let txQuery = supabase.from('vaccine_stock_transactions').select('*');
-      let ccpQuery = supabase.from('vaccine_ccp').select('id, ccl_id, to_ccl, unit_level, unit_type, district_id, block_id, districts(name)');
+      let ccpQuery = supabase.from('vaccine_ccp').select('id, ccl_id, facility_name, unit_level, unit_type, district_id, block_id, districts(name)');
       let distQuery = supabase.from('districts').select('id, name, state_id');
 
       if (dateFrom) {
@@ -2948,7 +2948,7 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
 
             cclSummaryMap[key] = {
                ccl_id: key,
-               ccl_name: fac.to_ccl || fallbackName || 'Unknown CCL',
+               ccl_name: fac.facility_name || fallbackName || 'Unknown CCL',
                level,
                level_label: levelLabel,
                unit_type: fac.unit_type || (level === '1' ? 'SVS' : (level === '2' ? 'DVS' : 'CCP-B')),
@@ -2975,7 +2975,7 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
          } else if (t.transaction_type === 'ISSUED') {
             // Internal Transfer: Reduces Source, Increases Destination
             const srcId = t.source_ccl_id || t.facility_id;
-            const srcName = t.source_ccl_name || ccpMap[srcId]?.to_ccl;
+            const srcName = t.source_ccl_name || ccpMap[srcId]?.facility_name;
             const src = initCcl(srcId, srcName, t.level);
             if (src) {
                src.total_out += qty;
@@ -2996,12 +2996,12 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
          const isRecv = t.transaction_type === 'RECEIVED';
          const srcId = isRecv ? null : (t.source_ccl_id || t.facility_id);
          const srcCcp = ccpMap[srcId] || {};
-         const srcName = isRecv ? 'External Supplier' : (t.source_ccl_name || srcCcp.to_ccl || 'Source CCL');
+         const srcName = isRecv ? 'External Supplier' : (t.source_ccl_name || srcCcp.facility_name || 'Source CCL');
          const srcDist = isRecv ? '—' : (srcCcp.districts?.name || '—');
          
          const destId = isRecv ? (t.facility_id || t.destination_ccl_id) : t.destination_ccl_id;
          const destCcp = ccpMap[destId] || {};
-         const destName = t.destination_ccl_name || destCcp.to_ccl || 'Destination CCL';
+         const destName = t.destination_ccl_name || destCcp.facility_name || 'Destination CCL';
          const destDist = destCcp.districts?.name || '—';
          
          return {
@@ -3030,13 +3030,13 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
          let match = true;
          if (district && district !== 'All Districts') {
             const fromFac = ccpMap[r.from_ccl_id] || {};
-            const toFac = ccpMap[r.to_ccl_id] || {};
+            const toFac = ccpMap[r.facility_name_id] || {};
             const fromDist = distMap[fromFac.district_id] || '';
             const toDist = distMap[toFac.district_id] || '';
             match = match && (fromDist.toLowerCase().includes(district.toLowerCase()) || toDist.toLowerCase().includes(district.toLowerCase()));
          }
          if (cclName && cclName.trim() !== '') {
-            match = match && (r.from_ccl.toLowerCase().includes(cclName.toLowerCase()) || r.to_ccl.toLowerCase().includes(cclName.toLowerCase()));
+            match = match && (r.from_ccl.toLowerCase().includes(cclName.toLowerCase()) || r.facility_name.toLowerCase().includes(cclName.toLowerCase()));
          }
          if (transactionType && transactionType !== 'All') {
             match = match && (r.transaction_type.toLowerCase() === transactionType.toLowerCase());
@@ -3831,7 +3831,7 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
     
     const { data: existingRecords } = await supabase.from('vaccine_ccp').select('*');
     const existingCclIds = new Set((existingRecords || []).map(r => r.ccl_id).filter(Boolean));
-    const existingFacilityNames = new Set((existingRecords || []).filter(r => r.to_ccl && r.block_id).map(r => `${r.block_id}-${r.to_ccl}`));
+    const existingFacilityNames = new Set((existingRecords || []).filter(r => r.facility_name && r.block_id).map(r => `${r.block_id}-${r.facility_name}`));
     const existingMap = {};
     (existingRecords || []).forEach(r => { if (r.ccl_id) existingMap[r.ccl_id] = r; });
 
@@ -3902,7 +3902,7 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
           const existing = existingMap[cclId];
           const diffs = [];
           
-          if (newObj.to_ccl !== existing.to_ccl) diffs.push({ field: 'Facility Name', old: existing.to_ccl, new: newObj.to_ccl });
+          if (newObj.facility_name !== existing.facility_name) diffs.push({ field: 'Facility Name', old: existing.facility_name, new: newObj.facility_name });
           if (newObj.contact_number !== existing.contact_number) diffs.push({ field: 'Contact Number', old: existing.contact_number, new: newObj.contact_number });
           if (newObj.name_of_unit_incharge !== existing.name_of_unit_incharge) diffs.push({ field: 'Incharge Name', old: existing.name_of_unit_incharge, new: newObj.name_of_unit_incharge });
           if (newObj.unit_level !== existing.unit_level) diffs.push({ field: 'Unit Level', old: existing.unit_level, new: newObj.unit_level });
@@ -4263,7 +4263,7 @@ app.get('/api/superadmin/dump-batches', async (req, res) => {
 });
 
 app.get('/api/superadmin/dump-ccp', async (req, res) => {
-  const { data } = await supabase.from('vaccine_ccp').select('to_ccl, unit_level').ilike('to_ccl', '%Haldwani%');
+  const { data } = await supabase.from('vaccine_ccp').select('facility_name, unit_level').ilike('facility_name', '%Haldwani%');
   res.json(data);
 });
 
@@ -4278,7 +4278,7 @@ app.get('/api/vaccine/monthly-report/status', async (req, res) => {
 
     // 1. Fetch all CCPs for this block
     let ccpsQuery = supabase.from('vaccine_ccp')
-      .select('id, to_ccl, name_of_unit_incharge, contact_number, block_id, lgd_block_code')
+      .select('id, facility_name, name_of_unit_incharge, contact_number, block_id, lgd_block_code')
       .eq('unit_level', '3')
       .order('facility_name');
 
