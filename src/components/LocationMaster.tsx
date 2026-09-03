@@ -1,25 +1,108 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Search, MapPin, Layers, Filter, Building2, Download, FileText, Clock } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import {
+  Calendar, Download, BarChart3, ChevronDown, Search, Maximize2, Minimize2,
+  ChevronLeft, ChevronRight, Activity, Target, Users,
+  Syringe, Filter, RefreshCw, CheckCircle2, AlertCircle, MapPin, Camera, PieChart
+} from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Logo } from './Logo';
 
-interface LocationRecord {
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ReportRow {
   id: string | number;
   name: string;
-  district_name?: string;
-  district_id?: string | number;
-  division_name?: string;
-  state_name?: string;
-  population?: number;
-  annual_target?: number;
-  hpv_target?: number;
-  sessions?: number;
-  linelisted?: number;
-  vaccinated?: number;
-  reports_count?: number;
-  last_reported_date?: string;
+  lgd_code: number;
+  population: number;
+  hpv_target: number;
+  last_reporting_date: string;
+  beneficiaries_vaccinated: number | null;
+  sessions_held_cumulative: number | null;
+  sessions_held_today: number | null;
+  vaccinated_today: number | null;
+  vaccinations_per_session: number | null;
+  vaccination_coverage_pct: number | null;
+  has_report: boolean;
+  has_today_report: boolean;
   is_urban?: boolean;
 }
+
+type RankBy = 'vaccination_coverage_pct' | 'sessions_held_cumulative' | 'beneficiaries_vaccinated' | 'vaccinations_per_session' | 'sessions_held_today' | 'vaccinated_today';
+type SortDir = 'best' | 'worst';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function fmt(n: number | null | undefined, decimals = 0): string {
+  if (n === null || n === undefined) return '—';
+  return n.toLocaleString('en-IN', { maximumFractionDigits: decimals });
+}
+
+function fmtDate(d: string | null): string {
+  if (!d || d === '—') return '—';
+  try {
+    return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch { return d; }
+}
+
+function coverageTier(pct: number | null): { label: string; color: string; bg: string } {
+  if (pct === null || pct === undefined) return { label: 'No Data', color: 'text-slate-400', bg: 'bg-slate-100' };
+  if (pct >= 90) return { label: 'Champion 🏆', color: 'text-emerald-700', bg: 'bg-emerald-50' };
+  if (pct >= 70) return { label: 'High Performance ⭐', color: 'text-teal-700', bg: 'bg-teal-50' };
+  if (pct >= 30) return { label: 'Progressing 📈', color: 'text-blue-700', bg: 'bg-blue-50' };
+  return { label: 'Aspirational 🌱', color: 'text-orange-700', bg: 'bg-orange-50' };
+}
+
+// ─── KPI Card ─────────────────────────────────────────────────────────────────
+
+const KpiCard: React.FC<{
+  icon: React.ReactNode; label: string; value: string;
+  subLabel?: string; subValue?: string; iconBg: string; valueColor?: string; loading?: boolean;
+}> = ({ icon, label, value, subLabel, subValue, iconBg, valueColor = 'text-slate-900', loading }) => (
+  <div className="bg-white rounded-xl px-2.5 py-2 shadow-sm border border-slate-200 flex items-center gap-2 hover:shadow-md transition-shadow">
+    {loading ? (
+      <div className="animate-pulse flex items-center gap-2 w-full">
+        <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0" />
+        <div className="flex flex-col gap-1 w-full">
+          <div className="h-2 bg-slate-200 rounded w-1/2" />
+          <div className="h-3 bg-slate-200 rounded w-3/4" />
+        </div>
+      </div>
+    ) : (
+      <>
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${iconBg} shrink-0 [&>svg]:w-4 [&>svg]:h-4`}>
+          {icon}
+        </div>
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="text-[9px] font-semibold text-slate-600 truncate leading-tight">{label}</div>
+          <div className={`text-[13px] font-extrabold leading-none mt-0.5 ${valueColor} truncate`}>{value}</div>
+          {(subValue || subLabel) && (
+            <>
+              <div className="w-full h-px bg-slate-100 my-1" />
+              <div className="text-[8px] font-bold leading-none truncate">
+                {subValue && <span className="text-emerald-600">{subValue}</span>}
+                {subValue && subLabel && <span className="text-slate-500 ml-0.5">{subLabel}</span>}
+                {!subValue && subLabel && <span className="text-slate-400">{subLabel}</span>}
+              </div>
+            </>
+          )}
+        </div>
+      </>
+    )}
+  </div>
+);
+
+// ─── Skeleton Row ─────────────────────────────────────────────────────────────
+
+const SkeletonRow = () => (
+  <tr className="animate-pulse border-b border-slate-100">
+    {Array.from({ length: 11 }).map((_, i) => (
+      <td key={i} className="px-3 py-2"><div className="h-3.5 bg-slate-200 rounded w-full" /></td>
+    ))}
+  </tr>
+);
+
+// ─── Location Master / Block Units Component ───────────────────────────────────
 
 export const LocationMaster: React.FC<{
   states?: any[];
@@ -27,486 +110,586 @@ export const LocationMaster: React.FC<{
   masterBlocks?: any[];
   divisions?: any[];
   adminUser?: any;
-}> = ({ states: initialStates = [], allDistricts: initialDistricts = [], adminUser }) => {
-  const [locations, setLocations] = useState<LocationRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+}> = ({
+  adminUser,
+  states: initialStates,
+  allDistricts: initialDistricts,
+  masterBlocks,
+  divisions: initialDivisions,
+}) => {
+  const [statesList, setStatesList] = useState<any[]>(initialStates || []);
+  const [divisionsList, setDivisionsList] = useState<any[]>(initialDivisions || []);
+  const [districtsList, setDistrictsList] = useState<any[]>(initialDistricts || []);
+
+  const today = new Date().toISOString().split('T')[0];
+  const [filterDate, setFilterDate] = useState(today);
+  const [filterLevel, setFilterLevel] = useState<'District' | 'Block Units'>('Block Units');
+  const [filterStateId, setFilterStateId] = useState('');
+  const [filterDivisionId, setFilterDivisionId] = useState('ALL');
+  const [filterDistrictId, setFilterDistrictId] = useState('ALL');
+
+  const [rows, setRows] = useState<ReportRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [reportGenerated, setReportGenerated] = useState(false);
+  const [reportDateLabel, setReportDateLabel] = useState('');
+  const [hasAutoGenerated, setHasAutoGenerated] = useState(false);
+  const [isSavingImg, setIsSavingImg] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  const [sortDir, setSortDir] = useState<SortDir>('best');
+  const [rankBy, setRankBy] = useState<RankBy>('vaccination_coverage_pct');
   const [search, setSearch] = useState('');
-
-  const [statesList, setStatesList] = useState<any[]>(initialStates);
-  const [districtsList, setDistrictsList] = useState<any[]>(initialDistricts);
-
-  // Top Filters
-  const [selectedStateId, setSelectedStateId] = useState<string>('');
-  const [reportLevel, setReportLevel] = useState<'District' | 'Block Units'>('Block Units');
-  const [selectedDistrictId, setSelectedDistrictId] = useState<string>('ALL');
-
-  const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
-
-  // District scoping for District users
-  const isDistrictUser = adminUser?.district_id || adminUser?.role === 'DISTRICT_ADMIN' || String(adminUser?.ccl_unit_level) === '2';
-
-  // Fallback fetch states if empty
-  useEffect(() => {
-    if (initialStates && initialStates.length > 0) {
-      setStatesList(initialStates);
-      return;
-    }
-    fetch('/api/locations/states', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-      .then(r => r.json())
-      .then(data => setStatesList(Array.isArray(data) ? data : []))
-      .catch(console.error);
-  }, [initialStates]);
-
-  // Fallback fetch districts if empty
-  useEffect(() => {
-    if (initialDistricts && initialDistricts.length > 0) {
-      setDistrictsList(initialDistricts);
-      return;
-    }
-    fetch('/api/locations/districts', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-      .then(r => r.json())
-      .then(data => setDistrictsList(Array.isArray(data) ? data : []))
-      .catch(console.error);
-  }, [initialDistricts]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 15;
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    if (selectedStateId) return;
-    if (adminUser?.state_id) {
-      setSelectedStateId(String(adminUser.state_id));
-    } else if (statesList.length > 0) {
-      const uk = statesList.find(s => s.name.toLowerCase().includes('uttarakhand'));
-      setSelectedStateId(String(uk ? uk.id : statesList[0].id));
-    }
-  }, [statesList, adminUser, selectedStateId]);
-
-  useEffect(() => {
-    if (isDistrictUser && adminUser?.district_id) {
-      setSelectedDistrictId(String(adminUser.district_id));
-    }
-  }, [adminUser, isDistrictUser]);
-
-  const selectedStateName = useMemo(() => {
-    const found = statesList.find(s => String(s.id) === String(selectedStateId));
-    return found ? found.name : 'Uttarakhand';
-  }, [statesList, selectedStateId]);
-
-  const currentDateFormatted = useMemo(() => {
-    return new Date().toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
+    Promise.all([
+      fetch('/api/locations/states').then(r => r.json()),
+      fetch('/api/locations/divisions').then(r => r.json()),
+      fetch('/api/locations/districts').then(r => r.json()),
+    ]).then(([states, divisions, districts]) => {
+      setStatesList(Array.isArray(states) ? states : []);
+      setDivisionsList(Array.isArray(divisions) ? divisions : []);
+      setDistrictsList(Array.isArray(districts) ? districts : []);
+    }).catch(console.error);
   }, []);
 
-  const fetchLocations = async () => {
+  useEffect(() => {
+    if (statesList.length > 0 && adminUser && !filterStateId) {
+      if (adminUser.role === 'SUPER_ADMIN') {
+        const uk = statesList.find((s: any) => s.name === 'Uttarakhand State' || s.name === 'Uttarakhand');
+        if (uk) setFilterStateId(String(uk.id));
+      } else if (adminUser.state_id) {
+        setFilterStateId(String(adminUser.state_id));
+      }
+    } else if (statesList.length > 0 && !filterStateId) {
+      const uk = statesList.find((s: any) => s.name === 'Uttarakhand State' || s.name === 'Uttarakhand');
+      setFilterStateId(String(uk ? uk.id : statesList[0].id));
+    }
+  }, [statesList, adminUser]);
+
+  useEffect(() => {
+    if (filterStateId && !hasAutoGenerated) {
+      setHasAutoGenerated(true);
+      generateReport();
+    }
+  }, [filterStateId]);
+
+  const generateReport = async () => {
+    const token = localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token');
     setLoading(true);
+    const apiLevel = filterLevel === 'Block Units' ? 'BLOCK' : 'DISTRICT';
+    const params = new URLSearchParams({ date: filterDate, level: apiLevel });
+    if (filterStateId) params.set('state_id', filterStateId);
+    if (filterDivisionId !== 'ALL') params.set('divisionId', filterDivisionId);
+    if (filterDistrictId !== 'ALL') params.set('districtId', filterDistrictId);
+
     try {
-      const res = await fetch('/api/admin/locations-master-data', {
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await fetch(`/api/admin/reports/generate?${params}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       const data = await res.json();
-      setLocations(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Error fetching location master data:', err);
-    }
+      setRows(data.rows || []);
+      setReportDateLabel(filterDate);
+      setReportGenerated(true);
+    } catch (err) { console.error(err); }
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchLocations();
-  }, []);
+  const handleGenerate = () => generateReport();
 
-  // Filter Locations based on top filters + search
-  const filteredLocations = useMemo(() => {
-    let list = locations;
+  const handleSavePDF = async () => {
+    setIsSavingImg(true);
+    try {
+      const pdf = new jsPDF('l', 'mm', 'a4');
 
-    // District / Division filter
-    if (isDistrictUser && adminUser?.district_id) {
-      list = list.filter(l => String(l.district_id) === String(adminUser.district_id));
-    } else if (selectedDistrictId && selectedDistrictId !== 'ALL') {
-      if (selectedDistrictId.toUpperCase() === 'KUMAON') {
-        const kumaonDists = ['almora', 'bageshwar', 'champawat', 'nainital', 'pithoragarh', 'udham singh nagar'];
-        list = list.filter(l => kumaonDists.includes((l.district_name || '').toLowerCase()));
-      } else if (selectedDistrictId.toUpperCase() === 'GARHWAL') {
-        const garhwalDists = ['chamoli', 'dehradun', 'haridwar', 'pauri garhwal', 'rudraprayag', 'tehri garhwal', 'uttarkashi'];
-        list = list.filter(l => garhwalDists.includes((l.district_name || '').toLowerCase()));
-      } else {
-        list = list.filter(l => String(l.district_id) === String(selectedDistrictId));
+      try {
+        const logoImg = new Image();
+        logoImg.src = '/favicon.jpg';
+        await new Promise((resolve, reject) => {
+          logoImg.onload = resolve;
+          logoImg.onerror = reject;
+        });
+        pdf.addImage(logoImg, 'JPEG', 14, 10, 14, 14);
+      } catch (e) {
+        console.warn('Could not load favicon.jpg for PDF');
       }
-    }
 
-    // Search query filter
-    if (search.trim()) {
-      const q = search.toLowerCase().trim();
-      list = list.filter(l =>
-        (l.name && l.name.toLowerCase().includes(q)) ||
-        (l.district_name && l.district_name.toLowerCase().includes(q)) ||
-        (l.division_name && l.division_name.toLowerCase().includes(q))
-      );
-    }
+      pdf.setFontSize(18);
+      pdf.setTextColor(15, 23, 42);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('HPV Vaccination \u2014 Block Units Progress Report', 32, 16);
 
-    return list;
-  }, [locations, selectedDistrictId, isDistrictUser, adminUser, search]);
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 116, 139);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Report Date: ${fmtDate(reportDateLabel || today)} | Level: ${filterLevel} | Total Units: ${rows.length}`, 32, 22);
 
-  // Aggregate stats for district mode if level === 'District'
-  const displayRows = useMemo(() => {
-    if (reportLevel === 'Block Units') {
-      return filteredLocations.map(l => {
-        const pop = l.population || 0;
-        const annualTarget = Math.round(pop * 0.01);
-        const hpvTarget = l.hpv_target || 0;
-        return {
-          id: l.id,
-          name: l.name,
-          subtext: `${l.district_name || '—'} • ${l.division_name || 'No Division'} • ${l.state_name || selectedStateName}`,
-          population: pop,
-          annualTarget,
-          hpvTarget,
-          sessions: l.sessions || 0,
-          linelisted: l.linelisted || 0,
-          vaccinated: l.vaccinated || 0,
-          reportsCount: l.reports_count || 0,
-          lastReportDate: l.last_reported_date || 'N/A'
-        };
+      const head = [[
+        `Reporting Unit (${filterLevel === 'Block Units' ? 'Block' : 'District'})`,
+        'Last Reported',
+        'Population',
+        'HPV Goal',
+        'Sessions Today',
+        'Vaccinations Today',
+        'Sessions Cumulative',
+        'Vaccinations Cumulative',
+        'Vacc / Session',
+        'Goal %',
+        'Rank'
+      ]];
+
+      const body = filtered.map((r: any, idx: number) => [
+        r.name,
+        r.has_report ? fmtDate(r.last_reporting_date) : '—',
+        fmt(r.population),
+        fmt(r.hpv_target),
+        r.sessions_held_today !== null ? fmt(r.sessions_held_today) : '—',
+        r.vaccinated_today !== null ? fmt(r.vaccinated_today) : '—',
+        r.sessions_held_cumulative !== null ? fmt(r.sessions_held_cumulative) : '—',
+        r.beneficiaries_vaccinated !== null ? fmt(r.beneficiaries_vaccinated) : '—',
+        r.vaccinations_per_session !== null ? fmt(r.vaccinations_per_session, 2) : '—',
+        r.vaccination_coverage_pct !== null ? `${fmt(r.vaccination_coverage_pct, 1)}%` : '—',
+        r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : `#${r.rank}`
+      ]);
+
+      if (filtered.length > 0) {
+        body.push([
+          `TOTAL (${rows.length})`,
+          '—',
+          fmt(kpis.totalPop),
+          fmt(kpis.totalTarget),
+          fmt(kpis.totalSessionsToday),
+          fmt(kpis.totalVaccToday),
+          fmt(kpis.totalSessionsCumm),
+          fmt(kpis.totalVaccCumm),
+          '—',
+          kpis.totalTarget > 0 ? `${fmt((kpis.totalVaccCumm / kpis.totalTarget) * 100, 1)}%` : '—',
+          '—'
+        ]);
+      }
+
+      autoTable(pdf, {
+        startY: 30,
+        head,
+        body,
+        theme: 'grid',
+        headStyles: { fillColor: [44, 24, 76], textColor: 255, fontSize: 8, fontStyle: 'bold', halign: 'center' },
+        bodyStyles: { fontSize: 8, textColor: 50 },
+        alternateRowStyles: { fillColor: [250, 250, 252] },
+        columnStyles: {
+          0: { fontStyle: 'bold', textColor: [30, 41, 59] },
+          1: { halign: 'center' },
+          2: { halign: 'right' },
+          3: { halign: 'right', textColor: [16, 185, 129] },
+          4: { halign: 'right', textColor: [234, 88, 12] },
+          5: { halign: 'right', textColor: [37, 99, 235] },
+          6: { halign: 'right', textColor: [234, 88, 12] },
+          7: { halign: 'right', textColor: [37, 99, 235] },
+          8: { halign: 'right', textColor: [15, 118, 110] },
+          9: { halign: 'center', fontStyle: 'bold' },
+          10: { halign: 'center', fontStyle: 'bold' }
+        },
+        margin: { top: 20 }
       });
-    }
 
-    // Aggregated District View
-    const districtMap: { [key: string]: any } = {};
-    filteredLocations.forEach(l => {
-      const dName = l.district_name || 'Unknown';
-      if (!districtMap[dName]) {
-        districtMap[dName] = {
-          id: dName,
-          name: dName,
-          subtext: `District Unit • ${l.state_name || selectedStateName}`,
-          population: 0,
-          annualTarget: 0,
-          hpvTarget: 0,
-          sessions: 0,
-          linelisted: 0,
-          vaccinated: 0,
-          reportsCount: 0,
-          lastReportDate: 'N/A'
-        };
-      }
-      const pop = l.population || 0;
-      districtMap[dName].population += pop;
-      districtMap[dName].annualTarget += Math.round(pop * 0.01);
-      districtMap[dName].hpvTarget += (l.hpv_target || 0);
-      districtMap[dName].sessions += (l.sessions || 0);
-      districtMap[dName].linelisted += (l.linelisted || 0);
-      districtMap[dName].vaccinated += (l.vaccinated || 0);
-      districtMap[dName].reportsCount += (l.reports_count || 0);
-      if (l.last_reported_date && l.last_reported_date !== 'N/A') {
-        districtMap[dName].lastReportDate = l.last_reported_date;
-      }
-    });
+      pdf.save(`Block_Units_Report_${filterDate}.pdf`);
+    } catch (err) { console.error('Failed to save PDF', err); }
+    setIsSavingImg(false);
+  };
 
-    return Object.values(districtMap);
-  }, [filteredLocations, reportLevel, selectedStateName]);
+  const rankedRows = useMemo(() => {
+    const bestFirst = [...rows]
+      .sort((a, b) => ((a as any)[rankBy] ?? -1) - ((b as any)[rankBy] ?? -1))
+      .reverse()
+      .map((r, i) => ({ ...r, rank: i + 1 }));
+    return sortDir === 'best' ? bestFirst : [...bestFirst].reverse();
+  }, [rows, rankBy, sortDir]);
 
-  // CSV Export
-  const downloadCSV = () => {
-    const headers = [
-      'S.No',
-      'Location Unit',
-      'Population',
-      'Annual Target (Calculated 1%)',
-      'HPV Target (Reported)',
-      'Sessions',
-      'Line Listed',
-      'Vaccinated',
-      'Reports',
-      'Last Report'
-    ];
+  const filtered = useMemo(() => {
+    if (!search.trim()) return rankedRows;
+    const q = search.toLowerCase();
+    return rankedRows.filter(r => r.name.toLowerCase().includes(q));
+  }, [rankedRows, search]);
 
-    const csvRows = displayRows.map((r, i) => [
+  const totalPages = Math.ceil(filtered.length / rowsPerPage) || 1;
+  const paginated = useMemo(() => {
+    if (isSavingImg) return filtered;
+    const start = (currentPage - 1) * rowsPerPage;
+    return filtered.slice(start, start + rowsPerPage);
+  }, [filtered, currentPage, isSavingImg]);
+
+  const kpis = useMemo(() => {
+    const totalPop = rows.reduce((s, r) => s + (r.population || 0), 0);
+    const totalTarget = rows.reduce((s, r) => s + (r.hpv_target || 0), 0);
+    const totalVaccCumm = rows.reduce((s, r) => s + (r.beneficiaries_vaccinated || 0), 0);
+    const totalVaccToday = rows.reduce((s, r) => s + (r.vaccinated_today || 0), 0);
+    const totalSessionsCumm = rows.reduce((s, r) => s + (r.sessions_held_cumulative || 0), 0);
+    const totalSessionsToday = rows.reduce((s, r) => s + (r.sessions_held_today || 0), 0);
+    const coveragePct = totalTarget > 0 ? (totalVaccCumm / totalTarget) * 100 : 0;
+    const vaccPerSession = totalSessionsCumm > 0 ? totalVaccCumm / totalSessionsCumm : 0;
+    const reportingToday = rows.filter(r => r.has_today_report).length;
+    return { totalPop, totalTarget, totalVaccCumm, totalVaccToday, totalSessionsCumm, totalSessionsToday, coveragePct, vaccPerSession, reportingToday };
+  }, [rows]);
+
+  const handleCSV = () => {
+    if (!rows.length) return;
+    const headers = ['Rank','Reporting Unit','Population','HPV Goal','Sessions Today','Vaccinations Today','Sessions Cumulative','Vaccinations Cumulative','Vaccinations Per Session','Goal %'];
+    const csvRows = rankedRows.map((r: any, i: number) => [
       i + 1,
-      `"${r.name} (${r.subtext})"`,
+      `"${r.name}"`,
       r.population,
-      r.annualTarget,
-      r.hpvTarget,
-      r.sessions,
-      r.linelisted,
-      r.vaccinated,
-      r.reportsCount,
-      `"${r.lastReportDate}"`
+      r.hpv_target,
+      r.sessions_held_today ?? 0,
+      r.vaccinated_today ?? 0,
+      r.sessions_held_cumulative ?? 0,
+      r.beneficiaries_vaccinated ?? 0,
+      r.vaccinations_per_session ?? 0,
+      r.vaccination_coverage_pct ?? 0
     ]);
-
-    const csvContent = [headers.join(','), ...csvRows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `Block_Units_Report_${selectedStateName.replace(/\s+/g, '_')}.csv`;
-    link.click();
+    const content = [headers.join(','), ...csvRows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([content], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `Block_Units_Report_${filterDate}.csv`; a.click();
   };
 
-  // PDF Export
-  const downloadPDF = () => {
-    const doc = new jsPDF('landscape', 'mm', 'a4');
+  const stateDistricts = useMemo(() => districtsList.filter(d => !filterStateId || String(d.state_id) === filterStateId), [districtsList, filterStateId]);
 
-    doc.setFontSize(15);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(49, 16, 84);
-    doc.text(`Block Units Location Master - ${selectedStateName}`, 14, 15);
+  const locationLabel = useMemo(() => {
+    if (filterDistrictId !== 'ALL') {
+      return stateDistricts.find(d => String(d.id) === filterDistrictId)?.name || 'Selected District';
+    }
+    if (filterStateId) return statesList.find(s => String(s.id) === filterStateId)?.name || 'Uttarakhand';
+    return 'Uttarakhand';
+  }, [filterDistrictId, filterStateId, stateDistricts, statesList]);
 
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 116, 139);
-    doc.text(`Report Level: ${reportLevel}  |  Total Units: ${displayRows.length}  |  Generated: ${currentDateFormatted}`, 14, 22);
-
-    const pdfHeaders = [[
-      'S.No',
-      'Location Unit',
-      'Population',
-      'Annual Target (1%)',
-      'HPV Target (Reported)',
-      'Sessions',
-      'Line Listed',
-      'Vaccinated',
-      'Reports',
-      'Last Report'
-    ]];
-
-    const pdfRows = displayRows.map((r, i) => [
-      i + 1,
-      `${r.name}\n(${r.subtext})`,
-      r.population.toLocaleString('en-IN'),
-      r.annualTarget.toLocaleString('en-IN'),
-      r.hpvTarget.toLocaleString('en-IN'),
-      r.sessions.toLocaleString('en-IN'),
-      r.linelisted.toLocaleString('en-IN'),
-      r.vaccinated.toLocaleString('en-IN'),
-      r.reportsCount,
-      r.lastReportDate
-    ]);
-
-    autoTable(doc, {
-      head: pdfHeaders,
-      body: pdfRows,
-      startY: 26,
-      styles: { fontSize: 8, cellPadding: 2.5 },
-      columnStyles: {
-        0: { halign: 'center', fontStyle: 'bold' },
-        1: { fontStyle: 'bold' },
-        2: { halign: 'right' },
-        3: { halign: 'right', fontStyle: 'bold' },
-        4: { halign: 'right', fontStyle: 'bold' },
-        5: { halign: 'center' },
-        6: { halign: 'right' },
-        7: { halign: 'right', fontStyle: 'bold' },
-        8: { halign: 'center' },
-        9: { halign: 'center' }
-      },
-      headStyles: { fillColor: [49, 16, 84], textColor: 255, fontStyle: 'bold', halign: 'center' },
-      alternateRowStyles: { fillColor: [248, 250, 252] },
-      theme: 'grid'
-    });
-
-    doc.save(`Block_Units_Report_${selectedStateName.replace(/\s+/g, '_')}.pdf`);
-  };
+  const tierInfo = coverageTier(reportGenerated ? kpis.coveragePct : null);
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 relative overflow-hidden">
-      {/* Header Bar */}
-      <div className="bg-white border-b border-slate-200 shadow-xs z-20 shrink-0">
-        <div className="px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-indigo-600 shrink-0" />
-              <h1 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">
-                Block Units Master Registry
-              </h1>
-              <div className="ml-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-bold border border-slate-300">
-                <Clock className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Current Date: <strong className="text-slate-900">{currentDateFormatted}</strong></span>
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Comprehensive block unit populations, sessions, targets, and cumulative vaccination metrics
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={downloadPDF}
-              disabled={displayRows.length === 0}
-              className="flex items-center gap-1.5 bg-white border border-slate-300 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-xs hover:bg-slate-50 transition-colors disabled:opacity-50"
-            >
-              <FileText className="w-3.5 h-3.5 text-red-600" />
-              Export PDF
-            </button>
-
-            <button
-              onClick={downloadCSV}
-              disabled={displayRows.length === 0}
-              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Export CSV
-            </button>
-          </div>
+    <div className="flex flex-col h-full gap-3">
+      {/* ── Page Header ────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between shrink-0">
+        <div>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight">HPV Vaccination — Daily Progress Report</h1>
+          <p className="text-[11px] text-slate-500 mt-0.5">Tracks daily &amp; cumulative HPV vaccination progress at State, Division, District, and Block levels</p>
         </div>
-
-        {/* TOP FILTER BAR: STATE, REPORT LEVEL, DISTRICTS */}
-        <div className="px-5 py-2.5 bg-slate-100/80 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            {/* 1. State Filter */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-indigo-600" /> State:
-              </span>
-              <select
-                value={selectedStateId}
-                onChange={(e) => setSelectedStateId(e.target.value)}
-                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500"
-              >
-                {(statesList || []).map(s => (
-                  <option key={s.id} value={String(s.id)}>{s.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* 2. Report Level Filter */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                <Layers className="w-3.5 h-3.5 text-indigo-600" /> Report Level:
-              </span>
-              <select
-                value={reportLevel}
-                onChange={(e) => setReportLevel(e.target.value as any)}
-                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="District">District</option>
-                <option value="Block Units">Block Units</option>
-              </select>
-            </div>
-
-            {/* 3. District Filter */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
-                <Filter className="w-3.5 h-3.5 text-indigo-600" /> Districts:
-              </span>
-              <select
-                value={selectedDistrictId}
-                disabled={isDistrictUser}
-                onChange={(e) => setSelectedDistrictId(e.target.value)}
-                className="text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs focus:ring-2 focus:ring-indigo-500 disabled:opacity-75"
-              >
-                <option value="ALL">All Districts</option>
-                <option value="KUMAON">Kumaon Division</option>
-                <option value="GARHWAL">Garhwal Division</option>
-                {(districtsList || []).map(d => (
-                  <option key={d.id} value={String(d.id)}>{d.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Search Box */}
-          <div className="relative min-w-[200px] flex-1 sm:flex-none">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search location..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
+        <div className="flex items-center gap-2">
+          <button onClick={handleSavePDF} disabled={!rows.length || isSavingImg}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0 cursor-pointer">
+            {isSavingImg ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 text-slate-500" />} Download PDF
+          </button>
+          <button onClick={handleCSV} disabled={!rows.length}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm disabled:opacity-50 transition-colors shrink-0 cursor-pointer">
+            <Download className="w-3.5 h-3.5" /> Download CSV
+          </button>
         </div>
       </div>
 
-      {/* Table Content */}
-      <div className="flex-1 p-3 sm:p-4 bg-slate-100 flex flex-col min-h-0 overflow-hidden">
-        <div className="h-full bg-white rounded-xl shadow-xs border border-slate-200 flex flex-col overflow-hidden">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center flex-1 p-12 text-slate-500">
-              <div className="w-8 h-8 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3" />
-              <p className="font-bold text-slate-700 text-sm">Loading Location Registry Data...</p>
+      {/* ── Filter Toolbar ─────────────────────────────────────────── */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 shrink-0">
+        <div className="flex flex-wrap gap-2.5 items-end">
+          {/* State */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">State</label>
+            <div className="relative">
+              <select value={filterStateId} onChange={e => { setFilterStateId(e.target.value); setFilterDistrictId('ALL'); }}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 160 }}>
+                {statesList.length > 0 ? (
+                  statesList.map(s => <option key={s.id} value={String(s.id)}>{s.name}</option>)
+                ) : (
+                  <option value="">Uttarakhand</option>
+                )}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
-          ) : displayRows.length === 0 ? (
-            <div className="flex flex-col items-center justify-center flex-1 p-12 text-slate-500">
-              <Building2 className="w-10 h-10 mb-2 text-slate-300" />
-              <p className="font-bold text-slate-700 text-sm">No locations match your selected filters</p>
-              <p className="text-xs text-slate-400 mt-0.5">Try selecting another district or state filter</p>
+          </div>
+
+          {/* Report Level */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Level</label>
+            <div className="relative">
+              <select value={filterLevel}
+                onChange={e => setFilterLevel(e.target.value as any)}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 130 }}>
+                <option value="Block Units">Block Units</option>
+                <option value="District">District</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
-          ) : (
-            <div className="flex-1 flex flex-col justify-between overflow-x-auto overflow-y-auto">
-              <table className="w-full text-xs text-left border-collapse min-w-[1000px]">
-                <thead className="bg-[#311054] text-white sticky top-0 z-10">
+          </div>
+
+          {/* Districts Dropdown */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Districts</label>
+            <div className="relative">
+              <select value={filterDistrictId} onChange={e => setFilterDistrictId(e.target.value)}
+                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer" style={{ minWidth: 160 }}>
+                <option value="ALL">All Districts</option>
+                <option value="KUMAON">Kumaon</option>
+                <option value="GARHWAL">Garhwal</option>
+                {stateDistricts.map(d => <option key={d.id} value={String(d.id)}>{d.name}</option>)}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Date */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Date</label>
+            <input type="date" value={filterDate} max={today}
+              onChange={e => setFilterDate(e.target.value)}
+              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400 cursor-pointer" style={{ minWidth: 148 }} />
+          </div>
+
+          {/* Generate */}
+          <button onClick={handleGenerate} disabled={loading}
+            style={{ height: 36, borderRadius: 8, minWidth: 160 }}
+            className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3B1C63] to-[#522B85] hover:from-[#522B85] hover:to-[#6d3aad] rounded-lg transition-all shadow-md shadow-purple-900/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer">
+            {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
+            {loading ? 'Generating...' : 'Generate Report'}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Dashboard Content to Save ─────────────────────────────────── */}
+      <div ref={reportRef} className="flex-1 flex flex-col min-h-0 gap-3 pb-2 bg-slate-50 rounded-xl" style={{ backgroundColor: isSavingImg ? 'white' : undefined }}>
+        {/* ── KPI Cards ──────────────────────────────────────────────── */}
+        {!isExpanded && (
+          <>
+            <div className="shrink-0 p-1">
+              <div className="flex items-center justify-between mb-1.5 px-1">
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-purple-600" />
+                  <span className="text-xs font-bold text-slate-700">{locationLabel}</span>
+                  <span className="text-[10px] text-slate-400">— {filterLevel === 'Block Units' ? 'Blocks inside State' : 'Districts inside State'}</span>
+                </div>
+                {reportGenerated && (
+                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${tierInfo.bg} ${tierInfo.color}`}>{tierInfo.label}</span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-1.5">
+                <KpiCard loading={loading} icon={<Users className="w-4 h-4 text-purple-600" />} iconBg="bg-purple-50"
+                  label="Total Population" value={fmt(kpis.totalPop)} valueColor="text-purple-700" />
+                <KpiCard loading={loading} icon={<Target className="w-4 h-4 text-green-600" />} iconBg="bg-green-50"
+                  label="Goal" value={fmt(kpis.totalTarget)} valueColor="text-green-700"
+                  subLabel="0.8% of total population" />
+                <KpiCard loading={loading} icon={<Syringe className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
+                  label="HPV Vaccinations" value={fmt(kpis.totalVaccCumm)}
+                  subValue={fmt(kpis.totalVaccToday)} subLabel="Today" />
+                <KpiCard loading={loading} icon={<Calendar className="w-4 h-4 text-orange-500" />} iconBg="bg-orange-50"
+                  label="Sessions Held" value={fmt(kpis.totalSessionsCumm)}
+                  subValue={fmt(kpis.totalSessionsToday)} subLabel="Today" />
+                <KpiCard loading={loading} icon={<Activity className="w-4 h-4 text-teal-600" />} iconBg="bg-teal-50"
+                  label="Vacc / Session" value={fmt(kpis.vaccPerSession, 2)} subLabel="cumulative avg" />
+
+                <KpiCard loading={loading} icon={<PieChart className="w-4 h-4 text-blue-600" />} iconBg="bg-blue-50"
+                  label="Goal Achieved" value={`${fmt(kpis.coveragePct, 1)}%`} valueColor={coverageTier(kpis.coveragePct).color}
+                  subLabel={tierInfo.label.split(' ')[0]} />
+
+                <KpiCard loading={loading} icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />} iconBg="bg-emerald-50"
+                  label="Reporting Today" value={fmt(kpis.reportingToday)}
+                  subValue={`of ${rows.length}`} subLabel={filterLevel === 'Block Units' ? 'blocks' : 'districts'} />
+              </div>
+            </div>
+
+            {/* ── Second Toolbar (below cards) ───────────────────────────── */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-2.5 flex flex-wrap items-center gap-3 justify-between shrink-0">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+                <Calendar className="w-3.5 h-3.5 text-purple-500" />
+                <span>Report Date:</span>
+                <span className="font-extrabold text-slate-900">{fmtDate(reportDateLabel || today)}</span>
+              </div>
+
+              {/* Sort direction */}
+              <div className="flex items-center gap-3">
+                {(['best', 'worst'] as SortDir[]).map(val => (
+                  <label key={val} className="flex items-center gap-1.5 cursor-pointer select-none">
+                    <div
+                      onClick={() => setSortDir(val)}
+                      className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${sortDir === val ? 'border-purple-600' : 'border-slate-300'}`}
+                    >
+                      {sortDir === val && <div className="w-1.5 h-1.5 rounded-full bg-purple-600" />}
+                    </div>
+                    <span className={`text-xs font-semibold cursor-pointer ${sortDir === val ? 'text-purple-700' : 'text-slate-500'}`}
+                      onClick={() => setSortDir(val)}>
+                      {val === 'best' ? 'Best on Top' : 'Worst on Top'}
+                    </span>
+                  </label>
+                ))}
+              </div>
+
+              {/* Ranked By */}
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Ranked By</span>
+                <div className="relative">
+                  <select value={rankBy} onChange={e => setRankBy(e.target.value as RankBy)}
+                    className="pl-2.5 pr-7 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 appearance-none cursor-pointer">
+                    <option value="vaccination_coverage_pct">Coverage (%)</option>
+                    <option value="sessions_held_cumulative">Sessions Held</option>
+                    <option value="beneficiaries_vaccinated">Vaccinations</option>
+                    <option value="vaccinations_per_session">Vaccinations/Session</option>
+                    <option value="sessions_held_today">Sessions Today</option>
+                    <option value="vaccinated_today">Vaccinations Today</option>
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1.5 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── Data Table — flex-1 so it fills remaining space ────────── */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-0 overflow-hidden">
+
+          {/* Table toolbar */}
+          <div className="px-4 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center gap-2">
+              <Filter className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-xs font-bold text-slate-700">
+                {filtered.length} {filterLevel === 'Block Units' ? 'Block' : 'District'}{filtered.length !== 1 ? 's' : ''}
+              </span>
+              {reportGenerated && !loading && (
+                <span className="text-[10px] text-slate-400">• {rows.filter(r => r.has_today_report).length} reported today</span>
+              )}
+            </div>
+
+            <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider transition-colors mx-auto cursor-pointer">
+              {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+              {isExpanded ? 'Collapse Table' : 'Expand Table'}
+            </button>
+
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+              <input type="text" placeholder="Search by name..." value={search}
+                onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+                className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400" style={{ width: 200 }} />
+            </div>
+          </div>
+
+          {/* Scrollable table body */}
+          <div className="overflow-auto flex-1 min-h-0">
+            <table className="w-full" style={{ fontSize: '11px' }}>
+              <thead className="sticky top-0 z-10">
+                <tr className="gradient-header text-white">
+                  <th className="px-2 py-1.5 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20" style={{ minWidth: 140 }}>Reporting Unit ({filterLevel === 'Block Units' ? 'Block' : 'District'})</th>
+                  <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Last Reported</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Population</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">HPV Goal</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Sessions Today</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vaccinations Today</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Sessions Cumulative</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vaccinations Cumulative</th>
+                  <th className="px-2 py-1.5 text-right font-bold uppercase tracking-wide">Vaccinations Per Session</th>
+                  <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Goal %</th>
+                  <th className="px-2 py-1.5 text-center font-bold uppercase tracking-wide">Rank</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />) :
+                paginated.length === 0 ? (
                   <tr>
-                    <th className="px-3 py-3 text-[11px] font-bold text-center w-12 border-b border-purple-900/40">S.No</th>
-                    <th className="px-3 py-3 text-[11px] font-bold border-b border-purple-900/40">Location Hierarchy</th>
-                    <th className="px-3 py-3 text-[11px] font-bold text-right border-b border-purple-900/40">Population</th>
-                    <th className="px-3 py-3 text-[11px] font-bold text-right border-b border-purple-900/40">Annual Target (1%)</th>
-                    <th className="px-3 py-3 text-[11px] font-bold text-right border-b border-purple-900/40">HPV Target (Reported)</th>
-                    <th className="px-3 py-3 text-[11px] font-bold text-center border-b border-purple-900/40">Sessions</th>
-                    <th className="px-3 py-3 text-[11px] font-bold text-right border-b border-purple-900/40">Line Listed</th>
-                    <th className="px-3 py-3 text-[11px] font-bold text-right border-b border-purple-900/40">Vaccinated</th>
-                    <th className="px-3 py-3 text-[11px] font-bold text-center border-b border-purple-900/40">Reports</th>
-                    <th className="px-3 py-3 text-[11px] font-bold border-b border-purple-900/40">Last Report</th>
+                    <td colSpan={11} className="py-16 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <AlertCircle className="w-10 h-10 text-slate-300" />
+                        <p className="text-slate-400 font-semibold text-sm">
+                          {reportGenerated ? 'No matching records found.' : 'Click Generate Report to load data.'}
+                        </p>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-
-                <tbody className="divide-y divide-slate-200">
-                  {displayRows.map((row, idx) => (
-                    <tr key={row.id || idx} className="hover:bg-indigo-50/40 transition-colors">
-                      {/* S.No */}
-                      <td className="px-3 py-2.5 text-center font-bold text-slate-500 text-[11px]">
-                        {idx + 1}
+                ) : paginated.map((row: any, idx: number) => {
+                  const isEven = idx % 2 === 0;
+                  const coveragePct = row.vaccination_coverage_pct;
+                  const tier = coverageTier(coveragePct);
+                  const rankNum = row.rank;
+                  const rankBadge = rankNum === 1 ? '🥇' : rankNum === 2 ? '🥈' : rankNum === 3 ? '🥉' : `#${rankNum}`;
+                  const rowBg = isEven ? 'bg-white' : 'bg-slate-50/60';
+                  return (
+                    <tr key={row.id} className={`border-b border-slate-100 hover:bg-purple-50/30 transition-colors group ${rowBg}`}>
+                      <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowBg} group-hover:bg-purple-50/30`}>
+                        {row.name}
+                        {row.is_urban && <span className="ml-1.5 text-[8px] font-bold text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded uppercase tracking-wider">Urban</span>}
                       </td>
-
-                      {/* Location Hierarchy */}
-                      <td className="px-3 py-2.5">
-                        <div className="font-bold text-slate-900 text-xs">{row.name}</div>
-                        <div className="text-[10px] font-semibold text-slate-400">{row.subtext}</div>
+                      <td className="px-2 py-1.5 text-center">
+                        {row.has_report
+                          ? <span className="font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">{fmtDate(row.last_reporting_date)}</span>
+                          : <span className="text-slate-300">—</span>}
                       </td>
-
-                      {/* Population */}
-                      <td className="px-3 py-2.5 text-right font-bold text-slate-800 text-[11px]">
-                        {row.population > 0 ? row.population.toLocaleString('en-IN') : '—'}
+                      <td className="px-2 py-1.5 text-right font-semibold text-slate-700">{fmt(row.population)}</td>
+                      <td className="px-2 py-1.5 text-right font-semibold text-green-700">{fmt(row.hpv_target)}</td>
+                      <td className="px-2 py-1.5 text-right">
+                        {row.sessions_held_today !== null
+                          ? <span className="font-bold text-orange-700">{fmt(row.sessions_held_today)}</span>
+                          : <span className="text-slate-300">—</span>}
                       </td>
-
-                      {/* Annual Target (Calculated 1%) */}
-                      <td className="px-3 py-2.5 text-right font-black text-indigo-900 bg-indigo-50/40 text-[11px]">
-                        {row.annualTarget > 0 ? row.annualTarget.toLocaleString('en-IN') : '—'}
+                      <td className="px-2 py-1.5 text-right">
+                        {row.vaccinated_today !== null
+                          ? <span className="font-bold text-blue-700">{fmt(row.vaccinated_today)}</span>
+                          : <span className="text-slate-300">—</span>}
                       </td>
-
-                      {/* HPV Target (Reported) */}
-                      <td className="px-3 py-2.5 text-right font-black text-purple-900 bg-purple-50/40 text-[11px]">
-                        {row.hpvTarget > 0 ? row.hpvTarget.toLocaleString('en-IN') : '—'}
+                      <td className="px-2 py-1.5 text-right font-semibold text-orange-600">{row.sessions_held_cumulative !== null ? fmt(row.sessions_held_cumulative) : '—'}</td>
+                      <td className="px-2 py-1.5 text-right font-semibold text-blue-700">{row.beneficiaries_vaccinated !== null ? fmt(row.beneficiaries_vaccinated) : '—'}</td>
+                      <td className="px-2 py-1.5 text-right font-semibold text-teal-700">{row.vaccinations_per_session !== null ? fmt(row.vaccinations_per_session, 2) : '—'}</td>
+                      <td className="px-2 py-1.5 text-center">
+                        {coveragePct !== null ? (
+                          <div className="flex flex-col items-center gap-0.5">
+                            <div className="w-14 bg-slate-200 rounded-full h-1">
+                              <div className="h-1 rounded-full transition-all"
+                                style={{ width: `${Math.min(coveragePct, 100)}%`, background: coveragePct >= 90 ? '#10b981' : coveragePct >= 70 ? '#14b8a6' : coveragePct >= 30 ? '#3b82f6' : '#f97316' }} />
+                            </div>
+                            <span className={`font-bold ${tier.color}`}>{fmt(coveragePct, 1)}%</span>
+                          </div>
+                        ) : <span className="text-slate-300">—</span>}
                       </td>
-
-                      {/* Sessions */}
-                      <td className="px-3 py-2.5 text-center font-bold text-slate-700 text-[11px]">
-                        {row.sessions}
-                      </td>
-
-                      {/* Line Listed */}
-                      <td className="px-3 py-2.5 text-right font-bold text-amber-600 text-[11px]">
-                        {row.linelisted > 0 ? row.linelisted.toLocaleString('en-IN') : '0'}
-                      </td>
-
-                      {/* Vaccinated */}
-                      <td className="px-3 py-2.5 text-right font-bold text-emerald-600 text-[11px]">
-                        {row.vaccinated > 0 ? row.vaccinated.toLocaleString('en-IN') : '0'}
-                      </td>
-
-                      {/* Reports */}
-                      <td className="px-3 py-2.5 text-center font-bold text-slate-600 text-[11px]">
-                        {row.reportsCount}
-                      </td>
-
-                      {/* Last Report */}
-                      <td className="px-3 py-2.5 font-medium text-slate-500 whitespace-nowrap text-[11px]">
-                        {row.lastReportDate}
-                      </td>
+                      <td className="px-2 py-1.5 text-center"><span className="font-black">{rankBadge}</span></td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  );
+                })}
+              </tbody>
+              {!loading && paginated.length > 0 && (
+                <tfoot>
+                  <tr className="border-t-2 border-[#3B1C63]/20 font-bold text-slate-800" style={{ background: 'rgba(59,28,99,0.04)', fontSize: '11px' }}>
+                    <td className="px-2 py-1.5 font-extrabold sticky left-0 border-r border-slate-200" style={{ background: 'rgba(59,28,99,0.04)' }}>TOTAL ({rows.length})</td>
+                    <td className="px-2 py-1.5 text-center text-slate-400">—</td>
+                    <td className="px-2 py-1.5 text-right">{fmt(kpis.totalPop)}</td>
+                    <td className="px-2 py-1.5 text-right text-green-700">{fmt(kpis.totalTarget)}</td>
+                    <td className="px-2 py-1.5 text-right text-orange-700">{fmt(kpis.totalSessionsToday)}</td>
+                    <td className="px-2 py-1.5 text-right text-blue-700">{fmt(kpis.totalVaccToday)}</td>
+                    <td className="px-2 py-1.5 text-right text-orange-600">{fmt(kpis.totalSessionsCumm)}</td>
+                    <td className="px-2 py-1.5 text-right text-blue-700">{fmt(kpis.totalVaccCumm)}</td>
+                    <td className="px-2 py-1.5 text-right text-teal-700">{fmt(kpis.vaccPerSession, 2)}</td>
+                    <td className="px-2 py-1.5 text-center">
+                      <span className={`font-extrabold ${coverageTier(kpis.coveragePct).color}`}>{fmt(kpis.coveragePct, 1)}%</span>
+                    </td>
+                    <td className="px-2 py-1.5 text-center text-slate-400">—</td>
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-4 py-2 border-t border-slate-100 flex items-center justify-between shrink-0">
+              <span className="text-[10px] text-slate-500 font-medium">
+                Showing {((currentPage - 1) * rowsPerPage) + 1}–{Math.min(currentPage * rowsPerPage, filtered.length)} of {filtered.length}
+              </span>
+              <div className="flex items-center gap-1">
+                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
+                  className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 transition-colors cursor-pointer">
+                  <ChevronLeft className="w-3.5 h-3.5 text-slate-600" />
+                </button>
+                <span className="text-xs font-extrabold text-slate-800 px-1.5">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}
+                  className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 transition-colors cursor-pointer">
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+                </button>
+              </div>
             </div>
           )}
         </div>
