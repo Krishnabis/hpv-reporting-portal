@@ -1024,19 +1024,23 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
 
       const repData = reportMap[b.id];
       if (repData && repData.latest) {
-        if (repData.latest.reporting_date === targetDateStr) reportingToday++;
+        const hasTodayEntry = (repData.latest.reporting_date === targetDateStr);
+        if (hasTodayEntry) reportingToday++;
+
         const ll = repData.latest.line_list_count || 0;
         const vacc = repData.latest.beneficiaries_vaccinated || 0;
-        
-        const prevLl = repData.prev?.line_list_count || 0;
-        const prevVacc = repData.prev?.beneficiaries_vaccinated || 0;
 
         totalLineList += ll;
         totalVaccinated += vacc;
         districtStats[dName].lineList += ll;
         districtStats[dName].vaccinated += vacc;
-        districtStats[dName].deltaLineList += (ll - prevLl);
-        districtStats[dName].deltaVaccinated += (vacc - prevVacc);
+
+        if (hasTodayEntry) {
+          const prevLl = repData.prev?.line_list_count || 0;
+          const prevVacc = repData.prev?.beneficiaries_vaccinated || 0;
+          districtStats[dName].deltaLineList += Math.max(0, ll - prevLl);
+          districtStats[dName].deltaVaccinated += Math.max(0, vacc - prevVacc);
+        }
       }
       
       // Calculate Low Stock
@@ -1069,10 +1073,15 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       const prof = profileMap[b.id];
       const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
       const repData = reportMap[b.id];
+      const hasTodayEntry = (repData?.latest?.reporting_date === targetDateStr);
+
       const ll = repData?.latest?.line_list_count || 0;
       const vacc = repData?.latest?.beneficiaries_vaccinated || 0;
       const prevLl = repData?.prev?.line_list_count || 0;
       const prevVacc = repData?.prev?.beneficiaries_vaccinated || 0;
+
+      const deltaVaccinated = hasTodayEntry ? Math.max(0, vacc - prevVacc) : 0;
+      const deltaLineList = hasTodayEntry ? Math.max(0, ll - prevLl) : 0;
       
       const received = blockStockMap[b.id] || 0;
       const stockBalance = received - vacc;
@@ -1087,8 +1096,8 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
         lineList: ll,
         target: target,
         isLowStock: isLowStock,
-        deltaVaccinated: vacc - prevVacc,
-        deltaLineList: ll - prevLl,
+        deltaVaccinated: deltaVaccinated,
+        deltaLineList: deltaLineList,
         coveragePct: target > 0 ? parseFloat(((vacc / target) * 100).toFixed(1)) : 0,
         lineListPct: target > 0 ? parseFloat(((ll / target) * 100).toFixed(1)) : 0,
       };
