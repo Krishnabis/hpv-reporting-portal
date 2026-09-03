@@ -125,10 +125,24 @@ const SkeletonRow = () => (
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export const DailyProgressReport: React.FC<{ adminUser: any }> = ({ adminUser }) => {
-  const [statesList, setStatesList] = useState<any[]>([]);
-  const [divisionsList, setDivisionsList] = useState<any[]>([]);
-  const [districtsList, setDistrictsList] = useState<any[]>([]);
+export interface DailyProgressReportProps {
+  adminUser?: any;
+  states?: any[];
+  allDistricts?: any[];
+  masterBlocks?: any[];
+  divisions?: any[];
+}
+
+export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
+  adminUser,
+  states: initialStates,
+  allDistricts: initialDistricts,
+  masterBlocks,
+  divisions: initialDivisions,
+}) => {
+  const [statesList, setStatesList] = useState<any[]>(initialStates || []);
+  const [divisionsList, setDivisionsList] = useState<any[]>(initialDivisions || []);
+  const [districtsList, setDistrictsList] = useState<any[]>(initialDistricts || []);
 
   const today = new Date().toISOString().split('T')[0];
   const [filterDate, setFilterDate] = useState(today);
