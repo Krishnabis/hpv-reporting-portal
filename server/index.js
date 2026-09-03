@@ -3459,8 +3459,11 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
         }
       }
 
+      const sessStr = row.session || row.sessions || row.Session || row.Sessions || '0';
       let lineList = parseInt(llStr, 10);
       let vaccinated = parseInt(vaccStr, 10);
+      let sessions = parseInt(sessStr, 10);
+      if (isNaN(sessions)) sessions = 0;
       
       if (!isNaN(lineList) && !isNaN(vaccinated) && vaccinated > lineList) {
         lineList = vaccinated;
@@ -3498,11 +3501,11 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
         const existing = dailyReports.find(r => r.block_id === blockId && r.reporting_date === reportingDate);
         let sError = null;
         if (existing) {
-          const { error } = await supabase.from('daily_reports').update({ line_list_count: lineList, beneficiaries_vaccinated: vaccinated }).eq('id', existing.id);
+          const { error } = await supabase.from('daily_reports').update({ line_list_count: lineList, beneficiaries_vaccinated: vaccinated, sessions_held: sessions }).eq('id', existing.id);
           sError = error;
         } else {
           const reportId = `rep-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-          const { error } = await supabase.from('daily_reports').insert([{ id: reportId, block_id: blockId, reporting_date: reportingDate, line_list_count: lineList, beneficiaries_vaccinated: vaccinated, submitted_by: 'Super Admin CSV' }]);
+          const { error } = await supabase.from('daily_reports').insert([{ id: reportId, block_id: blockId, reporting_date: reportingDate, line_list_count: lineList, beneficiaries_vaccinated: vaccinated, sessions_held: sessions, submitted_by: 'Super Admin CSV' }]);
           sError = error;
         }
         if (sError) {
@@ -3521,6 +3524,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
             reporting_date: reportingDate,
             line_list_count: lineList,
             beneficiaries_vaccinated: vaccinated,
+            sessions_held: sessions,
             submitted_by: 'Super Admin CSV'
           });
         }
@@ -3529,7 +3533,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
       const actualBlock = blocks.find(b => b.id === blockId);
       const distId = actualBlock ? actualBlock.district_id : 'N/A';
       const bName = actualBlock ? actualBlock.name : blockName;
-      details.push(`Added live data (Line list: ${lineList}, Vaccinated: ${vaccinated}, Date: ${reportingDate}) to ${bName} (Block ID: ${blockId}, District ID: ${distId})`);
+      details.push(`Added live data (Line list: ${lineList}, Vaccinated: ${vaccinated}, Sessions: ${sessions}, Date: ${reportingDate}) to ${bName} (Block ID: ${blockId}, District ID: ${distId})`);
       
       successCount++;
     }
