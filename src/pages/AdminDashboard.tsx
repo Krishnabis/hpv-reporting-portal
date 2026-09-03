@@ -5,7 +5,7 @@ import {
   ShieldCheck, LogOut, Menu, X, Download, Filter, Search, Calendar,
   TrendingUp, CheckCircle, BarChart3, ChevronRight, ChevronLeft, ChevronDown, Hash, Eye, RefreshCw, Save,
   Building2, Edit2, Trash2, ClipboardList, FileSpreadsheet, Target, Bell,
-  Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Activity, Users as UsersIcon, Info, Clock
+  Syringe, Search as SearchIcon, HeartPulse, UploadCloud, Activity, Users as UsersIcon, Info, Clock, ShoppingCart
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { SearchableSelect, OptionItem } from '../components/SearchableSelect';
@@ -131,6 +131,16 @@ export const AdminDashboard: React.FC = () => {
   const [cclList, setCclList] = useState<any[]>([]);
   const [cclSearchTerm, setCclSearchTerm] = useState('');
   const [cclLoading, setCclLoading] = useState(false);
+
+  // Carousel State
+  const [carouselSlide, setCarouselSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCarouselSlide(prev => (prev === 0 ? 1 : 0));
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   const [cclEditModalOpen, setCclEditModalOpen] = useState(false);
   const [editingCcl, setEditingCcl] = useState<any>(null);
@@ -1660,56 +1670,126 @@ export const AdminDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Bottom Banner - Global Strategy */}
-              <div className="bg-white rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2 border border-slate-200">
-                <div className="p-2 sm:p-2.5 bg-[#14233c] border-b border-slate-200 flex items-center justify-center gap-2">
-                  <HeartPulse className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400 shrink-0" />
-                  <h3 className="text-[12px] sm:text-sm font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
+              </div>
+
+              {/* Right Side Carousel */}
+              <div className="relative bg-white rounded-xl shadow-sm overflow-hidden mb-4 border border-slate-200 lg:col-span-1">
+                <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${carouselSlide * 100}%)` }}>
+                  {/* Slide 1: Global Strategy */}
+                  <div className="min-w-full w-full shrink-0">
+                    <div className="p-2 sm:p-2.5 bg-[#14233c] border-b border-slate-200 flex items-center justify-center gap-2">
+                      <HeartPulse className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400 shrink-0" />
+                      <h3 className="text-[12px] sm:text-sm font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
+                    </div>
+                    <div className="p-2 sm:p-3 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                      {/* 90% Vaccinated */}
+                      <div className="bg-pink-50/50 rounded-xl border border-pink-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl sm:text-3xl font-black text-[#e81c6a] tracking-tighter">90%</span>
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-pink-100">
+                            <Syringe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#e81c6a]" />
+                          </div>
+                        </div>
+                        <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight">
+                          of Girls Vaccinated<br />Against HPV by Age 15
+                        </p>
+                      </div>
+                      {/* 70% Screened */}
+                      <div className="bg-teal-50/50 rounded-xl border border-teal-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl sm:text-3xl font-black text-[#438392] tracking-tighter">70%</span>
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
+                            <SearchIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#438392]" />
+                          </div>
+                        </div>
+                        <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight">
+                          of Women Screened with a<br />high-performance test by<br />Ages 35 and 45
+                        </p>
+                      </div>
+                      {/* 90% Treated */}
+                      <div className="bg-purple-50/50 rounded-xl border border-purple-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl sm:text-3xl font-black text-[#694b8c] tracking-tighter">90%</span>
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
+                            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#694b8c]" />
+                          </div>
+                        </div>
+                        <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight">
+                          of Women identified with<br />Cervical Disease<br />Receive Treatment
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Slide 2: Vaccine Stock Alert */}
+                  <div className="min-w-full w-full shrink-0 flex items-center justify-center p-3 gap-2 bg-white">
+                    
+                    {/* Left Header */}
+                    <div className="bg-indigo-50/50 rounded-xl border border-indigo-100 p-2 flex flex-col items-center justify-center gap-1.5 shadow-sm relative h-full flex-1">
+                      <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full border border-indigo-200 flex items-center justify-center text-indigo-400 text-[9px] italic font-serif bg-white cursor-help" title="Based on total stock balance across districts and blocks">i</div>
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-5 h-5 text-indigo-900" />
+                      </div>
+                      <h3 className="text-xs font-extrabold text-indigo-900 leading-tight text-center">Vaccine<br/>Stock Alert</h3>
+                    </div>
+
+                    {/* Middle: Critical */}
+                    <div className="bg-red-50/50 rounded-xl border border-red-100 p-2 flex flex-col justify-center shadow-sm h-full flex-[1.5]">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                          <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[11px] font-extrabold text-red-600">Critical</span>
+                          <span className="text-[8px] font-bold text-red-500 bg-red-100/80 px-1.5 py-0.5 rounded-full">Replenish Now</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-around mt-1">
+                        <div className="flex flex-col items-center">
+                          <span className="text-lg font-bold text-red-600 leading-none">13</span>
+                          <span className="text-[9px] text-red-500 font-medium">Districts</span>
+                        </div>
+                        <div className="w-px h-5 bg-red-200"></div>
+                        <div className="flex flex-col items-center">
+                          <span className="text-lg font-bold text-red-600 leading-none">116</span>
+                          <span className="text-[9px] text-red-500 font-medium">Blocks</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Re-Order */}
+                    <div className="bg-orange-50/50 rounded-xl border border-orange-100 p-2 flex flex-col justify-center shadow-sm h-full flex-[1.5]">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center">
+                          <ShoppingCart className="w-3.5 h-3.5 text-orange-500" />
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[11px] font-extrabold text-orange-700">Re-Order</span>
+                          <span className="text-[8px] font-bold text-orange-600 bg-orange-100/80 px-1.5 py-0.5 rounded-full">Re-order stock</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-around mt-1">
+                        <div className="flex flex-col items-center">
+                          <span className="text-lg font-bold text-orange-600 leading-none">0</span>
+                          <span className="text-[9px] text-orange-500 font-medium">Districts</span>
+                        </div>
+                        <div className="w-px h-5 bg-orange-200"></div>
+                        <div className="flex flex-col items-center">
+                          <span className="text-lg font-bold text-orange-600 leading-none">1</span>
+                          <span className="text-[9px] text-orange-500 font-medium">Blocks</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
-                <div className="p-2 sm:p-3 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-                  
-                  {/* 90% Vaccinated */}
-                  <div className="bg-pink-50/50 rounded-xl border border-pink-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl sm:text-3xl font-black text-[#e81c6a] tracking-tighter">90%</span>
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-pink-100">
-                        <Syringe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#e81c6a]" />
-                      </div>
-                    </div>
-                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
-                      of Girls Vaccinated<br />Against HPV by Age 15
-                    </p>
-                  </div>
-
-                  {/* 70% Screened */}
-                  <div className="bg-teal-50/50 rounded-xl border border-teal-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl sm:text-3xl font-black text-[#438392] tracking-tighter">70%</span>
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
-                        <SearchIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#438392]" />
-                      </div>
-                    </div>
-                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
-                      of Women Screened with a<br />high-performance test by<br />Ages 35 and 45
-                    </p>
-                  </div>
-
-                  {/* 90% Treated */}
-                  <div className="bg-purple-50/50 rounded-xl border border-purple-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl sm:text-3xl font-black text-[#694b8c] tracking-tighter">90%</span>
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
-                        <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#694b8c]" />
-                      </div>
-                    </div>
-                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
-                      of Women identified with<br />Cervical Disease<br />Receive Treatment
-                    </p>
-                  </div>
-
+                
+                {/* Dots */}
+                <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-1.5 z-10 pb-1">
+                  <button onClick={() => setCarouselSlide(0)} className={`w-1.5 h-1.5 rounded-full transition-all ${carouselSlide === 0 ? 'bg-indigo-500 w-3' : 'bg-slate-300'}`}></button>
+                  <button onClick={() => setCarouselSlide(1)} className={`w-1.5 h-1.5 rounded-full transition-all ${carouselSlide === 1 ? 'bg-indigo-500 w-3' : 'bg-slate-300'}`}></button>
                 </div>
               </div>
-            </div>
 
               {/* Right: Uttarakhand Interactive Map */}
               <div className="lg:col-span-1 bg-white p-2 lg:p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col lg:overflow-hidden lg:min-h-0 min-h-[400px]">
@@ -2071,55 +2151,6 @@ export const AdminDashboard: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Bottom Banner - Global Strategy */}
-                    <div className="bg-white rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2 border border-slate-200">
-                      <div className="p-2 sm:p-2.5 bg-[#14233c] border-b border-slate-200 flex items-center justify-center gap-2">
-                        <HeartPulse className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400 shrink-0" />
-                        <h3 className="text-[12px] sm:text-sm font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
-                      </div>
-                      <div className="p-2 sm:p-3 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-                        
-                        {/* 90% Vaccinated */}
-                        <div className="bg-pink-50/50 rounded-xl border border-pink-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl sm:text-3xl font-black text-[#e81c6a] tracking-tighter">90%</span>
-                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-pink-100">
-                              <Syringe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#e81c6a]" />
-                            </div>
-                          </div>
-                          <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
-                            of Girls Vaccinated<br />Against HPV by Age 15
-                          </p>
-                        </div>
-
-                        {/* 70% Screened */}
-                        <div className="bg-teal-50/50 rounded-xl border border-teal-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl sm:text-3xl font-black text-[#438392] tracking-tighter">70%</span>
-                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
-                              <SearchIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#438392]" />
-                            </div>
-                          </div>
-                          <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
-                            of Women Screened with a<br />high-performance test by<br />Ages 35 and 45
-                          </p>
-                        </div>
-
-                        {/* 90% Treated */}
-                        <div className="bg-purple-50/50 rounded-xl border border-purple-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl sm:text-3xl font-black text-[#694b8c] tracking-tighter">90%</span>
-                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
-                              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#694b8c]" />
-                            </div>
-                          </div>
-                          <p className="text-[9px] sm:text-[10px] font-bold text-slate-800 leading-tight max-w-[160px]">
-                            of Women identified with<br />Cervical Disease<br />Receive Treatment
-                          </p>
-                        </div>
-
-                      </div>
-                    </div>
                   </div>
 
                   {/* Right: Uttarakhand Interactive Map */}
