@@ -11,7 +11,9 @@ import autoTable from 'jspdf-autotable';
 export interface LedgerTransactionRow {
   id: string | number;
   ccl_name: string;
+  ccl_key?: string;
   transaction_date: string;
+  raw_date?: string;
   transaction_type: 'Receive' | 'Issue' | 'Month-end Reconciliation' | 'Adjustment' | string;
   batch_no: string;
   manufacturer_name: string;
@@ -20,10 +22,19 @@ export interface LedgerTransactionRow {
   facility_name: string;
   physical_stock_count: number | null;
   wastage_adjustment: number | null;
-  closing_balance: number;
+  closing_balance: number; // this is the running balance after this transaction
   remarks: string;
   ccl_level?: 'L1' | 'L2' | 'L3' | string;
   unit_type?: 'SVS' | 'RVS' | 'DVS' | 'CCP-B' | 'CCL' | string;
+  district_name?: string;
+}
+
+export interface CclSummaryRow {
+  cclKey: string;
+  cclName: string;
+  levelLabel: string;
+  unitType: string;
+  finalBalance: number;
 }
 
 interface StateItem {
@@ -225,10 +236,14 @@ export const VaccineStockLedger: React.FC<{
   states?: StateItem[];
 }> = ({ adminUser, districts: initialDistricts = [], states: initialStates = [] }) => {
   const [data, setData] = useState<LedgerTransactionRow[]>(DEFAULT_TRANSACTIONS);
+  const [cclSummary, setCclSummary] = useState<CclSummaryRow[]>([]);
+  const [apiKpis, setApiKpis] = useState<any>(null); // kpis returned from the live API
+  const [isLiveData, setIsLiveData] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchCCL, setSearchCCL] = useState('');
   const [quickSearch, setQuickSearch] = useState('');
   const [showAdvanceSearch, setShowAdvanceSearch] = useState(false);
+  const [showCclSummary, setShowCclSummary] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Filters State
@@ -287,8 +302,14 @@ export const VaccineStockLedger: React.FC<{
         const json = await res.json();
         if (json && json.rows && Array.isArray(json.rows) && json.rows.length > 0) {
           setData(json.rows);
+          setIsLiveData(!!json.isLive);
+          if (json.cclSummary) setCclSummary(json.cclSummary);
+          if (json.kpis) setApiKpis(json.kpis);
         } else {
           setData(DEFAULT_TRANSACTIONS);
+          setIsLiveData(false);
+          setCclSummary([]);
+          setApiKpis(null);
         }
       }
     } catch (err) {
@@ -353,15 +374,27 @@ export const VaccineStockLedger: React.FC<{
     return result;
   }, [data, searchCCL, quickSearch, selectedDistrict, cclLevel, cclUnitType, transactionType, manufacturerName, batchNo, sortField, sortOrder]);
 
-  // Compute KPI Summaries
+  // Compute KPI Summaries — use API-returned values when live to avoid any client-side double-counting
   const kpis = useMemo(() => {
-    let openingStock = 1250;
+    // If we have live API kpis, use them directly (they are correctly computed server-side)
+    if (isLiveData && apiKpis) {
+      return {
+        openingStock: apiKpis.openingStock ?? 0,
+        totalReceived: apiKpis.totalReceived ?? 0,
+        totalIssued: apiKpis.totalIssued ?? 0,
+        totalAdjustment: apiKpis.totalAdjustment ?? 0,
+        closingStock: apiKpis.closingStock ?? 0,
+        wastagePct: apiKpis.wastagePct ?? '0.00'
+      };
+    }
+
+    // Fallback: compute client-side from the displayed data (for demo/default rows)
     let totalReceived = 0;
     let totalIssued = 0;
     let totalAdjustment = 0;
 
     filteredData.forEach(row => {
-      if (row.transaction_type === 'Receive' && row.transaction_quantity) {
+      if (row.transaction_type === 'Receive' && row.transaction_quantity && row.transaction_quantity > 0) {
         totalReceived += row.transaction_quantity;
       } else if (row.transaction_type === 'Issue' && row.transaction_quantity) {
         totalIssued += Math.abs(row.transaction_quantity);
@@ -371,22 +404,18 @@ export const VaccineStockLedger: React.FC<{
       }
     });
 
-    if (totalReceived === 0) totalReceived = 2000;
-    if (totalIssued === 0) totalIssued = 2750;
-    if (totalAdjustment === 0) totalAdjustment = 75;
-
-    const closingStock = Math.max(0, openingStock + totalReceived - totalIssued - totalAdjustment);
-    const wastagePct = totalIssued > 0 ? ((totalAdjustment / totalIssued) * 100).toFixed(2) : '2.73';
+    const closingStock = Math.max(0, totalReceived - totalIssued - totalAdjustment);
+    const wastagePct = totalIssued > 0 ? ((totalAdjustment / totalIssued) * 100).toFixed(2) : '0.00';
 
     return {
-      openingStock,
+      openingStock: 0,
       totalReceived,
       totalIssued,
       totalAdjustment,
       closingStock,
       wastagePct
     };
-  }, [filteredData]);
+  }, [filteredData, isLiveData, apiKpis]);
 
   // Pagination Logic
   const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
@@ -771,6 +800,79 @@ export const VaccineStockLedger: React.FC<{
         </div>
       )}
 
+      {/* ─── 4. CCL FINAL BALANCE SUMMARY PANEL ─── */}
+      {cclSummary.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 shrink-0">
+          <button
+            onClick={() => setShowCclSummary(prev => !prev)}
+            className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors rounded-xl cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <Layers className="w-3.5 h-3.5 text-purple-600" />
+              <span className="uppercase tracking-wider">CCL Stock Summary — Final Balances ({cclSummary.length} CCLs)</span>
+              <span className="text-[10px] font-normal text-slate-400">Running balance after all transactions</span>
+            </div>
+            {showCclSummary ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+          </button>
+
+          {showCclSummary && (
+            <div className="overflow-x-auto border-t border-slate-100">
+              <table className="w-full text-left" style={{ fontSize: '11px' }}>
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="px-3 py-2 font-bold text-slate-500 uppercase tracking-wide">CCL Name</th>
+                    <th className="px-3 py-2 font-bold text-slate-500 uppercase tracking-wide text-center">Level</th>
+                    <th className="px-3 py-2 font-bold text-slate-500 uppercase tracking-wide text-center">Unit Type</th>
+                    <th className="px-3 py-2 font-bold text-slate-500 uppercase tracking-wide text-right">Final Stock Balance</th>
+                    <th className="px-3 py-2 font-bold text-slate-500 uppercase tracking-wide text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {cclSummary.map((ccl, i) => {
+                    const isPositive = ccl.finalBalance > 0;
+                    const isNegative = ccl.finalBalance < 0;
+                    const isZero = ccl.finalBalance === 0;
+                    return (
+                      <tr key={ccl.cclKey || i} className="hover:bg-purple-50/20 transition-colors">
+                        <td className="px-3 py-2 font-semibold text-slate-800">{ccl.cclName}</td>
+                        <td className="px-3 py-2 text-center">
+                          <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-100 text-indigo-700">{ccl.levelLabel}</span>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600">{ccl.unitType}</span>
+                        </td>
+                        <td className={`px-3 py-2 text-right font-black text-sm ${
+                          isPositive ? 'text-emerald-700' : isNegative ? 'text-rose-600' : 'text-slate-500'
+                        }`}>
+                          {isPositive && '+'}{fmt(ccl.finalBalance)}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {isPositive && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                              <CheckCircle2 className="w-2.5 h-2.5" /> Stock Available
+                            </span>
+                          )}
+                          {isNegative && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                              <AlertCircle className="w-2.5 h-2.5" /> Stock Deficit
+                            </span>
+                          )}
+                          {isZero && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                              <CheckCircle2 className="w-2.5 h-2.5" /> Balanced
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ─── 5. DATA TABLE CONTAINER ─── */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col flex-1 min-h-0 overflow-hidden">
         
@@ -856,7 +958,7 @@ export const VaccineStockLedger: React.FC<{
                   className="px-3 py-2 border-b border-purple-900/40 text-right cursor-pointer hover:bg-purple-900/50 select-none"
                 >
                   <div className="flex items-center justify-end gap-1">
-                    <span>Closing Stock</span>
+                    <span>Running Balance</span>
                     <ArrowUpDown className="w-3 h-3 text-purple-200" />
                   </div>
                 </th>
@@ -929,7 +1031,15 @@ export const VaccineStockLedger: React.FC<{
                         )}
                       </td>
 
-                      <td className="px-3 py-2 text-right font-black text-slate-900 bg-slate-50/50">{fmt(row.closing_balance)}</td>
+                      <td className={`px-3 py-2 text-right font-black bg-slate-50/50 ${
+                        row.closing_balance > 0
+                          ? 'text-emerald-700'
+                          : row.closing_balance < 0
+                          ? 'text-rose-600'
+                          : 'text-slate-500'
+                      }`}>
+                        {row.closing_balance > 0 && '+'}{fmt(row.closing_balance)}
+                      </td>
 
                       <td className="px-3 py-2 text-slate-500 italic text-[10px]">{row.remarks}</td>
                     </tr>
