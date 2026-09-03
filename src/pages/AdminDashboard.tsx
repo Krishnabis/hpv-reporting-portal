@@ -1781,7 +1781,10 @@ export const AdminDashboard: React.FC = () => {
                     }))}
                     selectedKpi={selectedKpi === 'both' ? 'coverage' : selectedKpi}
                     selectedDistrict={selectedDistrict}
-                    onDistrictClick={setSelectedDistrict}
+                    onDistrictClick={(d) => {
+                      if (adminUser?.role === 'DISTRICT_ADMIN' && d !== adminUser.district_name) return;
+                      setSelectedDistrict(d);
+                    }}
                   />
                 </div>
 
@@ -2168,7 +2171,10 @@ export const AdminDashboard: React.FC = () => {
                         }))}
                         selectedKpi={'coverage'}
                         selectedDistrict={selectedDistrict}
-                        onDistrictClick={setSelectedDistrict}
+                        onDistrictClick={(d) => {
+                          if (adminUser?.role === 'DISTRICT_ADMIN' && d !== adminUser.district_name) return;
+                          setSelectedDistrict(d);
+                        }}
                       />
                     </div>
 

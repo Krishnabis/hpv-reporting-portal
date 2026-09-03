@@ -956,8 +956,6 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       .select(targetStateId ? 'id, name, health_block_name, is_urban, district_id, districts!inner(name, state_id, divisions(name))' : 'id, name, health_block_name, is_urban, district_id, districts!inner(name, divisions(name))')
       .eq('is_active', true);
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
-    if (targetDistrictId) bq = bq.eq('district_id', targetDistrictId);
-    
     const { data: blocks, error: bErr } = await bq;
     if (bErr) throw bErr;
 
@@ -999,7 +997,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
        }
     });
 
-    let totalBlocks = blocks?.length || 0;
+    let totalBlocks = targetDistrictId && String(targetDistrictId) !== 'ALL' ? (blocks || []).filter(b => String(b.district_id) === String(targetDistrictId)).length : (blocks?.length || 0);
     let totalLineList = 0;
     let totalVaccinated = 0;
     let reportingToday = 0;
@@ -1017,21 +1015,27 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
       const pop = prof?.base_population || 0;
       
-      totalTarget += target;
-      totalPopulation += pop;
+      const isTargetDist = !targetDistrictId || String(targetDistrictId) === 'ALL' || String(b.district_id) === String(targetDistrictId);
+
+      if (isTargetDist) {
+        totalTarget += target;
+        totalPopulation += pop;
+      }
       districtStats[dName].target += target;
       districtStats[dName].population += pop;
 
       const repData = reportMap[b.id];
       if (repData && repData.latest) {
         const hasTodayEntry = (repData.latest.reporting_date === targetDateStr);
-        if (hasTodayEntry) reportingToday++;
+        if (hasTodayEntry && isTargetDist) reportingToday++;
 
         const ll = repData.latest.line_list_count || 0;
         const vacc = repData.latest.beneficiaries_vaccinated || 0;
 
-        totalLineList += ll;
-        totalVaccinated += vacc;
+        if (isTargetDist) {
+          totalLineList += ll;
+          totalVaccinated += vacc;
+        }
         districtStats[dName].lineList += ll;
         districtStats[dName].vaccinated += vacc;
 
@@ -1044,9 +1048,9 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       }
       
       // Calculate Low Stock
-      const vacc = repData?.latest?.beneficiaries_vaccinated || 0;
+      const vaccCalc = repData?.latest?.beneficiaries_vaccinated || 0;
       const received = blockStockMap[b.id] || 0;
-      const stockBalance = received - vacc;
+      const stockBalance = received - vaccCalc;
       const isLowStock = target > 0 && stockBalance < (target * 0.25);
       if (isLowStock) {
         districtStats[dName].hasLowStockBlock = true;
