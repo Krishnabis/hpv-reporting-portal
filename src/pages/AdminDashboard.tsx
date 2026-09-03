@@ -136,10 +136,7 @@ export const AdminDashboard: React.FC = () => {
   const [carouselSlide, setCarouselSlide] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCarouselSlide(prev => (prev === 0 ? 1 : 0));
-    }, 5000);
-    return () => clearInterval(timer);
+    // Auto-moving removed per user request
   }, []);
 
   const [cclEditModalOpen, setCclEditModalOpen] = useState(false);
@@ -1015,7 +1012,7 @@ export const AdminDashboard: React.FC = () => {
               title="Dashboard"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'dashboard'
-                  ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]'
+                  ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
               }`}
             >
@@ -1029,7 +1026,7 @@ export const AdminDashboard: React.FC = () => {
               title="Monitoring"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'monitoring'
-                  ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]'
+                  ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
               }`}
             >
@@ -1057,7 +1054,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('locations')}
                     title="Block Units"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'locations' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'locations' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <Building2 className={`w-4 h-4 shrink-0 ${activeTab === 'locations' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1069,7 +1066,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('daily-progress')}
                     title="Daily Progress"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'daily-progress' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'daily-progress' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'daily-progress' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1081,7 +1078,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('due-list-report')}
                     title="Due List Report"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'due-list-report' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'due-list-report' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'due-list-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1093,7 +1090,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('completeness-report')}
                     title="Reporting (%)"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'completeness-report' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'completeness-report' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'completeness-report' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1105,7 +1102,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-monitoring')}
                     title="Stock Availability (%)"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-monitoring' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'stock-monitoring' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1117,7 +1114,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('trend')}
                     title="Trends"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'trend' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'trend' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <TrendingUp className={`w-4 h-4 shrink-0 ${activeTab === 'trend' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1147,7 +1144,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('cold-chain-locations')}
                     title="Cold Chain Locations"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'cold-chain-locations' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'cold-chain-locations' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <MapPin className={`w-4 h-4 shrink-0 ${activeTab === 'cold-chain-locations' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1160,7 +1157,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('stock-receiving')}
                       title="Stock Receipt"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'stock-receiving' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                        activeTab === 'stock-receiving' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                       }`}
                     >
                       <FileSpreadsheet className={`w-4 h-4 shrink-0 ${activeTab === 'stock-receiving' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1173,7 +1170,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-issuing')}
                     title="Stock Issue"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-issuing' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'stock-issuing' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <Syringe className={`w-4 h-4 shrink-0 ${activeTab === 'stock-issuing' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1185,7 +1182,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('month-end-balance')}
                     title="Month-End Balance"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'month-end-balance' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'month-end-balance' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'month-end-balance' ? 'text-pink-600' : 'text-slate-400'}`} />
@@ -1197,7 +1194,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stock-ledger')}
                     title="Stock Ledger"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'stock-ledger' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'stock-ledger' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <ClipboardList className={`w-4 h-4 shrink-0 ${activeTab === 'stock-ledger' ? 'text-indigo-600' : 'text-slate-400'}`} />
@@ -1228,7 +1225,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('users')}
                       title="Admin Users"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'users' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                        activeTab === 'users' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                       }`}
                     >
                       <UsersIcon className={`w-4 h-4 shrink-0 ${activeTab === 'users' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1238,7 +1235,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('activity')}
                       title="Activity"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'activity' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                        activeTab === 'activity' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                       }`}
                     >
                       <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'activity' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1270,7 +1267,7 @@ export const AdminDashboard: React.FC = () => {
                       onClick={() => handleTabChange('upload')}
                       title="Upload CSV"
                       className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                        activeTab === 'upload' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                        activeTab === 'upload' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                       }`}
                     >
                       <UploadCloud className={`w-4 h-4 shrink-0 ${activeTab === 'upload' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1283,7 +1280,7 @@ export const AdminDashboard: React.FC = () => {
                     onClick={() => handleTabChange('settings')}
                     title="Update Password"
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : ''} gap-3 px-3 py-2 rounded-lg transition-all ${
-                      activeTab === 'settings' ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
+                      activeTab === 'settings' ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
                     }`}
                   >
                     <SettingsIcon className={`w-4 h-4 shrink-0 ${activeTab === 'settings' ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -1299,7 +1296,7 @@ export const AdminDashboard: React.FC = () => {
               title="Feedback"
               className={`w-full flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''} gap-3 px-4 py-2.5 rounded-xl transition-all ${
                 activeTab === 'feedback'
-                  ? 'bg-[#5b58c7] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]'
+                  ? 'bg-[#3A0088] text-white font-bold rounded-xl shadow-[0_0_15px_rgba(91,88,199,0.6)]'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all'
               }`}
             >
@@ -1670,10 +1667,8 @@ export const AdminDashboard: React.FC = () => {
                 )}
               </div>
 
-              </div>
-
-              {/* Right Side Carousel */}
-              <div className="relative bg-white rounded-xl shadow-sm overflow-hidden mb-4 border border-slate-200 lg:col-span-1">
+              {/* Bottom Left Carousel (Moved inside Left Column) */}
+              <div className="relative bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200 flex-shrink-0 group">
                 <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${carouselSlide * 100}%)` }}>
                   {/* Slide 1: Global Strategy */}
                   <div className="min-w-full w-full shrink-0">
@@ -1681,7 +1676,7 @@ export const AdminDashboard: React.FC = () => {
                       <HeartPulse className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400 shrink-0" />
                       <h3 className="text-[12px] sm:text-sm font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
                     </div>
-                    <div className="p-2 sm:p-3 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                    <div className="p-2 sm:p-3 pb-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                       {/* 90% Vaccinated */}
                       <div className="bg-pink-50/50 rounded-xl border border-pink-200 p-2 sm:p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:shadow-md">
                         <div className="flex items-center gap-2">
@@ -1722,7 +1717,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
 
                   {/* Slide 2: Vaccine Stock Alert */}
-                  <div className="min-w-full w-full shrink-0 flex items-center justify-center p-3 gap-2 bg-white">
+                  <div className="min-w-full w-full shrink-0 flex items-center justify-center p-2 pb-4 gap-2 bg-white">
                     
                     {/* Left Header */}
                     <div className="bg-indigo-50/50 rounded-xl border border-indigo-100 p-2 flex flex-col items-center justify-center gap-1.5 shadow-sm relative h-full flex-1">
@@ -1784,11 +1779,27 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 
+                {/* Navigation Arrows */}
+                <button 
+                  onClick={() => setCarouselSlide(0)} 
+                  className={`absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/90 border border-slate-200 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors z-20 ${carouselSlide === 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                >
+                  <ChevronLeft className="w-4 h-4 ml-[-1px]" />
+                </button>
+                <button 
+                  onClick={() => setCarouselSlide(1)} 
+                  className={`absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/90 border border-slate-200 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors z-20 ${carouselSlide === 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                >
+                  <ChevronRight className="w-4 h-4 mr-[-1px]" />
+                </button>
+
                 {/* Dots */}
-                <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-1.5 z-10 pb-1">
+                <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-1.5 z-10">
                   <button onClick={() => setCarouselSlide(0)} className={`w-1.5 h-1.5 rounded-full transition-all ${carouselSlide === 0 ? 'bg-indigo-500 w-3' : 'bg-slate-300'}`}></button>
                   <button onClick={() => setCarouselSlide(1)} className={`w-1.5 h-1.5 rounded-full transition-all ${carouselSlide === 1 ? 'bg-indigo-500 w-3' : 'bg-slate-300'}`}></button>
                 </div>
+              </div>
+
               </div>
 
               {/* Right: Uttarakhand Interactive Map */}
