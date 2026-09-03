@@ -3069,6 +3069,7 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
          kpis,
          isLive: true
       });
+    } // <-- Added missing brace for if (useSupabase)
 
     // Reference fallback rows when DB table is freshly initialized or empty
     const rows = [
