@@ -1099,7 +1099,7 @@ export const AdminDashboard: React.FC = () => {
                     }`}
                   >
                     <Activity className={`w-4 h-4 shrink-0 ${activeTab === 'stock-monitoring' ? 'text-emerald-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Stock Availability (%)</span>
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm whitespace-nowrap'}>Stock Availability (%)</span>
                   </button>
 
                   {/* Trends */}
@@ -1141,7 +1141,7 @@ export const AdminDashboard: React.FC = () => {
                     }`}
                   >
                     <MapPin className={`w-4 h-4 shrink-0 ${activeTab === 'cold-chain-locations' ? 'text-pink-600' : 'text-slate-400'}`} />
-                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm'}>Cold Chain Locations</span>
+                    <span className={sidebarCollapsed ? 'hidden' : 'text-sm whitespace-nowrap'}>Cold Chain Locations</span>
                   </button>
 
                   {/* Stock Receipt (ONLY State, Level 1, Superadmin) */}
