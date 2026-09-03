@@ -1620,8 +1620,8 @@ export const AdminDashboard: React.FC = () => {
                             <div className="flex-1 min-w-0 flex items-baseline gap-1 truncate">
                               <span className="text-[11px] font-bold text-slate-800 truncate">
                                 {rowName}
-                                {((isBlock && d.isLowStock) || (!isBlock && d.hasLowStockBlock)) && (
-                                  <span title="Low stock in this area"><Syringe className="w-3 h-3 text-pink-500 inline-block ml-1 -mt-0.5" /></span>
+                                {!isBlock && rowName.toLowerCase() === 'chamoli' && (
+                                  <span title="Vaccine Active"><Syringe className="w-3 h-3 text-pink-500 inline-block ml-1 -mt-0.5" /></span>
                                 )}
                                 {isBlock && d.is_urban && (
                                   <span className="text-slate-400 font-medium ml-1">
@@ -1665,65 +1665,53 @@ export const AdminDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Bottom Banner - Vaccine Dashboard */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2">
-                <div className="p-2 sm:p-3 border-b border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <h3 className="text-[12px] sm:text-sm font-bold text-slate-800">Vaccine Dashboard</h3>
-                    <p className="text-[9px] sm:text-[10px] text-slate-500">Monitors HPV vaccine stock availability and flags areas requiring timely replenishment.</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 cursor-help shrink-0" title="Alerts are based on current stock balance relative to total issued stock">
-                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-600">Vaccine Stock Alert</span>
-                    <Info className="w-3.5 h-3.5 text-slate-400" />
-                  </div>
+              {/* Bottom Banner - Global Strategy */}
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2 border border-slate-200">
+                <div className="p-3 sm:p-4 bg-[#14233c] border-b border-slate-200 flex items-center justify-center gap-3">
+                  <HeartPulse className="w-6 h-6 sm:w-8 sm:h-8 text-pink-400 shrink-0" />
+                  <h3 className="text-[14px] sm:text-lg md:text-xl font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
                 </div>
-                <div className="p-2 sm:p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 bg-white/50">
-                  <div className="flex flex-col p-2 sm:p-3 bg-red-50 border border-red-100 rounded-xl">
-                    <div className="flex justify-between items-center mb-1 sm:mb-2">
-                      <span className="text-[10px] sm:text-xs font-bold text-red-800">Critical</span>
-                      <span className="text-[9px] sm:text-[10px] font-bold text-red-600 bg-red-100 px-1.5 sm:px-2 py-0.5 rounded-full text-center">Replenish Now</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 mt-1">
-                      <div>
-                        <div className="text-lg sm:text-xl font-black text-red-700">
-                          {(vaccDashboard?.districtUtilization || []).filter((d: any) => (d.stockBalance || 0) < ((d.issued || 1) * 0.10)).length || 0}
-                        </div>
-                        <div className="text-[9px] sm:text-[10px] font-medium text-red-600/80">Districts</div>
-                      </div>
-                      <div>
-                        <div className="text-lg sm:text-xl font-black text-red-700">
-                          {(vaccDashboard?.blockUtilization || []).filter((d: any) => (d.stockBalance || 0) < ((d.issued || 1) * 0.10)).length || 0}
-                        </div>
-                        <div className="text-[9px] sm:text-[10px] font-medium text-red-600/80">Blocks</div>
+                <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  
+                  {/* 90% Vaccinated */}
+                  <div className="bg-pink-50/50 rounded-xl border border-pink-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
+                    <div className="flex items-center gap-3">
+                      <span className="text-5xl sm:text-6xl font-black text-[#e81c6a] tracking-tighter">90%</span>
+                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-pink-100">
+                        <Syringe className="w-6 h-6 text-[#e81c6a]" />
                       </div>
                     </div>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                      of Girls Vaccinated<br />Against HPV by Age 15
+                    </p>
                   </div>
-                  <div className="flex flex-col p-2 sm:p-3 bg-orange-50 border border-orange-100 rounded-xl">
-                    <div className="flex justify-between items-center mb-1 sm:mb-2">
-                      <span className="text-[10px] sm:text-xs font-bold text-orange-800">Re-Order</span>
-                      <span className="text-[9px] sm:text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 sm:px-2 py-0.5 rounded-full text-center">Re-order stock</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 mt-1">
-                      <div>
-                        <div className="text-lg sm:text-xl font-black text-orange-700">
-                          {(vaccDashboard?.districtUtilization || []).filter((d: any) => {
-                            const isCrit = (d.stockBalance || 0) < ((d.issued || 1) * 0.10);
-                            return (d.stockBalance || 0) < ((d.issued || 1) * 0.30) && !isCrit;
-                          }).length || 0}
-                        </div>
-                        <div className="text-[9px] sm:text-[10px] font-medium text-orange-600/80">Districts</div>
-                      </div>
-                      <div>
-                        <div className="text-lg sm:text-xl font-black text-orange-700">
-                          {(vaccDashboard?.blockUtilization || []).filter((d: any) => {
-                            const isCrit = (d.stockBalance || 0) < ((d.issued || 1) * 0.10);
-                            return (d.stockBalance || 0) < ((d.issued || 1) * 0.30) && !isCrit;
-                          }).length || 0}
-                        </div>
-                        <div className="text-[9px] sm:text-[10px] font-medium text-orange-600/80">Blocks</div>
+
+                  {/* 70% Screened */}
+                  <div className="bg-teal-50/50 rounded-xl border border-teal-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
+                    <div className="flex items-center gap-3">
+                      <span className="text-5xl sm:text-6xl font-black text-[#438392] tracking-tighter">70%</span>
+                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
+                        <SearchIcon className="w-6 h-6 text-[#438392]" />
                       </div>
                     </div>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                      of Women Screened with a<br />high-performance test by<br />Ages 35 and 45
+                    </p>
                   </div>
+
+                  {/* 90% Treated */}
+                  <div className="bg-purple-50/50 rounded-xl border border-purple-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
+                    <div className="flex items-center gap-3">
+                      <span className="text-5xl sm:text-6xl font-black text-[#694b8c] tracking-tighter">90%</span>
+                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
+                        <ShieldCheck className="w-6 h-6 text-[#694b8c]" />
+                      </div>
+                    </div>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                      of Women identified with<br />Cervical Disease<br />Receive Treatment
+                    </p>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -2045,6 +2033,9 @@ export const AdminDashboard: React.FC = () => {
                                   <div className="flex-1 min-w-0 flex items-center gap-1.5 truncate">
                                     <span className={`text-[11px] font-bold truncate shrink-0 ${isCrit ? 'text-red-700 bg-red-100 px-1 rounded' : isLow ? 'text-orange-600' : 'text-slate-800'}`}>
                                       {rowName}
+                                      {!isBlock && rowName.toLowerCase() === 'chamoli' && (
+                                        <span title="Vaccine Active"><Syringe className="w-3 h-3 text-pink-500 inline-block ml-1 -mt-0.5" /></span>
+                                      )}
                                       {isBlock && d.is_urban && (
                                         <span className="text-slate-400 font-medium ml-1">Urban</span>
                                       )}
@@ -2082,65 +2073,53 @@ export const AdminDashboard: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Bottom Banner - Vaccine Dashboard */}
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2">
-                      <div className="p-2 sm:p-3 border-b border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div>
-                          <h3 className="text-[12px] sm:text-sm font-bold text-slate-800">Vaccine Dashboard</h3>
-                          <p className="text-[9px] sm:text-[10px] text-slate-500">Monitors HPV vaccine stock availability and flags areas requiring timely replenishment.</p>
-                        </div>
-                        <div className="flex items-center gap-1.5 cursor-help shrink-0" title="Alerts are based on current stock balance relative to total issued stock">
-                          <span className="text-[10px] sm:text-[11px] font-bold text-slate-600">Vaccine Stock Alert</span>
-                          <Info className="w-3.5 h-3.5 text-slate-400" />
-                        </div>
+                    {/* Bottom Banner - Global Strategy */}
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden shrink-0 flex flex-col relative mt-2 border border-slate-200">
+                      <div className="p-3 sm:p-4 bg-[#14233c] border-b border-slate-200 flex items-center justify-center gap-3">
+                        <HeartPulse className="w-6 h-6 sm:w-8 sm:h-8 text-pink-400 shrink-0" />
+                        <h3 className="text-[14px] sm:text-lg md:text-xl font-bold text-white tracking-wide text-center">Global Strategy to Eliminate Cervical Cancer by 2030</h3>
                       </div>
-                      <div className="p-2 sm:p-3 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 bg-white/50">
-                        <div className="flex flex-col p-2 sm:p-3 bg-red-50 border border-red-100 rounded-xl">
-                          <div className="flex justify-between items-center mb-1 sm:mb-2">
-                            <span className="text-[10px] sm:text-xs font-bold text-red-800">Critical</span>
-                            <span className="text-[9px] sm:text-[10px] font-bold text-red-600 bg-red-100 px-1.5 sm:px-2 py-0.5 rounded-full text-center">Replenish Now</span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 mt-1">
-                            <div>
-                              <div className="text-lg sm:text-xl font-black text-red-700">
-                                {(vaccDashboard?.districtUtilization || []).filter((d: any) => (d.stockBalance || 0) < ((d.issued || 1) * 0.10)).length || 0}
-                              </div>
-                              <div className="text-[9px] sm:text-[10px] font-medium text-red-600/80">Districts</div>
-                            </div>
-                            <div>
-                              <div className="text-lg sm:text-xl font-black text-red-700">
-                                {(vaccDashboard?.blockUtilization || []).filter((d: any) => (d.stockBalance || 0) < ((d.issued || 1) * 0.10)).length || 0}
-                              </div>
-                              <div className="text-[9px] sm:text-[10px] font-medium text-red-600/80">Blocks</div>
+                      <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        
+                        {/* 90% Vaccinated */}
+                        <div className="bg-pink-50/50 rounded-xl border border-pink-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
+                          <div className="flex items-center gap-3">
+                            <span className="text-5xl sm:text-6xl font-black text-[#e81c6a] tracking-tighter">90%</span>
+                            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-pink-100">
+                              <Syringe className="w-6 h-6 text-[#e81c6a]" />
                             </div>
                           </div>
+                          <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                            of Girls Vaccinated<br />Against HPV by Age 15
+                          </p>
                         </div>
-                        <div className="flex flex-col p-2 sm:p-3 bg-orange-50 border border-orange-100 rounded-xl">
-                          <div className="flex justify-between items-center mb-1 sm:mb-2">
-                            <span className="text-[10px] sm:text-xs font-bold text-orange-800">Re-Order</span>
-                            <span className="text-[9px] sm:text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 sm:px-2 py-0.5 rounded-full text-center">Re-order stock</span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 mt-1">
-                            <div>
-                              <div className="text-lg sm:text-xl font-black text-orange-700">
-                                {(vaccDashboard?.districtUtilization || []).filter((d: any) => {
-                                  const isCrit = (d.stockBalance || 0) < ((d.issued || 1) * 0.10);
-                                  return (d.stockBalance || 0) < ((d.issued || 1) * 0.30) && !isCrit;
-                                }).length || 0}
-                              </div>
-                              <div className="text-[9px] sm:text-[10px] font-medium text-orange-600/80">Districts</div>
-                            </div>
-                            <div>
-                              <div className="text-lg sm:text-xl font-black text-orange-700">
-                                {(vaccDashboard?.blockUtilization || []).filter((d: any) => {
-                                  const isCrit = (d.stockBalance || 0) < ((d.issued || 1) * 0.10);
-                                  return (d.stockBalance || 0) < ((d.issued || 1) * 0.30) && !isCrit;
-                                }).length || 0}
-                              </div>
-                              <div className="text-[9px] sm:text-[10px] font-medium text-orange-600/80">Blocks</div>
+
+                        {/* 70% Screened */}
+                        <div className="bg-teal-50/50 rounded-xl border border-teal-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
+                          <div className="flex items-center gap-3">
+                            <span className="text-5xl sm:text-6xl font-black text-[#438392] tracking-tighter">70%</span>
+                            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-teal-100">
+                              <SearchIcon className="w-6 h-6 text-[#438392]" />
                             </div>
                           </div>
+                          <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                            of Women Screened with a<br />high-performance test by<br />Ages 35 and 45
+                          </p>
                         </div>
+
+                        {/* 90% Treated */}
+                        <div className="bg-purple-50/50 rounded-xl border border-purple-200 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-3 transition-colors hover:shadow-md">
+                          <div className="flex items-center gap-3">
+                            <span className="text-5xl sm:text-6xl font-black text-[#694b8c] tracking-tighter">90%</span>
+                            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-purple-100">
+                              <ShieldCheck className="w-6 h-6 text-[#694b8c]" />
+                            </div>
+                          </div>
+                          <p className="text-xs sm:text-sm font-bold text-slate-800 leading-snug max-w-[220px]">
+                            of Women identified with<br />Cervical Disease<br />Receive Treatment
+                          </p>
+                        </div>
+
                       </div>
                     </div>
                   </div>
