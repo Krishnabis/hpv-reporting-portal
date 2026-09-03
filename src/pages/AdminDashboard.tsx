@@ -2534,6 +2534,7 @@ export const AdminDashboard: React.FC = () => {
               adminUser={adminUser} 
               divisions={divisionsList}
               districts={allDistrictsList}
+              states={statesList}
             />
           </div>
         </div>

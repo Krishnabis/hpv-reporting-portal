@@ -37,13 +37,13 @@ export async function ensureMonthlyLedger(targetMonthStr, blocks, districtStores
             { data: dailyReports }
         ] = await Promise.all([
             // 1. Monthly balances for the PREVIOUS month to determine reporting %
-            supabase.from('monthly_balance').select('facility_id, qty_doses, transaction_date').gte('transaction_date', prevMonthStr + '-01').lte('transaction_date', prevMonthEnd),
+            supabase.from('monthly_balance').select('facility_id, qty_doses, transaction_date').gte('transaction_date', prevMonthStr + '-01').lte('transaction_date', prevMonthEnd).limit(100000),
             // 2. Transactions for the LAST 12 MONTHS (up to prevMonthEnd)
-            supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses').gte('transaction_date', twelveMonthsPriorStart).lte('transaction_date', prevMonthEnd).eq('transaction_type', 'RECEIVED'),
+            supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses').gte('transaction_date', twelveMonthsPriorStart).lte('transaction_date', prevMonthEnd).eq('transaction_type', 'RECEIVED').limit(100000),
             // 3. Transactions for CURRENT MONTH
-            supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses').gte('transaction_date', targetMonthStart).lte('transaction_date', targetMonthEnd),
+            supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses').gte('transaction_date', targetMonthStart).lte('transaction_date', targetMonthEnd).limit(100000),
             // 4. Daily reports (we need all history up to targetMonthEnd to compute max)
-            supabase.from('daily_reports').select('block_id, reporting_date, beneficiaries_vaccinated').lte('reporting_date', targetMonthEnd)
+            supabase.from('daily_reports').select('block_id, reporting_date, beneficiaries_vaccinated').lte('reporting_date', targetMonthEnd).limit(100000)
         ]);
 
         // Process Daily Reports into Max Cumulative logic

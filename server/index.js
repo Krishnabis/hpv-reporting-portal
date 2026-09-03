@@ -2329,7 +2329,8 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
 
     if (!useSupabase) return res.json({ rows: [], kpis: { totalDvs: 0, totalCcp: 0 } });
 
-    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
+    const selectedStateId = req.query.state_id || req.query.stateId;
+    const targetStateId = req.user.role === 'ADMIN' ? req.user.state_id : (selectedStateId && selectedStateId !== 'ALL' ? selectedStateId : null);
 
     // 1. Fetch Blocks & Targets
     let bQuery = supabase
@@ -2435,7 +2436,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 month_end_total_ccp: r.pre_month_total_ccp,
                 month_end_stock_reported: r.pre_month_end_stock_reported,
                 opening_stock_crude_method: r.opening_stock_crude_method,
-                estimation_model: r.estimation_model,
+                estimation_model: r.estimation_model === 'Reported Value Method' || r.estimation_model === 'Reported Stock' ? 'Reported Stock' : 'Crude Method',
                 stock_availability_pct: r.stock_availability_percentage,
                 action_required: r.action,
                 vaccine_received_last_12_months: r.vaccine_received_last_12_months,
@@ -2464,7 +2465,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 month_end_total_ccp: r.pre_month_total_ccp,
                 month_end_stock_reported: r.pre_month_end_stock_reported,
                 opening_stock_crude_method: r.opening_stock_crude_method,
-                estimation_model: r.estimation_model,
+                estimation_model: r.estimation_model === 'Reported Value Method' || r.estimation_model === 'Reported Stock' ? 'Reported Stock' : 'Crude Method',
                 stock_availability_pct: r.stock_availability_percentage,
                 action_required: r.action,
                 vaccine_received_last_12_months: r.vaccine_received_last_12_months,
@@ -2539,16 +2540,19 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             
             g.month_end_stock_reported = g.valid_reporting_count > 0 ? g.month_end_stock_reported_sum : null;
             
-            g.estimation_model = g.month_end_reporting_pct === 100 ? 'Reported Value Method' : 'Crude Method';
-            g.opening_stock = g.estimation_model === 'Reported Value Method' ? g.month_end_stock_reported : g.opening_stock_crude_method;
+            g.estimation_model = g.month_end_reporting_pct >= 100 ? 'Reported Stock' : 'Crude Method';
+            g.opening_stock = g.estimation_model === 'Reported Stock' ? (g.month_end_stock_reported ?? g.opening_stock_crude_method) : g.opening_stock_crude_method;
             
             const consumedCurrent = Math.round(g.vaccinations * 1.01);
             g.estimated_stock_balance = Math.max(0, g.opening_stock + g.vaccine_received - consumedCurrent);
             
-            g.stock_availability_pct = g.annual_requirement > 0 ? (g.opening_stock / g.annual_requirement) * 100 : 0;
-            if (g.stock_availability_pct > 0) {
+            g.stock_availability_pct = g.annual_requirement > 0 ? (g.estimated_stock_balance / g.annual_requirement) * 100 : 0;
+            g.action_required = '—';
+            if (g.annual_requirement > 0) {
                 if (g.stock_availability_pct < 10) g.action_required = 'Critical';
-                else if (g.stock_availability_pct < 25) g.action_required = 'Re-order Stock';
+                else if (g.stock_availability_pct < 25) g.action_required = 'Replenish';
+                else if (g.stock_availability_pct < 50) g.action_required = 'Monitor';
+                else g.action_required = 'Adequate';
             }
             
             g.vaccine_received_last_12_months = g.vaccine_received_last_12_months_sum;
