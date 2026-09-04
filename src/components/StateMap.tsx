@@ -5,7 +5,7 @@ import { UPMap, getTier as upTier } from './UPMap';
 interface Props {
   stateName: string;
   data: any[];
-  selectedKpi: 'coverage' | 'linelist' | 'both';
+  selectedKpi: 'coverage' | 'linelist' | 'both' | 'goal';
   selectedDistrict?: string | null;
   onDistrictClick?: (districtName: string) => void;
 }

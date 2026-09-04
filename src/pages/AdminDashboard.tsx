@@ -41,18 +41,22 @@ interface KPIState {
   total_line_list: number;
   total_vaccinated: number;
   total_target: number;
+  total_block_hpv_target?: number;
   total_population?: number;
   latest_reporting_date?: string;
   overall_coverage_pct: number;
   overall_linelist_pct: number;
+  overall_goal_reached_pct?: number;
   district_chart_data: Array<{
     district: string;
     district_id?: string;
     vaccinated: number;
     lineList: number;
     target: number;
+    blockHpvTarget?: number;
     coveragePct: number;
     lineListPct: number;
+    goalReachedPct?: number;
   }>;
   block_chart_data?: Array<{
     district: string;
@@ -61,8 +65,10 @@ interface KPIState {
     vaccinated: number;
     lineList: number;
     target: number;
+    blockHpvTarget?: number;
     coveragePct: number;
     lineListPct: number;
+    goalReachedPct?: number;
   }>;
 }
 
@@ -330,7 +336,7 @@ export const AdminDashboard: React.FC = () => {
   const [loadingActivity, setLoadingActivity] = useState(false);
 
   // Dashboard KPI selector
-  const [selectedKpi, setSelectedKpi] = useState<'coverage' | 'linelist' | 'both'>('coverage');
+  const [selectedKpi, setSelectedKpi] = useState<'coverage' | 'linelist' | 'both' | 'goal'>('coverage');
 
   // Alerts Count
   const [alertCount, setAlertCount] = useState(0);
@@ -1547,10 +1553,11 @@ export const AdminDashboard: React.FC = () => {
                   </h3>
                   <select
                     value={selectedKpi}
-                    onChange={e => setSelectedKpi(e.target.value as 'coverage' | 'linelist' | 'both')}
+                    onChange={e => setSelectedKpi(e.target.value as 'coverage' | 'linelist' | 'both' | 'goal')}
                     className="px-2 py-1 rounded-md border border-slate-200 text-[10px] font-semibold text-slate-700 focus:outline-none focus:border-blue-500 bg-white cursor-pointer"
                   >
                     <option value="coverage">Vaccination Coverage (%)</option>
+                    <option value="goal">Goal Reached (%)</option>
                     <option value="linelist">Line Listed (%)</option>
                     <option value="both">Both</option>
                   </select>
@@ -1558,17 +1565,22 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex items-center gap-1.5 mt-2 mb-3 pb-2 border-b border-slate-100">
                   <span className="font-extrabold text-base text-slate-800">{selectedDistrict ? selectedDistrict : stateName}</span>
                   <span className="text-xs font-semibold text-slate-500">
-                    ({(selectedDistrict 
+                    {(selectedDistrict 
                         ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.[selectedKpi === 'linelist' ? 'lineList' : 'vaccinated']?.toLocaleString('en-IN') || 0)
                         : ((selectedKpi === 'linelist' ? kpis?.total_line_list : kpis?.total_vaccinated)?.toLocaleString('en-IN') || 0))} 
                      {' / '}
                      {(selectedDistrict 
-                        ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.target?.toLocaleString('en-IN') || 0)
-                        : (kpis?.total_target?.toLocaleString('en-IN') || 0))})
+                        ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.[selectedKpi === 'goal' ? 'blockHpvTarget' : 'target']?.toLocaleString('en-IN') || 0)
+                        : ((selectedKpi === 'goal' ? kpis?.total_block_hpv_target : kpis?.total_target)?.toLocaleString('en-IN') || 0))}
                   </span>
                   {selectedKpi === 'coverage' && (
                     <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none">
                       ({selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.coveragePct || 0) : (kpis?.overall_coverage_pct || 0)}%)
+                    </span>
+                  )}
+                  {selectedKpi === 'goal' && (
+                    <span className="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded text-[11px] leading-none">
+                      ({selectedDistrict ? (kpis?.district_chart_data.find((d: any) => d.district === selectedDistrict)?.goalReachedPct || 0) : (kpis?.overall_goal_reached_pct || 0)}%)
                     </span>
                   )}
                   {selectedKpi === 'linelist' && (
@@ -1601,14 +1613,15 @@ export const AdminDashboard: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-0.5 sm:gap-y-1 pb-2">
                     {(!selectedDistrict ? [...(kpis?.district_chart_data || [])] : [...(kpis?.block_chart_data || []).filter((b: any) => b.district === selectedDistrict)])
                        .sort((a, b) => {
-                        const pa = selectedKpi === 'linelist' ? a.lineListPct : a.coveragePct;
-                        const pb = selectedKpi === 'linelist' ? b.lineListPct : b.coveragePct;
+                        const pa = (selectedKpi === 'goal' ? a.goalReachedPct : selectedKpi === 'linelist' ? a.lineListPct : a.coveragePct) ?? 0;
+                        const pb = (selectedKpi === 'goal' ? b.goalReachedPct : selectedKpi === 'linelist' ? b.lineListPct : b.coveragePct) ?? 0;
                         return pb - pa;
                       })
                       .map((d: any, idx: number) => {
                         const covPct = d.coveragePct;
                         const llPct = d.lineListPct ?? 0;
-                        const primaryPct = selectedKpi === 'linelist' ? llPct : covPct;
+                        const goalPct = d.goalReachedPct ?? 0;
+                        const primaryPct = selectedKpi === 'goal' ? goalPct : selectedKpi === 'linelist' ? llPct : covPct;
                         const primaryVal = selectedKpi === 'linelist' ? d.lineList : d.vaccinated;
                         const tier = getTier(primaryPct);
                         const isBlock = !!selectedDistrict;
@@ -1637,7 +1650,7 @@ export const AdminDashboard: React.FC = () => {
                                 )}
                               </span>
                               <span className="text-[9px] font-semibold text-slate-400 shrink-0 flex items-center gap-0.5">
-                                (<Target className="w-2.5 h-2.5 inline-block" /> {d.target.toLocaleString('en-IN')})
+                                (<Target className="w-2.5 h-2.5 inline-block" /> {(selectedKpi === 'goal' ? d.blockHpvTarget : d.target).toLocaleString('en-IN')})
                               </span>
                               {(selectedKpi === 'linelist' ? d.deltaLineList : d.deltaVaccinated) > 0 && (
                                 <span className="flex items-center text-emerald-500 font-bold text-[9px] shrink-0 ml-1 bg-emerald-50 px-1 rounded" title={`+${selectedKpi === 'linelist' ? d.deltaLineList : d.deltaVaccinated} since last report`}>
@@ -1846,6 +1859,7 @@ export const AdminDashboard: React.FC = () => {
                       vaccinated: d.vaccinated,
                       lineList: d.lineList ?? 0,
                       target: d.target,
+                      goalReachedPct: d.goalReachedPct,
                     }))}
                     selectedKpi={selectedKpi === 'both' ? 'coverage' : selectedKpi}
                     selectedDistrict={selectedDistrict}

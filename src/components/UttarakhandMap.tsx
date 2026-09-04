@@ -8,11 +8,12 @@ export interface DistrictMapData {
   vaccinated: number;
   lineList: number;
   target: number;
+  goalReachedPct?: number;
 }
 
 interface MapProps {
   data: DistrictMapData[];
-  selectedKpi: 'coverage' | 'linelist' | 'both';
+  selectedKpi: 'coverage' | 'linelist' | 'both' | 'goal';
   selectedDistrict?: string | null;
   onDistrictClick?: (name: string) => void;}
 
@@ -150,7 +151,7 @@ export const UttarakhandMap: React.FC<MapProps> = ({ data, selectedKpi, selected
         <g>
           {Object.entries(PATHS).map(([name, path]) => {
             const d = dataMap[name];
-            const pct = d ? (kpiForMap === 'coverage' ? d.coveragePct : d.lineListPct) : 0;
+            const pct = d ? (kpiForMap === 'goal' ? (d.goalReachedPct ?? 0) : kpiForMap === 'coverage' ? d.coveragePct : d.lineListPct) : 0;
             const tier = getTier(pct);
             const isSelected = selectedDistrict === name;
             const isFaded = selectedDistrict && !isSelected;
@@ -180,11 +181,13 @@ export const UttarakhandMap: React.FC<MapProps> = ({ data, selectedKpi, selected
           const d = dataMap[name];
           const covPct = d?.coveragePct ?? 0;
           const llPct = d?.lineListPct ?? 0;
+          const goalPct = d?.goalReachedPct ?? 0;
           const lx = x;
           const ly = y;
           
           let displayPct = '';
           if (selectedKpi === 'coverage') displayPct = `${covPct.toFixed(1)}%`;
+          else if (selectedKpi === 'goal') displayPct = `${goalPct.toFixed(1)}%`;
           else if (selectedKpi === 'linelist') displayPct = `${llPct.toFixed(1)}%`;
 
           const boxWidth = 145;

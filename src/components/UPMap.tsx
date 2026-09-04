@@ -12,7 +12,7 @@ export interface DistrictMapData {
 
 interface MapProps {
   data: DistrictMapData[];
-  selectedKpi: 'coverage' | 'linelist' | 'both';
+  selectedKpi: 'coverage' | 'linelist' | 'both' | 'goal';
   selectedDistrict?: string | null;
   onDistrictClick?: (name: string) => void;
 }

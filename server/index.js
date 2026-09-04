@@ -1019,7 +1019,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     // 1. Fetch all active blocks with district info
     let bq = supabase
       .from('blocks')
-      .select(targetStateId ? 'id, name, health_block_name, is_urban, district_id, districts!inner(name, state_id, divisions(name))' : 'id, name, health_block_name, is_urban, district_id, districts!inner(name, divisions(name))')
+      .select(targetStateId ? 'id, name, health_block_name, is_urban, district_id, hpv_target, districts!inner(name, state_id, divisions(name))' : 'id, name, health_block_name, is_urban, district_id, hpv_target, districts!inner(name, divisions(name))')
       .eq('is_active', true);
     if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
     const { data: blocks, error: bErr } = await bq;
@@ -1069,12 +1069,13 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     let reportingToday = 0;
     let totalTarget = 0;
     let totalPopulation = 0;
+    let totalBlockHpvTarget = 0;
 
     const districtStats = {};
 
     (blocks || []).forEach(b => {
       const dName = b.districts?.name || 'Unknown';
-      if (!districtStats[dName]) districtStats[dName] = { name: dName, vaccinated: 0, lineList: 0, target: 0, population: 0, deltaVaccinated: 0, deltaLineList: 0, hasLowStockBlock: false };
+      if (!districtStats[dName]) districtStats[dName] = { name: dName, vaccinated: 0, lineList: 0, target: 0, population: 0, deltaVaccinated: 0, deltaLineList: 0, hasLowStockBlock: false, blockHpvTarget: 0 };
 
       const prof = profileMap[b.id];
       // Target is stored directly OR calculated as 1% of base_population
@@ -1086,9 +1087,11 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       if (isTargetDist) {
         totalTarget += target;
         totalPopulation += pop;
+        totalBlockHpvTarget += (b.hpv_target || 0);
       }
       districtStats[dName].target += target;
       districtStats[dName].population += pop;
+      districtStats[dName].blockHpvTarget += (b.hpv_target || 0);
 
       const repData = reportMap[b.id];
       if (repData && repData.latest) {
@@ -1133,8 +1136,10 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
         deltaVaccinated: d.deltaVaccinated,
         deltaLineList: d.deltaLineList,
         hasLowStockBlock: d.hasLowStockBlock,
+        blockHpvTarget: d.blockHpvTarget,
         coveragePct: distTarget > 0 ? parseFloat(((d.vaccinated / distTarget) * 100).toFixed(1)) : 0,
         lineListPct: distTarget > 0 ? parseFloat(((d.lineList / distTarget) * 100).toFixed(1)) : 0,
+        goalReachedPct: d.blockHpvTarget > 0 ? parseFloat(((d.vaccinated / d.blockHpvTarget) * 100).toFixed(1)) : 0,
       };
     }).sort((a, b) => b.coveragePct - a.coveragePct);
 
@@ -1168,8 +1173,10 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
         isLowStock: isLowStock,
         deltaVaccinated: deltaVaccinated,
         deltaLineList: deltaLineList,
+        blockHpvTarget: b.hpv_target || 0,
         coveragePct: target > 0 ? parseFloat(((vacc / target) * 100).toFixed(1)) : 0,
         lineListPct: target > 0 ? parseFloat(((ll / target) * 100).toFixed(1)) : 0,
+        goalReachedPct: (b.hpv_target || 0) > 0 ? parseFloat(((vacc / (b.hpv_target || 0)) * 100).toFixed(1)) : 0,
       };
     }).sort((a, b) => b.coveragePct - a.coveragePct);
 
@@ -1181,9 +1188,11 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       total_line_list: totalLineList,
       total_vaccinated: totalVaccinated,
       total_target: exactTotalTarget,
+      total_block_hpv_target: totalBlockHpvTarget,
       total_population: totalPopulation,
       overall_coverage_pct: exactTotalTarget > 0 ? parseFloat(((totalVaccinated / exactTotalTarget) * 100).toFixed(1)) : 0,
       overall_linelist_pct: exactTotalTarget > 0 ? parseFloat(((totalLineList / exactTotalTarget) * 100).toFixed(1)) : 0,
+      overall_goal_reached_pct: totalBlockHpvTarget > 0 ? parseFloat(((totalVaccinated / totalBlockHpvTarget) * 100).toFixed(1)) : 0,
       district_chart_data,
       block_chart_data,
       latest_reporting_date: reports && reports.length > 0 ? reports[0].reporting_date : null
