@@ -589,7 +589,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                 ) : paginated.map((row: any, idx: number) => {
                   const isEven = idx % 2 === 0;
                   const isDistrictStore = row.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE';
-                  const rowClass = isDistrictStore ? 'bg-pink-50/30 hover:bg-pink-100/30' : (isEven ? 'bg-white hover:bg-hpv-purple-soft/30' : 'bg-slate-50/60 hover:bg-hpv-purple-soft/30');
+                  const rowClass = isDistrictStore ? 'bg-pink-100/50 hover:bg-pink-200/50' : (isEven ? 'bg-white hover:bg-hpv-purple-soft/30' : 'bg-slate-50/60 hover:bg-hpv-purple-soft/30');
                   return (
                     <tr key={row.id} className={`border-b border-slate-100 transition-colors group ${rowClass}`}>
                       <td className={`px-2 py-1.5 font-bold text-slate-800 sticky left-0 z-[5] border-r border-slate-100 ${rowClass}`}>

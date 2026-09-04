@@ -2861,6 +2861,21 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
             const closingStockEstimated = Math.max(0, openingStock + currFlows.inflow - currFlows.outflow);
             const d = blocks.find(x => x.district_id === districtId)?.districts;
 
+            let districtAnnualReq = 0;
+            blockData.forEach(b => {
+                if (String(b.district_id) === String(districtId)) {
+                    districtAnnualReq += b.annual_requirement;
+                }
+            });
+            const stockAvailabilityPercentage = districtAnnualReq > 0 ? Math.round((closingStockEstimated / districtAnnualReq) * 100) : 0;
+            let action = '—';
+            if (districtAnnualReq > 0) {
+                if (stockAvailabilityPercentage < 10) action = 'Critical';
+                else if (stockAvailabilityPercentage < 25) action = 'Replenish';
+                else if (stockAvailabilityPercentage < 50) action = 'Monitor';
+                else action = 'Adequate';
+            }
+
             districtStoreData.push({
                 id: districtId + '-ccl2',
                 name: (d?.name || '') + ' District Store',
@@ -2870,7 +2885,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 district_id: districtId,
                 division_id: d?.division_id,
                 division_name: d?.divisions?.name,
-                annual_requirement: null,
+                annual_requirement: districtAnnualReq,
                 opening_stock: openingStock,
                 vaccine_received: currFlows.inflow,
                 vaccinations: currFlows.outflow, 
@@ -2881,8 +2896,8 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
                 month_end_stock_reported: preMonthReportingPct === 100 ? preMonthEndStockReported : null,
                 opening_stock_crude_method: openingStockCrudeMethod,
                 estimation_model: estimationModel,
-                stock_availability_pct: null,
-                action_required: '—',
+                stock_availability_pct: stockAvailabilityPercentage,
+                action_required: action,
                 vaccine_received_last_12_months: histFlows.inflow,
                 vaccinations_last_12_months: districtTotalVaxHistorical,
                 entity_type: 'CCL_LEVEL_2_DISTRICT_STORE'
