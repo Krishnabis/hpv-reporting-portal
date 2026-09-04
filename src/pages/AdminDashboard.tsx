@@ -434,9 +434,10 @@ export const AdminDashboard: React.FC = () => {
       }
 
       const isLvl2 = adminUser.district_id || String(adminUser.ccl_unit_level) === '2';
+      const defaultLvl = isLvl2 ? 3 : 2;
       // Only fetch batches conditionally to avoid state overwrite conflicts for shared state variables
       if (tab === 'stock-receiving') { fetchBatches(); }
-      if (tab === 'stock-issuing') { fetchVaccFacilities(isLvl2 ? 3 : 2); fetchBatches(isLvl2 ? '2' : '1'); }
+      if (tab === 'stock-issuing') { setIssueToLevel(defaultLvl); fetchVaccFacilities(defaultLvl); fetchBatches(isLvl2 ? '2' : '1'); }
       if (tab === 'month-end-balance') { fetchBatches(isLvl2 ? '2' : '1'); }
       if (tab === 'monthly-report') { fetchBatches('3'); }
     }
@@ -2334,18 +2335,16 @@ export const AdminDashboard: React.FC = () => {
                 </select>
               </div>
 
-              {/* Issue To level selector — State admin only */}
-              {!adminUser?.district_id && (
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Issued To Level</label>
-                  <select value={issueToLevel} onChange={e => { setIssueToLevel(Number(e.target.value)); setIssueFacilityId(''); fetchVaccFacilities(Number(e.target.value)); }}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value={2}>District</option>
-                    <option value={1}>State / Divisional</option>
-                    <option value={3}>Block</option>
-                  </select>
-                </div>
-              )}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Select Level</label>
+                <select value={issueToLevel} onChange={e => { const val = e.target.value; setIssueToLevel(val); setIssueFacilityId(''); fetchVaccFacilities(val); }}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value={1}>State</option>
+                  <option value="1_div">Divisional</option>
+                  <option value={2}>District</option>
+                  <option value={3}>Block</option>
+                </select>
+              </div>
 
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">
@@ -2362,7 +2361,7 @@ export const AdminDashboard: React.FC = () => {
 
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Quantity Issued (Doses)</label>
-                <input type="number" min="1" value={stockQty} onChange={e => setStockQty(e.target.value)} placeholder="Enter the number of doses issued"
+                <input type="number" value={stockQty} onChange={e => setStockQty(e.target.value)} placeholder="Enter doses (e.g. 100 or -10 to return stock)"
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
 
@@ -2373,26 +2372,27 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               <button
-                disabled={stockLoading || !stockQty || !stockDate || !issueFacilityId || !issueBatchNo}
+                disabled={stockLoading || !stockQty || Number(stockQty) === 0 || !stockDate || !issueFacilityId || !issueBatchNo}
                 onClick={async () => {
                   setStockLoading(true); setStockMsg(null);
                   try {
                     const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
-                    const destLevel = adminUser?.district_id ? 3 : issueToLevel;
+                    const destLevel = issueToLevel === '1_div' ? 1 : Number(issueToLevel);
                     const res = await fetch('/api/vaccine/stock/issue', {
                       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                       body: JSON.stringify({ 
                         date: stockDate, 
                         quantity: Number(stockQty), 
                         destination_level: destLevel, 
-                        destination_facility_id: Number(issueFacilityId), // Actually issueFacilityId is a UUID string now but we leave as is if backend handles it
+                        destination_facility_id: issueFacilityId,
                         notes: stockRemarks,
                         batch_no: issueBatchNo
                       })
                     });
                     const json = await res.json();
                     if (!res.ok) throw new Error(json.error || 'Failed');
-                    setStockMsg({ type: 'success', text: `Successfully issued ${Number(stockQty).toLocaleString('en-IN')} doses for batch ${issueBatchNo}` });
+                    const qtyNum = Number(stockQty);
+                    setStockMsg({ type: 'success', text: `Successfully ${qtyNum < 0 ? 'returned' : 'issued'} ${Math.abs(qtyNum).toLocaleString('en-IN')} doses for batch ${issueBatchNo}` });
                     setStockQty(''); setIssueFacilityId(''); setStockRemarks(''); setIssueBatchNo(''); 
                     fetchStockHistory();
                     fetchBatches(adminUser?.district_id || String(adminUser?.ccl_unit_level) === '2' ? '2' : '1');

@@ -1471,11 +1471,6 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
 app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
   try {
     const { unit_level, state_id, district_id } = req.query;
-    let query = supabase.from('vaccine_ccp').select('*, states(name), districts(name), blocks(name)').eq('status', 'Active');
-    
-    if (unit_level) query = query.eq('unit_level', String(unit_level));
-    if (state_id) query = query.eq('state_id', state_id);
-    if (district_id) query = query.eq('district_id', district_id);
 
     let effectiveDistrictId = req.user.district_id;
     if (req.user.role === 'VACCINE_MANAGER' && req.user.ccl_id && !effectiveDistrictId) {
@@ -1483,14 +1478,50 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
        if (mgrCcp && mgrCcp.district_id) effectiveDistrictId = mgrCcp.district_id;
     }
 
-    if (effectiveDistrictId) {
-       query = query.eq('district_id', effectiveDistrictId);
+    let query = supabase.from('vaccine_ccp').select('*, states(name), districts(name), blocks(name)').eq('status', 'Active');
+    
+    if (state_id || req.user.state_id) {
+       query = query.eq('state_id', state_id || req.user.state_id);
+    }
+
+    const lvlStr = String(unit_level || '');
+
+    if (lvlStr === '1') {
+       // State store facilities
+       query = query.eq('unit_level', '1');
+    } else if (lvlStr === '1_div' || lvlStr === 'divisional') {
+       // Divisional / Regional store facilities
+       query = query.or('unit_level.eq.1,unit_level.eq.2').ilike('facility_name', '%division%');
+    } else if (lvlStr === '2') {
+       // District store facilities
+       query = query.eq('unit_level', '2');
+       if (district_id || effectiveDistrictId) {
+          query = query.eq('district_id', district_id || effectiveDistrictId);
+       }
+    } else if (lvlStr === '3') {
+       // Block CCPs
+       query = query.eq('unit_level', '3');
+       if (district_id || effectiveDistrictId) {
+          query = query.eq('district_id', district_id || effectiveDistrictId);
+       }
+    } else {
+       if (unit_level) query = query.eq('unit_level', lvlStr);
+       if (district_id || effectiveDistrictId) query = query.eq('district_id', district_id || effectiveDistrictId);
     }
 
     const { data, error } = await query;
     if (error) throw error;
     
-    const formatted = data.map(f => {
+    let filteredData = data || [];
+    if (lvlStr === '1') {
+       const nonDiv = filteredData.filter(f => !f.facility_name?.toLowerCase().includes('division') && !f.facility_name?.toLowerCase().includes('regional'));
+       if (nonDiv.length > 0) filteredData = nonDiv;
+    } else if (lvlStr === '1_div' || lvlStr === 'divisional') {
+       const divOnly = filteredData.filter(f => f.facility_name?.toLowerCase().includes('division') || f.facility_name?.toLowerCase().includes('regional'));
+       if (divOnly.length > 0) filteredData = divOnly;
+    }
+
+    const formatted = filteredData.map(f => {
       let locationPrefix = '';
       if (f.facility_name?.toLowerCase().includes('divisional') || String(f.unit_level) === '2') {
          locationPrefix = f.districts?.name || '';
@@ -1517,14 +1548,12 @@ app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
     if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'ADMIN' && !isAllowedVaccineManager) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
-    // Assuming ADMIN means State Admin if they don't have district_id.
-    // If they have district_id, they shouldn't be calling this.
     if (req.user.district_id && !isAllowedVaccineManager) {
       return res.status(403).json({ error: 'District Admin cannot manually receive stock' });
     }
 
     const { date, quantity, notes, batch_no, batch_expiry_date, manufacture_name } = req.body;
-    if (!date || isNaN(Number(quantity)) || Number(quantity) <= 0 || !batch_no) return res.status(400).json({ error: 'Invalid input' });
+    if (!date || isNaN(Number(quantity)) || Number(quantity) === 0 || !batch_no) return res.status(400).json({ error: 'Invalid input' });
 
     const { data, error } = await supabase.from('vaccine_stock_transactions').insert([{
       vaccine_type: 'HPV Vaccine',
@@ -1552,12 +1581,11 @@ app.post('/api/vaccine/stock/receive', authenticateToken, async (req, res) => {
 app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
   try {
     const { date, quantity, destination_level, destination_facility_id, notes, batch_no } = req.body;
-    if (!date || isNaN(Number(quantity)) || Number(quantity) <= 0 || !destination_level || !destination_facility_id || !batch_no) {
+    if (!date || isNaN(Number(quantity)) || Number(quantity) === 0 || !destination_level || !destination_facility_id || !batch_no) {
        return res.status(400).json({ error: 'Invalid input' });
     }
 
     const qty = Number(quantity);
-    const destLvl = Number(destination_level);
     const isDistrictAdmin = !!(req.user.district_id || (req.user.role === 'VACCINE_MANAGER' && req.user.ccl_id));
     const currentLevel = isDistrictAdmin ? 2 : 1;
 
@@ -1572,17 +1600,19 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
     const { data: destFacility, error: fErr } = await supabase.from('vaccine_ccp').select('*').eq('id', destination_facility_id).single();
     if (fErr || !destFacility) return res.status(400).json({ error: 'Invalid destination facility' });
 
-    if (String(destFacility.unit_level) !== String(destLvl)) {
-       return res.status(400).json({ error: 'Facility unit level mismatch' });
-    }
+    const actualDestLvl = String(destFacility.unit_level);
 
-    if (isDistrictAdmin && effectiveDistrictId && destFacility.district_id !== effectiveDistrictId) {
+    if (isDistrictAdmin && effectiveDistrictId && destFacility.district_id && String(destFacility.district_id) !== String(effectiveDistrictId) && actualDestLvl === '3') {
        return res.status(403).json({ error: 'Cannot issue to a facility outside your district' });
     }
 
-    // Fetch sender facility details FIRST (needed for inventory check + insert)
+    // Fetch sender facility details (District Store for district admin)
     let senderFacility = null;
-    if (req.user.ccl_id) {
+    if (isDistrictAdmin && effectiveDistrictId) {
+       const { data: distCcp } = await supabase.from('vaccine_ccp').select('*').eq('unit_level', 2).eq('district_id', effectiveDistrictId).limit(1).maybeSingle();
+       if (distCcp) senderFacility = distCcp;
+    }
+    if (!senderFacility && req.user.ccl_id) {
        const { data: sFacility } = await supabase.from('vaccine_ccp').select('*').eq('ccl_id', req.user.ccl_id).maybeSingle();
        if (sFacility) senderFacility = sFacility;
     }
@@ -1597,19 +1627,34 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
        if (sFacility) senderFacility = sFacility;
     }
 
-    // Check available stock for THIS BATCH at issuing CCL
-    const senderCclId = senderFacility ? senderFacility.ccl_id : (req.user.ccl_id || null);
-    const availableStock = await getBatchInventory(
-      batch_no,
-      currentLevel,
-      req.user.state_id,
-      effectiveDistrictId,
-      senderFacility ? senderFacility.id : null,
-      senderCclId
-    );
+    // Check available stock (positive = outflow from sender, negative = return outflow from destination)
+    if (qty > 0) {
+      const senderCclId = senderFacility ? senderFacility.ccl_id : (req.user.ccl_id || null);
+      const availableStock = await getBatchInventory(
+        batch_no,
+        currentLevel,
+        req.user.state_id,
+        effectiveDistrictId,
+        senderFacility ? senderFacility.id : null,
+        senderCclId
+      );
 
-    if (availableStock < qty) {
-      return res.status(400).json({ error: `Insufficient stock for batch ${batch_no}. Available: ${availableStock}` });
+      if (availableStock < qty) {
+        return res.status(400).json({ error: `Insufficient stock for batch ${batch_no}. Available: ${availableStock}` });
+      }
+    } else {
+      const destAvailable = await getBatchInventory(
+        batch_no,
+        actualDestLvl,
+        destFacility.state_id,
+        destFacility.district_id,
+        destFacility.id,
+        destFacility.ccl_id
+      );
+
+      if (destAvailable < Math.abs(qty)) {
+        return res.status(400).json({ error: `Cannot return ${Math.abs(qty)} doses from ${destFacility.facility_name}. Available at destination: ${destAvailable}` });
+      }
     }
 
     // Fetch batch metadata (expiry, manufacturer) from existing transactions
@@ -1632,7 +1677,7 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
       manufacture_name: batchMeta?.manufacture_name || null,
       level: String(currentLevel),
       source_level: String(currentLevel),
-      destination_level: String(destLvl),
+      destination_level: actualDestLvl,
       // Source CCL (who is issuing)
       source_ccl_id: senderFacility ? (senderFacility.ccl_id || null) : (req.user.ccl_id || null),
       source_ccl_name: senderFacility ? senderFacility.facility_name : (req.user.ccl_to_ccl || null),
