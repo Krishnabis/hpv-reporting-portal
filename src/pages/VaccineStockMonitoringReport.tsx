@@ -117,7 +117,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
   const [isExpanded, setIsExpanded] = useState(false);
   const [leastOnTop, setLeastOnTop] = useState(false);
   const [activeActionFilter, setActiveActionFilter] = useState<'ALL' | 'CRITICAL' | 'REORDER'>('ALL');
-  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'name', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'stock_availability_pct', direction: 'desc' });
 
   useEffect(() => {
     if (initialStates && initialStates.length > 0) setStatesList(initialStates);
@@ -556,7 +556,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
             </div>
 
           <div className="overflow-auto flex-1 min-h-0">
-            <table className="w-full" style={{ fontSize: '11px' }}>
+            <table className="w-full" style={{ fontSize: '10px' }}>
               <thead className="sticky top-0 z-10">
                 <tr className="gradient-header text-white shadow-sm">
                   <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 cursor-pointer hover:bg-white/10" style={{ minWidth: 140 }} onClick={() => handleSort('name')}>Site / Unit{renderSortIcon('name')}</th>
