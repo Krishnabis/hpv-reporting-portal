@@ -352,7 +352,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
     <div className="flex flex-col h-full gap-3">
       <div className="flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight">HPV Vaccine Stock Monitoring Report</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">HPV Vaccine Stock Monitoring Report</h1>
           <p className="text-[11px] text-slate-500 mt-0.5">Monitors HPV vaccine stock availability and flags areas requiring timely replenishment.</p>
         </div>
         <div className="flex items-center gap-2">

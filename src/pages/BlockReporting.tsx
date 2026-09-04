@@ -140,7 +140,7 @@ const BlockReportingContent: React.FC = () => {
           <div className="flex items-center gap-2 mb-3">
             <Users className="w-4 h-4 text-hpv-purple" />
             <div>
-              <h2 className="text-sm font-bold text-slate-900">One-Time Population Setup</h2>
+              <h2 className="text-lg font-bold text-slate-900">One-Time Population Setup</h2>
               <p className="text-[10px] text-slate-500">Enter total block population to calculate HPV target (1%)</p>
             </div>
           </div>
@@ -207,7 +207,7 @@ const BlockReportingContent: React.FC = () => {
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-hpv-purple to-hpv-pink z-10" />
         <div className="bg-hpv-purple-soft/30 px-4 py-2 pt-3 border-b border-slate-200 flex items-center gap-2">
           <div className="w-1 h-4 bg-hpv-purple rounded-full" />
-          <h2 className="text-xs font-bold text-hpv-purple-dark uppercase tracking-wider">Daily Reporting</h2>
+          <h2 className="text-sm font-bold text-hpv-purple-dark uppercase tracking-wider">Daily Reporting</h2>
         </div>
         <div className="p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
@@ -277,7 +277,7 @@ const BlockReportingContent: React.FC = () => {
       {/* Cumulative Progress */}
       {hasPopulation && (
         <section className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-900 mb-3 border-b border-slate-100 pb-2">Cumulative Reporting Progress</h2>
+          <h2 className="text-lg font-bold text-slate-900 mb-3 border-b border-slate-100 pb-2">Cumulative Reporting Progress</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {/* Line Listed */}
             <div className="bg-sky-50 border border-sky-100 rounded-xl p-3 flex flex-col justify-center items-center text-center">
@@ -319,7 +319,7 @@ const BlockReportingContent: React.FC = () => {
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="bg-hpv-purple/10 py-3 px-4 flex items-center gap-2 border-b border-hpv-purple/20">
               <div className="bg-rose-100 p-1.5 rounded-full"><Bell className="w-4 h-4 text-rose-600" /></div>
-              <h2 className="text-sm font-bold text-hpv-purple">Alert</h2>
+              <h2 className="text-lg font-bold text-hpv-purple">Alert</h2>
             </div>
             <div className="p-5 text-sm text-slate-700 font-medium">{decrementAlertMsg}</div>
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">

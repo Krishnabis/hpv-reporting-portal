@@ -271,7 +271,7 @@ export const VaccineStockLedger: React.FC<{
     <div className={`flex flex-col h-full gap-3 ${isExpanded ? 'fixed inset-0 z-50 bg-slate-50 overflow-y-auto p-4' : ''}`}>
       <div className="flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight flex items-center gap-2">
             <Package className="w-6 h-6 text-hpv-purple" />
             Vaccine Stock Ledger
           </h1>
@@ -361,7 +361,7 @@ export const VaccineStockLedger: React.FC<{
           <div className="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4 bg-slate-50/50">
             <div className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-hpv-purple" />
-              <h2 className="text-[13px] font-bold text-slate-700 uppercase tracking-wider">Transaction History Log</h2>
+              <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Transaction History Log</h2>
               <span className="text-xs text-slate-500 font-medium ml-2">({filteredTransactions.length} Records)</span>
             </div>
             

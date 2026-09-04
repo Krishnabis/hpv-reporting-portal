@@ -62,7 +62,7 @@ const FeedbackContent: React.FC = () => {
           {/* Title */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
             <div className="flex items-center gap-1.5">
-              <h2 className="text-sm font-extrabold text-slate-900">Feedback Form</h2>
+              <h2 className="text-lg font-bold text-slate-900">Feedback Form</h2>
               <div className="relative">
                 <button onMouseEnter={() => setShowInfoTooltip(true)} onMouseLeave={() => setShowInfoTooltip(false)} className="text-slate-400 hover:text-hpv-purple transition-colors">
                   <Info className="w-3.5 h-3.5" />

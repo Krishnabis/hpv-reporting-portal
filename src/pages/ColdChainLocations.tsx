@@ -327,7 +327,7 @@ export const ColdChainLocations: React.FC<{
       {/* ── Page Header ────────────────────────────────────────────── */}
       <div className="flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
             HPV Vaccination — Cold Chain Locations Registry
           </h1>
           <p className="text-[11px] text-slate-500 mt-0.5">

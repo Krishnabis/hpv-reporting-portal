@@ -290,7 +290,7 @@ export const ReportingCompleteness: React.FC<{
     <div className="flex flex-col h-full gap-3">
       <div className="flex items-center justify-between shrink-0">
           <div>
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-tight">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
             HPV Vaccination – Reporting Completeness & Timeliness Report
           </h1>
           <p className="text-[11px] text-slate-500 mt-0.5">Tracks reporting completeness and timeliness of Daily and Monthly reports across Reporting Units.</p>

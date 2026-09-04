@@ -208,7 +208,7 @@ const DueListContent: React.FC = () => {
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-1.5">
-            <h2 className="text-sm font-extrabold text-slate-900">Monthly Due List Report</h2>
+            <h2 className="text-lg font-extrabold text-slate-900">Monthly Due List Report</h2>
             <div className="relative">
               <button onMouseEnter={() => setShowInfoTooltip(true)} onMouseLeave={() => setShowInfoTooltip(false)} className="text-slate-400 hover:text-hpv-purple transition-colors">
                 <Info className="w-3.5 h-3.5" />
@@ -232,7 +232,7 @@ const DueListContent: React.FC = () => {
       {viewingReport && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="bg-hpv-purple-soft/30 px-3 py-2 flex items-center justify-between border-b border-slate-200">
-            <h3 className="text-xs font-bold text-hpv-purple-dark">Viewing: {fmtMonth(viewingReport.reporting_month)}</h3>
+            <h3 className="text-sm font-bold text-hpv-purple-dark">Viewing: {fmtMonth(viewingReport.reporting_month)}</h3>
             <button onClick={() => setViewingReport(null)} className="p-1 rounded-full hover:bg-slate-100 text-slate-400"><X className="w-3.5 h-3.5" /></button>
           </div>
           <div className="p-3 space-y-3 text-xs">
@@ -262,7 +262,7 @@ const DueListContent: React.FC = () => {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="bg-slate-50 px-3 py-2 border-b border-slate-100 flex items-center gap-2">
             <FileText className="w-3.5 h-3.5 text-hpv-purple" />
-            <h3 className="text-xs font-bold text-slate-700">Past Submitted Reports</h3>
+            <h3 className="text-sm font-bold text-slate-700">Past Submitted Reports</h3>
           </div>
           {loadingPast ? (
             <div className="p-6 text-center"><div className="w-5 h-5 border-2 border-hpv-purple border-t-transparent rounded-full animate-spin mx-auto" /></div>

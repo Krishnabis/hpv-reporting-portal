@@ -107,7 +107,7 @@ export const AdminLogin: React.FC = () => {
               National Health Mission – Uttarakhand
             </span>
 
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
               HPV Vaccination Program
             </h1>
 
