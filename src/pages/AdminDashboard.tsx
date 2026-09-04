@@ -964,13 +964,13 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="h-[100dvh] w-full bg-[#f4f7fe] flex flex-col lg:flex-row font-sans overflow-hidden relative text-slate-800">
       {/* Mobile Topbar */}
-      <div className="lg:hidden bg-white shadow-sm border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-40 relative">
-        <div className="bg-white/10 rounded-[2rem] px-3 py-1 flex items-center justify-center shadow-sm shrink-0 border border-white/10 backdrop-blur-md">
-          <img src="/headinglogo.png" alt="HPV Kavach Login Logo" className="h-10 w-auto object-contain brightness-0 invert" />
+      <div className="lg:hidden bg-white shadow-sm border-b border-slate-200 px-4 py-2.5 flex items-center justify-between sticky top-0 z-40 shrink-0">
+        <div className="bg-white rounded-[2rem] px-3 py-1 flex items-center justify-center shadow-sm shrink-0 border border-slate-200">
+          <img src="/headinglogo.png" alt="HPV Kavach Logo" className="h-9 w-auto object-contain" />
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-lg bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+          className="p-2 rounded-xl bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 transition-colors border border-slate-200/60"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -987,7 +987,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Sidebar Navigation */}
       <aside className={`fixed inset-y-0 left-0 z-50 bg-white shadow-sm border-r border-slate-100 text-slate-500 flex flex-col justify-between transition-all duration-300 lg:sticky lg:top-0 lg:h-[100dvh] lg:shrink-0 ${
         mobileMenuOpen ? 'translate-x-0 w-64 shadow-2xl' : '-translate-x-full w-64'
-      } ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} lg:translate-x-0 relative`}>
+      } ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} lg:translate-x-0 lg:relative`}>
         <div className="flex flex-col flex-1 min-h-0">
           {/* Logo Branding */}
           <div className={`p-4 border-b border-slate-200 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
@@ -1425,7 +1425,7 @@ export const AdminDashboard: React.FC = () => {
 
 
             {/* KPI Cards Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {/* Card 1: Total Population */}
                 <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between">
                   <div className="flex gap-3 relative z-10">

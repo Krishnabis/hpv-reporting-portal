@@ -120,7 +120,7 @@ app.use(express.json({ limit: '50mb' }));
 
 // 2. Global Rate Limiting: max 1500 requests per 15 minutes per IP
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
+  windowMs: 15 * 60 * 1000,
   max: 1500,
   message: { error: 'Too many requests from this IP, please try again later.' }
 });
@@ -167,7 +167,7 @@ function flattenBlock(b) {
   const div = dist.divisions || {};
   const st = div.states || dist.states || {}; // Fallback in case old relation is kept
   const c = st.countries || {};
-  
+
   return {
     id: b.id, district_id: b.district_id, lgd_code: b.lgd_code,
     name: b.health_block_name || b.name, code: b.code, is_active: b.is_active, is_urban: Boolean(b.is_urban), area_type: b.area_type || (b.is_urban ? 'City' : 'Block'),
@@ -346,7 +346,7 @@ app.post('/api/blocks/login', loginLimiter, async (req, res) => {
       const b = store.blocks.find(x => x.id === Number(blockId));
       if (b && b.passcode) actualPasscode = b.passcode;
     }
-    
+
     if (passcode === actualPasscode) {
       const token = Buffer.from(`block_auth_${blockId}_${Date.now()}`).toString('base64');
       res.json({ success: true, token });
@@ -369,11 +369,11 @@ app.post('/api/blocks/change-passcode', async (req, res) => {
       const b = store.blocks.find(x => x.id === Number(blockId));
       if (b && b.passcode) actualPasscode = b.passcode;
     }
-    
+
     if (currentPasscode !== actualPasscode) {
       return res.status(401).json({ error: 'Incorrect current passcode' });
     }
-    
+
     if (useSupabase) {
       await supabase.from('blocks').update({ passcode: newPasscode }).eq('id', blockId);
     } else {
@@ -464,7 +464,7 @@ app.get('/api/blocks/:id', async (req, res) => {
       todayReport = store.daily_reports.find(r => r.block_id === Number(id) && r.reporting_date === todayStr) || null;
       const reps = store.daily_reports.filter(r => r.block_id === Number(id)).sort((a, b) => b.reporting_date.localeCompare(a.reporting_date));
       lastReport = reps[0] || null;
-      
+
       const mReps = (store.monthly_due_list_reports || []).filter(r => r.block_id === Number(id)).sort((a, b) => b.reporting_month.localeCompare(a.reporting_month));
       latestMonthlyReport = mReps[0] || null;
     }
@@ -575,7 +575,7 @@ app.post('/api/reports/block/:id', async (req, res) => {
     if (useSupabase) {
       const { data: lastRep } = await supabase.from('daily_reports').select('line_list_count').eq('block_id', Number(id)).order('reporting_date', { ascending: false }).limit(1).maybeSingle();
       let prevLineList = lastRep ? lastRep.line_list_count : 0;
-      
+
       const vaxCount = Number(beneficiaries_vaccinated);
       if (vaxCount > prevLineList) {
         prevLineList = vaxCount;
@@ -590,7 +590,7 @@ app.post('/api/reports/block/:id', async (req, res) => {
       const idx = store.daily_reports.findIndex(r => r.block_id === Number(id) && r.reporting_date === reporting_date);
       const reps = store.daily_reports.filter(r => r.block_id === Number(id)).sort((a, b) => b.reporting_date.localeCompare(a.reporting_date));
       let prevLineList = reps.length > 0 ? reps[0].line_list_count : 0;
-      
+
       const vaxCount = Number(beneficiaries_vaccinated);
       if (vaxCount > prevLineList) {
         prevLineList = vaxCount;
@@ -629,7 +629,7 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
       user = data;
       if (user?.states) stateName = user.states.name;
       if (user?.districts) districtName = user.districts.name;
-      
+
       if (user?.role === 'VACCINE_MANAGER' && user?.ccl_id) {
         const { data: ccp } = await supabase.from('vaccine_ccp').select('facility_name, unit_level, district_id, districts(name)').eq('ccl_id', user.ccl_id).maybeSingle();
         if (ccp) {
@@ -644,12 +644,12 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
     } else {
       user = store.admin_users.find(u => u.username === username && u.is_active);
       if (user?.state_id) {
-          const s = store.states.find(st => st.id === user.state_id);
-          if (s) stateName = s.name;
+        const s = store.states.find(st => st.id === user.state_id);
+        if (s) stateName = s.name;
       }
       if (user?.district_id) {
-          const d = store.districts.find(dt => dt.id === user.district_id);
-          if (d) districtName = d.name;
+        const d = store.districts.find(dt => dt.id === user.district_id);
+        if (d) districtName = d.name;
       }
     }
 
@@ -672,11 +672,11 @@ app.get('/api/admin/me', authenticateToken, async (req, res) => {
   try {
     let user = { ...req.user };
     if (user.role === 'VACCINE_MANAGER' && user.ccl_id && !user.district_name) {
-       const { data: ccp } = await supabase.from('vaccine_ccp').select('district_id, districts(name)').eq('ccl_id', user.ccl_id).maybeSingle();
-       if (ccp && ccp.districts) {
-         user.district_id = ccp.district_id;
-         user.district_name = ccp.districts.name;
-       }
+      const { data: ccp } = await supabase.from('vaccine_ccp').select('district_id, districts(name)').eq('ccl_id', user.ccl_id).maybeSingle();
+      if (ccp && ccp.districts) {
+        user.district_id = ccp.district_id;
+        user.district_name = ccp.districts.name;
+      }
     }
     res.json({ user });
   } catch (err) {
@@ -741,7 +741,7 @@ app.get('/api/admin/users', authenticateToken, async (req, res) => {
         error = fallback.error;
       }
       if (error) throw error;
-      
+
       const cclIds = [...new Set(data.filter(u => u.role === 'VACCINE_MANAGER' && u.ccl_id).map(u => u.ccl_id))];
       let cclMap = {};
       if (cclIds.length > 0) {
@@ -813,7 +813,7 @@ app.put('/api/admin/users/:id', authenticateToken, async (req, res) => {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
     const { id } = req.params;
     const { name, username, password, role, state_id, district_id, status } = req.body;
-    
+
     let updateData = {
       name,
       username,
@@ -822,11 +822,11 @@ app.put('/api/admin/users/:id', authenticateToken, async (req, res) => {
       district_id: district_id ? Number(district_id) : null,
       updated_at: new Date().toISOString()
     };
-    
+
     if (password) {
       updateData.password_hash = hashPassword(password);
     }
-    
+
     if (status) {
       updateData.status = status;
       if (status === 'ACTIVE') updateData.is_active = true;
@@ -835,7 +835,7 @@ app.put('/api/admin/users/:id', authenticateToken, async (req, res) => {
 
     if (useSupabase) {
       let { error } = await supabase.from('admin_users').update(updateData).eq('id', id);
-      
+
       // Fallback if status column does not exist
       if (error && (error.code === '42703' || (error.message && error.message.includes('status')))) {
         const fallbackData = { ...updateData };
@@ -843,9 +843,9 @@ app.put('/api/admin/users/:id', authenticateToken, async (req, res) => {
         const fallback = await supabase.from('admin_users').update(fallbackData).eq('id', id);
         error = fallback.error;
       }
-      
+
       if (error) throw error;
-      
+
       logAudit(req.user.id, 'UPDATE_ADMIN_USER', 'Updated admin user details', { target_id: id, name, role, username, status });
       res.json({ success: true });
     } else {
@@ -861,11 +861,11 @@ app.delete('/api/admin/users/:id', authenticateToken, async (req, res) => {
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
     const { id } = req.params;
-    
+
     if (useSupabase) {
       const { error } = await supabase.from('admin_users').delete().eq('id', id);
       if (error) throw error;
-      
+
       logAudit(req.user.id, 'DELETE_ADMIN_USER', 'Deleted admin user', { target_id: id });
       res.json({ success: true });
     } else {
@@ -880,7 +880,7 @@ app.post('/api/admin/users/:id/toggle-status', authenticateToken, async (req, re
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Only super admin can modify users' });
     const targetUserId = req.params.id;
     const { is_active } = req.body;
-    
+
     if (useSupabase) {
       const { error } = await supabase.from('admin_users').update({ is_active }).eq('id', targetUserId);
       if (error) throw error;
@@ -893,7 +893,7 @@ app.post('/api/admin/users/:id/toggle-status', authenticateToken, async (req, re
         return res.status(404).json({ error: 'User not found' });
       }
     }
-    
+
     await logAudit(req.user.id, is_active ? 'ENABLE_ADMIN' : 'DISABLE_ADMIN', 'admin_user', targetUserId);
     res.json({ message: `User ${is_active ? 'enabled' : 'disabled'} successfully` });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
@@ -978,7 +978,7 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
       if (targetStateId) bq = bq.eq('districts.state_id', targetStateId);
       const { data: vBlocks } = await bq;
       const vIds = (vBlocks || []).map(b => b.id);
-      
+
       if (vIds.length === 0) {
         totalBlocks = 0; reportedToday = 0; totalReports = 0;
       } else {
@@ -1044,7 +1044,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
     (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
 
     const reportMap = {};
-    (reports || []).forEach(r => { 
+    (reports || []).forEach(r => {
       if (!reportMap[r.block_id]) {
         reportMap[r.block_id] = { latest: r, prev: null };
       } else if (!reportMap[r.block_id].prev && r.reporting_date !== reportMap[r.block_id].latest.reporting_date) {
@@ -1058,9 +1058,9 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       .eq('level', 3);
     const blockStockMap = {};
     (stockTx || []).forEach(tx => {
-       if (tx.block_id && tx.transaction_type === 'RECEIVED') {
-           blockStockMap[tx.block_id] = (blockStockMap[tx.block_id] || 0) + Number(tx.quantity_doses);
-       }
+      if (tx.block_id && tx.transaction_type === 'RECEIVED') {
+        blockStockMap[tx.block_id] = (blockStockMap[tx.block_id] || 0) + Number(tx.quantity_doses);
+      }
     });
 
     let totalBlocks = targetDistrictId && String(targetDistrictId) !== 'ALL' ? (blocks || []).filter(b => String(b.district_id) === String(targetDistrictId)).length : (blocks?.length || 0);
@@ -1080,7 +1080,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
       // Target is stored directly OR calculated as 1% of base_population
       const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
       const pop = prof?.base_population || 0;
-      
+
       const isTargetDist = !targetDistrictId || String(targetDistrictId) === 'ALL' || String(b.district_id) === String(targetDistrictId);
 
       if (isTargetDist) {
@@ -1112,7 +1112,7 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
           districtStats[dName].deltaVaccinated += Math.max(0, vacc - prevVacc);
         }
       }
-      
+
       // Calculate Low Stock
       const vaccCalc = repData?.latest?.beneficiaries_vaccinated || 0;
       const received = blockStockMap[b.id] || 0;
@@ -1152,11 +1152,11 @@ app.get('/api/admin/kpis', authenticateToken, async (req, res) => {
 
       const deltaVaccinated = hasTodayEntry ? Math.max(0, vacc - prevVacc) : 0;
       const deltaLineList = hasTodayEntry ? Math.max(0, ll - prevLl) : 0;
-      
+
       const received = blockStockMap[b.id] || 0;
       const stockBalance = received - vacc;
       const isLowStock = target > 0 && stockBalance < (target * 0.25);
-      
+
       return {
         block: b.health_block_name || b.name,
         block_id: b.id,
@@ -1212,7 +1212,7 @@ app.get('/api/public/overall-stats', async (req, res) => {
     (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
 
     const reportMap = {};
-    (reports || []).forEach(r => { 
+    (reports || []).forEach(r => {
       if (!reportMap[r.block_id]) reportMap[r.block_id] = r;
     });
 
@@ -1273,14 +1273,14 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     let balQuery = supabase.from('monthly_balance').select('*');
 
     if (targetStateId) {
-       txQuery = txQuery.eq('state_id', targetStateId);
-       balQuery = balQuery.eq('state_id', targetStateId);
+      txQuery = txQuery.eq('state_id', targetStateId);
+      balQuery = balQuery.eq('state_id', targetStateId);
     }
-    const [ {data: stockTx}, {data: bal} ] = await Promise.all([txQuery, balQuery]);
+    const [{ data: stockTx }, { data: bal }] = await Promise.all([txQuery, balQuery]);
 
     const tx = [
-      ...(stockTx || []).map(t => ({...t})),
-      ...(bal || []).map(t => ({...t, transaction_type: 'MONTH_END_BALANCE', level: t.block_id ? '3' : (t.district_id ? '2' : '1'), quantity_doses: t.qty_doses, balance_month: t.transaction_date}))
+      ...(stockTx || []).map(t => ({ ...t })),
+      ...(bal || []).map(t => ({ ...t, transaction_type: 'MONTH_END_BALANCE', level: t.block_id ? '3' : (t.district_id ? '2' : '1'), quantity_doses: t.qty_doses, balance_month: t.transaction_date }))
     ];
 
     // Helper to get latest month end balance
@@ -1308,12 +1308,12 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
 
     // Block Calculations (new model: block receives via ISSUED where destination_level = 3)
     const blockReceived = tx.filter(t => t.transaction_type === 'ISSUED' && String(t.destination_level) === '3').reduce((sum, t) => sum + Number(t.quantity_doses), 0);
-    
+
     // For Block Vaccinated, we need the existing vaccination data
     let reportQuery = supabase.from('daily_reports').select('block_id, beneficiaries_vaccinated, reporting_date, blocks(district_id, districts(state_id))').order('reporting_date', { ascending: false });
     const { data: rawReports, error: rErr } = await reportQuery;
     if (rErr) throw rErr;
-    
+
     let validReports = rawReports || [];
     if (targetStateId) validReports = validReports.filter(r => r.blocks?.districts?.state_id == targetStateId);
 
@@ -1340,17 +1340,17 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     let dq = supabase.from('districts').select('id, name, state_id').eq('is_active', true);
     if (targetStateId) dq = dq.eq('state_id', targetStateId);
     const allDistricts = (await dq).data || [];
-    
+
     const districtStats = {};
     allDistricts.forEach(d => {
-       districtStats[d.id] = { vaccinated: 0, issued: 0, deltaVaccinated: 0, target: 0, stockBalance: 0 };
+      districtStats[d.id] = { vaccinated: 0, issued: 0, deltaVaccinated: 0, target: 0, stockBalance: 0 };
     });
 
     // Fetch profiles for targets
     const { data: profs } = await supabase.from('block_reporting_profiles').select('block_id, base_population, initial_hpv_target');
     const profMap = {};
     (profs || []).forEach(p => { profMap[p.block_id] = p; });
-    
+
     // Block Utilization (for drill down)
     const blockStats = {};
     Object.values(latestReportsMap).forEach(m => {
@@ -1368,12 +1368,12 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
     });
 
     tx.filter(t => t.transaction_type === 'RECEIVED' && String(t.level) === '3').forEach(t => {
-       const bId = t.block_id;
-       const dName = allDistricts.find(d => String(d.id) === String(t.district_id))?.name;
-       if (bId) {
-         if (!blockStats[bId]) blockStats[bId] = { vaccinated: 0, received: 0, deltaVaccinated: 0, districtName: dName };
-         blockStats[bId].received += Number(t.quantity_doses);
-       }
+      const bId = t.block_id;
+      const dName = allDistricts.find(d => String(d.id) === String(t.district_id))?.name;
+      if (bId) {
+        if (!blockStats[bId]) blockStats[bId] = { vaccinated: 0, received: 0, deltaVaccinated: 0, districtName: dName };
+        blockStats[bId].received += Number(t.quantity_doses);
+      }
     });
 
 
@@ -1395,25 +1395,25 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
       const blkName = b.health_block_name || b.name || 'Unknown';
       const distName = b.districts?.name || 'Unknown';
       const utilPct = stat.received > 0 ? (stat.vaccinated / stat.received) * 100 : 0;
-      
+
       const prof = profMap[bId];
       const target = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : 0);
-      
+
       const ledger = latestLedgers[`block_${bId}`];
       const stockBalance = ledger && ledger.closing_stock_estimated != null ? ledger.closing_stock_estimated : Math.max(0, stat.received - stat.vaccinated);
-      
+
       const isLowStock = target > 0 && stockBalance < (target * 0.25);
       const isCriticalStock = target > 0 && stockBalance < (target * 0.10);
-      
+
       if (isLowStock) districtLowStock[dId] = true;
       if (isCriticalStock) districtCriticalStock[dId] = true;
 
       if (dId && districtStats[dId]) {
-         districtStats[dId].vaccinated += stat.vaccinated;
-         districtStats[dId].issued += stat.received;
-         districtStats[dId].deltaVaccinated += stat.deltaVaccinated;
-         districtStats[dId].target += target;
-         districtStats[dId].stockBalance += stockBalance;
+        districtStats[dId].vaccinated += stat.vaccinated;
+        districtStats[dId].issued += stat.received;
+        districtStats[dId].deltaVaccinated += stat.deltaVaccinated;
+        districtStats[dId].target += target;
+        districtStats[dId].stockBalance += stockBalance;
       }
 
       return {
@@ -1431,13 +1431,13 @@ app.get('/api/vaccine/dashboard', authenticateToken, async (req, res) => {
         utilizationPct: parseFloat(utilPct.toFixed(1))
       };
     }).sort((a, b) => b.utilizationPct - a.utilizationPct);
-    
+
     const districtUtilization = allDistricts.map(d => {
       const dId = d.id;
       const stat = districtStats[dId] || { vaccinated: 0, issued: 0, deltaVaccinated: 0, stockBalance: 0, target: 0 };
       const distName = d.name || 'Unknown';
       const utilPct = stat.issued > 0 ? (stat.vaccinated / stat.issued) * 100 : 0;
-      
+
       const isLowStock = stat.target > 0 && stat.stockBalance < (stat.target * 0.25);
       const isCriticalStock = stat.target > 0 && stat.stockBalance < (stat.target * 0.10);
 
@@ -1474,63 +1474,63 @@ app.get('/api/vaccine/facilities', authenticateToken, async (req, res) => {
 
     let effectiveDistrictId = req.user.district_id;
     if (req.user.role === 'VACCINE_MANAGER' && req.user.ccl_id && !effectiveDistrictId) {
-       const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', req.user.ccl_id).maybeSingle();
-       if (mgrCcp && mgrCcp.district_id) effectiveDistrictId = mgrCcp.district_id;
+      const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', req.user.ccl_id).maybeSingle();
+      if (mgrCcp && mgrCcp.district_id) effectiveDistrictId = mgrCcp.district_id;
     }
 
     let query = supabase.from('vaccine_ccp').select('*, states(name), districts(name), blocks(name)').eq('status', 'Active');
-    
+
     if (state_id || req.user.state_id) {
-       query = query.eq('state_id', state_id || req.user.state_id);
+      query = query.eq('state_id', state_id || req.user.state_id);
     }
 
     const lvlStr = String(unit_level || '');
 
     if (lvlStr === '1') {
-       // State store facilities
-       query = query.eq('unit_level', '1');
+      // State store facilities
+      query = query.eq('unit_level', '1');
     } else if (lvlStr === '1_div' || lvlStr === 'divisional') {
-       // Divisional / Regional store facilities
-       query = query.or('unit_level.eq.1,unit_level.eq.2').ilike('facility_name', '%division%');
+      // Divisional / Regional store facilities
+      query = query.or('unit_level.eq.1,unit_level.eq.2').ilike('facility_name', '%division%');
     } else if (lvlStr === '2') {
-       // District store facilities
-       query = query.eq('unit_level', '2');
-       if (district_id || effectiveDistrictId) {
-          query = query.eq('district_id', district_id || effectiveDistrictId);
-       }
+      // District store facilities
+      query = query.eq('unit_level', '2');
+      if (district_id || effectiveDistrictId) {
+        query = query.eq('district_id', district_id || effectiveDistrictId);
+      }
     } else if (lvlStr === '3') {
-       // Block CCPs
-       query = query.eq('unit_level', '3');
-       if (district_id || effectiveDistrictId) {
-          query = query.eq('district_id', district_id || effectiveDistrictId);
-       }
+      // Block CCPs
+      query = query.eq('unit_level', '3');
+      if (district_id || effectiveDistrictId) {
+        query = query.eq('district_id', district_id || effectiveDistrictId);
+      }
     } else {
-       if (unit_level) query = query.eq('unit_level', lvlStr);
-       if (district_id || effectiveDistrictId) query = query.eq('district_id', district_id || effectiveDistrictId);
+      if (unit_level) query = query.eq('unit_level', lvlStr);
+      if (district_id || effectiveDistrictId) query = query.eq('district_id', district_id || effectiveDistrictId);
     }
 
     const { data, error } = await query;
     if (error) throw error;
-    
+
     let filteredData = data || [];
     if (lvlStr === '1') {
-       const nonDiv = filteredData.filter(f => !f.facility_name?.toLowerCase().includes('division') && !f.facility_name?.toLowerCase().includes('regional'));
-       if (nonDiv.length > 0) filteredData = nonDiv;
+      const nonDiv = filteredData.filter(f => !f.facility_name?.toLowerCase().includes('division') && !f.facility_name?.toLowerCase().includes('regional'));
+      if (nonDiv.length > 0) filteredData = nonDiv;
     } else if (lvlStr === '1_div' || lvlStr === 'divisional') {
-       const divOnly = filteredData.filter(f => f.facility_name?.toLowerCase().includes('division') || f.facility_name?.toLowerCase().includes('regional'));
-       if (divOnly.length > 0) filteredData = divOnly;
+      const divOnly = filteredData.filter(f => f.facility_name?.toLowerCase().includes('division') || f.facility_name?.toLowerCase().includes('regional'));
+      if (divOnly.length > 0) filteredData = divOnly;
     }
 
     const formatted = filteredData.map(f => {
       let locationPrefix = '';
       if (f.facility_name?.toLowerCase().includes('divisional') || String(f.unit_level) === '2') {
-         locationPrefix = f.districts?.name || '';
+        locationPrefix = f.districts?.name || '';
       } else if (String(f.unit_level) === '1') {
-         locationPrefix = f.states?.name || '';
+        locationPrefix = f.states?.name || '';
       } else if (String(f.unit_level) === '3') {
-         locationPrefix = (f.districts?.name ? f.districts.name + ' - ' : '') + (f.blocks?.name || '');
+        locationPrefix = (f.districts?.name ? f.districts.name + ' - ' : '') + (f.blocks?.name || '');
       }
-      
+
       return {
         ...f,
         display_name: (locationPrefix ? `${locationPrefix} - ${f.facility_name}` : f.facility_name) + (f.ccl_block_hq_yes === 'Y' ? ' - HQ' : '')
@@ -1582,7 +1582,7 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
   try {
     const { date, quantity, destination_level, destination_facility_id, notes, batch_no } = req.body;
     if (!date || isNaN(Number(quantity)) || Number(quantity) === 0 || !destination_level || !destination_facility_id || !batch_no) {
-       return res.status(400).json({ error: 'Invalid input' });
+      return res.status(400).json({ error: 'Invalid input' });
     }
 
     const qty = Number(quantity);
@@ -1592,8 +1592,8 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
     // Resolve effective district_id for VACCINE_MANAGER if missing
     let effectiveDistrictId = req.user.district_id;
     if (req.user.role === 'VACCINE_MANAGER' && req.user.ccl_id && !effectiveDistrictId) {
-       const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', req.user.ccl_id).maybeSingle();
-       if (mgrCcp && mgrCcp.district_id) effectiveDistrictId = mgrCcp.district_id;
+      const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', req.user.ccl_id).maybeSingle();
+      if (mgrCcp && mgrCcp.district_id) effectiveDistrictId = mgrCcp.district_id;
     }
 
     // Validate facility exists
@@ -1603,28 +1603,28 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
     const actualDestLvl = String(destFacility.unit_level);
 
     if (isDistrictAdmin && effectiveDistrictId && destFacility.district_id && String(destFacility.district_id) !== String(effectiveDistrictId) && actualDestLvl === '3') {
-       return res.status(403).json({ error: 'Cannot issue to a facility outside your district' });
+      return res.status(403).json({ error: 'Cannot issue to a facility outside your district' });
     }
 
     // Fetch sender facility details (District Store for district admin)
     let senderFacility = null;
     if (isDistrictAdmin && effectiveDistrictId) {
-       const { data: distCcp } = await supabase.from('vaccine_ccp').select('*').eq('unit_level', 2).eq('district_id', effectiveDistrictId).limit(1).maybeSingle();
-       if (distCcp) senderFacility = distCcp;
+      const { data: distCcp } = await supabase.from('vaccine_ccp').select('*').eq('unit_level', 2).eq('district_id', effectiveDistrictId).limit(1).maybeSingle();
+      if (distCcp) senderFacility = distCcp;
     }
     if (!senderFacility && req.user.ccl_id) {
-       const { data: sFacility } = await supabase.from('vaccine_ccp').select('*').eq('ccl_id', req.user.ccl_id).maybeSingle();
-       if (sFacility) senderFacility = sFacility;
+      const { data: sFacility } = await supabase.from('vaccine_ccp').select('*').eq('ccl_id', req.user.ccl_id).maybeSingle();
+      if (sFacility) senderFacility = sFacility;
     }
     if (!senderFacility) {
-       let sQuery = supabase.from('vaccine_ccp').select('*').eq('unit_level', currentLevel);
-       if (currentLevel === 2 && effectiveDistrictId) {
-          sQuery = sQuery.eq('district_id', effectiveDistrictId);
-       } else if (currentLevel === 1) {
-          sQuery = sQuery.eq('state_id', req.user.state_id).is('district_id', null);
-       }
-       const { data: sFacility } = await sQuery.limit(1).maybeSingle();
-       if (sFacility) senderFacility = sFacility;
+      let sQuery = supabase.from('vaccine_ccp').select('*').eq('unit_level', currentLevel);
+      if (currentLevel === 2 && effectiveDistrictId) {
+        sQuery = sQuery.eq('district_id', effectiveDistrictId);
+      } else if (currentLevel === 1) {
+        sQuery = sQuery.eq('state_id', req.user.state_id).is('district_id', null);
+      }
+      const { data: sFacility } = await sQuery.limit(1).maybeSingle();
+      if (sFacility) senderFacility = sFacility;
     }
 
     // Check available stock (positive = outflow from sender, negative = return outflow from destination)
@@ -1700,10 +1700,10 @@ app.post('/api/vaccine/stock/issue', authenticateToken, async (req, res) => {
 
     // Keep block balance helper field in sync
     if (destFacility.block_id) {
-       const { data: oldBData } = await supabase.from('blocks').select('balance_vaccine').eq('id', destFacility.block_id).single();
-       if (oldBData) {
-          await supabase.from('blocks').update({ balance_vaccine: (oldBData.balance_vaccine || 0) + qty }).eq('id', destFacility.block_id);
-       }
+      const { data: oldBData } = await supabase.from('blocks').select('balance_vaccine').eq('id', destFacility.block_id).single();
+      if (oldBData) {
+        await supabase.from('blocks').update({ balance_vaccine: (oldBData.balance_vaccine || 0) + qty }).eq('id', destFacility.block_id);
+      }
     }
 
     res.json({ success: true, transaction: issueTx });
@@ -1764,19 +1764,19 @@ app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => 
     if (!month || isNaN(Number(quantity)) || Number(quantity) < 0 || !reportingPersonName || !reportingPersonMobile || !batch_no) {
       return res.status(400).json({ error: 'Invalid input. Batch No is required.' });
     }
-    
+
     // Check if month is valid (must be strictly before current month)
     const selectedDate = new Date(month + '-01T00:00:00Z');
     const currentDate = new Date();
     currentDate.setDate(1); // First of current month
-    currentDate.setHours(0,0,0,0);
+    currentDate.setHours(0, 0, 0, 0);
 
     if (selectedDate >= currentDate) {
       return res.status(400).json({ error: 'Cannot select current or future month for month end balance' });
     }
 
     const currentLevel = req.user.district_id ? 2 : 1;
-    
+
     const currentBal = await getBatchInventory(batch_no, currentLevel, req.user.state_id, req.user.district_id, null);
     const diff = Number(quantity) - currentBal;
 
@@ -1795,7 +1795,7 @@ app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => 
     }]).select();
 
     if (error) throw error;
-    
+
     if (diff !== 0) {
       // Insert ADJUSTMENT transaction to sync physical balance
       await supabase.from('vaccine_stock_transactions').insert([{
@@ -1811,42 +1811,42 @@ app.post('/api/vaccine/stock/month-end', authenticateToken, async (req, res) => 
         created_by: getValidUuid(req.user.id)
       }]);
     }
-    
+
     res.json({ success: true, transaction: data[0] });
   } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
 app.get('/api/vaccine/stock', authenticateToken, async (req, res) => {
   try {
-     let txQuery = supabase.from('vaccine_stock_transactions').select('*').order('created_at', { ascending: false }).limit(50);
-     let balanceQuery = supabase.from('monthly_balance').select('*').order('created_at', { ascending: false }).limit(25);
+    let txQuery = supabase.from('vaccine_stock_transactions').select('*').order('created_at', { ascending: false }).limit(50);
+    let balanceQuery = supabase.from('monthly_balance').select('*').order('created_at', { ascending: false }).limit(25);
 
-     if (req.user.state_id) {
-        txQuery = txQuery.eq('state_id', req.user.state_id);
-        balanceQuery = balanceQuery.eq('state_id', req.user.state_id);
-     }
-     if (req.user.district_id) {
-        txQuery = txQuery.eq('district_id', req.user.district_id);
-        balanceQuery = balanceQuery.eq('district_id', req.user.district_id);
-     }
-     if (req.user.block_id) {
-        txQuery = txQuery.eq('block_id', req.user.block_id);
-        balanceQuery = balanceQuery.eq('block_id', req.user.block_id);
-     }
-     if (req.user.facility_id) {
-        txQuery = txQuery.eq('facility_id', req.user.facility_id);
-        balanceQuery = balanceQuery.eq('facility_id', req.user.facility_id);
-     }
+    if (req.user.state_id) {
+      txQuery = txQuery.eq('state_id', req.user.state_id);
+      balanceQuery = balanceQuery.eq('state_id', req.user.state_id);
+    }
+    if (req.user.district_id) {
+      txQuery = txQuery.eq('district_id', req.user.district_id);
+      balanceQuery = balanceQuery.eq('district_id', req.user.district_id);
+    }
+    if (req.user.block_id) {
+      txQuery = txQuery.eq('block_id', req.user.block_id);
+      balanceQuery = balanceQuery.eq('block_id', req.user.block_id);
+    }
+    if (req.user.facility_id) {
+      txQuery = txQuery.eq('facility_id', req.user.facility_id);
+      balanceQuery = balanceQuery.eq('facility_id', req.user.facility_id);
+    }
 
-     const [ {data: txs}, {data: bal} ] = await Promise.all([txQuery, balanceQuery]);
-     
-     // Merge and sort
-     const allTx = [
-       ...(txs || []).map(t => ({...t, type: 'vaccine_stock_transactions', display_type: t.transaction_type})),
-       ...(bal || []).map(t => ({...t, type: 'monthly_balance', display_type: 'MONTH_END_BALANCE', quantity_doses: t.qty_doses}))
-     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const [{ data: txs }, { data: bal }] = await Promise.all([txQuery, balanceQuery]);
 
-     res.json(allTx);
+    // Merge and sort
+    const allTx = [
+      ...(txs || []).map(t => ({ ...t, type: 'vaccine_stock_transactions', display_type: t.transaction_type })),
+      ...(bal || []).map(t => ({ ...t, type: 'monthly_balance', display_type: 'MONTH_END_BALANCE', quantity_doses: t.qty_doses }))
+    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    res.json(allTx);
   } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
 
@@ -1941,10 +1941,10 @@ app.get('/api/admin/audit-logs', authenticateToken, async (req, res) => {
 
 app.get('/api/admin/trend', authenticateToken, async (req, res) => {
   try {
-        const { level = 'STATE', districtId, blockId, divisionId } = req.query;
+    const { level = 'STATE', districtId, blockId, divisionId } = req.query;
     if (!useSupabase) return res.json({ profile: { base_population: 0 }, reports: [] });
 
-        // 1. Fetch blocks
+    // 1. Fetch blocks
     let bQuery = supabase.from('blocks').select('id, name, district_id, districts!inner(division_id)').eq('is_active', true);
     if (level === 'DIVISION' && divisionId && divisionId !== 'ALL') {
       bQuery = bQuery.eq('districts.division_id', divisionId);
@@ -1967,7 +1967,7 @@ app.get('/api/admin/trend', authenticateToken, async (req, res) => {
       .select('block_id, base_population')
       .in('block_id', blockIds);
     if (pErr) throw pErr;
-    
+
     let totalBasePopulation = 0;
     profiles.forEach(p => { totalBasePopulation += p.base_population || 0; });
 
@@ -1986,32 +1986,32 @@ app.get('/api/admin/trend', authenticateToken, async (req, res) => {
     const aggregatedReports = [];
     const latestPerBlock = {};
     let rIdx = 0;
-    
+
     for (const date of uniqueDates) {
       while (rIdx < reports.length && reports[rIdx].reporting_date <= date) {
         latestPerBlock[reports[rIdx].block_id] = reports[rIdx];
         rIdx++;
       }
-      
+
       let sumLL = 0;
       let sumVacc = 0;
       for (const bId of Object.keys(latestPerBlock)) {
         sumLL += latestPerBlock[bId].line_list_count || 0;
         sumVacc += latestPerBlock[bId].beneficiaries_vaccinated || 0;
       }
-      
+
       aggregatedReports.push({
         reporting_date: date,
         line_list_count: sumLL,
         beneficiaries_vaccinated: sumVacc
       });
     }
-    
+
     res.json({
       profile: { base_population: totalBasePopulation },
       reports: aggregatedReports
     });
-    
+
   } catch (err) {
     console.error('Trend generation error:', err);
     res.status(500).json({ error: err.message });
@@ -2022,18 +2022,18 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
   try {
     const { level, location_id, report_type, from_date, to_date } = req.query;
     if (!useSupabase) return res.json({ rows: [], kpis: {} });
-    
+
     // 1. Fetch reporting units (Blocks) based on location filters
     let bQuery = supabase.from('blocks').select(`
         id, name, district_id,
         districts!inner(id, name, state_id, division_id, divisions(name))
       `).eq('is_active', true);
-      
+
     const targetStateId = req.user?.role === 'ADMIN' ? req.user.state_id : (req.query.state_id || null);
     const userDistrictId = req.user?.district_id || (req.user?.role === 'DISTRICT_ADMIN' ? req.user.district_id : null);
     const filterDist = userDistrictId || req.query.district_id || req.query.districtId || req.query.location_id;
     if (targetStateId) bQuery = bQuery.eq('districts.state_id', targetStateId);
-    
+
     if (filterDist && String(filterDist).toUpperCase() !== 'ALL') {
       const distStr = String(filterDist).toUpperCase();
       if (distStr === 'KUMAON' || distStr === 'GARHWAL') {
@@ -2051,19 +2051,19 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
         bQuery = bQuery.eq('district_id', filterDist);
       }
     }
-    
+
     const { data: blocks, error: bErr } = await bQuery;
     if (bErr) throw bErr;
     if (!blocks || blocks.length === 0) {
       return res.json({ rows: [], kpis: { expected: 0, received: 0, onTime: 0, reportingPct: 0, onTimePct: 0, units: 0 } });
     }
-    
+
     const blockIds = blocks.map(b => b.id);
     const fromDate = new Date(from_date);
     const toDate = new Date(to_date);
     const msInDay = 24 * 60 * 60 * 1000;
     const daysExpected = Math.max(1, Math.floor((toDate.getTime() - fromDate.getTime()) / msInDay) + 1);
-    
+
     // Expected monthly reports
     let monthsExpected = 1;
     let tempDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), 1);
@@ -2074,11 +2074,11 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
       tempDate.setMonth(tempDate.getMonth() + 1);
     }
     monthsExpected = monthList.length;
-    
+
     let dailyReports = [];
     let dueListReports = [];
     let stockReports = [];
-    
+
     if (report_type === 'ALL' || report_type === 'DAILY_PROGRESS') {
       const { data } = await supabase.from('daily_reports')
         .select('*')
@@ -2087,7 +2087,7 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
         .lte('reporting_date', to_date);
       dailyReports = data || [];
     }
-    
+
     if (report_type === 'ALL' || report_type === 'MONTHLY_DUE_LIST') {
       const { data } = await supabase.from('monthly_due_list_reports')
         .select('*')
@@ -2095,7 +2095,7 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
         .in('reporting_month', monthList);
       dueListReports = data || [];
     }
-    
+
     if (report_type === 'ALL' || report_type === 'MONTHLY_STOCK') {
       const { data } = await supabase.from('monthly_balance')
         .select('*')
@@ -2128,12 +2128,12 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
       }
       return latest;
     };
-    
+
     const rows = [];
     let totalExpected = 0;
     let totalReceived = 0;
     let totalOnTime = 0;
-    
+
     let unitsToProcess = [];
     if (level === 'Division') {
       const dMap = new Map();
@@ -2147,33 +2147,33 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
     } else {
       unitsToProcess = blocks.map(b => ({ id: b.id, name: b.name, isUrban: b.is_urban, blockIds: [b.id] }));
     }
-    
+
     for (const unit of unitsToProcess) {
       const numBlocks = unit.blockIds.length;
       if (report_type === 'ALL' || report_type === 'DAILY_PROGRESS') {
         const unitDaily = dailyReports.filter(r => unit.blockIds.includes(r.block_id));
         const expected = daysExpected * numBlocks;
         const submitted = unitDaily.length;
-        
+
         let onTimeCount = 0;
         let lastReported = null;
-        
+
         unitDaily.forEach(r => {
-           const repDate = new Date(r.reporting_date);
-           const cutoff = new Date(repDate.getTime() + (24 * 60 * 60 * 1000));
-           cutoff.setHours(15, 59, 59, 999);
-           const created = new Date(r.created_at || r.submitted_at || new Date().toISOString());
-           if (created <= cutoff) onTimeCount++;
-           if (!lastReported || created > lastReported) lastReported = created;
+          const repDate = new Date(r.reporting_date);
+          const cutoff = new Date(repDate.getTime() + (24 * 60 * 60 * 1000));
+          cutoff.setHours(15, 59, 59, 999);
+          const created = new Date(r.created_at || r.submitted_at || new Date().toISOString());
+          if (created <= cutoff) onTimeCount++;
+          if (!lastReported || created > lastReported) lastReported = created;
         });
-        
+
         const reportingPct = expected > 0 ? Math.round((submitted / expected) * 100) : 0;
         const onTimePct = expected > 0 ? Math.round((onTimeCount / expected) * 100) : 0;
-        
+
         totalExpected += expected;
         totalReceived += submitted;
         totalOnTime += onTimeCount;
-        
+
         rows.push({
           unitName: unit.name,
           isUrban: unit.isUrban,
@@ -2187,30 +2187,30 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
           status: submitted >= expected ? 'Complete' : (submitted > 0 ? 'Late' : 'Pending')
         });
       }
-      
+
       if (report_type === 'ALL' || report_type === 'MONTHLY_DUE_LIST') {
         const unitDue = dueListReports.filter(r => unit.blockIds.includes(r.block_id));
         const expected = monthsExpected * numBlocks;
         const submitted = unitDue.length;
-        
+
         let onTimeCount = 0;
         let lastReported = null;
-        
+
         unitDue.forEach(r => {
-           const [yr, mo] = r.reporting_month.split('-');
-           const cutoff = new Date(parseInt(yr), parseInt(mo), 5, 23, 59, 59); 
-           const created = new Date(r.submitted_at || r.created_at || new Date().toISOString());
-           if (created <= cutoff) onTimeCount++;
-           if (!lastReported || created > lastReported) lastReported = created;
+          const [yr, mo] = r.reporting_month.split('-');
+          const cutoff = new Date(parseInt(yr), parseInt(mo), 5, 23, 59, 59);
+          const created = new Date(r.submitted_at || r.created_at || new Date().toISOString());
+          if (created <= cutoff) onTimeCount++;
+          if (!lastReported || created > lastReported) lastReported = created;
         });
-        
+
         const reportingPct = expected > 0 ? Math.round((submitted / expected) * 100) : 0;
         const onTimePct = expected > 0 ? Math.round((onTimeCount / expected) * 100) : 0;
-        
+
         totalExpected += expected;
         totalReceived += submitted;
         totalOnTime += onTimeCount;
-        
+
         rows.push({
           unitName: unit.name,
           isUrban: unit.isUrban,
@@ -2224,30 +2224,30 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
           status: submitted >= expected ? 'Complete' : (submitted > 0 ? 'Late' : 'Pending')
         });
       }
-      
+
       if (report_type === 'ALL' || report_type === 'MONTHLY_STOCK') {
         const unitStock = stockReports.filter(r => unit.blockIds.includes(r.block_id));
         const expected = monthsExpected * numBlocks;
         const submitted = unitStock.length;
-        
+
         let onTimeCount = 0;
         let lastReported = null;
-        
+
         unitStock.forEach(r => {
-           const [yr, mo] = r.month.split('-');
-           const cutoff = new Date(parseInt(yr), parseInt(mo), 5, 23, 59, 59);
-           const created = new Date(r.created_at || r.submitted_at || new Date().toISOString());
-           if (created <= cutoff) onTimeCount++;
-           if (!lastReported || created > lastReported) lastReported = created;
+          const [yr, mo] = r.month.split('-');
+          const cutoff = new Date(parseInt(yr), parseInt(mo), 5, 23, 59, 59);
+          const created = new Date(r.created_at || r.submitted_at || new Date().toISOString());
+          if (created <= cutoff) onTimeCount++;
+          if (!lastReported || created > lastReported) lastReported = created;
         });
-        
+
         const reportingPct = expected > 0 ? Math.round((submitted / expected) * 100) : 0;
         const onTimePct = expected > 0 ? Math.round((onTimeCount / expected) * 100) : 0;
-        
+
         totalExpected += expected;
         totalReceived += submitted;
         totalOnTime += onTimeCount;
-        
+
         rows.push({
           unitName: unit.name,
           isUrban: unit.isUrban,
@@ -2262,7 +2262,7 @@ app.get('/api/admin/reports/completeness', authenticateToken, async (req, res) =
         });
       }
     }
-    
+
     res.json({
       kpis: {
         expected: totalExpected,
@@ -2298,11 +2298,11 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
       `)
       .eq('is_active', true)
       .order('name');
-      
+
     if (targetStateId) {
       bQuery = bQuery.eq('districts.state_id', targetStateId);
     }
-    
+
     if (effectiveDistrictId && String(effectiveDistrictId).toUpperCase() !== 'ALL') {
       const distStr = String(effectiveDistrictId).toUpperCase();
       if (distStr === 'KUMAON' || distStr === 'GARHWAL') {
@@ -2354,9 +2354,9 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
     // Cumulative: latest and previous reports per block
     const reportsMap = {};
     const prevReportsMap = {};
-    (reports || []).forEach(r => { 
+    (reports || []).forEach(r => {
       if (!reportsMap[r.block_id]) {
-        reportsMap[r.block_id] = r; 
+        reportsMap[r.block_id] = r;
       } else if (!prevReportsMap[r.block_id]) {
         prevReportsMap[r.block_id] = r;
       }
@@ -2375,7 +2375,7 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
       const pop = prof?.base_population || 0;
       // hpv_target from blocks table directly; fallback to profile initial_hpv_target or 1% pop
       const target = b.hpv_target || prof?.initial_hpv_target || (pop > 0 ? Math.round(pop * 0.01) : 0);
-      
+
       const sessToday = todayRep ? (todayRep.sessions_held - (prevRep ? prevRep.sessions_held : 0)) : 0;
       const vaccToday = todayRep ? (todayRep.beneficiaries_vaccinated - (prevRep ? prevRep.beneficiaries_vaccinated : 0)) : 0;
 
@@ -2439,7 +2439,7 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
         }
       });
       finalRows = Object.values(distGroup);
-        } else if (level === 'DIVISION') {
+    } else if (level === 'DIVISION') {
       const divGroup = {};
       blockData.forEach(b => {
         const divId = b.districts?.division_id || 'unknown';
@@ -2542,7 +2542,7 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
 app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, res) => {
   try {
     const { reportingMonth, districtId, blockId, divisionId, level = 'BLOCK', debug } = req.query;
-    
+
     // Parse Dates
     const todayStr = new Date().toISOString().split('T')[0];
     const currentMonthStr = todayStr.slice(0, 7);
@@ -2578,7 +2578,7 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       .from('block_reporting_profiles')
       .select('block_id, base_population, initial_hpv_target')
       .in('block_id', blockIds);
-      
+
     const profileMap = {};
     (profiles || []).forEach(p => { profileMap[p.block_id] = p; });
 
@@ -2588,19 +2588,19 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
       .select('id, ccl_id, unit_level, district_id, block_id')
       .in('unit_level', ['2', '3'])
       .in('district_id', finalDistrictIds);
-      
+
     const districtStores = allCcps.filter(c => c.unit_level === '2');
     const blockCcps = allCcps.filter(c => c.unit_level === '3');
-    
+
     const ccpCclIdMap = {};
-    allCcps.forEach(c => { if(c.ccl_id) ccpCclIdMap[c.id] = c.ccl_id; });
-    const districtStoreMap = {}; 
+    allCcps.forEach(c => { if (c.ccl_id) ccpCclIdMap[c.id] = c.ccl_id; });
+    const districtStoreMap = {};
     districtStores.forEach(c => {
       if (!districtStoreMap[c.district_id]) districtStoreMap[c.district_id] = [];
       districtStoreMap[c.district_id].push(c.id);
     });
 
-    const blockCcpMap = {}; 
+    const blockCcpMap = {};
     blockCcps.forEach(c => {
       if (!blockCcpMap[c.block_id]) blockCcpMap[c.block_id] = [];
       blockCcpMap[c.block_id].push(c.id);
@@ -2616,393 +2616,393 @@ app.get('/api/admin/reports/stock-monitoring', authenticateToken, async (req, re
     const districtStoreData = [];
 
     if (ledgerRecords && ledgerRecords.length > 0) {
-        (ledgerRecords || []).forEach(r => {
-            if (r.entity_type === 'BLOCK' && blockIds.includes(r.block_id)) {
-                const b = blocks.find(x => x.id === r.block_id);
-                if (!b) return;
-                blockData.push({
-                    id: b.id,
-                    name: b.health_block_name || b.name,
-                    is_urban: b.is_urban,
-                    population: b.population || 0,
-                    district: b.districts?.name,
-                    district_id: b.district_id,
-                    division_id: b.districts?.division_id,
-                    division_name: b.districts?.divisions?.name,
-                    annual_requirement: r.annual_requirement,
-                    opening_stock: r.opening_stock,
-                    vaccine_received: r.vaccine_received_current_month,
-                    vaccinations: r.vaccinations_current_month,
-                    estimated_stock_balance: r.closing_stock_estimated,
-                    month_end_reporting_pct: r.pre_month_reporting_percentage,
-                    month_end_reporting_count: r.pre_month_reporting_count,
-                    month_end_total_ccp: r.pre_month_total_ccp,
-                    month_end_stock_reported: r.pre_month_end_stock_reported,
-                    opening_stock_crude_method: r.opening_stock_crude_method,
-                    estimation_model: r.estimation_model === 'Reported Value Method' || r.estimation_model === 'Reported Stock' ? 'Reported Stock' : 'Crude Method',
-                    stock_availability_pct: r.stock_availability_percentage,
-                    action_required: r.action,
-                    vaccine_received_last_12_months: r.vaccine_received_last_12_months,
-                    vaccinations_last_12_months: r.vaccinations_last_12_months,
-                    entity_type: 'BLOCK'
-                });
-            } else if (r.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE' && finalDistrictIds.includes(r.district_id)) {
-                const d = blocks.find(x => x.district_id === r.district_id)?.districts;
-                if (!d) return;
-                districtStoreData.push({
-                    id: r.district_id + '-ccl2',
-                    name: d.name + ' District Store',
-                    population: 0,
-                    is_urban: false,
-                    district: d.name,
-                    district_id: r.district_id,
-                    division_id: d.division_id,
-                    division_name: d.divisions?.name,
-                    annual_requirement: r.annual_requirement,
-                    opening_stock: r.opening_stock,
-                    vaccine_received: r.vaccine_received_current_month,
-                    vaccinations: r.vaccine_consumed_wastage_factor,
-                    estimated_stock_balance: r.closing_stock_estimated,
-                    month_end_reporting_pct: r.pre_month_reporting_percentage,
-                    month_end_reporting_count: r.pre_month_reporting_count,
-                    month_end_total_ccp: r.pre_month_total_ccp,
-                    month_end_stock_reported: r.pre_month_end_stock_reported,
-                    opening_stock_crude_method: r.opening_stock_crude_method,
-                    estimation_model: r.estimation_model === 'Reported Value Method' || r.estimation_model === 'Reported Stock' ? 'Reported Stock' : 'Crude Method',
-                    stock_availability_pct: r.stock_availability_percentage,
-                    action_required: r.action,
-                    vaccine_received_last_12_months: r.vaccine_received_last_12_months,
-                    vaccinations_last_12_months: r.vaccinations_last_12_months,
-                    entity_type: 'CCL_LEVEL_2_DISTRICT_STORE'
-                });
-            }
-        });
+      (ledgerRecords || []).forEach(r => {
+        if (r.entity_type === 'BLOCK' && blockIds.includes(r.block_id)) {
+          const b = blocks.find(x => x.id === r.block_id);
+          if (!b) return;
+          blockData.push({
+            id: b.id,
+            name: b.health_block_name || b.name,
+            is_urban: b.is_urban,
+            population: b.population || 0,
+            district: b.districts?.name,
+            district_id: b.district_id,
+            division_id: b.districts?.division_id,
+            division_name: b.districts?.divisions?.name,
+            annual_requirement: r.annual_requirement,
+            opening_stock: r.opening_stock,
+            vaccine_received: r.vaccine_received_current_month,
+            vaccinations: r.vaccinations_current_month,
+            estimated_stock_balance: r.closing_stock_estimated,
+            month_end_reporting_pct: r.pre_month_reporting_percentage,
+            month_end_reporting_count: r.pre_month_reporting_count,
+            month_end_total_ccp: r.pre_month_total_ccp,
+            month_end_stock_reported: r.pre_month_end_stock_reported,
+            opening_stock_crude_method: r.opening_stock_crude_method,
+            estimation_model: r.estimation_model === 'Reported Value Method' || r.estimation_model === 'Reported Stock' ? 'Reported Stock' : 'Crude Method',
+            stock_availability_pct: r.stock_availability_percentage,
+            action_required: r.action,
+            vaccine_received_last_12_months: r.vaccine_received_last_12_months,
+            vaccinations_last_12_months: r.vaccinations_last_12_months,
+            entity_type: 'BLOCK'
+          });
+        } else if (r.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE' && finalDistrictIds.includes(r.district_id)) {
+          const d = blocks.find(x => x.district_id === r.district_id)?.districts;
+          if (!d) return;
+          districtStoreData.push({
+            id: r.district_id + '-ccl2',
+            name: d.name + ' District Store',
+            population: 0,
+            is_urban: false,
+            district: d.name,
+            district_id: r.district_id,
+            division_id: d.division_id,
+            division_name: d.divisions?.name,
+            annual_requirement: r.annual_requirement,
+            opening_stock: r.opening_stock,
+            vaccine_received: r.vaccine_received_current_month,
+            vaccinations: r.vaccine_consumed_wastage_factor,
+            estimated_stock_balance: r.closing_stock_estimated,
+            month_end_reporting_pct: r.pre_month_reporting_percentage,
+            month_end_reporting_count: r.pre_month_reporting_count,
+            month_end_total_ccp: r.pre_month_total_ccp,
+            month_end_stock_reported: r.pre_month_end_stock_reported,
+            opening_stock_crude_method: r.opening_stock_crude_method,
+            estimation_model: r.estimation_model === 'Reported Value Method' || r.estimation_model === 'Reported Stock' ? 'Reported Stock' : 'Crude Method',
+            stock_availability_pct: r.stock_availability_percentage,
+            action_required: r.action,
+            vaccine_received_last_12_months: r.vaccine_received_last_12_months,
+            vaccinations_last_12_months: r.vaccinations_last_12_months,
+            entity_type: 'CCL_LEVEL_2_DISTRICT_STORE'
+          });
+        }
+      });
     } else {
-        // Dynamic In-Memory Calculation (Fail-safe for Serverless Vercel environment)
-        const targetMonthDate = new Date(targetMonthStr + '-01');
-        const prevMonthDate = new Date(targetMonthDate);
-        prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
-        const prevMonthStr = prevMonthDate.toISOString().split('T')[0].slice(0, 7);
-        const twelveMonthsPriorDate = new Date(prevMonthDate);
-        twelveMonthsPriorDate.setMonth(twelveMonthsPriorDate.getMonth() - 11);
-        const twelveMonthsPriorStr = twelveMonthsPriorDate.toISOString().split('T')[0].slice(0, 7);
-        const thirteenMonthsPriorDate = new Date(twelveMonthsPriorDate);
-        thirteenMonthsPriorDate.setMonth(thirteenMonthsPriorDate.getMonth() - 1);
+      // Dynamic In-Memory Calculation (Fail-safe for Serverless Vercel environment)
+      const targetMonthDate = new Date(targetMonthStr + '-01');
+      const prevMonthDate = new Date(targetMonthDate);
+      prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
+      const prevMonthStr = prevMonthDate.toISOString().split('T')[0].slice(0, 7);
+      const twelveMonthsPriorDate = new Date(prevMonthDate);
+      twelveMonthsPriorDate.setMonth(twelveMonthsPriorDate.getMonth() - 11);
+      const twelveMonthsPriorStr = twelveMonthsPriorDate.toISOString().split('T')[0].slice(0, 7);
+      const thirteenMonthsPriorDate = new Date(twelveMonthsPriorDate);
+      thirteenMonthsPriorDate.setMonth(thirteenMonthsPriorDate.getMonth() - 1);
 
-        const targetMonthStart = targetMonthStr + '-01';
-        const nextMonthDate = new Date(targetMonthDate);
-        nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
-        const targetMonthEnd = new Date(nextMonthDate - 1).toISOString().split('T')[0];
-        const prevMonthEnd = new Date(targetMonthDate - 1).toISOString().split('T')[0];
-        const twelveMonthsPriorStart = twelveMonthsPriorStr + '-01';
-        const thirteenMonthsPriorEnd = new Date(twelveMonthsPriorDate - 1).toISOString().split('T')[0];
+      const targetMonthStart = targetMonthStr + '-01';
+      const nextMonthDate = new Date(targetMonthDate);
+      nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+      const targetMonthEnd = new Date(nextMonthDate - 1).toISOString().split('T')[0];
+      const prevMonthEnd = new Date(targetMonthDate - 1).toISOString().split('T')[0];
+      const twelveMonthsPriorStart = twelveMonthsPriorStr + '-01';
+      const thirteenMonthsPriorEnd = new Date(twelveMonthsPriorDate - 1).toISOString().split('T')[0];
 
-        const [
-            { data: monthlyBalances },
-            { data: transactionsHistorical },
-            { data: transactionsCurrent },
-            { data: dailyReports }
-        ] = await Promise.all([
-            supabase.from('monthly_balance').select('facility_id, qty_doses, transaction_date').gte('transaction_date', prevMonthStr + '-01').lte('transaction_date', prevMonthEnd).limit(50000),
-            supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses, source_ccl_id, destination_ccl_id').lte('transaction_date', prevMonthEnd).limit(100000),
-            supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses, source_ccl_id, destination_ccl_id').gte('transaction_date', targetMonthStart).lte('transaction_date', targetMonthEnd).limit(50000),
-            supabase.from('daily_reports').select('block_id, reporting_date, beneficiaries_vaccinated').lte('reporting_date', targetMonthEnd).order('reporting_date', { ascending: false }).limit(50000)
-        ]);
+      const [
+        { data: monthlyBalances },
+        { data: transactionsHistorical },
+        { data: transactionsCurrent },
+        { data: dailyReports }
+      ] = await Promise.all([
+        supabase.from('monthly_balance').select('facility_id, qty_doses, transaction_date').gte('transaction_date', prevMonthStr + '-01').lte('transaction_date', prevMonthEnd).limit(50000),
+        supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses, source_ccl_id, destination_ccl_id').lte('transaction_date', prevMonthEnd).limit(100000),
+        supabase.from('vaccine_stock_transactions').select('level, district_id, block_id, facility_id, transaction_type, quantity_doses, source_ccl_id, destination_ccl_id').gte('transaction_date', targetMonthStart).lte('transaction_date', targetMonthEnd).limit(50000),
+        supabase.from('daily_reports').select('block_id, reporting_date, beneficiaries_vaccinated').lte('reporting_date', targetMonthEnd).order('reporting_date', { ascending: false }).limit(50000)
+      ]);
 
-        const maxVaxPrevMonth = {};
-        const maxVaxCurrentMonth = {};
+      const maxVaxPrevMonth = {};
+      const maxVaxCurrentMonth = {};
 
-        (dailyReports || []).forEach(r => {
-            const b = r.block_id;
-            if (r.reporting_date <= prevMonthEnd && maxVaxPrevMonth[b] === undefined) {
-                maxVaxPrevMonth[b] = r.beneficiaries_vaccinated || 0;
+      (dailyReports || []).forEach(r => {
+        const b = r.block_id;
+        if (r.reporting_date <= prevMonthEnd && maxVaxPrevMonth[b] === undefined) {
+          maxVaxPrevMonth[b] = r.beneficiaries_vaccinated || 0;
+        }
+        if (r.reporting_date <= targetMonthEnd && maxVaxCurrentMonth[b] === undefined) {
+          maxVaxCurrentMonth[b] = r.beneficiaries_vaccinated || 0;
+        }
+      });
+
+      // Helper for transaction grouping
+      const calculateFlows = (facs, txList) => {
+        let inflow = 0;
+        let outflow = 0;
+        const facCclIds = facs.map(f => ccpCclIdMap[f]).filter(Boolean);
+
+        (txList || []).forEach(t => {
+          const qty = Number(t.quantity_doses || 0);
+          if (t.transaction_type === 'RECEIVED') {
+            if (facs.includes(t.facility_id) && !t.source_ccl_id) inflow += qty;
+          } else if (t.transaction_type === 'ISSUED') {
+            if (t.destination_ccl_id && facCclIds.includes(t.destination_ccl_id) && !facs.includes(t.facility_id)) {
+              inflow += qty;
             }
-            if (r.reporting_date <= targetMonthEnd && maxVaxCurrentMonth[b] === undefined) {
-                maxVaxCurrentMonth[b] = r.beneficiaries_vaccinated || 0;
+            if (facs.includes(t.facility_id) && (!t.destination_ccl_id || !facCclIds.includes(t.destination_ccl_id))) {
+              outflow += qty;
             }
+          }
+        });
+        return { inflow, outflow };
+      };
+
+      // 1. Process Blocks
+      blocks.forEach(block => {
+        const prof = profileMap[block.id];
+        const baseTarget = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : (block.population ? Math.round(block.population * 0.01) : 0));
+        const annualReq = Math.round(baseTarget * 1.01);
+        const facs = blockCcpMap[block.id] || [];
+
+        let preMonthReportingCount = 0;
+        let preMonthEndStockReported = 0;
+        facs.forEach(f => {
+          const bal = (monthlyBalances || []).find(x => String(x.facility_id) === String(f));
+          if (bal) {
+            preMonthReportingCount++;
+            preMonthEndStockReported += bal.qty_doses;
+          }
         });
 
-        // Helper for transaction grouping
-        const calculateFlows = (facs, txList) => {
-            let inflow = 0;
-            let outflow = 0;
-            const facCclIds = facs.map(f => ccpCclIdMap[f]).filter(Boolean);
-            
-            (txList || []).forEach(t => {
-                const qty = Number(t.quantity_doses || 0);
-                if (t.transaction_type === 'RECEIVED') {
-                    if (facs.includes(t.facility_id) && !t.source_ccl_id) inflow += qty;
-                } else if (t.transaction_type === 'ISSUED') {
-                    if (t.destination_ccl_id && facCclIds.includes(t.destination_ccl_id) && !facs.includes(t.facility_id)) {
-                        inflow += qty;
-                    }
-                    if (facs.includes(t.facility_id) && (!t.destination_ccl_id || !facCclIds.includes(t.destination_ccl_id))) {
-                        outflow += qty;
-                    }
-                }
-            });
-            return { inflow, outflow };
-        };
+        const preMonthTotalCcp = facs.length;
+        const preMonthReportingPct = preMonthTotalCcp > 0 ? (preMonthReportingCount / preMonthTotalCcp) * 100 : 0;
 
-        // 1. Process Blocks
-        blocks.forEach(block => {
-            const prof = profileMap[block.id];
-            const baseTarget = prof?.initial_hpv_target || (prof?.base_population ? Math.round(prof.base_population * 0.01) : (block.population ? Math.round(block.population * 0.01) : 0));
-            const annualReq = Math.round(baseTarget * 1.01);
-            const facs = blockCcpMap[block.id] || [];
+        const vaxHistorical = maxVaxPrevMonth[block.id] || 0;
+        const vaxCurrentMonth = Math.max(0, (maxVaxCurrentMonth[block.id] || 0) - vaxHistorical);
 
-            let preMonthReportingCount = 0;
-            let preMonthEndStockReported = 0;
-            facs.forEach(f => {
-                const bal = (monthlyBalances || []).find(x => String(x.facility_id) === String(f));
-                if (bal) {
-                    preMonthReportingCount++;
-                    preMonthEndStockReported += bal.qty_doses;
-                }
-            });
+        const histFlows = calculateFlows(facs, transactionsHistorical);
+        const currFlows = calculateFlows(facs, transactionsCurrent);
 
-            const preMonthTotalCcp = facs.length;
-            const preMonthReportingPct = preMonthTotalCcp > 0 ? (preMonthReportingCount / preMonthTotalCcp) * 100 : 0;
+        // True opening stock using crude method is historical inflow - historical outflow - historical vaccinations
+        const openingStockCrudeMethod = Math.max(0, histFlows.inflow - histFlows.outflow - vaxHistorical);
+        const estimationModel = preMonthReportingPct === 100 ? 'Reported Stock' : 'Crude Method';
+        const openingStock = estimationModel === 'Reported Stock' ? preMonthEndStockReported : openingStockCrudeMethod;
 
-            const vaxHistorical = maxVaxPrevMonth[block.id] || 0;
-            const vaxCurrentMonth = Math.max(0, (maxVaxCurrentMonth[block.id] || 0) - vaxHistorical);
+        const closingStockEstimated = Math.max(0, openingStock + currFlows.inflow - currFlows.outflow - vaxCurrentMonth);
+        const stockAvailabilityPercentage = annualReq > 0 ? Math.round((closingStockEstimated / annualReq) * 100) : 0;
 
-            const histFlows = calculateFlows(facs, transactionsHistorical);
-            const currFlows = calculateFlows(facs, transactionsCurrent);
-
-            // True opening stock using crude method is historical inflow - historical outflow - historical vaccinations
-            const openingStockCrudeMethod = Math.max(0, histFlows.inflow - histFlows.outflow - vaxHistorical);
-            const estimationModel = preMonthReportingPct === 100 ? 'Reported Stock' : 'Crude Method';
-            const openingStock = estimationModel === 'Reported Stock' ? preMonthEndStockReported : openingStockCrudeMethod;
-
-            const closingStockEstimated = Math.max(0, openingStock + currFlows.inflow - currFlows.outflow - vaxCurrentMonth);
-            const stockAvailabilityPercentage = annualReq > 0 ? Math.round((closingStockEstimated / annualReq) * 100) : 0;
-            
-            let action = '—';
-            if (annualReq > 0) {
-                if (stockAvailabilityPercentage < 10) action = 'Critical';
-                else if (stockAvailabilityPercentage < 25) action = 'Replenish';
-                else if (stockAvailabilityPercentage < 50) action = 'Monitor';
-                else action = 'Adequate';
-            }
-
-            blockData.push({
-                id: block.id,
-                name: block.health_block_name || block.name,
-                is_urban: block.is_urban,
-                population: block.population || 0,
-                district: block.districts?.name,
-                district_id: block.district_id,
-                division_id: block.districts?.division_id,
-                division_name: block.districts?.divisions?.name,
-                annual_requirement: annualReq,
-                opening_stock: openingStock,
-                vaccine_received: currFlows.inflow,
-                vaccinations: vaxCurrentMonth,
-                estimated_stock_balance: closingStockEstimated,
-                month_end_reporting_pct: preMonthReportingPct,
-                month_end_reporting_count: preMonthReportingCount,
-                month_end_total_ccp: preMonthTotalCcp,
-                month_end_stock_reported: preMonthReportingPct === 100 ? preMonthEndStockReported : null,
-                opening_stock_crude_method: openingStockCrudeMethod,
-                estimation_model: estimationModel,
-                stock_availability_pct: stockAvailabilityPercentage,
-                action_required: action,
-                vaccine_received_last_12_months: histFlows.inflow,
-                vaccinations_last_12_months: vaxHistorical,
-                entity_type: 'BLOCK'
-            });
-        });
-
-        // 2. Process District Stores
-        const processedDistrictStores = new Set();
-        for (const ccl of districtStores) {
-            if (processedDistrictStores.has(ccl.district_id)) continue;
-            processedDistrictStores.add(ccl.district_id);
-
-            const districtId = ccl.district_id;
-            const facs = districtStoreMap[districtId] || [];
-
-            let preMonthReportingCount = 0;
-            let preMonthEndStockReported = 0;
-
-            facs.forEach(f => {
-                const bal = (monthlyBalances || []).find(x => String(x.facility_id) === String(f));
-                if (bal) {
-                    preMonthReportingCount++;
-                    preMonthEndStockReported += bal.qty_doses;
-                }
-            });
-
-            const preMonthTotalCcp = facs.length;
-            const preMonthReportingPct = preMonthTotalCcp > 0 ? (preMonthReportingCount / preMonthTotalCcp) * 100 : 0;
-
-            let districtTotalVaxHistorical = 0;
-            let districtTotalVaxCurrent = 0;
-            blocks.forEach(b => {
-                if (b && String(b.district_id) === String(districtId)) {
-                    const hist = maxVaxPrevMonth[b.id] || 0;
-                    districtTotalVaxHistorical += hist;
-                    districtTotalVaxCurrent += Math.max(0, (maxVaxCurrentMonth[b.id] || 0) - hist);
-                }
-            });
-
-            const histFlows = calculateFlows(facs, transactionsHistorical);
-            const currFlows = calculateFlows(facs, transactionsCurrent);
-
-            // District store vaccinations are technically its issues, but if we track crude method:
-            // Since vaccinations happen at blocks, the district store outflow is effectively its issues to blocks.
-            // Opening crude = histFlows.inflow - histFlows.outflow. (District stores don't directly vaccinate)
-            const openingStockCrudeMethod = Math.max(0, histFlows.inflow - histFlows.outflow);
-
-            const estimationModel = preMonthReportingPct === 100 ? 'Reported Stock' : 'Crude Method';
-            const openingStock = estimationModel === 'Reported Stock' ? preMonthEndStockReported : openingStockCrudeMethod;
-
-            const closingStockEstimated = Math.max(0, openingStock + currFlows.inflow - currFlows.outflow);
-            const d = blocks.find(x => x.district_id === districtId)?.districts;
-
-            let districtAnnualReq = 0;
-            blockData.forEach(b => {
-                if (String(b.district_id) === String(districtId)) {
-                    districtAnnualReq += b.annual_requirement;
-                }
-            });
-            const stockAvailabilityPercentage = districtAnnualReq > 0 ? Math.round((closingStockEstimated / districtAnnualReq) * 100) : 0;
-            let action = '—';
-            if (districtAnnualReq > 0) {
-                if (stockAvailabilityPercentage < 10) action = 'Critical';
-                else if (stockAvailabilityPercentage < 25) action = 'Replenish';
-                else if (stockAvailabilityPercentage < 50) action = 'Monitor';
-                else action = 'Adequate';
-            }
-
-            districtStoreData.push({
-                id: districtId + '-ccl2',
-                name: (d?.name || '') + ' District Store',
-                population: 0,
-                is_urban: false,
-                district: d?.name || '',
-                district_id: districtId,
-                division_id: d?.division_id,
-                division_name: d?.divisions?.name,
-                annual_requirement: districtAnnualReq,
-                opening_stock: openingStock,
-                vaccine_received: currFlows.inflow,
-                vaccinations: currFlows.outflow, 
-                estimated_stock_balance: closingStockEstimated,
-                month_end_reporting_pct: preMonthReportingPct,
-                month_end_reporting_count: preMonthReportingCount,
-                month_end_total_ccp: preMonthTotalCcp,
-                month_end_stock_reported: preMonthReportingPct === 100 ? preMonthEndStockReported : null,
-                opening_stock_crude_method: openingStockCrudeMethod,
-                estimation_model: estimationModel,
-                stock_availability_pct: stockAvailabilityPercentage,
-                action_required: action,
-                vaccine_received_last_12_months: histFlows.inflow,
-                vaccinations_last_12_months: districtTotalVaxHistorical,
-                entity_type: 'CCL_LEVEL_2_DISTRICT_STORE'
-            });
+        let action = '—';
+        if (annualReq > 0) {
+          if (stockAvailabilityPercentage < 10) action = 'Critical';
+          else if (stockAvailabilityPercentage < 25) action = 'Replenish';
+          else if (stockAvailabilityPercentage < 50) action = 'Monitor';
+          else action = 'Adequate';
         }
 
-        // Asynchronously update ledger table without blocking response
-        // ensureMonthlyLedger is disabled as it was removed
-        // ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap).catch(e => console.warn('Background ledger update notice:', e));
+        blockData.push({
+          id: block.id,
+          name: block.health_block_name || block.name,
+          is_urban: block.is_urban,
+          population: block.population || 0,
+          district: block.districts?.name,
+          district_id: block.district_id,
+          division_id: block.districts?.division_id,
+          division_name: block.districts?.divisions?.name,
+          annual_requirement: annualReq,
+          opening_stock: openingStock,
+          vaccine_received: currFlows.inflow,
+          vaccinations: vaxCurrentMonth,
+          estimated_stock_balance: closingStockEstimated,
+          month_end_reporting_pct: preMonthReportingPct,
+          month_end_reporting_count: preMonthReportingCount,
+          month_end_total_ccp: preMonthTotalCcp,
+          month_end_stock_reported: preMonthReportingPct === 100 ? preMonthEndStockReported : null,
+          opening_stock_crude_method: openingStockCrudeMethod,
+          estimation_model: estimationModel,
+          stock_availability_pct: stockAvailabilityPercentage,
+          action_required: action,
+          vaccine_received_last_12_months: histFlows.inflow,
+          vaccinations_last_12_months: vaxHistorical,
+          entity_type: 'BLOCK'
+        });
+      });
+
+      // 2. Process District Stores
+      const processedDistrictStores = new Set();
+      for (const ccl of districtStores) {
+        if (processedDistrictStores.has(ccl.district_id)) continue;
+        processedDistrictStores.add(ccl.district_id);
+
+        const districtId = ccl.district_id;
+        const facs = districtStoreMap[districtId] || [];
+
+        let preMonthReportingCount = 0;
+        let preMonthEndStockReported = 0;
+
+        facs.forEach(f => {
+          const bal = (monthlyBalances || []).find(x => String(x.facility_id) === String(f));
+          if (bal) {
+            preMonthReportingCount++;
+            preMonthEndStockReported += bal.qty_doses;
+          }
+        });
+
+        const preMonthTotalCcp = facs.length;
+        const preMonthReportingPct = preMonthTotalCcp > 0 ? (preMonthReportingCount / preMonthTotalCcp) * 100 : 0;
+
+        let districtTotalVaxHistorical = 0;
+        let districtTotalVaxCurrent = 0;
+        blocks.forEach(b => {
+          if (b && String(b.district_id) === String(districtId)) {
+            const hist = maxVaxPrevMonth[b.id] || 0;
+            districtTotalVaxHistorical += hist;
+            districtTotalVaxCurrent += Math.max(0, (maxVaxCurrentMonth[b.id] || 0) - hist);
+          }
+        });
+
+        const histFlows = calculateFlows(facs, transactionsHistorical);
+        const currFlows = calculateFlows(facs, transactionsCurrent);
+
+        // District store vaccinations are technically its issues, but if we track crude method:
+        // Since vaccinations happen at blocks, the district store outflow is effectively its issues to blocks.
+        // Opening crude = histFlows.inflow - histFlows.outflow. (District stores don't directly vaccinate)
+        const openingStockCrudeMethod = Math.max(0, histFlows.inflow - histFlows.outflow);
+
+        const estimationModel = preMonthReportingPct === 100 ? 'Reported Stock' : 'Crude Method';
+        const openingStock = estimationModel === 'Reported Stock' ? preMonthEndStockReported : openingStockCrudeMethod;
+
+        const closingStockEstimated = Math.max(0, openingStock + currFlows.inflow - currFlows.outflow);
+        const d = blocks.find(x => x.district_id === districtId)?.districts;
+
+        let districtAnnualReq = 0;
+        blockData.forEach(b => {
+          if (String(b.district_id) === String(districtId)) {
+            districtAnnualReq += b.annual_requirement;
+          }
+        });
+        const stockAvailabilityPercentage = districtAnnualReq > 0 ? Math.round((closingStockEstimated / districtAnnualReq) * 100) : 0;
+        let action = '—';
+        if (districtAnnualReq > 0) {
+          if (stockAvailabilityPercentage < 10) action = 'Critical';
+          else if (stockAvailabilityPercentage < 25) action = 'Replenish';
+          else if (stockAvailabilityPercentage < 50) action = 'Monitor';
+          else action = 'Adequate';
+        }
+
+        districtStoreData.push({
+          id: districtId + '-ccl2',
+          name: (d?.name || '') + ' District Store',
+          population: 0,
+          is_urban: false,
+          district: d?.name || '',
+          district_id: districtId,
+          division_id: d?.division_id,
+          division_name: d?.divisions?.name,
+          annual_requirement: districtAnnualReq,
+          opening_stock: openingStock,
+          vaccine_received: currFlows.inflow,
+          vaccinations: currFlows.outflow,
+          estimated_stock_balance: closingStockEstimated,
+          month_end_reporting_pct: preMonthReportingPct,
+          month_end_reporting_count: preMonthReportingCount,
+          month_end_total_ccp: preMonthTotalCcp,
+          month_end_stock_reported: preMonthReportingPct === 100 ? preMonthEndStockReported : null,
+          opening_stock_crude_method: openingStockCrudeMethod,
+          estimation_model: estimationModel,
+          stock_availability_pct: stockAvailabilityPercentage,
+          action_required: action,
+          vaccine_received_last_12_months: histFlows.inflow,
+          vaccinations_last_12_months: districtTotalVaxHistorical,
+          entity_type: 'CCL_LEVEL_2_DISTRICT_STORE'
+        });
+      }
+
+      // Asynchronously update ledger table without blocking response
+      // ensureMonthlyLedger is disabled as it was removed
+      // ensureMonthlyLedger(targetMonthStr, blocks, districtStores, districtStoreMap, blockCcpMap, profileMap).catch(e => console.warn('Background ledger update notice:', e));
     }
 
     let finalRows = [];
     if (level === 'DISTRICT') {
-        const distGroup = {};
-        [...blockData, ...districtStoreData].forEach(d => {
-            const distId = d.district_id;
-            if (!distGroup[distId]) {
-                distGroup[distId] = {
-                    id: distId,
-                    name: d.district,
-                    district: d.district,
-                    district_id: distId,
-                    division_id: d.division_id,
-                    division_name: d.division_name,
-                    annual_requirement: 0,
-                    opening_stock: 0,
-                    vaccine_received: 0,
-                    vaccinations: 0,
-                    estimated_stock_balance: 0,
-                    stock_availability_pct: 0,
-                    action_required: '—',
-                    month_end_reporting_count_sum: 0,
-                    month_end_total_ccp_sum: 0,
-                    month_end_stock_reported_sum: 0,
-                    opening_stock_crude_method_sum: 0,
-                    vaccine_received_last_12_months_sum: 0,
-                    vaccinations_last_12_months_sum: 0,
-                    valid_reporting_count: 0,
-                    total_entities: 0,
-                    entity_type: 'DISTRICT_AGGREGATE',
-                    population: 0
-                };
-            }
-            const g = distGroup[distId];
-            g.annual_requirement += d.annual_requirement;
-            g.population += (d.population || 0);
-            
-            if (d.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE') {
-                // District Store ONLY contributes to "Received"
-                g.vaccine_received += d.vaccine_received;
-                g.vaccine_received_last_12_months_sum += d.vaccine_received_last_12_months;
-            } else {
-                // Blocks ONLY contribute to "Vaccinations"
-                g.vaccinations += d.vaccinations;
-                g.vaccinations_last_12_months_sum += d.vaccinations_last_12_months;
-            }
-            
-            g.month_end_reporting_count_sum += (d.month_end_reporting_count || 0);
-            g.month_end_total_ccp_sum += (d.month_end_total_ccp || 0);
-            
-            if (d.month_end_stock_reported != null) {
-                g.month_end_stock_reported_sum += d.month_end_stock_reported;
-                g.valid_reporting_count++;
-            }
-            g.total_entities++;
-        });
-        
-        finalRows = Object.values(distGroup).map(g => {
-            // Recalculate Crude Method at the District Level
-            const consumed12M = Math.round(g.vaccinations_last_12_months_sum * 1.01);
-            g.opening_stock_crude_method = Math.max(0, g.vaccine_received_last_12_months_sum - consumed12M);
-            
-            g.month_end_reporting_pct = g.month_end_total_ccp_sum > 0 ? (g.month_end_reporting_count_sum / g.month_end_total_ccp_sum) * 100 : 0;
-            g.month_end_reporting_count = g.month_end_reporting_count_sum;
-            g.month_end_total_ccp = g.month_end_total_ccp_sum;
-            
-            g.month_end_stock_reported = g.valid_reporting_count > 0 ? g.month_end_stock_reported_sum : null;
-            
-            g.estimation_model = g.month_end_reporting_pct >= 100 ? 'Reported Stock' : 'Crude Method';
-            g.opening_stock = g.estimation_model === 'Reported Stock' ? (g.month_end_stock_reported ?? g.opening_stock_crude_method) : g.opening_stock_crude_method;
-            
-            const consumedCurrent = Math.round(g.vaccinations * 1.01);
-            g.estimated_stock_balance = Math.max(0, g.opening_stock + g.vaccine_received - consumedCurrent);
-            
-            g.stock_availability_pct = g.annual_requirement > 0 ? (g.estimated_stock_balance / g.annual_requirement) * 100 : 0;
-            g.action_required = '—';
-            if (g.annual_requirement > 0) {
-                if (g.stock_availability_pct < 10) g.action_required = 'Critical';
-                else if (g.stock_availability_pct < 25) g.action_required = 'Replenish';
-                else if (g.stock_availability_pct < 50) g.action_required = 'Monitor';
-                else g.action_required = 'Adequate';
-            }
-            
-            g.vaccine_received_last_12_months = g.vaccine_received_last_12_months_sum;
-            g.vaccinations_last_12_months = g.vaccinations_last_12_months_sum;
-            
-            return g;
-        });
+      const distGroup = {};
+      [...blockData, ...districtStoreData].forEach(d => {
+        const distId = d.district_id;
+        if (!distGroup[distId]) {
+          distGroup[distId] = {
+            id: distId,
+            name: d.district,
+            district: d.district,
+            district_id: distId,
+            division_id: d.division_id,
+            division_name: d.division_name,
+            annual_requirement: 0,
+            opening_stock: 0,
+            vaccine_received: 0,
+            vaccinations: 0,
+            estimated_stock_balance: 0,
+            stock_availability_pct: 0,
+            action_required: '—',
+            month_end_reporting_count_sum: 0,
+            month_end_total_ccp_sum: 0,
+            month_end_stock_reported_sum: 0,
+            opening_stock_crude_method_sum: 0,
+            vaccine_received_last_12_months_sum: 0,
+            vaccinations_last_12_months_sum: 0,
+            valid_reporting_count: 0,
+            total_entities: 0,
+            entity_type: 'DISTRICT_AGGREGATE',
+            population: 0
+          };
+        }
+        const g = distGroup[distId];
+        g.annual_requirement += d.annual_requirement;
+        g.population += (d.population || 0);
+
+        if (d.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE') {
+          // District Store ONLY contributes to "Received"
+          g.vaccine_received += d.vaccine_received;
+          g.vaccine_received_last_12_months_sum += d.vaccine_received_last_12_months;
+        } else {
+          // Blocks ONLY contribute to "Vaccinations"
+          g.vaccinations += d.vaccinations;
+          g.vaccinations_last_12_months_sum += d.vaccinations_last_12_months;
+        }
+
+        g.month_end_reporting_count_sum += (d.month_end_reporting_count || 0);
+        g.month_end_total_ccp_sum += (d.month_end_total_ccp || 0);
+
+        if (d.month_end_stock_reported != null) {
+          g.month_end_stock_reported_sum += d.month_end_stock_reported;
+          g.valid_reporting_count++;
+        }
+        g.total_entities++;
+      });
+
+      finalRows = Object.values(distGroup).map(g => {
+        // Recalculate Crude Method at the District Level
+        const consumed12M = Math.round(g.vaccinations_last_12_months_sum * 1.01);
+        g.opening_stock_crude_method = Math.max(0, g.vaccine_received_last_12_months_sum - consumed12M);
+
+        g.month_end_reporting_pct = g.month_end_total_ccp_sum > 0 ? (g.month_end_reporting_count_sum / g.month_end_total_ccp_sum) * 100 : 0;
+        g.month_end_reporting_count = g.month_end_reporting_count_sum;
+        g.month_end_total_ccp = g.month_end_total_ccp_sum;
+
+        g.month_end_stock_reported = g.valid_reporting_count > 0 ? g.month_end_stock_reported_sum : null;
+
+        g.estimation_model = g.month_end_reporting_pct >= 100 ? 'Reported Stock' : 'Crude Method';
+        g.opening_stock = g.estimation_model === 'Reported Stock' ? (g.month_end_stock_reported ?? g.opening_stock_crude_method) : g.opening_stock_crude_method;
+
+        const consumedCurrent = Math.round(g.vaccinations * 1.01);
+        g.estimated_stock_balance = Math.max(0, g.opening_stock + g.vaccine_received - consumedCurrent);
+
+        g.stock_availability_pct = g.annual_requirement > 0 ? (g.estimated_stock_balance / g.annual_requirement) * 100 : 0;
+        g.action_required = '—';
+        if (g.annual_requirement > 0) {
+          if (g.stock_availability_pct < 10) g.action_required = 'Critical';
+          else if (g.stock_availability_pct < 25) g.action_required = 'Replenish';
+          else if (g.stock_availability_pct < 50) g.action_required = 'Monitor';
+          else g.action_required = 'Adequate';
+        }
+
+        g.vaccine_received_last_12_months = g.vaccine_received_last_12_months_sum;
+        g.vaccinations_last_12_months = g.vaccinations_last_12_months_sum;
+
+        return g;
+      });
     } else {
-        finalRows = [...districtStoreData, ...blockData];
+      finalRows = [...districtStoreData, ...blockData];
     }
-    
+
     let totalDvs = districtStores.length;
     let totalCcp = blockCcps.length;
-    
+
     res.json({ rows: finalRows, kpis: { totalDvs, totalCcp } });
   } catch (err) {
     console.error('Stock Monitoring API error:', err);
@@ -3051,89 +3051,89 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
       // ── Step 1: Initialize CCL Summary Map ──
       const cclSummaryMap = {};
       const initCcl = (id, fallbackName, fallbackLevel) => {
-         if (!id) return null;
-         const key = String(id);
-         if (!cclSummaryMap[key]) {
-            const fac = ccpMap[key] || {};
-            const level = String(fac.unit_level || fallbackLevel || '2');
-            let levelLabel = 'Block/CCP (L3)';
-            if (level === '1') levelLabel = 'State (L1)';
-            if (level === '2') levelLabel = 'District (L2)';
+        if (!id) return null;
+        const key = String(id);
+        if (!cclSummaryMap[key]) {
+          const fac = ccpMap[key] || {};
+          const level = String(fac.unit_level || fallbackLevel || '2');
+          let levelLabel = 'Block/CCP (L3)';
+          if (level === '1') levelLabel = 'State (L1)';
+          if (level === '2') levelLabel = 'District (L2)';
 
-            cclSummaryMap[key] = {
-               ccl_id: key,
-               ccl_name: fac.facility_name || fallbackName || 'Unknown CCL',
-               level,
-               level_label: levelLabel,
-               unit_type: fac.unit_type || (level === '1' ? 'SVS' : (level === '2' ? 'DVS' : 'CCP-B')),
-               total_in: 0,
-               total_out: 0,
-               balance: 0
-            };
-         }
-         return cclSummaryMap[key];
+          cclSummaryMap[key] = {
+            ccl_id: key,
+            ccl_name: fac.facility_name || fallbackName || 'Unknown CCL',
+            level,
+            level_label: levelLabel,
+            unit_type: fac.unit_type || (level === '1' ? 'SVS' : (level === '2' ? 'DVS' : 'CCP-B')),
+            total_in: 0,
+            total_out: 0,
+            balance: 0
+          };
+        }
+        return cclSummaryMap[key];
       };
 
       // ── Step 2: Process Transactions Exactly as Requested ──
       txData.forEach(t => {
-         const qty = Number(t.quantity_doses || 0);
-         
-         if (t.transaction_type === 'RECEIVED') {
-            // External Receipt: Adds to Destination (State)
-            const destId = t.facility_id || t.destination_ccl_id;
-            const dest = initCcl(destId, t.destination_ccl_name, t.level);
-            if (dest) {
-               dest.total_in += qty;
-               dest.balance += qty;
-            }
-         } else if (t.transaction_type === 'ISSUED') {
-            // Internal Transfer: Reduces Source, Increases Destination
-            const srcId = t.source_ccl_id || t.facility_id;
-            const srcName = t.source_ccl_name || ccpMap[srcId]?.facility_name;
-            const src = initCcl(srcId, srcName, t.level);
-            if (src) {
-               src.total_out += qty;
-               src.balance -= qty;
-            }
+        const qty = Number(t.quantity_doses || 0);
 
-            const destId = t.destination_ccl_id;
-            const dest = initCcl(destId, t.destination_ccl_name, t.destination_level);
-            if (dest) {
-               dest.total_in += qty;
-               dest.balance += qty;
-            }
-         }
+        if (t.transaction_type === 'RECEIVED') {
+          // External Receipt: Adds to Destination (State)
+          const destId = t.facility_id || t.destination_ccl_id;
+          const dest = initCcl(destId, t.destination_ccl_name, t.level);
+          if (dest) {
+            dest.total_in += qty;
+            dest.balance += qty;
+          }
+        } else if (t.transaction_type === 'ISSUED') {
+          // Internal Transfer: Reduces Source, Increases Destination
+          const srcId = t.source_ccl_id || t.facility_id;
+          const srcName = t.source_ccl_name || ccpMap[srcId]?.facility_name;
+          const src = initCcl(srcId, srcName, t.level);
+          if (src) {
+            src.total_out += qty;
+            src.balance -= qty;
+          }
+
+          const destId = t.destination_ccl_id;
+          const dest = initCcl(destId, t.destination_ccl_name, t.destination_level);
+          if (dest) {
+            dest.total_in += qty;
+            dest.balance += qty;
+          }
+        }
       });
 
-       // ── Step 3: Build Raw Transaction Log ──
+      // ── Step 3: Build Raw Transaction Log ──
       const rawRows = (txData || []).map(t => {
-         const isRecv = t.transaction_type === 'RECEIVED';
-         const srcId = isRecv ? null : (t.source_ccl_id || t.facility_id);
-         const srcCcp = ccpMap[srcId] || {};
-         const srcName = isRecv ? 'External Supplier' : (t.source_ccl_name || srcCcp.facility_name || 'Source CCL');
-         const srcDist = isRecv ? '—' : (srcCcp.districts?.name || distMap[srcCcp.district_id] || distMap[t.district_id] || '—');
-         
-         const destId = isRecv ? (t.facility_id || t.destination_ccl_id) : t.destination_ccl_id;
-         const destCcp = ccpMap[destId] || {};
-         const destName = t.destination_ccl_name || destCcp.facility_name || 'Destination CCL';
-         const destDist = destCcp.districts?.name || distMap[destCcp.district_id] || '—';
-         
-         return {
-            id: t.id,
-            transaction_date: t.transaction_date || t.created_at,
-            transaction_type: isRecv ? 'Receive' : 'Issue',
-            batch_no: t.batch_no || '—',
-            manufacturer_name: t.manufacture_name || '—',
-            expiry_date: t.batch_expiry_date || '—',
-            transaction_quantity: Number(t.quantity_doses || 0),
-            from_ccl: srcName,
-            from_ccl_id: srcId,
-            from_district: srcDist,
-            to_ccl: destName,
-            to_ccl_id: destId,
-            to_district: destDist,
-            remarks: t.remarks || (isRecv ? 'Receipt from supplier' : 'Internal transfer')
-         };
+        const isRecv = t.transaction_type === 'RECEIVED';
+        const srcId = isRecv ? null : (t.source_ccl_id || t.facility_id);
+        const srcCcp = ccpMap[srcId] || {};
+        const srcName = isRecv ? 'External Supplier' : (t.source_ccl_name || srcCcp.facility_name || 'Source CCL');
+        const srcDist = isRecv ? '—' : (srcCcp.districts?.name || distMap[srcCcp.district_id] || distMap[t.district_id] || '—');
+
+        const destId = isRecv ? (t.facility_id || t.destination_ccl_id) : t.destination_ccl_id;
+        const destCcp = ccpMap[destId] || {};
+        const destName = t.destination_ccl_name || destCcp.facility_name || 'Destination CCL';
+        const destDist = destCcp.districts?.name || distMap[destCcp.district_id] || '—';
+
+        return {
+          id: t.id,
+          transaction_date: t.transaction_date || t.created_at,
+          transaction_type: isRecv ? 'Receive' : 'Issue',
+          batch_no: t.batch_no || '—',
+          manufacturer_name: t.manufacture_name || '—',
+          expiry_date: t.batch_expiry_date || '—',
+          transaction_quantity: Number(t.quantity_doses || 0),
+          from_ccl: srcName,
+          from_ccl_id: srcId,
+          from_district: srcDist,
+          to_ccl: destName,
+          to_ccl_id: destId,
+          to_district: destDist,
+          remarks: t.remarks || (isRecv ? 'Receipt from supplier' : 'Internal transfer')
+        };
       });
 
       // Sort by date ascending (chronological)
@@ -3141,52 +3141,52 @@ app.get('/api/admin/reports/stock-ledger', authenticateToken, async (req, res) =
 
       // ── Step 4: Apply Filters to Transaction Log ──
       let filteredRows = rawRows.filter(r => {
-         let match = true;
-         if (district && district !== 'All Districts') {
-            const fromDist = r.from_district || '';
-            const toDist = r.to_district || '';
-            match = match && (fromDist.toLowerCase().includes(district.toLowerCase()) || toDist.toLowerCase().includes(district.toLowerCase()));
-         }
-         if (cclName && cclName.trim() !== '') {
-            match = match && (r.from_ccl.toLowerCase().includes(cclName.toLowerCase()) || r.to_ccl.toLowerCase().includes(cclName.toLowerCase()));
-         }
-         if (transactionType && transactionType !== 'All') {
-            match = match && (r.transaction_type.toLowerCase() === transactionType.toLowerCase());
-         }
-         return match;
+        let match = true;
+        if (district && district !== 'All Districts') {
+          const fromDist = r.from_district || '';
+          const toDist = r.to_district || '';
+          match = match && (fromDist.toLowerCase().includes(district.toLowerCase()) || toDist.toLowerCase().includes(district.toLowerCase()));
+        }
+        if (cclName && cclName.trim() !== '') {
+          match = match && (r.from_ccl.toLowerCase().includes(cclName.toLowerCase()) || r.to_ccl.toLowerCase().includes(cclName.toLowerCase()));
+        }
+        if (transactionType && transactionType !== 'All') {
+          match = match && (r.transaction_type.toLowerCase() === transactionType.toLowerCase());
+        }
+        return match;
       });
 
       // ── Step 5: Compute System-Wide KPIs ──
       const kpis = {
-         totalExternalReceived: 0,
-         totalStateBalance: 0,
-         totalDistrictBalance: 0,
-         totalIssuedToBlocks: 0
+        totalExternalReceived: 0,
+        totalStateBalance: 0,
+        totalDistrictBalance: 0,
+        totalIssuedToBlocks: 0
       };
 
       const cclSummary = Object.values(cclSummaryMap);
       cclSummary.forEach(c => {
-         if (c.level === '1') {
-            kpis.totalExternalReceived += c.total_in;
-            kpis.totalStateBalance += c.balance;
-         } else if (c.level === '2') {
-            kpis.totalDistrictBalance += c.balance;
-         } else if (c.level === '3') {
-            kpis.totalIssuedToBlocks += c.total_in;
-         }
+        if (c.level === '1') {
+          kpis.totalExternalReceived += c.total_in;
+          kpis.totalStateBalance += c.balance;
+        } else if (c.level === '2') {
+          kpis.totalDistrictBalance += c.balance;
+        } else if (c.level === '3') {
+          kpis.totalIssuedToBlocks += c.total_in;
+        }
       });
-      
+
       // Sort Summary by Level then Name
       cclSummary.sort((a, b) => {
-         if (a.level !== b.level) return Number(a.level) - Number(b.level);
-         return a.ccl_name.localeCompare(b.ccl_name);
+        if (a.level !== b.level) return Number(a.level) - Number(b.level);
+        return a.ccl_name.localeCompare(b.ccl_name);
       });
 
       return res.json({
-         rows: filteredRows,
-         cclSummary,
-         kpis,
-         isLive: true
+        rows: filteredRows,
+        cclSummary,
+        kpis,
+        isLive: true
       });
     } // <-- Added missing brace for if (useSupabase)
 
@@ -3330,7 +3330,7 @@ app.get('/api/superadmin/export-table/:table', authenticateToken, async (req, re
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
     const { table } = req.params;
-    
+
     if (table === 'locations') {
       if (!useSupabase) {
         return res.json({
@@ -3365,7 +3365,7 @@ app.get('/api/superadmin/export-table/:table', authenticateToken, async (req, re
     else return res.status(400).json({ error: 'Invalid table type' });
 
     if (!useSupabase) {
-       return res.json(store[tableName] || []);
+      return res.json(store[tableName] || []);
     }
 
     let query = supabase.from(tableName).select('*').limit(100000);
@@ -3376,10 +3376,10 @@ app.get('/api/superadmin/export-table/:table', authenticateToken, async (req, re
     } else if (table === 'stock_issue') {
       query = supabase.from('vaccine_stock_transactions').select('*').eq('transaction_type', 'ISSUED').limit(100000);
     }
-    
+
     const { data, error } = await query;
     if (error) throw error;
-    
+
     if (table === 'population') {
       const formattedData = data.map(row => {
         return {
@@ -3410,24 +3410,24 @@ app.get('/api/superadmin/export-custom-table/:tableName', authenticateToken, asy
   try {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
     const { tableName } = req.params;
-    
+
     const allowedTables = [
-      'admin_users', 'audit_logs', 'block_population_targets', 'block_reporting_profiles', 
-      'blocks', 'countries', 'daily_reports', 'districts', 'divisions', 'states', 
+      'admin_users', 'audit_logs', 'block_population_targets', 'block_reporting_profiles',
+      'blocks', 'countries', 'daily_reports', 'districts', 'divisions', 'states',
       'vaccine_ccp', 'vaccine_stock_transactions', 'monthly_balance', 'hpv_vaccinations'
     ];
-    
+
     if (!allowedTables.includes(tableName)) {
       return res.status(400).json({ error: 'Invalid or unsupported table name' });
     }
-    
+
     if (!useSupabase) {
-       return res.json(store[tableName] || []);
+      return res.json(store[tableName] || []);
     }
-    
+
     const { data, error } = await supabase.from(tableName).select('*').limit(100000);
     if (error) throw error;
-    
+
     res.json(data);
   } catch (err) {
     console.error(err);
@@ -3474,7 +3474,7 @@ app.post('/api/superadmin/upload-population', authenticateToken, async (req, res
       }
 
       const target = Math.round(basePop * 0.01);
-      
+
       if (useSupabase) {
         const existing = profiles.find(p => p.block_id === blockId);
         let sError = null;
@@ -3490,11 +3490,11 @@ app.post('/api/superadmin/upload-population', authenticateToken, async (req, res
           errors.push(`Row ${i + 1}: DB Error for ${blockName} - ${sError.message || JSON.stringify(sError)}`);
           continue;
         }
-        
+
         // Update the block table population column
         const { error: bError } = await supabase.from('blocks').update({ population: basePop }).eq('id', blockId);
         if (bError) console.error('Error updating block population column:', bError);
-        
+
       } else {
         const existingIdx = store.block_reporting_profiles.findIndex(p => p.block_id === blockId);
         if (existingIdx >= 0) {
@@ -3510,15 +3510,15 @@ app.post('/api/superadmin/upload-population', authenticateToken, async (req, res
           });
         }
       }
-      
+
       const actualBlock = blocks.find(b => b.id === blockId);
       const distId = actualBlock ? actualBlock.district_id : 'N/A';
       const bName = actualBlock ? actualBlock.name : blockName;
       details.push(`Added population: ${basePop} to ${bName} (Block ID: ${blockId}, District ID: ${distId})`);
-      
+
       successCount++;
     }
-    
+
     if (!useSupabase) saveStore();
     await logAudit(req.user.id, 'UPLOAD_POPULATION', 'bulk', null);
     res.json({ message: 'Upload completed', successCount, errors, details });
@@ -3552,10 +3552,10 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
       const distLgd = String(row.districtlgdcode || row.district_lgd_code || '').trim();
       const blockName = (row.blockname || row.BlockName || row.BlockOrCity || row.blockorcity || '').trim().toLowerCase();
       const blockLgd = String(row.blocklgdcode || row.block_lgd_code || row['blockorcity lgd code'] || row.blockorcity_lgd_code || '').trim();
-      
+
       const llStr = row.linelisted || row.LineListed || row.linelist || row.LineList || '0';
       const vaccStr = row.vaccinated || row.Vaccinated || '0';
-      
+
       let rawDate = (row['Date(DD-MM-YYYY)'] || row['Date(YYYY-MM-DD)'] || row.Date || row.date || today).trim();
       let reportingDate = rawDate;
       if (rawDate !== today) {
@@ -3576,7 +3576,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
       let vaccinated = parseInt(vaccStr, 10);
       let sessions = parseInt(sessStr, 10);
       if (isNaN(sessions)) sessions = 0;
-      
+
       if (!isNaN(lineList) && !isNaN(vaccinated) && vaccinated > lineList) {
         lineList = vaccinated;
       }
@@ -3591,7 +3591,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
         const b = blocks.find(b => String(b.lgd_code) === blockLgd);
         if (b) blockId = b.id;
       }
-      
+
       if (!blockId && blockName && distLgd) {
         const d = districts.find(d => String(d.lgd_code) === distLgd);
         if (d) {
@@ -3599,7 +3599,7 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
           if (b) blockId = b.id;
         }
       }
-      
+
       if (!blockId && blockName && distName && stateName) {
         blockId = locMap.get(`${stateName}|${distName}|${blockName}`);
       }
@@ -3642,12 +3642,12 @@ app.post('/api/superadmin/upload-livedata', authenticateToken, async (req, res) 
           });
         }
       }
-      
+
       const actualBlock = blocks.find(b => b.id === blockId);
       const distId = actualBlock ? actualBlock.district_id : 'N/A';
       const bName = actualBlock ? actualBlock.name : blockName;
       details.push(`Added live data (Line list: ${lineList}, Vaccinated: ${vaccinated}, Sessions: ${sessions}, Date: ${reportingDate}) to ${bName} (Block ID: ${blockId}, District ID: ${distId})`);
-      
+
       successCount++;
     }
 
@@ -3736,31 +3736,31 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
           }
         }
       }
-      
+
       const areaTypeVal = row['urbanorrural'] || row['areatype(blockorcity)'] || '';
       const isUrban = areaTypeVal.toLowerCase() === 'city' || areaTypeVal.toLowerCase() === 'urban';
-      
+
       const rawUrban = row['Urbantype'] || row['urbantype'] || '';
       const urbanType = rawUrban.trim() ? rawUrban : null;
-      
+
       const rawHq = row['HQ(Y/N)'] || row['hq(y/n)'] || row['HQ'] || '';
       const isHq = rawHq.trim().toUpperCase() === 'Y';
-      
+
       const rawDvs = row['DVS(Y/N)'] || row['dvs(y/n)'] || '';
       const isDvs = rawDvs.trim().toUpperCase() === 'Y';
-      
+
       const rawHealthBlock = row['Healthblockname'] || row['healthblockname'] || '';
       const healthBlockName = rawHealthBlock.trim() ? rawHealthBlock : null;
-      
+
       const rawTarget = row['districtthpvtarget'] || row['district_hpv_target'] || '';
       const hpvTarget = rawTarget.trim() ? parseInt(rawTarget, 10) : null;
 
       if (!block) {
-        const { data: nB, error: eB } = await supabase.from('blocks').insert({ 
-          district_id: district.id, 
-          lgd_code: blockLgd, 
-          name: row.blockorcityname.trim(), 
-          is_urban: isUrban, 
+        const { data: nB, error: eB } = await supabase.from('blocks').insert({
+          district_id: district.id,
+          lgd_code: blockLgd,
+          name: row.blockorcityname.trim(),
+          is_urban: isUrban,
           area_type: areaTypeVal,
           urban_type: urbanType,
           is_hq: isHq,
@@ -3780,7 +3780,7 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
         if (rawDvs.trim() !== '' && block.is_dvs !== isDvs) { updates.is_dvs = isDvs; needsUpdate = true; }
         if (healthBlockName !== null && block.health_block_name !== healthBlockName) { updates.health_block_name = healthBlockName; needsUpdate = true; }
         if (hpvTarget !== null && block.hpv_target !== hpvTarget) { updates.hpv_target = hpvTarget; needsUpdate = true; }
-        
+
         if (needsUpdate) {
           const { error: updErr } = await supabase.from('blocks').update(updates).eq('id', block.id);
           if (!updErr) {
@@ -3794,11 +3794,11 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
       const popStr = row.population || row.Population || '';
       const basePop = popStr.trim() ? parseInt(popStr, 10) : NaN;
       let profile = allProfiles.find(p => p.block_id === block.id);
-      
+
       if (!isNaN(basePop) && basePop > 0) {
         const target = Math.round(basePop * 0.01);
         let updatedProfile = false;
-        
+
         if (profile) {
           if (profile.base_population !== basePop) {
             await supabase.from('block_reporting_profiles').update({ base_population: basePop, initial_hpv_target: target }).eq('id', profile.id);
@@ -3810,7 +3810,7 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
           const { data: nP } = await supabase.from('block_reporting_profiles').insert([{ id: profId, block_id: block.id, base_population: basePop, population_base_date: today, initial_hpv_target: target }]).select().single();
           if (nP) { profile = nP; allProfiles.push(profile); updatedProfile = true; }
         }
-        
+
         // Always ensure the block table is also synced with the new population
         if (block.population !== basePop) {
           const { error: bErr } = await supabase.from('blocks').update({ population: basePop }).eq('id', block.id);
@@ -3819,7 +3819,7 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
             if (!updatedProfile) details.push(`Updated block population for ${block.name}`);
           }
         }
-        
+
         if (updatedProfile) {
           details.push(`Updated population for ${block.name}`);
         }
@@ -3830,7 +3830,7 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
       const vaccStr = row.vaccinated || row.Vaccinated || '0';
       const lineList = parseInt(llStr, 10);
       const vaccinated = parseInt(vaccStr, 10);
-      
+
       let rawDate = (row['Date(DD-MM-YYYY)'] || row['Date(YYYY-MM-DD)'] || row.Date || row.date || '').trim();
       let reportingDate = rawDate;
       if (rawDate) {
@@ -3845,16 +3845,16 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
         // Find existing report for this block & date
         const { data: existingReports } = await supabase.from('daily_reports').select('*').eq('block_id', block.id).eq('reporting_date', reportingDate);
         const existingReport = existingReports && existingReports[0];
-        
+
         if (existingReport) {
           // Only update if greater
           const currentLL = existingReport.line_list_count;
           const currentVac = existingReport.beneficiaries_vaccinated;
-          
+
           let updateData = {};
           if (!isNaN(lineList) && lineList > currentLL) updateData.line_list_count = lineList;
           if (!isNaN(vaccinated) && vaccinated > currentVac) updateData.beneficiaries_vaccinated = vaccinated;
-          
+
           if (Object.keys(updateData).length > 0) {
             await supabase.from('daily_reports').update(updateData).eq('id', existingReport.id);
             details.push(`Updated report for ${block.name} on ${reportingDate}`);
@@ -3880,26 +3880,26 @@ app.post('/api/superadmin/upload-locations', authenticateToken, async (req, res)
 app.get('/api/admin/locations-master-data', authenticateToken, async (req, res) => {
   try {
     if (!useSupabase) return res.status(500).json({ error: 'Requires Supabase' });
-    
+
     // Fetch full hierarchy
     const { data: blocks, error: bErr } = await supabase.from('blocks').select('*, districts(name, lgd_code, divisions(name, system_code, states(name, lgd_code, countries(name, lgd_code))))').eq('is_active', true);
     if (bErr) throw bErr;
-    
+
     // Fetch profiles
     const { data: profiles } = await supabase.from('block_reporting_profiles').select('*').limit(100000);
-    
+
     // Fetch reports
     const { data: reports } = await supabase.from('daily_reports').select('*').limit(100000);
-    
+
     // Map data
     const result = blocks.map(b => {
       const flat = flattenBlock(b);
       const prof = profiles.find(p => p.block_id === b.id) || {};
-      
+
       // Get all reports for this block
       const bReports = reports.filter(r => r.block_id === b.id).sort((x, y) => new Date(y.reporting_date) - new Date(x.reporting_date));
       const latestReport = bReports[0] || {};
-      
+
       const pop = prof.base_population || b.population || 0;
       const annualTarget = Math.round(pop * 0.01);
       const hpvTarget = b.hpv_target || 0;
@@ -3917,7 +3917,7 @@ app.get('/api/admin/locations-master-data', authenticateToken, async (req, res) 
         last_reported_date: latestReport.reporting_date || 'N/A'
       };
     });
-    
+
     res.json(result);
   } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
 });
@@ -3941,7 +3941,7 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
     let conflicts = [];
 
     const CHUNK_SIZE = 50;
-    
+
     const { data: existingRecords } = await supabase.from('vaccine_ccp').select('*');
     const existingCclIds = new Set((existingRecords || []).map(r => r.ccl_id).filter(Boolean));
     const existingFacilityNames = new Set((existingRecords || []).filter(r => r.facility_name && r.block_id).map(r => `${r.block_id}-${r.facility_name}`));
@@ -3953,7 +3953,7 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
 
     for (let i = 0; i < data.length; i += CHUNK_SIZE) {
       const chunk = data.slice(i, i + CHUNK_SIZE);
-      
+
       for (const row of chunk) {
         const stateLgd = Number(row['State Code']);
         const districtLgd = Number(row['District Code']);
@@ -3967,8 +3967,8 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
         const cclId = row['CCL ID'] ? String(row['CCL ID']).trim() : null;
 
         if (!facilityName) {
-           errors.push(`Row missing Facility Name`);
-           continue;
+          errors.push(`Row missing Facility Name`);
+          continue;
         }
 
         const newObj = {
@@ -4014,13 +4014,13 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
         if (cclId && existingMap[cclId]) {
           const existing = existingMap[cclId];
           const diffs = [];
-          
+
           if (newObj.facility_name !== existing.facility_name) diffs.push({ field: 'Facility Name', old: existing.facility_name, new: newObj.facility_name });
           if (newObj.contact_number !== existing.contact_number) diffs.push({ field: 'Contact Number', old: existing.contact_number, new: newObj.contact_number });
           if (newObj.name_of_unit_incharge !== existing.name_of_unit_incharge) diffs.push({ field: 'Incharge Name', old: existing.name_of_unit_incharge, new: newObj.name_of_unit_incharge });
           if (newObj.unit_level !== existing.unit_level) diffs.push({ field: 'Unit Level', old: existing.unit_level, new: newObj.unit_level });
           if (newObj.status !== existing.status) diffs.push({ field: 'Status', old: existing.status, new: newObj.status });
-          
+
           if (diffs.length > 0) {
             if (!overrideConflicts) {
               conflicts.push({ ccl_id: cclId, to_ccl: facilityName, differences: diffs });
@@ -4041,34 +4041,34 @@ app.post('/api/superadmin/upload-vaccine-ccp', authenticateToken, async (req, re
 
         if (cclId) existingCclIds.add(cclId);
         if (blockId) existingFacilityNames.add(`${blockId}-${facilityName}`);
-        
+
         toInsert.push(newObj);
       }
     }
 
     if (conflicts.length > 0) {
-       return res.status(409).json({ error: 'Conflicts found', conflicts });
+      return res.status(409).json({ error: 'Conflicts found', conflicts });
     }
 
     // Process Updates
     if (toUpdate.length > 0) {
-       for (const u of toUpdate) {
-          const { id, ...updateData } = u;
-          const { error } = await supabase.from('vaccine_ccp').update(updateData).eq('id', id);
-          if (!error) successCount++;
-       }
-       details.push(`Updated ${toUpdate.length} existing records.`);
+      for (const u of toUpdate) {
+        const { id, ...updateData } = u;
+        const { error } = await supabase.from('vaccine_ccp').update(updateData).eq('id', id);
+        if (!error) successCount++;
+      }
+      details.push(`Updated ${toUpdate.length} existing records.`);
     }
 
     // Process Inserts in chunks
     for (let i = 0; i < toInsert.length; i += CHUNK_SIZE) {
-       const chunkInsert = toInsert.slice(i, i + CHUNK_SIZE);
-       const { error } = await supabase.from('vaccine_ccp').insert(chunkInsert);
-       if (error) {
-          errors.push(`Error inserting batch: ${error.message}`);
-       } else {
-          successCount += chunkInsert.length;
-       }
+      const chunkInsert = toInsert.slice(i, i + CHUNK_SIZE);
+      const { error } = await supabase.from('vaccine_ccp').insert(chunkInsert);
+      if (error) {
+        errors.push(`Error inserting batch: ${error.message}`);
+      } else {
+        successCount += chunkInsert.length;
+      }
     }
     if (toInsert.length > 0) details.push(`Inserted ${toInsert.length} new records.`);
 
@@ -4083,12 +4083,12 @@ app.post('/api/locations/:type', authenticateToken, async (req, res) => {
     const tableMap = { country: 'countries', state: 'states', division: 'divisions', district: 'districts', block: 'blocks' };
     const table = tableMap[type];
     if (!table) return res.status(400).json({ error: 'Invalid location type' });
-    
+
     if (!useSupabase) return res.status(500).json({ error: 'Requires Supabase' });
 
     const { data, error } = await supabase.from(table).insert([req.body]).select().single();
     if (error) throw error;
-    
+
     await logAudit(req.user.id, `CREATE_LOCATION_${type.toUpperCase()}`, table, data.id);
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message, stack: err.stack, details: JSON.stringify(err) }); }
@@ -4101,7 +4101,7 @@ app.put('/api/locations/:type/:id', authenticateToken, async (req, res) => {
     const tableMap = { country: 'countries', state: 'states', division: 'divisions', district: 'districts', block: 'blocks' };
     const table = tableMap[type];
     if (!table) return res.status(400).json({ error: 'Invalid location type' });
-    
+
     if (!useSupabase) return res.status(500).json({ error: 'Requires Supabase' });
 
     // Separate profile and report data if editing a block's stats
@@ -4109,7 +4109,7 @@ app.put('/api/locations/:type/:id', authenticateToken, async (req, res) => {
 
     const { data, error } = await supabase.from(table).update(locationData).eq('id', id).select().single();
     if (error) throw error;
-    
+
     if (type === 'block') {
       if (base_population !== undefined) {
         const { data: existingProf } = await supabase.from('block_reporting_profiles').select('*').eq('block_id', id);
@@ -4120,7 +4120,7 @@ app.put('/api/locations/:type/:id', authenticateToken, async (req, res) => {
           await supabase.from('block_reporting_profiles').insert([{ id: profId, block_id: id, base_population, population_base_date: new Date().toISOString().split('T')[0], initial_hpv_target: initial_hpv_target || Math.round(base_population * 0.01) }]);
         }
       }
-      
+
       if (reporting_date && (linelisted !== undefined || vaccinated !== undefined)) {
         const { data: existingReps } = await supabase.from('daily_reports').select('*').eq('block_id', id).eq('reporting_date', reporting_date);
         if (existingReps && existingReps.length > 0) {
@@ -4179,7 +4179,7 @@ app.post('/api/track-activity', async (req, res) => {
         last_page_visited: page
       }]);
     }
-    
+
     res.json({ success: true });
   } catch (err) {
     console.error('Track activity error:', err.message);
@@ -4198,7 +4198,7 @@ app.get('/api/admin/activity', authenticateToken, async (req, res) => {
       .from('visitor_activity')
       .select('*')
       .order('updated_at', { ascending: false });
-      
+
     if (error) throw error;
     res.json(data);
   } catch (err) {
@@ -4218,7 +4218,7 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
     let successCount = 0;
     let errors = [];
     let details = [];
-    
+
     // Fetch all vaccine CCPs to map CCL IDs to state_id, district_id, block_id, facility_id
     const { data: allCcps } = await supabase.from('vaccine_ccp').select('id, ccl_id, state_id, district_id, block_id');
 
@@ -4229,14 +4229,14 @@ app.post('/api/superadmin/upload-stock-receive', authenticateToken, async (req, 
 
       for (const row of chunk) {
         if (!row['Batch No'] || !row['Quantity'] || (!row['Date (YYYY-MM-DD)'] && !row['Date'])) {
-           errors.push(`Row missing required fields`);
-           continue;
+          errors.push(`Row missing required fields`);
+          continue;
         }
 
         const destCcp = allCcps?.find(c => c.ccl_id === row['Destination CCL ID']);
         const sId = destCcp?.state_id || req.user.state_id || 5;
         const dId = destCcp?.district_id || null;
-        
+
         toInsert.push({
           vaccine_type: 'HPV Vaccine',
           transaction_type: 'RECEIVED',
@@ -4283,7 +4283,7 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
     let successCount = 0;
     let errors = [];
     let details = [];
-    
+
     const { data: allCcps } = await supabase.from('vaccine_ccp').select('id, ccl_id, state_id, district_id, block_id');
 
     const CHUNK_SIZE = 50;
@@ -4294,17 +4294,17 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
 
       for (const row of chunk) {
         if (!row['Batch No'] || !row['Quantity'] || (!row['Date (YYYY-MM-DD)'] && !row['Date'])) {
-           errors.push(`Row missing required fields`);
-           continue;
+          errors.push(`Row missing required fields`);
+          continue;
         }
-        
+
         let qty = Number(row['Quantity']) || 0;
         let batch_no = row['Batch No'];
-        
+
         const srcCcp = allCcps?.find(c => c.ccl_id === row['Source CCL ID']);
         const sId = srcCcp?.state_id || req.user.state_id || 5;
         const dId = srcCcp?.district_id || null;
-        
+
         toInsertIssue.push({
           vaccine_type: 'HPV Vaccine',
           transaction_type: 'ISSUED',
@@ -4324,11 +4324,11 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
           state_id: sId,
           district_id: dId
         });
-        
+
         const destCcp = allCcps?.find(c => c.ccl_id === row['Destination CCL ID']);
         const dsId = destCcp?.state_id || req.user.state_id || 5;
         const ddId = destCcp?.district_id || null;
-        
+
         toInsertReceive.push({
           vaccine_type: 'HPV Vaccine',
           transaction_type: 'RECEIVED',
@@ -4353,7 +4353,7 @@ app.post('/api/superadmin/upload-stock-issue', authenticateToken, async (req, re
       if (toInsertIssue.length > 0) {
         const { error: err1 } = await supabase.from('vaccine_stock_transactions').insert(toInsertIssue);
         const { error: err2 } = await supabase.from('vaccine_stock_transactions').insert(toInsertReceive);
-        
+
         if (err1 || err2) {
           errors.push(`Error inserting batch: ${err1?.message || err2?.message}`);
         } else {
@@ -4400,7 +4400,7 @@ app.get('/api/vaccine/monthly-report/status', async (req, res) => {
     } else {
       ccpsQuery = ccpsQuery.eq('block_id', blockId);
     }
-    
+
     const { data: ccps, error: ccpsErr } = await ccpsQuery;
     if (ccpsErr) { console.error('CCP Query Error:', ccpsErr); return res.status(500).json({ error: ccpsErr.message }); }
 
@@ -4416,8 +4416,8 @@ app.get('/api/vaccine/monthly-report/status', async (req, res) => {
     const enteredFacilityIds = new Set((balances || []).map(b => b.facility_id));
 
     const result = ccps.map(ccp => ({
-       ...ccp,
-       status: enteredFacilityIds.has(ccp.id) ? 'Entered' : 'Pending'
+      ...ccp,
+      status: enteredFacilityIds.has(ccp.id) ? 'Entered' : 'Pending'
     }));
 
     res.json({ ccps: result });
@@ -4433,7 +4433,7 @@ app.post('/api/vaccine/monthly-report/submit', authenticateToken, async (req, re
 
     const qty = Number(quantity);
     const monthStart = month + '-01';
-    
+
     // Check if already submitted
     const { data: existing } = await supabase.from('monthly_balance')
       .select('id')
@@ -4468,10 +4468,10 @@ app.post('/api/vaccine/monthly-report/submit', authenticateToken, async (req, re
     }]).select();
 
     if (error) throw error;
-    
+
     const currentBal = await getBatchInventory(batch_no, '3', req.user.state_id, req.user.district_id, facility_id);
     const diff = qty - currentBal;
-    
+
     if (diff !== 0) {
       await supabase.from('vaccine_stock_transactions').insert([{
         vaccine_type: 'HPV Vaccine',
@@ -4500,14 +4500,14 @@ app.put('/api/superadmin/ccl/:id', authenticateToken, async (req, res) => {
     if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ error: 'Super Admin only' });
     const { id } = req.params;
     const allowedFields = ['state_id', 'district_id', 'block_id', 'lgd_state_code', 'lgd_district_code', 'lgd_block_code', 'facility_name', 'sub_district_name', 'facility_acronym', 'hospital_facility_id', 'abdm_org_facility_id', 'pin_code', 'address', 'latitude', 'longitude', 'altitude', 'contact_number', 'health_facility_group', 'health_facility_type', 'setting', 'ulb_code', 'ulb_type', 'ownership', 'parent_organization', 'department_name', 'department_type', 'service_domain', 'service_category', 'service', 'service_unit', 'unit_level', 'unit_sub_level', 'unit_type', 'ccl_id', 'ccl_block_hq_yes', 'name_of_unit_incharge', 'status'];
-    
+
     let updateData = {};
     for (const key of allowedFields) {
       if (req.body[key] !== undefined) {
-         updateData[key] = req.body[key];
+        updateData[key] = req.body[key];
       }
     }
-    
+
     const { error } = await supabase.from('vaccine_ccp').update(updateData).eq('id', id);
     if (error) throw error;
     res.json({ success: true });
@@ -4570,7 +4570,7 @@ app.get('/api/admin/ccl-locations', authenticateToken, async (req, res) => {
     let filtered = ccps || [];
     if (search && search.trim()) {
       const s = search.toLowerCase().trim();
-      filtered = filtered.filter(c => 
+      filtered = filtered.filter(c =>
         (c.facility_name && c.facility_name.toLowerCase().includes(s)) ||
         (c.ccl_id && c.ccl_id.toLowerCase().includes(s)) ||
         (c.name_of_unit_incharge && c.name_of_unit_incharge.toLowerCase().includes(s))
@@ -4622,13 +4622,13 @@ app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
     let userCclId = req.user.ccl_id || null;
 
     if (userCclId && !effDistrictId) {
-       const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', userCclId).maybeSingle();
-       if (mgrCcp && mgrCcp.district_id) effDistrictId = mgrCcp.district_id;
+      const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', userCclId).maybeSingle();
+      if (mgrCcp && mgrCcp.district_id) effDistrictId = mgrCcp.district_id;
     }
 
     if (!userCclId && effDistrictId) {
-       const { data: distCcp } = await supabase.from('vaccine_ccp').select('ccl_id').eq('unit_level', 2).eq('district_id', effDistrictId).maybeSingle();
-       if (distCcp && distCcp.ccl_id) userCclId = distCcp.ccl_id;
+      const { data: distCcp } = await supabase.from('vaccine_ccp').select('ccl_id').eq('unit_level', 2).eq('district_id', effDistrictId).maybeSingle();
+      if (distCcp && distCcp.ccl_id) userCclId = distCcp.ccl_id;
     }
 
     // Target unit level (defaults to query level, or inferred from role/user)
@@ -4844,7 +4844,7 @@ app.post('/api/due-list/:blockId', async (req, res) => {
     const [yr, mo] = reporting_month.split('-').map(Number);
     const freezeDate = new Date(yr, mo, 9); // mo is already next month index (0-based +1)
     const nowIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-    
+
     // Check if this is an edit of existing data (frozen after 9th of following month)
     if (useSupabase) {
       const { data: existing } = await supabase.from('monthly_due_list_reports').select('id, submitted_at').eq('block_id', Number(blockId)).eq('reporting_month', reporting_month).maybeSingle();
