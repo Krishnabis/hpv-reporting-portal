@@ -325,8 +325,8 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
 
   const handleCSV = () => {
     if (!rows.length) return;
-    const headers = ['Reporting Unit','Requirement','Opening Stock','Received','Vaccinations','Wastage','Reporting %','Est. Balance','Actual Balance','Avail %','Action'];
-    const csvRows = filtered.map((r: any) => [
+    const headers = ['Site / Unit','Annual Requirement','Opening Stock','Vaccine Received','Vaccinations / Vaccine Issued','Wastage (Reported)','Month-end Reporting (%)','Estimated Stock Balance','Month-end Stock Balance','Wastage (%)','Stock Availability (%)','Action'];
+    const csvRows = sortedRows.map((r: any) => [
       `"${r.name}"`, r.annual_requirement, r.opening_stock, r.vaccine_received, r.vaccinations,
       r.wastage, r.month_end_reporting_pct, r.estimated_stock_balance, r.month_end_stock_reported,
       r.stock_availability_pct, r.action_required
@@ -560,16 +560,16 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
               <thead className="sticky top-0 z-10">
                 <tr className="gradient-header text-white shadow-sm">
                   <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 cursor-pointer hover:bg-white/10" style={{ minWidth: 140 }} onClick={() => handleSort('name')}>Site / Unit{renderSortIcon('name')}</th>
-                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('annual_requirement')}>Annual Req.{renderSortIcon('annual_requirement')}</th>
+                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('annual_requirement')}>Annual Requirement{renderSortIcon('annual_requirement')}</th>
                   <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('opening_stock')}>Opening Stock{renderSortIcon('opening_stock')}</th>
                   <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('received')}>Vaccine Received{renderSortIcon('received')}</th>
-                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('vaccinations')}>Vaccinations{renderSortIcon('vaccinations')}</th>
-                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide text-red-200 cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('wastage')}>Wastage (Rep.){renderSortIcon('wastage')}</th>
-                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('month_end_reporting_pct')}>Month-end Rep. %{renderSortIcon('month_end_reporting_pct')}</th>
-                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('estimated_stock_balance')}>Est. Balance{renderSortIcon('estimated_stock_balance')}</th>
-                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide text-green-200 cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('month_end_stock_reported')}>Actual Balance{renderSortIcon('month_end_stock_reported')}</th>
-                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('stock_wastage_pct')}>Wastage %{renderSortIcon('stock_wastage_pct')}</th>
-                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('stock_availability_pct')}>Availability %{renderSortIcon('stock_availability_pct')}</th>
+                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('vaccinations')}>Vaccinations / Vaccine Issued{renderSortIcon('vaccinations')}</th>
+                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide text-red-200 cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('wastage')}>Wastage (Reported){renderSortIcon('wastage')}</th>
+                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('month_end_reporting_pct')}>Month-end Reporting (%){renderSortIcon('month_end_reporting_pct')}</th>
+                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('estimated_stock_balance')}>Estimated Stock Balance{renderSortIcon('estimated_stock_balance')}</th>
+                  <th className="px-3 py-2 text-right font-bold uppercase tracking-wide text-green-200 cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('month_end_stock_reported')}>Month-end Stock Balance{renderSortIcon('month_end_stock_reported')}</th>
+                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('stock_wastage_pct')}>Wastage (%){renderSortIcon('stock_wastage_pct')}</th>
+                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('stock_availability_pct')}>Stock Availability (%){renderSortIcon('stock_availability_pct')}</th>
                   <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('action_required')}>Action{renderSortIcon('action_required')}</th>
                 </tr>
               </thead>
