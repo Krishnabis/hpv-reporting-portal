@@ -21,7 +21,7 @@ async function getBatchInventory(batch_no, level, state_id, district_id, facilit
 
   let query = supabase
     .from('vaccine_stock_transactions')
-    .select('quantity_doses, transaction_type, facility_id, destination_ccl_id, source_ccl_id')
+    .select('*')
     .eq('batch_no', batch_no);
 
   if (state_id) query = query.eq('state_id', state_id);
@@ -30,31 +30,57 @@ async function getBatchInventory(batch_no, level, state_id, district_id, facilit
   if (!data) return 0;
 
   let balance = 0;
+  const targetLvl = String(level || '1');
+  const targetDist = district_id ? String(district_id) : null;
+  const targetCcl = ccl_id ? String(ccl_id) : null;
 
   for (const tx of data) {
     const qty = Number(tx.quantity_doses || 0);
 
     if (tx.transaction_type === 'RECEIVED') {
-      // Only count external receipts (no internal source) at this CCL
-      const isThisCCL = facility_id
-        ? String(tx.facility_id) === String(facility_id)
-        : (String(tx.level || '') === String(level));
-      if (isThisCCL && !tx.source_ccl_id) balance += qty;
+      let matches = false;
+      if (targetCcl) {
+        if (String(tx.destination_ccl_id || '') === targetCcl || String(tx.source_ccl_id || '') === targetCcl) matches = true;
+      } else if (facility_id) {
+        if (String(tx.facility_id || '') === String(facility_id)) matches = true;
+      } else {
+        const txLvl = String(tx.destination_level || tx.level || '1');
+        if (txLvl === targetLvl && (!targetDist || String(tx.district_id || '') === targetDist)) matches = true;
+      }
+      if (matches) balance += qty;
 
     } else if (tx.transaction_type === 'ISSUED') {
-      // Outflow: this CCL issued the doses
-      const isSource = facility_id
-        ? String(tx.facility_id) === String(facility_id)
-        : (String(tx.level || '') === String(level) &&
-           (district_id ? String(tx.district_id) === String(district_id) : !tx.district_id));
+      // Outflow check: did this level/ccl/facility issue it?
+      let isSource = false;
+      if (targetCcl) {
+        if (String(tx.source_ccl_id || '') === targetCcl) isSource = true;
+      } else if (facility_id) {
+        if (String(tx.facility_id || '') === String(facility_id)) isSource = true;
+      } else {
+        const srcLvl = String(tx.source_level || tx.level || '1');
+        if (srcLvl === targetLvl) {
+          if (!targetDist || String(tx.district_id || '') === targetDist) isSource = true;
+        }
+      }
       if (isSource) balance -= qty;
 
-      // Inflow: doses were issued TO this CCL
-      if (ccl_id && tx.destination_ccl_id === ccl_id) balance += qty;
+      // Inflow check: was it issued TO this level/ccl/facility?
+      let isDest = false;
+      if (targetCcl) {
+        if (String(tx.destination_ccl_id || '') === targetCcl) isDest = true;
+      } else if (facility_id) {
+        if (String(tx.destination_facility_id || '') === String(facility_id)) isDest = true;
+      } else {
+        const dstLvl = String(tx.destination_level || '');
+        if (dstLvl === targetLvl) {
+          if (!targetDist || !tx.district_id || String(tx.district_id) === targetDist) isDest = true;
+        }
+      }
+      if (isDest) balance += qty;
     }
   }
 
-  return balance;
+  return Math.max(0, balance);
 }
 
 
@@ -4531,110 +4557,128 @@ app.get('/api/vaccine/batches', authenticateToken, async (req, res) => {
   try {
     const { level, facility_id } = req.query;
 
-    // Resolve effective district for VACCINE_MANAGER
+    // Resolve user's effective district and ccl_id
     let effDistrictId = req.user.district_id;
     let userCclId = req.user.ccl_id || null;
-    if (req.user.role === 'VACCINE_MANAGER' && userCclId && !effDistrictId) {
+
+    if (userCclId && !effDistrictId) {
        const { data: mgrCcp } = await supabase.from('vaccine_ccp').select('district_id').eq('ccl_id', userCclId).maybeSingle();
        if (mgrCcp && mgrCcp.district_id) effDistrictId = mgrCcp.district_id;
     }
 
     if (!userCclId && effDistrictId) {
        const { data: distCcp } = await supabase.from('vaccine_ccp').select('ccl_id').eq('unit_level', 2).eq('district_id', effDistrictId).maybeSingle();
-       if (distCcp) userCclId = distCcp.ccl_id;
+       if (distCcp && distCcp.ccl_id) userCclId = distCcp.ccl_id;
     }
 
-    // For VACCINE_MANAGER with a ccl_id (district store), compute net balance
-    // from transactions where they are SOURCE or DESTINATION.
-    // RECEIVED transactions from the state level don't carry district_id,
-    // so we can't filter by district_id alone — we must track by ccl_id.
-    if (userCclId) {
-      const [{ data: asSource }, { data: asDest }, { data: stateReceived }] = await Promise.all([
-        supabase.from('vaccine_stock_transactions').select('*').eq('source_ccl_id', userCclId),
-        supabase.from('vaccine_stock_transactions').select('*').eq('destination_ccl_id', userCclId),
-        supabase.from('vaccine_stock_transactions').select('*').eq('transaction_type', 'RECEIVED').eq('state_id', req.user.state_id)
-      ]);
+    // Target unit level (defaults to query level, or inferred from role/user)
+    const reqLevel = level || (req.user.role === 'BLOCK' ? '3' : (effDistrictId || userCclId || req.user.role === 'VACCINE_MANAGER') ? '2' : '1');
+    const targetLvl = String(reqLevel);
 
-      // Merge all relevant transactions, deduplicating by id
-      const seen = new Set();
-      const txData = [];
-      for (const tx of [...(asSource || []), ...(asDest || []), ...(stateReceived || [])]) {
-        if (!seen.has(tx.id)) { seen.add(tx.id); txData.push(tx); }
-      }
-
-      // Compute net balance per batch from this CCL's perspective
-      const batchMap = {};
-      for (const tx of txData) {
-        const bno = tx.batch_no;
-        if (!bno) continue;
-        if (!batchMap[bno]) {
-          batchMap[bno] = { batch_no: bno, batch_expiry_date: null, manufacture_name: null, quantity: 0 };
-        }
-        if (tx.batch_expiry_date) batchMap[bno].batch_expiry_date = tx.batch_expiry_date;
-        if (tx.manufacture_name) batchMap[bno].manufacture_name = tx.manufacture_name;
-
-        const qty = Number(tx.quantity_doses || 0);
-        if (tx.transaction_type === 'RECEIVED') {
-          // External receipt — only count if this CCL is the destination
-          if (String(tx.destination_ccl_id) === String(userCclId)) {
-            batchMap[bno].quantity += qty;
-          }
-        } else if (tx.transaction_type === 'ISSUED') {
-          if (String(tx.source_ccl_id) === String(userCclId)) batchMap[bno].quantity -= qty;
-          if (String(tx.destination_ccl_id) === String(userCclId)) batchMap[bno].quantity += qty;
-        }
-      }
-
-      return res.json(Object.values(batchMap).filter(b => b.quantity > 0));
+    // Collect all district store ccl_ids if effDistrictId is set
+    const distCclSet = new Set();
+    if (userCclId) distCclSet.add(String(userCclId));
+    if (effDistrictId) {
+      const { data: distCcps } = await supabase.from('vaccine_ccp').select('ccl_id').eq('district_id', effDistrictId);
+      (distCcps || []).forEach(c => { if (c.ccl_id) distCclSet.add(String(c.ccl_id)); });
     }
 
-    // --- Standard path for state/block admins (no specific ccl_id) ---
-    let query = supabase.from('vaccine_stock_transactions').select('*');
-    if (level) query = query.eq('level', level);
-    if (req.user.role === 'BLOCK' || req.user.block_id) {
-       query = query.eq('block_id', req.user.block_id);
-    } else if (effDistrictId) {
-       query = query.eq('district_id', effDistrictId);
-    } else if (req.user.state_id) {
-       query = query.eq('state_id', req.user.state_id);
-    }
-    if (facility_id) query = query.eq('facility_id', facility_id);
+    // Fetch transactions for this state (or all if state_id not present)
+    let txQuery = supabase.from('vaccine_stock_transactions').select('*');
+    if (req.user.state_id) txQuery = txQuery.eq('state_id', req.user.state_id);
 
-    const { data, error } = await query;
+    const { data: allTxs, error } = await txQuery;
     if (error) throw error;
 
-    // Aggregate transactions into batches
-    const batchMap = {};
-    for (const tx of data || []) {
-      if (!tx.batch_no) continue;
-      if (!batchMap[tx.batch_no]) {
-        batchMap[tx.batch_no] = { batch_no: tx.batch_no, batch_expiry_date: tx.batch_expiry_date, manufacture_name: tx.manufacture_name, quantity: 0 };
+    // First pass: gather metadata per batch (expiry date, manufacture_name)
+    const batchMetaMap = {};
+    for (const tx of allTxs || []) {
+      const bno = tx.batch_no;
+      if (!bno) continue;
+      if (!batchMetaMap[bno]) {
+        batchMetaMap[bno] = { batch_no: bno, batch_expiry_date: null, manufacture_name: null };
       }
-      if (tx.batch_expiry_date) batchMap[tx.batch_no].batch_expiry_date = tx.batch_expiry_date;
-      if (tx.manufacture_name) batchMap[tx.batch_no].manufacture_name = tx.manufacture_name;
-      if (tx.transaction_type === 'RECEIVED') batchMap[tx.batch_no].quantity += Number(tx.quantity_doses || 0);
-      else if (tx.transaction_type === 'ISSUED') batchMap[tx.batch_no].quantity -= Number(tx.quantity_doses || 0);
+      if (tx.batch_expiry_date) batchMetaMap[bno].batch_expiry_date = tx.batch_expiry_date;
+      if (tx.manufacture_name) batchMetaMap[bno].manufacture_name = tx.manufacture_name;
     }
 
-    // Enrich with global batch metadata (expiry, manufacturer) if missing
-    const batchNos = Object.keys(batchMap);
-    if (batchNos.length > 0) {
-      const { data: globalBatches } = await supabase.from('vaccine_stock_transactions')
-        .select('batch_no, batch_expiry_date, manufacture_name')
-        .in('batch_no', batchNos)
-        .not('batch_expiry_date', 'is', null);
-      if (globalBatches) {
-        for (const gb of globalBatches) {
-          if (batchMap[gb.batch_no]) {
-            if (gb.batch_expiry_date) batchMap[gb.batch_no].batch_expiry_date = gb.batch_expiry_date;
-            if (gb.manufacture_name) batchMap[gb.batch_no].manufacture_name = gb.manufacture_name;
-          }
+    // Second pass: compute quantity per batch for targetLevel / user context
+    const batchMap = {};
+    for (const tx of allTxs || []) {
+      const bno = tx.batch_no;
+      if (!bno) continue;
+
+      if (!batchMap[bno]) {
+        batchMap[bno] = {
+          batch_no: bno,
+          batch_expiry_date: batchMetaMap[bno]?.batch_expiry_date || null,
+          manufacture_name: batchMetaMap[bno]?.manufacture_name || null,
+          quantity: 0
+        };
+      }
+
+      const qty = Number(tx.quantity_doses || 0);
+
+      if (targetLvl === '1') {
+        // --- LEVEL 1 (State Store) ---
+        if (tx.transaction_type === 'RECEIVED') {
+          const isL1Rec = (!tx.source_ccl_id && (!tx.level || String(tx.level) === '1')) || String(tx.destination_level || '') === '1';
+          if (isL1Rec) batchMap[bno].quantity += qty;
+        } else if (tx.transaction_type === 'ISSUED') {
+          // Outflow from L1
+          if (String(tx.source_level || tx.level || '') === '1') batchMap[bno].quantity -= qty;
+          // Inflow to L1
+          if (String(tx.destination_level || '') === '1') batchMap[bno].quantity += qty;
+        }
+      } else if (targetLvl === '2') {
+        // --- LEVEL 2 (District Store) ---
+        if (tx.transaction_type === 'RECEIVED') {
+          let matches = false;
+          if (userCclId && String(tx.destination_ccl_id || '') === String(userCclId)) matches = true;
+          else if (effDistrictId && String(tx.district_id || '') === String(effDistrictId)) matches = true;
+          else if (distCclSet.size > 0 && distCclSet.has(String(tx.destination_ccl_id || ''))) matches = true;
+          else if (!effDistrictId && (String(tx.level || '') === '2' || String(tx.destination_level || '') === '2')) matches = true;
+          if (matches) batchMap[bno].quantity += qty;
+        } else if (tx.transaction_type === 'ISSUED') {
+          // Outflow from L2
+          let isSource = false;
+          if (userCclId && String(tx.source_ccl_id || '') === String(userCclId)) isSource = true;
+          else if (effDistrictId && String(tx.district_id || '') === String(effDistrictId) && String(tx.source_level || tx.level || '') === '2') isSource = true;
+          else if (distCclSet.size > 0 && distCclSet.has(String(tx.source_ccl_id || ''))) isSource = true;
+          else if (!effDistrictId && (String(tx.source_level || tx.level || '') === '2')) isSource = true;
+          if (isSource) batchMap[bno].quantity -= qty;
+
+          // Inflow to L2
+          let isDest = false;
+          if (userCclId && String(tx.destination_ccl_id || '') === String(userCclId)) isDest = true;
+          else if (effDistrictId && String(tx.district_id || '') === String(effDistrictId) && String(tx.destination_level || '') === '2') isDest = true;
+          else if (distCclSet.size > 0 && distCclSet.has(String(tx.destination_ccl_id || ''))) isDest = true;
+          else if (!effDistrictId && (String(tx.destination_level || '') === '2')) isDest = true;
+          if (isDest) batchMap[bno].quantity += qty;
+        }
+      } else if (targetLvl === '3') {
+        // --- LEVEL 3 (Block Store) ---
+        const targetBlock = req.user.block_id ? String(req.user.block_id) : null;
+        if (tx.transaction_type === 'RECEIVED') {
+          const isL3Rec = String(tx.destination_level || tx.level || '') === '3' && (!targetBlock || String(tx.block_id || '') === targetBlock);
+          if (isL3Rec) batchMap[bno].quantity += qty;
+        } else if (tx.transaction_type === 'ISSUED') {
+          // Outflow from L3
+          const isSource = String(tx.source_level || tx.level || '') === '3' && (!targetBlock || String(tx.block_id || '') === targetBlock);
+          if (isSource) batchMap[bno].quantity -= qty;
+          // Inflow to L3
+          const isDest = String(tx.destination_level || '') === '3' && (!targetBlock || String(tx.block_id || '') === targetBlock);
+          if (isDest) batchMap[bno].quantity += qty;
         }
       }
     }
 
-    res.json(Object.values(batchMap).filter(b => b.quantity > 0));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+    const availableBatches = Object.values(batchMap).filter(b => b.quantity > 0);
+    return res.json(availableBatches);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 

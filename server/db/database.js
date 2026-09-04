@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 // ─── Supabase JS Client (HTTPS — works on Vercel) ─────────────────────────────
 export const SUPABASE_URL = process.env.SUPABASE_URL;
-export const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+export const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
 export const useSupabase = Boolean(SUPABASE_URL && SUPABASE_SERVICE_KEY);
 
 export let supabase = null;
