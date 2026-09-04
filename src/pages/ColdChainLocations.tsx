@@ -529,19 +529,19 @@ export const ColdChainLocations: React.FC<{
 
         {/* Table Body */}
         <div className="overflow-auto flex-1 min-h-0">
-          <table className="w-full" style={{ fontSize: '11px' }}>
+          <table className="w-full" style={{ fontSize: '9px' }}>
             <thead className="sticky top-0 z-10">
               <tr className="gradient-header text-white shadow-sm">
-                <th className="px-2.5 py-2 text-center font-bold uppercase tracking-wide w-12 border-b border-hpv-purple/40">S.No</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('ccl_id')}>CCL ID{renderSortIcon('ccl_id')}</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" style={{ minWidth: 180 }} onClick={() => handleSort('facility_name')}>Name of Facility{renderSortIcon('facility_name')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('unit_type')}>Unit Type{renderSortIcon('unit_type')}</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('blocks')}>Block / District{renderSortIcon('blocks')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('ccl_block_hq_yes')}>CCL Block HQ{renderSortIcon('ccl_block_hq_yes')}</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('name_of_unit_incharge')}>Incharge{renderSortIcon('name_of_unit_incharge')}</th>
-                <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('level')}>Level{renderSortIcon('level')}</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('health_facility_type')}>Health Facility Type{renderSortIcon('health_facility_type')}</th>
-                <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('setting')}>Setting{renderSortIcon('setting')}</th>
+                <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide w-12 border-b border-hpv-purple/40">S.No</th>
+                <th className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('ccl_id')}>CCL ID{renderSortIcon('ccl_id')}</th>
+                <th className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" style={{ minWidth: 180 }} onClick={() => handleSort('facility_name')}>Name of Facility{renderSortIcon('facility_name')}</th>
+                <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('unit_type')}>Unit Type{renderSortIcon('unit_type')}</th>
+                <th className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('blocks')}>Block / District{renderSortIcon('blocks')}</th>
+                <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('ccl_block_hq_yes')}>CCL Block HQ{renderSortIcon('ccl_block_hq_yes')}</th>
+                <th className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('name_of_unit_incharge')}>Incharge{renderSortIcon('name_of_unit_incharge')}</th>
+                <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('level')}>Level{renderSortIcon('level')}</th>
+                <th className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('health_facility_type')}>Health Facility Type{renderSortIcon('health_facility_type')}</th>
+                <th className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('setting')}>Setting{renderSortIcon('setting')}</th>
               </tr>
             </thead>
 

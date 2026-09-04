@@ -280,9 +280,9 @@ export const ReportingCompleteness: React.FC<{
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Complete': return <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200"><CheckCircle2 className="w-3.5 h-3.5" /> Complete</div>;
-      case 'Late': return <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200"><Clock className="w-3.5 h-3.5" /> Late</div>;
-      default: return <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-bold border border-rose-200"><AlertCircle className="w-3.5 h-3.5" /> Pending</div>;
+      case 'Complete': return <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9px] font-bold border border-emerald-200"><CheckCircle2 className="w-3 h-3" /> Complete</div>;
+      case 'Late': return <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[9px] font-bold border border-amber-200"><Clock className="w-3 h-3" /> Late</div>;
+      default: return <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[9px] font-bold border border-rose-200"><AlertCircle className="w-3 h-3" /> Pending</div>;
     }
   };
 
@@ -306,11 +306,11 @@ export const ReportingCompleteness: React.FC<{
       </div>
 
       {/* ── Filter Toolbar ─────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 shrink-0">
-        <div className="flex flex-wrap gap-2.5 items-end">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-3 py-2 shrink-0">
+        <div className="flex flex-wrap gap-1.5 items-end">
           {/* State */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">State</label>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">State</label>
             <div className="relative">
               <select
                 value={filterStateId}
@@ -318,8 +318,8 @@ export const ReportingCompleteness: React.FC<{
                   setFilterStateId(e.target.value);
                   setFilterDistrictId('ALL');
                 }}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
-                style={{ minWidth: 160 }}
+                className="pl-2 pr-6 py-1 border border-slate-200 rounded-md text-[10px] text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-1 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
+                style={{ minWidth: 110 }}
               >
                 {statesList.length > 0 ? (
                   statesList.map(s => (
@@ -329,36 +329,36 @@ export const ReportingCompleteness: React.FC<{
                   <option value="">Uttarakhand</option>
                 )}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-1.5 pointer-events-none" />
             </div>
           </div>
 
           {/* Report Level */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Level</label>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Report Level</label>
             <div className="relative">
               <select
                 value={reportLevel}
                 onChange={e => setReportLevel(e.target.value as any)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
-                style={{ minWidth: 130 }}
+                className="pl-2 pr-6 py-1 border border-slate-200 rounded-md text-[10px] text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-1 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
+                style={{ minWidth: 90 }}
               >
                 <option value="District">District</option>
                 <option value="Block Units">Block Units</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-1.5 pointer-events-none" />
             </div>
           </div>
 
           {/* Districts */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Districts</label>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Districts</label>
             <div className="relative">
               <select
                 value={filterDistrictId}
                 onChange={e => setFilterDistrictId(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
-                style={{ minWidth: 160 }}
+                className="pl-2 pr-6 py-1 border border-slate-200 rounded-md text-[10px] text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-1 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
+                style={{ minWidth: 110 }}
               >
                 <option value="ALL">All Districts</option>
                 <option value="KUMAON">Kumaon</option>
@@ -367,65 +367,63 @@ export const ReportingCompleteness: React.FC<{
                   <option key={d.id} value={String(d.id)}>{d.name}</option>
                 ))}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-1.5 pointer-events-none" />
             </div>
           </div>
 
           {/* Report Selector */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Report Selector</label>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Report Selector</label>
             <div className="relative">
               <select
                 value={reportType}
                 onChange={e => setReportType(e.target.value)}
-                className="pl-2.5 pr-8 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
-                style={{ minWidth: 180 }}
+                className="pl-2 pr-6 py-1 border border-slate-200 rounded-md text-[10px] text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-1 focus:ring-hpv-purple/30 appearance-none cursor-pointer"
+                style={{ minWidth: 120 }}
               >
                 <option value="ALL">All Reports</option>
                 <option value="DAILY_PROGRESS">Daily Progress Report</option>
                 <option value="MONTHLY_DUE_LIST">Monthly Due List Report</option>
                 <option value="MONTHLY_STOCK">Monthly Vaccine Stock Balance Report</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-1.5 pointer-events-none" />
             </div>
           </div>
 
           {/* From Date */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">From Date</label>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">From Date</label>
             <input
               type="date"
               value={fromDate}
               onChange={e => setFromDate(e.target.value)}
-              className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple cursor-pointer"
-              style={{ minWidth: 140 }}
+              className="pl-2 pr-1.5 py-1 border border-slate-200 rounded-md text-[10px] text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-1 focus:ring-hpv-purple/30 cursor-pointer"
+              style={{ minWidth: 105 }}
             />
           </div>
 
-          {/* To Date + Generate Report Button inline */}
-          <div className="flex items-end gap-2.5">
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">To Date</label>
-              <input
-                type="date"
-                value={toDate}
-                onChange={e => setToDate(e.target.value)}
-                className="pl-2.5 pr-2.5 py-2 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-hpv-purple/30 focus:border-hpv-purple cursor-pointer"
-                style={{ minWidth: 140 }}
-              />
-            </div>
-
-            {/* Generate Report Button */}
-            <button
-              onClick={fetchReport}
-              disabled={loading}
-              style={{ height: 36, borderRadius: 8, minWidth: 152 }}
-              className="flex items-center justify-center gap-2 px-5 font-bold text-xs text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-lg transition-all shadow-md shadow-hpv-purple/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
-            >
-              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
-              {loading ? 'Generating...' : 'Generate Report'}
-            </button>
+          {/* To Date */}
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">To Date</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={e => setToDate(e.target.value)}
+              className="pl-2 pr-1.5 py-1 border border-slate-200 rounded-md text-[10px] text-slate-800 font-medium bg-slate-50 focus:outline-none focus:ring-1 focus:ring-hpv-purple/30 cursor-pointer"
+              style={{ minWidth: 105 }}
+            />
           </div>
+
+          {/* Generate Report Button */}
+          <button
+            onClick={fetchReport}
+            disabled={loading}
+            className="flex items-center justify-center gap-1.5 px-4 py-1 font-bold text-[10px] text-white bg-gradient-to-r from-[#3A0088] to-[#3A0088] hover:from-[#3A0088] hover:to-[#3A0088] rounded-md transition-all shadow-md shadow-hpv-purple/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            style={{ height: 26 }}
+          >
+            {loading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <BarChart3 className="w-3 h-3" />}
+            {loading ? 'Generating...' : 'Generate Report'}
+          </button>
         </div>
       </div>
 
@@ -525,68 +523,68 @@ export const ReportingCompleteness: React.FC<{
         </div>
 
           <div className="overflow-auto flex-1">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse" style={{ fontSize: '9px' }}>
               <thead className="sticky top-0 z-10">
                 <tr className="gradient-header text-white shadow-sm">
-                  <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('unitName')}>Reporting Unit{renderSortIcon('unitName')}</th>
-                  <th className="px-3 py-2 text-left font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('reportName')}>Report Name{renderSortIcon('reportName')}</th>
-                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('frequency')}>Frequency{renderSortIcon('frequency')}</th>
-                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('lastReported')}>Last Reported{renderSortIcon('lastReported')}</th>
-                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" title="Hidden internally but visible here" onClick={() => handleSort('expected')}>Reports Expected<br/><span className="text-[9px] font-medium opacity-80">(Hidden)</span>{renderSortIcon('expected')}</th>
-                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('submitted')}>Reports<br/>Submitted{renderSortIcon('submitted')}</th>
-                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('reportingPct')}>Reporting (%){renderSortIcon('reportingPct')}</th>
-                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('onTimePct')}>On Time (%){renderSortIcon('onTimePct')}</th>
-                  <th className="px-3 py-2 text-center font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('status')}>Current Status<br/><span className="text-[9px] font-medium opacity-80">(Complete / Late / Pending)</span>{renderSortIcon('status')}</th>
+                  <th className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('unitName')}>Reporting Unit{renderSortIcon('unitName')}</th>
+                  <th className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('reportName')}>Report Name{renderSortIcon('reportName')}</th>
+                  <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('frequency')}>Frequency{renderSortIcon('frequency')}</th>
+                  <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('lastReported')}>Last Reported{renderSortIcon('lastReported')}</th>
+                  <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" title="Hidden internally but visible here" onClick={() => handleSort('expected')}>Reports Expected<br/><span className="text-[8px] font-medium opacity-80">(Hidden)</span>{renderSortIcon('expected')}</th>
+                  <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('submitted')}>Reports<br/>Submitted{renderSortIcon('submitted')}</th>
+                  <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('reportingPct')}>Reporting (%){renderSortIcon('reportingPct')}</th>
+                  <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('onTimePct')}>On Time (%){renderSortIcon('onTimePct')}</th>
+                  <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('status')}>Current Status<br/><span className="text-[8px] font-medium opacity-80">(Complete / Late / Pending)</span>{renderSortIcon('status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
                 {paginatedRows.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-2 py-8 text-center text-slate-500">
+                    <td colSpan={9} className="px-2 py-8 text-center text-slate-500 text-[9px]">
                       No reports found matching your filters
                     </td>
                   </tr>
                 ) : (
                   paginatedRows.map((r, i) => (
                     <tr key={i} className="hover:bg-slate-50/80 transition-colors group">
-                      <td className="px-2 py-1.5 border-r border-slate-100/50">
-                        <div className="font-bold text-[#3A0088] text-xs flex items-center gap-1.5">
+                      <td className="px-2 py-1 border-r border-slate-100/50">
+                        <div className="text-[9px] font-bold text-[#3A0088] flex items-center gap-1">
                           {r.unitName}
                           {r.isUrban && (
-                            <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-hpv-purple-soft text-hpv-purple uppercase tracking-wider">
+                            <span className="px-1 py-0.5 rounded text-[7px] font-bold bg-hpv-purple-soft text-hpv-purple uppercase tracking-wider">
                               Urban
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-2 py-1.5 text-xs text-slate-600 font-medium border-r border-slate-100/50">{r.reportName}</td>
-                      <td className="px-2 py-1.5 text-xs text-slate-600 border-r border-slate-100/50">{r.frequency}</td>
-                      <td className="px-2 py-1.5 text-xs font-bold border-r border-slate-200">
+                      <td className="px-2 py-1 text-[9px] text-slate-600 font-normal border-r border-slate-100/50">{r.reportName}</td>
+                      <td className="px-2 py-1 text-[9px] text-slate-600 font-normal border-r border-slate-100/50">{r.frequency}</td>
+                      <td className="px-2 py-1 text-[9px] font-normal border-r border-slate-200">
                         {r.lastReported ? (
-                          <span className="text-emerald-700 flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-amber-500" /> {formatDate(r.lastReported)}</span>
+                          <span className="text-emerald-700 flex items-center gap-1"><Clock className="w-3 h-3 text-amber-500" /> {formatDate(r.lastReported)}</span>
                         ) : (
-                          <span className="text-slate-400 font-medium italic">Never</span>
+                          <span className="text-slate-400 font-normal italic">Never</span>
                         )}
                       </td>
-                      <td className="px-2 py-1.5 text-sm font-bold text-slate-700 text-center bg-[#f8fafc] border-r border-slate-200/60">{r.expected}</td>
-                      <td className="px-2 py-1.5 text-sm font-black text-[#3A0088] text-center bg-hpv-purple-soft/30 border-r border-slate-200/60">{r.submitted}</td>
-                      <td className="px-2 py-1.5 border-r border-slate-100/50 bg-[#faf9fb] align-top">
-                        <div className="flex flex-col gap-1 w-12 mt-0.5">
-                          <span className={`text-[11px] leading-none font-bold ${r.reportingPct >= 70 ? 'text-emerald-600' : r.reportingPct >= 30 ? 'text-orange-500' : r.reportingPct > 0 ? 'text-amber-600' : 'text-rose-500'}`}>{r.reportingPct}%</span>
-                          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden shrink-0">
+                      <td className="px-2 py-1 text-[9px] font-normal text-slate-700 text-center bg-[#f8fafc] border-r border-slate-200/60">{r.expected}</td>
+                      <td className="px-2 py-1 text-[9px] font-bold text-[#3A0088] text-center bg-hpv-purple-soft/30 border-r border-slate-200/60">{r.submitted}</td>
+                      <td className="px-2 py-1 border-r border-slate-100/50 bg-[#faf9fb] align-top">
+                        <div className="flex flex-col gap-0.5 w-10 mt-0.5">
+                          <span className={`text-[9px] leading-none font-normal ${r.reportingPct >= 70 ? 'text-emerald-600' : r.reportingPct >= 30 ? 'text-orange-500' : r.reportingPct > 0 ? 'text-amber-600' : 'text-rose-500'}`}>{r.reportingPct}%</span>
+                          <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden shrink-0">
                             <div className={`h-full ${r.reportingPct >= 70 ? 'bg-emerald-500' : r.reportingPct >= 30 ? 'bg-orange-500' : 'bg-amber-500'}`} style={{ width: `${r.reportingPct}%` }}></div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-2 py-1.5 border-r border-slate-100/50 bg-[#faf9fb] align-top">
-                        <div className="flex flex-col gap-1 w-12 mt-0.5">
-                          <span className={`text-[11px] leading-none font-bold ${r.onTimePct >= 70 ? 'text-emerald-600' : r.onTimePct >= 30 ? 'text-orange-500' : r.onTimePct > 0 ? 'text-amber-600' : 'text-rose-500'}`}>{r.onTimePct}%</span>
-                          <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden shrink-0">
+                      <td className="px-2 py-1 border-r border-slate-100/50 bg-[#faf9fb] align-top">
+                        <div className="flex flex-col gap-0.5 w-10 mt-0.5">
+                          <span className={`text-[9px] leading-none font-normal ${r.onTimePct >= 70 ? 'text-emerald-600' : r.onTimePct >= 30 ? 'text-orange-500' : r.onTimePct > 0 ? 'text-amber-600' : 'text-rose-500'}`}>{r.onTimePct}%</span>
+                          <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden shrink-0">
                             <div className={`h-full ${r.onTimePct >= 70 ? 'bg-emerald-500' : r.onTimePct >= 30 ? 'bg-orange-500' : 'bg-amber-500'}`} style={{ width: `${r.onTimePct}%` }}></div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-2 py-1.5 text-center bg-amber-50/10">
+                      <td className="px-2 py-1 text-center bg-amber-50/10">
                         {getStatusBadge(r.status)}
                       </td>
                     </tr>
