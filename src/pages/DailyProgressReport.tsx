@@ -409,8 +409,33 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
     return sortConfig.direction === 'asc' ? <ArrowUp className="inline w-3 h-3 ml-1 text-white" /> : <ArrowDown className="inline w-3 h-3 ml-1 text-white" />;
   };
 
+  const rowsWithRank = useMemo(() => {
+    if (!rows || rows.length === 0) return [];
+    const rankedList = [...rows].sort((a, b) => {
+      const covA = a.vaccination_coverage_pct ?? -1;
+      const covB = b.vaccination_coverage_pct ?? -1;
+      if (covB !== covA) return covB - covA;
+      
+      const vaccA = a.beneficiaries_vaccinated ?? 0;
+      const vaccB = b.beneficiaries_vaccinated ?? 0;
+      if (vaccB !== vaccA) return vaccB - vaccA;
+      
+      return (a.name || '').localeCompare(b.name || '');
+    });
+
+    const rankMap = new Map<any, number>();
+    rankedList.forEach((item, index) => {
+      rankMap.set(item.id ?? item.name, index + 1);
+    });
+
+    return rows.map(r => ({
+      ...r,
+      rank: rankMap.get(r.id ?? r.name) || 0
+    }));
+  }, [rows]);
+
   const sortedRows = useMemo(() => {
-    let sorted = [...rows];
+    let sorted = [...rowsWithRank];
     sorted.sort((a, b) => {
       let valA = (a as any)[sortConfig.key];
       let valB = (b as any)[sortConfig.key];
@@ -427,8 +452,8 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
       return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
 
-    return sorted.map((r, i) => ({ ...r, rank: i + 1 }));
-  }, [rows, sortConfig]);
+    return sorted;
+  }, [rowsWithRank, sortConfig]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return sortedRows;
@@ -459,7 +484,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
   const handleCSV = () => {
     if (!rows.length) return;
     const headers = ['Rank','Reporting Unit','Coverage %'];
-    const csvRows = sortedRows.map((r: any, i: number) => [i + 1, `"${r.name}"`, r.vaccination_coverage_pct]);
+    const csvRows = sortedRows.map((r: any) => [r.rank, `"${r.name}"`, r.vaccination_coverage_pct]);
     const content = [headers.join(','), ...csvRows.map(r => r.join(','))].join('\n');
     const blob = new Blob([content], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -725,7 +750,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
 
         {/* Scrollable table body */}
         <div className="overflow-auto flex-1 min-h-0">
-          <table className="w-full" style={{ fontSize: '11px' }}>
+          <table className="w-full" style={{ fontSize: '9px' }}>
             <thead className="sticky top-0 z-10">
               <tr className="gradient-header text-white shadow-sm">
                 <th className="px-3 py-2 text-left font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 cursor-pointer hover:bg-white/10" style={{ minWidth: 140 }} onClick={() => handleSort('name')}>Reporting Unit ({reportLevel === 'District' ? 'District' : 'Block'}){renderSortIcon('name')}</th>
@@ -805,7 +830,7 @@ export const DailyProgressReport: React.FC<DailyProgressReportProps> = ({
             </tbody>
             {!loading && paginated.length > 0 && (
               <tfoot>
-                <tr className="border-t-2 border-[#3A0088]/20 font-bold text-slate-800" style={{ background: 'rgba(58,0,136,0.04)', fontSize: '11px' }}>
+                <tr className="border-t-2 border-[#3A0088]/20 font-bold text-slate-800" style={{ background: 'rgba(58,0,136,0.04)', fontSize: '9px' }}>
                   <td className="px-2 py-1.5 font-extrabold sticky left-0 border-r border-slate-200" style={{ background: 'rgba(58,0,136,0.04)' }}>TOTAL ({rows.length})</td>
                   <td className="px-2 py-1.5 text-center text-slate-400">—</td>
                   <td className="px-2 py-1.5 text-right">{fmt(kpis.totalPop)}</td>

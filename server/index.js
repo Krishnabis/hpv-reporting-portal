@@ -2430,7 +2430,11 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
           g.beneficiaries_vaccinated += b.beneficiaries_vaccinated;
           g.sessions_held_cumulative += b.sessions_held_cumulative;
           g.has_report = true;
-          g.last_reporting_date = reportDate;
+          if (b.last_reporting_date && b.last_reporting_date !== '—') {
+            if (g.last_reporting_date === '—' || b.last_reporting_date > g.last_reporting_date) {
+              g.last_reporting_date = b.last_reporting_date;
+            }
+          }
         }
         if (b.has_today_report) {
           g.sessions_held_today += b.sessions_held_today;
@@ -2469,7 +2473,11 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
           g.beneficiaries_vaccinated += b.beneficiaries_vaccinated;
           g.sessions_held_cumulative += b.sessions_held_cumulative;
           g.has_report = true;
-          g.last_reporting_date = reportDate;
+          if (b.last_reporting_date && b.last_reporting_date !== '—') {
+            if (g.last_reporting_date === '—' || b.last_reporting_date > g.last_reporting_date) {
+              g.last_reporting_date = b.last_reporting_date;
+            }
+          }
         }
         if (b.has_today_report) {
           g.sessions_held_today += b.sessions_held_today;
@@ -2502,7 +2510,11 @@ app.get('/api/admin/reports/generate', authenticateToken, async (req, res) => {
           stateObj.beneficiaries_vaccinated += b.beneficiaries_vaccinated;
           stateObj.sessions_held_cumulative += b.sessions_held_cumulative;
           stateObj.has_report = true;
-          stateObj.last_reporting_date = reportDate;
+          if (b.last_reporting_date && b.last_reporting_date !== '—') {
+            if (stateObj.last_reporting_date === '—' || b.last_reporting_date > stateObj.last_reporting_date) {
+              stateObj.last_reporting_date = b.last_reporting_date;
+            }
+          }
         }
         if (b.has_today_report) {
           stateObj.sessions_held_today += b.sessions_held_today;
