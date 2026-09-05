@@ -573,7 +573,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                       Vaccinations (This Month)
                       <div className="group relative">
                         <Info className="w-3 h-3 text-white/70 hover:text-white cursor-help" />
-                        <div className="absolute bottom-full right-0 mb-2 w-48 bg-slate-800 text-white text-[9px] normal-case font-normal p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50 text-left">
+                        <div className="absolute top-full right-0 mt-2 w-48 bg-slate-800 text-white text-[9px] normal-case font-normal p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50 text-left">
                           For district vaccine, vaccinations = vaccine issued
                         </div>
                       </div>
