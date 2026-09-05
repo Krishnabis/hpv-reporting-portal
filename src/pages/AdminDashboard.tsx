@@ -1756,10 +1756,11 @@ export const AdminDashboard: React.FC = () => {
                         <AlertTriangle className="w-5 h-5 text-red-600" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-slate-600">Critical Stock</span>
-                        <span className="text-base font-bold text-red-800 leading-tight truncate">
-                          {Object.keys(vaccDashboard?.districtCriticalStock || {}).length} Dist / {(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isCriticalStock).length} Blk
-                        </span>
+                        <span className="text-xs font-semibold text-slate-600 mb-0.5">Critical Stock</span>
+                        <div className="flex flex-col text-sm font-bold text-red-800 leading-tight">
+                          <span>{Object.keys(vaccDashboard?.districtCriticalStock || {}).length} Dist</span>
+                          <span>{(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isCriticalStock).length} Blk</span>
+                        </div>
                       </div>
                     </div>
 
@@ -1769,10 +1770,11 @@ export const AdminDashboard: React.FC = () => {
                         <Zap className="w-5 h-5 text-orange-600" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-slate-600">Re-Order Stock</span>
-                        <span className="text-base font-bold text-orange-800 leading-tight truncate">
-                          {Object.keys(vaccDashboard?.districtLowStock || {}).length} Dist / {(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isLowStock).length} Blk
-                        </span>
+                        <span className="text-xs font-semibold text-slate-600 mb-0.5">Re-Order Stock</span>
+                        <div className="flex flex-col text-sm font-bold text-orange-800 leading-tight">
+                          <span>{Object.keys(vaccDashboard?.districtLowStock || {}).length} Dist</span>
+                          <span>{(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isLowStock).length} Blk</span>
+                        </div>
                       </div>
                     </div>
                   </div>

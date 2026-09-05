@@ -27,7 +27,7 @@ function getActionBadge(action: string | null) {
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
 
 const KpiCard: React.FC<{
-  icon: React.ReactNode; label: string; value: string;
+  icon: React.ReactNode; label: string; value: React.ReactNode;
   subLabel?: string; subValue?: string; iconBg: string; valueColor?: string; loading?: boolean;
   onClick?: () => void;
   active?: boolean;
@@ -51,7 +51,7 @@ const KpiCard: React.FC<{
         </div>
         <div className="flex flex-col flex-1 min-w-0">
           <div className="text-[9px] font-semibold text-slate-600 truncate leading-tight">{label}</div>
-          <div className={`text-[13px] font-extrabold leading-none mt-0.5 ${valueColor} truncate`}>{value}</div>
+          <div className={`text-[13px] font-extrabold mt-0.5 ${valueColor} ${typeof value === 'string' ? 'truncate leading-none' : 'leading-tight'}`}>{value}</div>
           {(subValue || subLabel) && (
             <>
               <div className="w-full h-px bg-slate-100 my-1" />
@@ -505,12 +505,26 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                 
                 {/* Clickable Action KPI Cards */}
                 <KpiCard loading={loading} icon={<AlertCircle className="w-4 h-4 text-red-600" />} iconBg="bg-red-100"
-                  label="Critical Stock" value={`${kpis.criticalDistricts} Dist / ${kpis.criticalBlocks} Blk`} valueColor="text-red-800"
+                  label="Critical Stock" 
+                  value={
+                    <div className="flex flex-col text-[11px] font-bold">
+                      <span>{kpis.criticalDistricts} Dist</span>
+                      <span>{kpis.criticalBlocks} Blk</span>
+                    </div>
+                  } 
+                  valueColor="text-red-800"
                   onClick={() => setActiveActionFilter(activeActionFilter === 'CRITICAL' ? 'ALL' : 'CRITICAL')}
                   active={activeActionFilter === 'CRITICAL'}
                 />
                 <KpiCard loading={loading} icon={<Zap className="w-4 h-4 text-orange-600" />} iconBg="bg-orange-100"
-                  label="Re-Order Stock" value={`${kpis.reorderDistricts} Dist / ${kpis.reorderBlocks} Blk`} valueColor="text-orange-800"
+                  label="Re-Order Stock" 
+                  value={
+                    <div className="flex flex-col text-[11px] font-bold">
+                      <span>{kpis.reorderDistricts} Dist</span>
+                      <span>{kpis.reorderBlocks} Blk</span>
+                    </div>
+                  } 
+                  valueColor="text-orange-800"
                   onClick={() => setActiveActionFilter(activeActionFilter === 'REORDER' ? 'ALL' : 'REORDER')}
                   active={activeActionFilter === 'REORDER'}
                 />
