@@ -1598,8 +1598,12 @@ export const AdminDashboard: React.FC = () => {
                       </span>
                     </>
                   )}
-                  <div title="Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator). Legend: Aspirational <30%, Progressing 30-70%, High Performing 70-90%, Champions >90%" className="cursor-help inline-flex items-center">
+                  <div className="group relative cursor-help inline-flex items-center">
                     <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                    <div className="absolute top-full left-1/2 mt-2 -translate-x-1/2 w-64 bg-slate-800 text-white text-[9px] normal-case font-normal p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-[100] text-left">
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-b-[4px] border-b-slate-800" />
+                      Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator). Legend: Aspirational &lt;30%, Progressing 30-70%, High Performing 70-90%, Champions &gt;90%
+                    </div>
                   </div>
                 </div>
 
@@ -1813,7 +1817,8 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-hpv-purple font-semibold">Vaccination Coverage (%)</span>
                       <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-hpv-purple transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
-                        <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
+                        <div className="absolute left-1/2 top-full mt-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-b-[4px] border-b-slate-800" />
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-semibold text-slate-200">Vaccination Coverage (%) =</span>
                             <div className="flex flex-col items-center">
@@ -1823,7 +1828,6 @@ export const AdminDashboard: React.FC = () => {
                             </div>
                             <span className="text-[10px] font-semibold text-slate-200">× 100</span>
                           </div>
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
                         </div>
                       </div>
                     </div>
@@ -1832,7 +1836,8 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-hpv-purple font-semibold">Line Listed (%)</span>
                       <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-hpv-purple transition-colors shrink-0">
                         <span className="text-[9px] font-bold italic font-serif">i</span>
-                        <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
+                        <div className="absolute left-1/2 top-full mt-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-b-[4px] border-b-slate-800" />
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-semibold text-slate-200">Line Listed (%) =</span>
                             <div className="flex flex-col items-center">
@@ -1842,7 +1847,6 @@ export const AdminDashboard: React.FC = () => {
                             </div>
                             <span className="text-[10px] font-semibold text-slate-200">× 100</span>
                           </div>
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
                         </div>
                       </div>
                     </div>
@@ -2084,8 +2088,12 @@ export const AdminDashboard: React.FC = () => {
                         <span className="bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded text-[11px] leading-none">
                           ({selectedDistrict ? (vaccDashboard?.districtUtilization.find((d: any) => d.district === selectedDistrict)?.utilizationPct?.toFixed(1) || '0.0') : (vaccDashboard?.utilization?.toFixed(1) || '0.0')}%)
                         </span>
-                        <div title="Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator). Legend: Aspirational <30%, Progressing 30-70%, High Performing 70-90%, Champions >90%" className="cursor-help inline-flex items-center">
+                        <div className="group relative cursor-help inline-flex items-center">
                           <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                          <div className="absolute top-full left-1/2 mt-2 -translate-x-1/2 w-64 bg-slate-800 text-white text-[9px] normal-case font-normal p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-[100] text-left">
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-b-[4px] border-b-slate-800" />
+                            Ranks districts and reporting units (Blocks/Cities) by the selected indicator and shows cumulative progress against the relevant benchmark (e.g., annual target, vaccine supply, or other applicable denominator). Legend: Aspirational &lt;30%, Progressing 30-70%, High Performing 70-90%, Champions &gt;90%
+                          </div>
                         </div>
                       </div>
 
@@ -2175,7 +2183,8 @@ export const AdminDashboard: React.FC = () => {
                         <span className="text-hpv-purple font-semibold">Vaccine Utilization (%)</span>
                         <div className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 cursor-help hover:bg-slate-200 hover:text-hpv-purple transition-colors shrink-0">
                           <span className="text-[9px] font-bold italic font-serif">i</span>
-                          <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
+                          <div className="absolute left-1/2 top-full mt-1.5 -translate-x-1/2 w-max bg-slate-800 text-white p-2.5 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] font-medium shadow-xl">
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-b-[4px] border-b-slate-800" />
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] font-semibold text-slate-200">Vaccine Utilization (%) =</span>
                               <div className="flex flex-col items-center">
@@ -2185,7 +2194,6 @@ export const AdminDashboard: React.FC = () => {
                               </div>
                               <span className="text-[10px] font-semibold text-slate-200">× 100</span>
                             </div>
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-[4px] border-x-transparent border-t-[4px] border-t-slate-800" />
                           </div>
                         </div>
                       </div>
