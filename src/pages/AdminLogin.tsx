@@ -82,7 +82,7 @@ export const AdminLogin: React.FC = () => {
   }
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex flex-col justify-between p-2 sm:p-4">
+    <div className="h-[100dvh] w-full overflow-y-auto bg-slate-50 flex flex-col justify-between p-2 sm:p-4">
       {/* Top Header */}
       <header className="max-w-md mx-auto w-full flex items-center justify-between py-2">
         <div className="bg-white rounded-[2rem] px-5 py-2 flex items-center justify-center shadow-sm shrink-0">

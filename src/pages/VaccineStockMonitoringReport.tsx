@@ -508,8 +508,8 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                   label="Critical Stock" 
                   value={
                     <div className="flex flex-col text-[11px] font-bold">
-                      <span>{kpis.criticalDistricts} Dist</span>
-                      <span>{kpis.criticalBlocks} Blk</span>
+                      <span>{kpis.criticalDistricts} District</span>
+                      <span>{kpis.criticalBlocks} Block</span>
                     </div>
                   } 
                   valueColor="text-red-800"
@@ -520,8 +520,8 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                   label="Re-Order Stock" 
                   value={
                     <div className="flex flex-col text-[11px] font-bold">
-                      <span>{kpis.reorderDistricts} Dist</span>
-                      <span>{kpis.reorderBlocks} Blk</span>
+                      <span>{kpis.reorderDistricts} District</span>
+                      <span>{kpis.reorderBlocks} Block</span>
                     </div>
                   } 
                   valueColor="text-orange-800"

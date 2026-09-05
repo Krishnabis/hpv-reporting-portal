@@ -345,6 +345,7 @@ export const AdminDashboard: React.FC = () => {
 
   // HPV Vaccine Dashboard state
   const [vaccDashboard, setVaccDashboard] = useState<any>(null);
+  const [stockAlerts, setStockAlerts] = useState({criticalDistricts: 0, criticalBlocks: 0, reorderDistricts: 0, reorderBlocks: 0});
   const [loadingVaccDashboard, setLoadingVaccDashboard] = useState(false);
   const [vaccFacilities, setVaccFacilities] = useState<any[]>([]);
   const [stockDate, setStockDate] = useState(new Date().toISOString().split('T')[0]);
@@ -797,6 +798,46 @@ export const AdminDashboard: React.FC = () => {
       .catch(err => { console.error('Failed to fetch vaccine dashboard:', err); setLoadingVaccDashboard(false); });
   };
 
+  const fetchStockAlerts = () => {
+    const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
+    const todayStr = new Date().toISOString().split('T')[0];
+    const currentMonthStr = todayStr.slice(0, 7);
+    const params = new URLSearchParams({ reportingMonth: currentMonthStr, level: 'BLOCK' });
+    if (activeStateId) params.set('state_id', activeStateId);
+    
+    fetch(`/api/admin/reports/stock-monitoring?${params}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => {
+        let criticalDistricts = new Set();
+        let criticalBlocks = new Set();
+        let reorderDistricts = new Set();
+        let reorderBlocks = new Set();
+
+        (data.rows || []).forEach((r: any) => {
+          let stock_availability_pct = 100;
+          if (r.annual_requirement > 0) {
+            stock_availability_pct = ((r.estimated_stock_balance || 0) / r.annual_requirement) * 100;
+          }
+
+          if (stock_availability_pct < 10) {
+            if (r.entity_type === 'DISTRICT_AGGREGATE' || r.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE') criticalDistricts.add(r.district_id);
+            else criticalBlocks.add(r.id);
+          } else if (stock_availability_pct < 25) {
+            if (r.entity_type === 'DISTRICT_AGGREGATE' || r.entity_type === 'CCL_LEVEL_2_DISTRICT_STORE') reorderDistricts.add(r.district_id);
+            else reorderBlocks.add(r.id);
+          }
+        });
+
+        setStockAlerts({
+          criticalDistricts: criticalDistricts.size,
+          criticalBlocks: criticalBlocks.size,
+          reorderDistricts: reorderDistricts.size,
+          reorderBlocks: reorderBlocks.size
+        });
+      })
+      .catch(err => console.error('Failed to fetch stock alerts:', err));
+  };
+
   const fetchVaccFacilities = (level: number) => {
     const token = (localStorage.getItem('hpv_admin_token') || sessionStorage.getItem('hpv_admin_token'));
     const params = new URLSearchParams({ unit_level: String(level) });
@@ -858,7 +899,10 @@ export const AdminDashboard: React.FC = () => {
     if (tab === 'users') fetchAdminUsers();
     if (tab === 'audit') fetchAuditLogs();
     if (tab === 'activity') fetchActivityData();
-    if (tab === 'dashboard' || tab === 'vaccine-management') fetchVaccineDashboard();
+    if (tab === 'dashboard' || tab === 'vaccine-management') {
+      fetchVaccineDashboard();
+      fetchStockAlerts();
+    }
     const isLvl2 = adminUser?.district_id || String(adminUser?.ccl_unit_level) === '2';
     if (tab === 'stock-receiving') { fetchStockHistory(); fetchBatches(); }
     if (tab === 'stock-issuing') { fetchVaccFacilities(isLvl2 ? 3 : 2); fetchStockHistory(); fetchBatches(isLvl2 ? '2' : '1'); }
@@ -1758,8 +1802,8 @@ export const AdminDashboard: React.FC = () => {
                       <div className="flex flex-col">
                         <span className="text-xs font-semibold text-slate-600 mb-0.5">Critical Stock</span>
                         <div className="flex flex-col text-sm font-bold text-red-800 leading-tight">
-                          <span>{Object.keys(vaccDashboard?.districtCriticalStock || {}).length} Dist</span>
-                          <span>{(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isCriticalStock).length} Blk</span>
+                          <span>{stockAlerts.criticalDistricts} District</span>
+                          <span>{stockAlerts.criticalBlocks} Block</span>
                         </div>
                       </div>
                     </div>
@@ -1772,8 +1816,8 @@ export const AdminDashboard: React.FC = () => {
                       <div className="flex flex-col">
                         <span className="text-xs font-semibold text-slate-600 mb-0.5">Re-Order Stock</span>
                         <div className="flex flex-col text-sm font-bold text-orange-800 leading-tight">
-                          <span>{Object.keys(vaccDashboard?.districtLowStock || {}).length} Dist</span>
-                          <span>{(vaccDashboard?.blockUtilization || []).filter((b: any) => b.isLowStock).length} Blk</span>
+                          <span>{stockAlerts.reorderDistricts} District</span>
+                          <span>{stockAlerts.reorderBlocks} Block</span>
                         </div>
                       </div>
                     </div>
@@ -1928,7 +1972,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={fetchVaccineDashboard}
+                  onClick={() => { fetchVaccineDashboard(); fetchStockAlerts(); }}
                   className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-blue-600 hover:bg-slate-50 flex items-center gap-1.5 shadow-sm transition-colors"
                 >
                   <RefreshCw className="w-3.5 h-3.5" /> Refresh
