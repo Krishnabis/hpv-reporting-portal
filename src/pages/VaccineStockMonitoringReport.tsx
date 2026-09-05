@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Calendar, Download, BarChart3, ChevronDown, Search, Maximize2, Minimize2, TrendingDown,
   AlertCircle, MapPin, Users, Target, CheckCircle2, PackageMinus, Layers, Zap, AlertTriangle,
-  ChevronLeft, ChevronRight, RefreshCw, ArrowUp, ArrowDown, ArrowUpDown, Filter
+  ChevronLeft, ChevronRight, RefreshCw, ArrowUp, ArrowDown, ArrowUpDown, Filter, Info
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -72,7 +72,7 @@ const KpiCard: React.FC<{
 
 const SkeletonRow = () => (
   <tr className="animate-pulse border-b border-slate-100">
-    {Array.from({ length: 12 }).map((_, i) => (
+    {Array.from({ length: 11 }).map((_, i) => (
       <td key={i} className="px-3 py-2"><div className="h-3.5 bg-slate-200 rounded w-full" /></td>
     ))}
   </tr>
@@ -198,20 +198,21 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
       pdf.text(`Month: ${filterMonth} | Level: ${reportLevel}`, 14, 22);
       
       const head = [[
-        'Site / Unit', 'Requirement', 'Opening', 'Received', 'Vaccinations',
-        'Wastage', 'Reporting %', 'Est. Balance', 'Actual Balance', 'Avail %', 'Action'
+        'Site Unit', 'Annual Requirement (Doses)', 'Pre. Month-end Reporting (%)', 'Pre.Month-end Stock (Reported)',
+        'Opening Stock (Crude Estimate)', 'Vaccine Received (this Month)', 'Vaccinations (This Month)',
+        'Current Stock (Estimated)', 'Estimation Model', 'Stock Availability (%)', 'Action'
       ]];
 
       const body = paginated.map(row => [
         row.name,
         fmt(row.annual_requirement),
+        row.month_end_reporting_count != null && row.month_end_total_ccp != null ? `${row.month_end_reporting_count}/${row.month_end_total_ccp} (${fmt(row.month_end_reporting_pct, 1)}%)` : '—',
+        fmt(row.month_end_stock_reported),
         fmt(row.opening_stock),
         fmt(row.vaccine_received),
         fmt(row.vaccinations),
-        fmt(row.wastage),
-        row.month_end_reporting_pct != null ? `${fmt(row.month_end_reporting_pct, 1)}%` : '—',
         fmt(row.estimated_stock_balance),
-        fmt(row.month_end_stock_reported),
+        '—',
         row.stock_availability_pct != null ? `${fmt(row.stock_availability_pct, 1)}%` : '—',
         row.action_required || '—'
       ]);
@@ -325,10 +326,12 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
 
   const handleCSV = () => {
     if (!rows.length) return;
-    const headers = ['Site / Unit','Annual Requirement','Opening Stock','Vaccine Received','Vaccinations / Vaccine Issued','Wastage (Reported)','Month-end Reporting (%)','Estimated Stock Balance','Month-end Stock Balance','Wastage (%)','Stock Availability (%)','Action'];
+    const headers = ['Site Unit','Annual Requirement (Doses)','Pre. Month-end Reporting (%)','Pre.Month-end Stock (Reported)','Opening Stock (Crude Estimate)','Vaccine Received (this Month)','Vaccinations (This Month)','Current Stock (Estimated)','Estimation Model','Stock Availability (%)','Action'];
     const csvRows = sortedRows.map((r: any) => [
-      `"${r.name}"`, r.annual_requirement, r.opening_stock, r.vaccine_received, r.vaccinations,
-      r.wastage, r.month_end_reporting_pct, r.estimated_stock_balance, r.month_end_stock_reported,
+      `"${r.name}"`, r.annual_requirement, 
+      r.month_end_reporting_count != null && r.month_end_total_ccp != null ? `"${r.month_end_reporting_count}/${r.month_end_total_ccp} (${fmt(r.month_end_reporting_pct, 1)}%)"` : '—', 
+      r.month_end_stock_reported,
+      r.opening_stock, r.vaccine_received, r.vaccinations, r.estimated_stock_balance, '—',
       r.stock_availability_pct, r.action_required
     ]);
     const content = [headers.join(','), ...csvRows.map(r => r.join(','))].join('\n');
@@ -559,16 +562,26 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
             <table className="w-full" style={{ fontSize: '9px' }}>
               <thead className="sticky top-0 z-10">
                 <tr className="gradient-header text-white shadow-sm">
-                  <th className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 cursor-pointer hover:bg-white/10" style={{ minWidth: 140 }} onClick={() => handleSort('name')}>Site / Unit{renderSortIcon('name')}</th>
-                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('annual_requirement')}>Annual Requirement{renderSortIcon('annual_requirement')}</th>
-                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('opening_stock')}>Opening Stock{renderSortIcon('opening_stock')}</th>
-                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('received')}>Vaccine Received{renderSortIcon('received')}</th>
-                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('vaccinations')}>Vaccinations / Vaccine Issued{renderSortIcon('vaccinations')}</th>
-                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide text-red-200 cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('wastage')}>Wastage (Reported){renderSortIcon('wastage')}</th>
-                  <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('month_end_reporting_pct')}>Month-end Reporting (%){renderSortIcon('month_end_reporting_pct')}</th>
-                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('estimated_stock_balance')}>Estimated Stock Balance{renderSortIcon('estimated_stock_balance')}</th>
-                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide text-green-200 cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('month_end_stock_reported')}>Month-end Stock Balance{renderSortIcon('month_end_stock_reported')}</th>
-                  <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('stock_wastage_pct')}>Wastage (%){renderSortIcon('stock_wastage_pct')}</th>
+                  <th className="px-2 py-1.5 text-left text-[9px] font-bold uppercase tracking-wide sticky left-0 gradient-header z-20 cursor-pointer hover:bg-white/10" style={{ minWidth: 140 }} onClick={() => handleSort('name')}>Site Unit{renderSortIcon('name')}</th>
+                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('annual_requirement')}>Annual Requirement (Doses){renderSortIcon('annual_requirement')}</th>
+                  <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('month_end_reporting_pct')}>Pre. Month-end Reporting (%){renderSortIcon('month_end_reporting_pct')}</th>
+                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('month_end_stock_reported')}>Pre.Month-end Stock (Reported){renderSortIcon('month_end_stock_reported')}</th>
+                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('opening_stock')}>Opening Stock (Crude Estimate){renderSortIcon('opening_stock')}</th>
+                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('received')}>Vaccine Received (this Month){renderSortIcon('received')}</th>
+                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('vaccinations')}>
+                    <div className="flex items-center justify-end gap-1">
+                      Vaccinations (This Month)
+                      <div className="group relative">
+                        <Info className="w-3 h-3 text-white/70 hover:text-white cursor-help" />
+                        <div className="absolute bottom-full right-0 mb-2 w-48 bg-slate-800 text-white text-[9px] normal-case font-normal p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50 text-left">
+                          For district vaccine, vaccinations = vaccine issued
+                        </div>
+                      </div>
+                    </div>
+                    {renderSortIcon('vaccinations')}
+                  </th>
+                  <th className="px-2 py-1.5 text-right text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('estimated_stock_balance')}>Current Stock (Estimated){renderSortIcon('estimated_stock_balance')}</th>
+                  <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40">Estimation Model</th>
                   <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide cursor-pointer hover:bg-white/10 border-b border-hpv-purple/40" onClick={() => handleSort('stock_availability_pct')}>Stock Availability (%){renderSortIcon('stock_availability_pct')}</th>
                   <th className="px-2 py-1.5 text-center text-[9px] font-bold uppercase tracking-wide border-b border-hpv-purple/40 cursor-pointer hover:bg-white/10" onClick={() => handleSort('action_required')}>Action{renderSortIcon('action_required')}</th>
                 </tr>
@@ -577,7 +590,7 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                 {loading ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />) :
                 paginated.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="py-16 text-center">
+                    <td colSpan={11} className="py-16 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <AlertCircle className="w-10 h-10 text-slate-300" />
                         <p className="text-slate-400 font-semibold text-sm">
@@ -597,14 +610,13 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                         {row.is_urban && <span className="ml-1.5 text-[8px] font-bold text-hpv-purple bg-hpv-purple-soft px-1.5 py-0.5 rounded uppercase tracking-wider">Urban</span>}
                       </td>
                       <td className="px-2 py-1.5 text-right font-semibold text-slate-700">{fmt(row.annual_requirement)}</td>
+                      <td className="px-2 py-1.5 text-center font-semibold">{row.month_end_reporting_count != null && row.month_end_total_ccp != null ? `${row.month_end_reporting_count}/${row.month_end_total_ccp} (${fmt(row.month_end_reporting_pct, 1)}%)` : '—'}</td>
+                      <td className="px-2 py-1.5 text-right font-black text-green-700 bg-green-50/50">{fmt(row.month_end_stock_reported)}</td>
                       <td className="px-2 py-1.5 text-right font-semibold text-slate-600">{fmt(row.opening_stock)}</td>
                       <td className="px-2 py-1.5 text-right font-bold text-blue-700">{fmt(row.vaccine_received)}</td>
                       <td className="px-2 py-1.5 text-right font-bold text-orange-700">{fmt(row.vaccinations)}</td>
-                      <td className="px-2 py-1.5 text-right font-bold text-red-600">{fmt(row.wastage)}</td>
-                      <td className="px-2 py-1.5 text-center font-semibold">{row.month_end_reporting_pct != null ? `${fmt(row.month_end_reporting_pct, 1)}%` : '—'}</td>
                       <td className="px-2 py-1.5 text-right font-semibold text-slate-700">{fmt(row.estimated_stock_balance)}</td>
-                      <td className="px-2 py-1.5 text-right font-black text-green-700 bg-green-50/50">{fmt(row.month_end_stock_reported)}</td>
-                      <td className="px-2 py-1.5 text-center font-semibold text-red-600">{row.wastagePct != null ? `${fmt(row.wastagePct, 1)}%` : '—'}</td>
+                      <td className="px-2 py-1.5 text-center font-semibold text-slate-500">—</td>
                       <td className="px-2 py-1.5 text-center font-semibold">{row.stock_availability_pct != null ? `${fmt(row.stock_availability_pct, 1)}%` : '—'}</td>
                       <td className="px-2 py-1.5 text-center flex justify-center">{getActionBadge(row.action_required)}</td>
                     </tr>
@@ -615,14 +627,13 @@ export const VaccineStockMonitoringReport: React.FC<VaccineStockMonitoringReport
                 <tr className="bg-slate-100 font-bold text-slate-800 border-t border-slate-300">
                   <td className="px-2 py-2 sticky left-0 z-[5] bg-slate-100 border-r border-slate-200 uppercase tracking-wider text-xs">Total</td>
                   <td className="px-2 py-2 text-right">{fmt(sortedRows.reduce((s, r) => s + (r.annual_requirement || 0), 0))}</td>
+                  <td className="px-2 py-2 text-center">—</td>
+                  <td className="px-2 py-2 text-right text-green-700 font-black">{fmt(sortedRows.reduce((s, r) => s + (r.month_end_stock_reported || 0), 0))}</td>
                   <td className="px-2 py-2 text-right">{fmt(sortedRows.reduce((s, r) => s + (r.opening_stock || 0), 0))}</td>
                   <td className="px-2 py-2 text-right text-blue-700">{fmt(sortedRows.reduce((s, r) => s + (r.vaccine_received || 0), 0))}</td>
                   <td className="px-2 py-2 text-right text-orange-700">{fmt(sortedRows.reduce((s, r) => s + (r.vaccinations || 0), 0))}</td>
-                  <td className="px-2 py-2 text-right text-red-600">{fmt(sortedRows.reduce((s, r) => s + (r.wastage || 0), 0))}</td>
-                  <td className="px-2 py-2 text-center">—</td>
                   <td className="px-2 py-2 text-right">{fmt(sortedRows.reduce((s, r) => s + (r.estimated_stock_balance || 0), 0))}</td>
-                  <td className="px-2 py-2 text-right text-green-700 font-black">{fmt(sortedRows.reduce((s, r) => s + (r.month_end_stock_reported || 0), 0))}</td>
-                  <td className="px-2 py-2 text-center text-red-600">—</td>
+                  <td className="px-2 py-2 text-center">—</td>
                   <td className="px-2 py-2 text-center">
                     {sortedRows.reduce((s, r) => s + (r.annual_requirement || 0), 0) > 0 
                       ? `${fmt((sortedRows.reduce((s, r) => s + (r.month_end_stock_reported || 0), 0) / sortedRows.reduce((s, r) => s + (r.annual_requirement || 0), 0)) * 100, 1)}%`
